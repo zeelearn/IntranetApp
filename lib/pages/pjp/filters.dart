@@ -210,15 +210,19 @@ class _FiltersScreenState extends State<FiltersScreen> {
           _selection.filters[index].isSelected = false;
         }
       }else if(index==-2){
-          if(val)
+          if(val) {
             _selection.type = FILTERStatus.MYTEAM;
+            for(int index=0;index<_selection.filters.length;index++){
+              _selection.filters[index].isSelected = val;
+            }
+          }
           else
-            _selection.type = FILTERStatus.NONE;
+            _selection.type = FILTERStatus.MYSELF;
           for(int index=0;index<_selection.filters.length;index++){
             _selection.filters[index].isSelected = val;
           }
       }else {
-        _selection.type = FILTERStatus.NONE;
+        _selection.type = FILTERStatus.MYTEAM;
         _selection.filters[index].isSelected = val;
       }
     });

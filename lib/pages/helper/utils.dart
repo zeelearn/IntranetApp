@@ -150,6 +150,17 @@ class Utility{
     }
     return dt;
   }
+  static DateTime convertServerDate(String value) {
+    DateTime dt = DateTime.now();
+    //2022-07-18T00:00:00
+    try {
+      dt = new DateFormat('yyyy-MM-dd').parse(value);
+      //print('asasdi   ' + dt.day.toString());
+    } catch (e) {
+      e.toString();
+    }
+    return dt;
+  }
   static DateTime convertTime(String value) {
     DateTime dt = DateTime.now();
     //2022-07-18T00:00:00
@@ -192,7 +203,7 @@ class Utility{
     String value='';
     //2022-07-18T00:00:00
     try {
-      value = new DateFormat('dd-MMM').format(date);
+      value = new DateFormat('d-MMM').format(date);
       //print('asasdi   ' + dt.day.toString());
     } catch (e) {
       e.toString();
@@ -234,8 +245,10 @@ class Utility{
   }
 
   static int getDateDifference(DateTime start,DateTime end){
+
     int difference = 1;
-    int days = start.difference(end).inDays;
+    int days = end.difference(start).inDays;
+    print('${Utility.shortDate(start)} to ${Utility.shortDate(end)} : days ${days}');
     if(days>1){
       difference = days;
     }
@@ -243,6 +256,10 @@ class Utility{
       difference = 1;
     }
     return difference;
+  }
+
+  static getDateTime(){
+    return DateFormat('yyyy-MM-dd hh:mm').format(DateTime.now());
   }
 
 }

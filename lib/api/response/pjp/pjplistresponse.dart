@@ -1,7 +1,11 @@
+import 'dart:convert';
+
+import 'package:get/get.dart';
+
 class PjpListResponse {
   late String responseMessage;
   late int statusCode;
-  late List<PJPInfo> responseData;
+  late List<PJPInfo> responseData= <PJPInfo>[];
 
   PjpListResponse(
       {required this.responseMessage,
@@ -12,25 +16,33 @@ class PjpListResponse {
     try {
       responseMessage = json['responseMessage'];
       statusCode = json['statusCode'];
-      if (json['responseData'] != null) {
-        responseData = <PJPInfo>[];
+      responseData = <PJPInfo>[];
+      if (json['responseData'] is List) {
+        print('at line 21');
         json['responseData'].forEach((v) {
-          responseData.add(new PJPInfo.fromJson(v));
+          try {
+            responseData.add(new PJPInfo.fromJson(v));
+          } catch (e) {
+            print('at line 21 ${v.toString()}');
+            print(e.toString());
+          }
         });
+      }else{
+        print('at line 30');
+        responseData.add(PJPInfo.fromJson(json['responseData']));
       }
     } catch (e) {
-      print('at line 19');
+      print(json['responseData']);
+      print('at line 28--');
       print(e.toString());
     }
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['responseMessage'] = this.responseMessage;
-    data['statusCode'] = this.statusCode;
-    if (this.responseData != null) {
-      data['responseData'] = this.responseData.map((v) => v.toJson()).toList();
-    }
+    final Map<String, dynamic> data = Map<String, dynamic>();
+    data['responseMessage'] = responseMessage;
+    data['statusCode'] = statusCode;
+    data['responseData'] = responseData.map((v) => v.toJson()).toList();
     return data;
   }
 }
@@ -42,6 +54,7 @@ class PJPInfo {
   late String remarks;
   late String isSelfPJP = '';
   late String PJP_Id;
+  late String Status;
   List<GetDetailedPJP>? getDetailedPJP = [];
 
   PJPInfo(
@@ -51,32 +64,36 @@ class PJPInfo {
       required this.toDate,
       required this.remarks,
       required this.isSelfPJP,
+      required this.Status,
       this.getDetailedPJP});
 
   PJPInfo.fromJson(Map<String, dynamic> json) {
     try {
-      print('at 56');
+      //print('at 56');
       PJP_Id = json['PJP_Id'];
       displayName = json['DisplayName'] ?? ' NA';
       fromDate = json['FromDate'] ?? ' NA';
       toDate = json['ToDate'] ?? ' NA';
+      Status = json['Status'] ?? 'Check In';
       remarks = json['Remarks'] == null || json['Remarks'] == 'null'
           ? ' NA'
           : json['Remarks'];
       isSelfPJP = json['isSelfPJP'] ?? ' 0';
+      getDetailedPJP = <GetDetailedPJP>[];
       if (json.containsKey('GetDetailedPJP')) {
-        getDetailedPJP = <GetDetailedPJP>[];
-        json['GetDetailedPJP'].forEach((v) {
-          getDetailedPJP!.add(GetDetailedPJP.fromJson(v));
-        });
-      } else {
-        //print('Data not ${json['GetDetailedPJP']} ----------------------------------');
-        //getDetailedPJP = null;
+        if( json['GetDetailedPJP'] is List) {
+          json['GetDetailedPJP'].forEach((v) {
+            getDetailedPJP!.add(GetDetailedPJP.fromJson(v));
+          });
+        }else{
+          getDetailedPJP!.add(GetDetailedPJP.fromJson(json['GetDetailedPJP']));
+        }
       }
-      print('at 76${getDetailedPJP.toString()}');
+      //print('at 76${getDetailedPJP.toString()}');
     } catch (e) {
       print('===================DATA ERROR=====71');
       print(e.toString());
+      print(json);
     }
   }
 
@@ -86,11 +103,11 @@ class PJPInfo {
     data['DisplayName'] = this.displayName;
     data['FromDate'] = this.fromDate;
     data['ToDate'] = this.toDate;
+    data['Status'] = this.Status;
     data['Remarks'] = this.remarks;
     data['isSelfPJP'] = this.isSelfPJP;
     if (this.getDetailedPJP != null) {
-      data['GetDetailedPJP'] =
-          this.getDetailedPJP!.map((v) => v.toJson()).toList();
+      data['GetDetailedPJP'] =this.getDetailedPJP!.map((v) => v.toJson()).toList();
     }
     return data;
   }
@@ -103,10 +120,11 @@ class GetDetailedPJP {
   late String visitTime;
   late String franchiseeCode;
   late String franchiseeName;
-  late var Latitude;
-  late var Longitude;
-  late var Address;
-  late var ActivityTitle;
+  late String Latitude;
+  late String Longitude;
+  late String Address;
+  late String ActivityTitle;
+  late String Status;
   late List<Purpose>? purpose = [];
 
   late bool isSync = false;
@@ -126,6 +144,7 @@ class GetDetailedPJP {
     required this.Latitude,
     required this.Longitude,
     required this.Address,
+    required this.Status,
     required this.ActivityTitle,
     required this.purpose,
     required this.isActive,
@@ -142,21 +161,31 @@ class GetDetailedPJP {
       PJPCVF_Id = json['PJPCVF_Id'] ?? '0';
       visitDate = json['Visit_Date'] ?? ' NA';
       visitTime = json['Visit_Time'] ?? ' NA';
+      Status = json['Status'] ?? ' Check In';
       franchiseeCode = json['Franchisee_Code'] ?? ' NA';
       franchiseeName = json['Franchisee_Name'] ?? ' NA';
       Latitude = json['Latitude'] ?? ' NA';
       Longitude = json['Longitude'] ?? ' NA';
       Address = json['Address'] ?? ' NA';
       ActivityTitle = json['ActivityTitle'] ?? ' NA';
-      if (json['Purpose'] != null) {
-        purpose = <Purpose>[];
-        json['Purpose'].forEach((v) {
-          purpose!.add(Purpose.fromJson(v));
-        });
+      purpose = <Purpose>[];
+      if(json.containsKey('Purpose')) {
+        if (json['Purpose'] is List) {
+         // print('is array ${json['Purpose']}');
+          if (json['Purpose'] != null) {
+            json['Purpose'].forEach((v) {
+              purpose!.add(Purpose.fromJson(v));
+            });
+          }
+        } else {
+          //print('is object ${json['Purpose']}');
+          purpose!.add(Purpose.fromJson(json['Purpose']));
+        }
       }
     } catch (e) {
       print('at line 138');
       print(e.toString());
+      print(json);
     }
   }
 
@@ -168,6 +197,7 @@ class GetDetailedPJP {
     data['Visit_Time'] = this.visitTime;
     data['Franchisee_Code'] = this.franchiseeCode;
     data['Franchisee_Name'] = this.franchiseeName;
+    data['Status'] = this.Status;
     data['Latitude'] = this.Latitude;
     data['Longitude'] = this.Longitude;
     data['Address'] = this.Address;
@@ -188,7 +218,7 @@ class Purpose {
 
   Purpose({required this.categoryId, required this.categoryName});
 
-  Purpose.fromJson(Map<String, dynamic> json) {
+  Purpose.fromJson(Map<dynamic, dynamic> json) {
     categoryId = json['Category_id'] == null ? ' NA' : json['Category_id'];
     categoryName =
         json['Category_Name'] == null ? ' NA' : json['Category_Name'];

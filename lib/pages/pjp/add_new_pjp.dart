@@ -40,7 +40,7 @@ class _AddNewPJPState extends State<AddNewPJPScreen> implements onResponse{
   String _dateCount = '';
   String _range = '';
   String _rangeCount = '';
-  var _remarkController = TextEditingController(text: 'Enter Remark');
+  var _remarkController = TextEditingController(text: '');
   late PJPModel mPjpModel;
 
   @override
@@ -316,6 +316,8 @@ class _AddNewPJPState extends State<AddNewPJPScreen> implements onResponse{
     Utility.showLoaderDialog(context);
     //mCategoryList.clear();
     //print('categoty');
+    mPjpModel.fromDate = _fromDate;
+    mPjpModel.toDate = _toDate;
     AddPJPRequest request = AddPJPRequest(
         FromDate: Utility.convertShortDate(mPjpModel.fromDate),
         ToDate: Utility.convertShortDate(mPjpModel.toDate),
@@ -378,11 +380,12 @@ class _AddNewPJPState extends State<AddNewPJPScreen> implements onResponse{
       DBConstant.IS_CHECK_IN: 0,
       DBConstant.IS_CHECK_OUT: 0,
       DBConstant.IS_CVF_COMPLETED: 0,
-      DBConstant.EMP_CODE: '',
+      DBConstant.EMP_CODE: widget.employeeId,
       DBConstant.MODIFIED_DATE: Utility.parseDate(DateTime.now()),
       DBConstant.CREATED_DATE: Utility.parseDate(DateTime.now()),
     };
     dbHelper.insert(LocalConstant.TABLE_PJP_INFO, data);
+    print('db update');
 
   }
 

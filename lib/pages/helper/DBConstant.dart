@@ -57,11 +57,15 @@ class DBConstant{
 
 
   static String CATEGORY_ID ='category_Id';
+  static String CVF_ID ='cvf_id';
   static String CATEGORY_NAME ='category_Name';
-  static String QUESTION_ID ='category_Name';
+  static String QUESTION_ID ='question_id';
   static String QUESTION ='question';
+  static String IS_COMPULSARY ='iscompulsary';
+  static String ANSWER_ID ='answerid';
   static String ANSWER_NAME ='answername';
   static String ANSWER_TYPE ='answer_type';
+  static String USER_ANSWER ='useranswer';
 
   static String FRANCHISEE_NAME ='franchise_name';
   static String FRANCHISEE_CODE ='franchise_code';

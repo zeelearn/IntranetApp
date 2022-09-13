@@ -949,6 +949,7 @@ class _AddCVFState extends State<AddCVFScreen> {
       print(mCategoryList[index].categoryName);
       if (_categoryController.text.toString() == mCategoryList[index].categoryName) {
         id = id +token+ mCategoryList[index].categoryId.toString();
+        token=',';
       }
     }
     print('Category is ${id}');

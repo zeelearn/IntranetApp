@@ -10,13 +10,15 @@ class PJPListRequest {
 
   getJson(){
     return jsonEncode( {
-      'Employee_id': Employee_id
+      'Employee_id': Employee_id,
+      'PJP_id':PJP_id
     });
   }
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> map = {
-      'Employee_id': Employee_id
+      'Employee_id': Employee_id,
+      'PJP_id': PJP_id
     };
     return map;
   }

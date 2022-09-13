@@ -27,6 +27,7 @@ class MyCVFListScreen extends StatefulWidget {
 class _MyCVFListScreen extends State<MyCVFListScreen> {
   int employeeId = 0;
   List<GetDetailedPJP> mCvfList = [];
+  bool isLoading = true;
 
   //FilterSelection mFilterSelection = FilterSelection(filters: [], type: FILTERStatus.MYSELF);
   final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey =
@@ -51,13 +52,14 @@ class _MyCVFListScreen extends State<MyCVFListScreen> {
   }
 
   loadAllCVF() {
+    isLoading = true;
     Utility.showLoaderDialog(context);
     mCvfList.clear();
     GetAllCVF request = GetAllCVF(Employee_id: employeeId);
     APIService apiService = APIService();
     print(request.toJson());
     apiService.getAllCVF(request).then((value) {
-      print(value.toString());
+      isLoading = false;
       if (value != null) {
         if (value == null || value.responseData == null) {
           Utility.showMessage(context, 'data not found');
@@ -138,7 +140,11 @@ class _MyCVFListScreen extends State<MyCVFListScreen> {
   }
 
   getCVFListView() {
-    if (mCvfList.isEmpty) {
+    if(isLoading){
+      return Center(child: Image.asset(
+        "assets/images/loading.gif",
+      ),);
+    }else if (mCvfList.isEmpty) {
       return GestureDetector(
         onTap: () {
           /*Navigator.push(
@@ -191,7 +197,7 @@ class _MyCVFListScreen extends State<MyCVFListScreen> {
       onTap: () {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => QuestionListScreen(cvfView: cvfView, mCategory: 'All', PJPCVF_Id: int.parse(cvfView.PJPCVF_Id), employeeId: employeeId,)),
+          MaterialPageRoute(builder: (context) => QuestionListScreen(cvfView: cvfView, mCategory: 'All', PJPCVF_Id: int.parse(cvfView.PJPCVF_Id), employeeId: employeeId,mCategoryId: cvfView.purpose![0].categoryId,)),
         );
       },
       child: Padding(
@@ -433,17 +439,17 @@ class _MyCVFListScreen extends State<MyCVFListScreen> {
   List<Widget> _buildRowList(GetDetailedPJP cvfView) {
     List<Widget> _rowWidget = []; // this will hold Rows according to available lines
     for(int index=0;index<cvfView.purpose!.length;index++){
-      _rowWidget.add(getTextCategory(cvfView,cvfView.purpose![index].categoryName));
+      _rowWidget.add(getTextCategory(cvfView,cvfView.purpose![index].categoryName,cvfView.purpose![index].categoryId));
     }
     return _rowWidget;
   }
 
-  getTextCategory(GetDetailedPJP cvfView, String categoryname){
+  getTextCategory(GetDetailedPJP cvfView, String categoryname,String categoryId){
     return GestureDetector(
       onTap: (){
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => QuestionListScreen(cvfView: cvfView,PJPCVF_Id: int.parse(cvfView.PJPCVF_Id), employeeId: employeeId, mCategory: categoryname,)),
+          MaterialPageRoute(builder: (context) => QuestionListScreen(cvfView: cvfView,PJPCVF_Id: int.parse(cvfView.PJPCVF_Id), employeeId: employeeId, mCategory: categoryname,mCategoryId: categoryId,)),
         );
         Utility.showMessage(context, '${categoryname} clicked');
       },

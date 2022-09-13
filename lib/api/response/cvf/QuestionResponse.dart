@@ -8,11 +8,15 @@ class QuestionResponse {
   QuestionResponse.fromJson(Map<String, dynamic> json) {
     responseMessage = json['responseMessage'];
     statusCode = json['statusCode'];
-    if (json['responseData'] != null) {
-      responseData = <QuestionMaster>[];
+    responseData = <QuestionMaster>[];
+    if (json['responseData'] is List) {
+      print('inni');
       json['responseData'].forEach((v) {
         responseData.add(new QuestionMaster.fromJson(v));
       });
+    }else{
+      print('asdkasbdjk');
+      responseData.add(new QuestionMaster.fromJson(json['responseData']));
     }
   }
 
@@ -39,9 +43,13 @@ class QuestionMaster {
     categoryId = json['Category_Id'];
     if (json['allquestion'] != null) {
       allquestion = <Allquestion>[];
-      json['allquestion'].forEach((v) {
-        allquestion.add(new Allquestion.fromJson(v));
-      });
+      try {
+        json['allquestion'].forEach((v) {
+          allquestion.add(new Allquestion.fromJson(v));
+        });
+      }catch(e){
+        allquestion.add(new Allquestion.fromJson(json['allquestion']));
+      }
     }
   }
 
@@ -80,9 +88,13 @@ class Allquestion {
     files = json['files'] ?? '';
     if (json['answers'] != null) {
       answers = <Answers>[];
-      json['answers'].forEach((v) {
-        answers.add(new Answers.fromJson(v));
-      });
+      /*if(json['answers'].toString().contains('[')) {
+        json['answers'].forEach((v) {
+          answers.add(new Answers.fromJson(v));
+        });
+      }else{
+        answers.add(new Answers.fromJson(json['answers']));
+      }*/
     }
   }
 

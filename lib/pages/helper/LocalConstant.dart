@@ -63,6 +63,7 @@ class LocalConstant {
   static String TABLE_PJP_PURPOSE ="pjp_purpose";
   static String TABLE_CVF_QUESTIONS ="cvf_questions";
   static String TABLE_CVF_ANSWER_MASTER ="cvf_answermaster";
+  static String TABLE_CVF_USER_ANSWERAS ="cvf_user_answers";
   static String TABLE_CVF_FRANCHISEE ="cvf_centers";
 
 

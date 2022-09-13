@@ -1,24 +1,27 @@
+import 'dart:collection';
+
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:intranet/api/request/cvf/questions_request.dart';
 import 'package:intranet/api/request/cvf/save_cvfquestions_request.dart';
 import 'package:intranet/pages/helper/DatabaseHelper.dart';
+import 'package:intranet/pages/helper/LocalConstant.dart';
 
 import '../../../api/APIService.dart';
 import '../../../api/response/cvf/QuestionResponse.dart';
 import '../../../api/response/cvf/cvfanswers_response.dart';
 import '../../../api/response/pjp/pjplistresponse.dart';
-import '../../helper/LightColor.dart';
+import '../../helper/DBConstant.dart';
 import '../../helper/utils.dart';
 import '../../utils/theme/colors/light_colors.dart';
 
 class QuestionListScreen extends StatefulWidget {
   GetDetailedPJP cvfView;
   String mCategory;
+  String mCategoryId;
   int PJPCVF_Id;
   int employeeId;
 
-  QuestionListScreen({Key? key,required this.PJPCVF_Id,required this.employeeId, required this.cvfView, required this.mCategory})
+  QuestionListScreen({Key? key,required this.PJPCVF_Id,required this.employeeId, required this.cvfView, required this.mCategory,required this.mCategoryId})
       : super(key: key);
 
   @override
@@ -27,6 +30,9 @@ class QuestionListScreen extends StatefulWidget {
 
 class _QuestionListScreenState extends State<QuestionListScreen> {
   List<QuestionMaster> mQuestionMaster = [];
+  bool isLoading = true;
+
+  TextEditingController _textEditingController= TextEditingController();
 
   @override
   void initState() {
@@ -41,22 +47,25 @@ class _QuestionListScreenState extends State<QuestionListScreen> {
   List<bool> ischeck = [];
 
   loadData() {
+    isLoading = true;
     print('load data');
-    Utility.showLoaderDialog(context);
+    //Utility.showLoaderDialog(context);
     mQuestionMaster.clear();
     DateTime time = DateTime.now();
     QuestionsRequest request =
         QuestionsRequest(Category_Id: '1', Business_id: '1',PJPCVF_Id: widget.cvfView.PJPCVF_Id);
     APIService apiService = APIService();
     apiService.getCVFQuestions(request).then((value) {
-      print(value.toString());
+      isLoading = false;
       if (value != null) {
         if (value == null || value.responseData == null) {
           Utility.showMessage(context, 'data not found');
         } else if (value is QuestionResponse) {
           QuestionResponse response = value;
+          print(widget.mCategory);
           if (response != null && response.responseData != null) {
-            if (widget.mCategory.isEmpty || widget.mCategory == 'All') {
+            mQuestionMaster.addAll(response.responseData);
+            /*if (widget.mCategory.isEmpty || widget.mCategory == 'All') {
               List<Purpose> purposeList = getUniqueCategory();
               for (int index = 0;
                   index < response.responseData.length;
@@ -77,15 +86,16 @@ class _QuestionListScreenState extends State<QuestionListScreen> {
                   mQuestionMaster.add(response.responseData[index]);
                 }
               }
-            }
+            }*/
+            insertQuestions();
             setState(() {});
           }
-          print('summery list ${response.responseData.length}');
+          print(mQuestionMaster.length);
         } else {
           Utility.showMessage(context, 'data not found');
         }
       }
-      Navigator.of(context).pop();
+     // Navigator.of(context).pop();
       setState(() {});
     });
   }
@@ -102,6 +112,43 @@ class _QuestionListScreenState extends State<QuestionListScreen> {
     }
     return list;
   }
+
+
+  insertQuestions() async {
+      DBHelper dbHelper = DBHelper();
+      HashMap<String,String> map = HashMap();
+      for(int index=0;index<mQuestionMaster.length;index++) {
+        for(int jIndex=0;jIndex<mQuestionMaster[index].allquestion.length;jIndex++) {
+          if(!map.containsKey(mQuestionMaster[index].categoryId)){
+            dbHelper.deleteCategory(int.parse(mQuestionMaster[index].categoryId));
+            map.putIfAbsent(mQuestionMaster[index].categoryId, () => mQuestionMaster[index].categoryId);
+          }
+          print(mQuestionMaster[index].allquestion[jIndex]
+              .question);
+          Map<String, Object> data = {
+            DBConstant.QUESTION_ID: mQuestionMaster[index].allquestion[jIndex]
+                .Question_Id,
+            DBConstant.QUESTION: mQuestionMaster[index].allquestion[jIndex]
+                .question,
+            DBConstant.CATEGORY_ID: mQuestionMaster[index].categoryId,
+            DBConstant.CATEGORY_NAME: mQuestionMaster[index].categoryName,
+            DBConstant.IS_COMPULSARY: mQuestionMaster[index].allquestion[jIndex].isCompulsory,
+          };
+          dbHelper.insert(LocalConstant.TABLE_CVF_QUESTIONS, data);
+          for(int kIndex=0;kIndex<mQuestionMaster[index].allquestion[jIndex].answers.length;kIndex++) {
+            Map<String, Object> data = {
+              DBConstant.QUESTION_ID: mQuestionMaster[index].allquestion[jIndex].Question_Id,
+              DBConstant.QUESTION: mQuestionMaster[index].allquestion[jIndex].question,
+              DBConstant.ANSWER_NAME: mQuestionMaster[index].allquestion[jIndex].answers[kIndex].answerName,
+              DBConstant.ANSWER_TYPE:mQuestionMaster[index].allquestion[jIndex].answers[kIndex].answerType,
+            };
+            dbHelper.insert(LocalConstant.TABLE_CVF_ANSWER_MASTER, data);
+          }
+        }
+      }
+
+  }
+
 
   saveAnswers() {
     Utility.showLoaderDialog(context);
@@ -144,6 +191,13 @@ class _QuestionListScreenState extends State<QuestionListScreen> {
           title: Text('Questions'),
           actions: [
             IconButton(
+              icon: const Icon(Icons.drafts),
+              tooltip: 'Save as Draft',
+              onPressed: () {
+                saveAnswers();
+              },
+            ),
+            IconButton(
               icon: const Icon(Icons.done),
               tooltip: 'Filter',
               onPressed: () {
@@ -166,13 +220,16 @@ class _QuestionListScreenState extends State<QuestionListScreen> {
   }
 
   getWidget() {
-    if (mQuestionMaster.isEmpty) {
-      return ListTile(title: Text('List'));
+    if(isLoading){
+      return Center(child: Image.asset(
+        "assets/images/loading.gif",
+      ),);
+    }else {
+      return Column(
+        children:
+        mQuestionMaster.map<Widget>((club) => showQuestions(club)).toList(),
+      );
     }
-    return Column(
-      children:
-          mQuestionMaster.map<Widget>((club) => showQuestions(club)).toList(),
-    );
   }
 
   getView(GetDetailedPJP cvfView) {
@@ -207,7 +264,7 @@ class _QuestionListScreenState extends State<QuestionListScreen> {
                             Utility.shortTime(
                                 Utility.convertTime(cvfView.visitTime)),
                             style: TextStyle(
-                              fontSize: 16.0,
+                              fontSize: 14.0,
                               fontWeight: FontWeight.bold,
                               color: Colors.black,
                             ),
@@ -216,7 +273,15 @@ class _QuestionListScreenState extends State<QuestionListScreen> {
                             Utility.shortTimeAMPM(
                                 Utility.convertTime(cvfView.visitTime)),
                             style: TextStyle(
-                              fontSize: 14.0,
+                              fontSize: 12.0,
+                              color: Colors.black,
+                            ),
+                          ),
+                          Text(
+                            Utility.shortDate(
+                                Utility.convertServerDate(cvfView.visitTime)),
+                            style: TextStyle(
+                              fontSize: 12.0,
                               color: Colors.black,
                             ),
                           ),
@@ -247,7 +312,7 @@ class _QuestionListScreenState extends State<QuestionListScreen> {
               Padding(
                 padding: EdgeInsetsDirectional.fromSTEB(0, 4, 0, 0),
                 child: Text(
-                  'Franchisee Code : ${cvfView.franchiseeCode}',
+                  'Fran Code : ${cvfView.franchiseeCode}',
                   style: TextStyle(
                     fontFamily: 'Lexend Deca',
                     color: Color(0xFF4B39EF),
@@ -259,7 +324,7 @@ class _QuestionListScreenState extends State<QuestionListScreen> {
               Padding(
                 padding: EdgeInsetsDirectional.fromSTEB(0, 4, 0, 0),
                 child: Text(
-                  '${Utility.shortDate(Utility.convertDate(cvfView.visitDate))}',
+                  'Ref Id :  C-${cvfView.PJPCVF_Id}',
                   style: TextStyle(
                     fontFamily: 'Lexend Deca',
                     color: Color(0xFF4B39EF),
@@ -271,121 +336,120 @@ class _QuestionListScreenState extends State<QuestionListScreen> {
             ],
           ),
         ),
-        Container(
-          width: MediaQuery.of(context).size.width * 0.85,
-          height: 1,
-          decoration: BoxDecoration(
-            color: Color(0xFFF1F4F8),
-          ),
+        Row(
+          children: [
+            Expanded(
+              flex: 3,
+              child: Padding(
+                padding: EdgeInsetsDirectional.fromSTEB(5, 4, 12, 4),
+                child: Column(
+                  mainAxisSize: MainAxisSize.max,
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Container(
+                        padding: EdgeInsetsDirectional.fromSTEB(0, 4, 0, 0),
+                        child: Text(
+                          '${cvfView.franchiseeName}',
+                          style: TextStyle(
+                            fontFamily: 'Lexend Deca',
+                            color: Color(0xFF090F13),
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            Expanded(flex: 1, child: getTextRounded(cvfView, 'Fill CVF')),
+          ],
         ),
-        Padding(
-          padding: EdgeInsetsDirectional.fromSTEB(5, 4, 12, 4),
-          child: Row(
-            mainAxisSize: MainAxisSize.max,
-            children: [
-              Padding(
-                padding: EdgeInsetsDirectional.fromSTEB(0, 4, 0, 0),
-                child: Text(
-                  '${cvfView.franchiseeName}',
-                  style: TextStyle(
-                    fontFamily: 'Lexend Deca',
-                    color: Color(0xFF090F13),
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-        /*Padding(
-          padding: EdgeInsetsDirectional.fromSTEB(5, 4, 12, 8),
-          child: Row(
-            mainAxisSize: MainAxisSize.max,
-            children: [
-              Padding(
-                padding: EdgeInsetsDirectional.fromSTEB(0, 0, 0, 4),
-                child: Icon(
-                  Icons.schedule,
-                  color: Color(0xFF4B39EF),
-                  size: 20,
-                ),
-              ),
-              Padding(
-                padding: EdgeInsetsDirectional.fromSTEB(4, 0, 0, 0),
-                child: Text(
-                  '${Utility.shortDate(Utility.convertDate(cvfView.visitDate))} : ${Utility.shortTimeFormat(Utility.convertDate(cvfView.visitDate))}',
-                  style: TextStyle(
-                    fontFamily: 'Lexend Deca',
-                    color: Color(0xFF4B39EF),
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),*/
+
         Padding(
             padding: EdgeInsetsDirectional.fromSTEB(5, 4, 12, 4),
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
                 mainAxisSize: MainAxisSize.max,
-                children: _buildRowList(cvfView), /*[
+                children: [
                   cvfView.purpose!.length > 0
                       ? getTextCategory(
-                          cvfView, cvfView.purpose![0].categoryName)
+                      cvfView, cvfView.purpose![0].categoryName)
                       : Text(''),
                   cvfView.purpose!.length > 1
                       ? getTextCategory(
-                          cvfView, cvfView.purpose![1].categoryName)
+                      cvfView, cvfView.purpose![1].categoryName)
                       : Text(''),
                   cvfView.purpose!.length > 2
                       ? getTextCategory(
-                          cvfView, cvfView.purpose![2].categoryName)
+                      cvfView, cvfView.purpose![2].categoryName)
                       : Text(''),
                   cvfView.purpose!.length > 3
                       ? getTextCategory(
-                          cvfView, cvfView.purpose![3].categoryName)
+                      cvfView, cvfView.purpose![3].categoryName)
                       : Text(''),
                   cvfView.purpose!.length > 4
                       ? getTextCategory(
-                          cvfView, cvfView.purpose![4].categoryName)
+                      cvfView, cvfView.purpose![4].categoryName)
                       : Text(''),
-                ],*/
+                ],
               ),
             )),
-
-        /*Padding(
-          padding: EdgeInsetsDirectional.fromSTEB(5, 4, 12, 8),
-          child: Row(
-            mainAxisSize: MainAxisSize.max,
-            children: [
-              Padding(
-                padding: EdgeInsetsDirectional.fromSTEB(0, 0, 0, 4),
-                child: Icon(
-                  Icons.category,
-                  color: Color(0xFF4B39EF),
-                  size: 20,
-                ),
-              ),
-              Padding(
-                padding: EdgeInsetsDirectional.fromSTEB(4, 0, 0, 0),
-                child: Text(
-                  '${Utility.shortDate(Utility.convertDate(cvfView.visitDate))} : ${Utility.shortTimeFormat(Utility.convertDate(cvfView.visitDate))}',
-                  style: TextStyle(
-                    fontFamily: 'Lexend Deca',
-                    color: Color(0xFF4B39EF),
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),*/
       ],
+    );
+  }
+
+  getTextRounded(GetDetailedPJP cvfView, String name) {
+    return GestureDetector(
+      onTap: () {
+        /*if(cvfView.Status =='FILL CVF'){
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) => QuestionListScreen(
+                  cvfView: cvfView,
+                  PJPCVF_Id: int.parse(cvfView.PJPCVF_Id),
+                  employeeId: widget.employeeId,
+                  mCategory: 'All',
+                )),
+          );
+        }else {
+          IntranetServiceHandler.updateCVFStatus(
+              employeeId, cvfView.PJPCVF_Id, Utility.getDateTime(),
+              getNextStatus(cvfView.Status), this);
+          Utility.showMessage(context, '${cvfView.Status} clicked');
+        }*/
+      },
+      child: Container(
+        margin: EdgeInsets.only(right: 2),
+        decoration: BoxDecoration(
+            shape: BoxShape.rectangle, // BoxShape.circle or BoxShape.retangle
+            /*color: Colors.red,*/
+            boxShadow: [BoxShadow(
+              color: Colors.grey,
+              blurRadius: 10.0,
+            ),]
+        ),
+        child: Padding(
+          padding: EdgeInsets.only(left: 0, right: 0, top: 0, bottom: 0),
+          child: Text('${cvfView.Status} ',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                  background: Paint()
+                    ..color = LightColors.kAbsent
+                    ..strokeWidth = 15
+                    ..strokeJoin = StrokeJoin.round
+                    ..strokeCap = StrokeCap.round
+                    ..style = PaintingStyle.stroke,
+                  color: Colors.black,
+                  fontSize: 12
+              )),
+        ),
+      ),
     );
   }
 
@@ -441,6 +505,13 @@ class _QuestionListScreenState extends State<QuestionListScreen> {
       for(int jIndex=0;jIndex<mQuestionMaster[index].allquestion.length;jIndex++){
           if(mQuestionMaster[index].allquestion[jIndex].question == questions.question){
             mQuestionMaster[index].allquestion[jIndex].userAnswers = answers;
+            DBHelper helper = DBHelper();
+            print('update ansert');
+            helper.updateUserAnswer(widget.PJPCVF_Id,
+                widget.PJPCVF_Id,
+                mQuestionMaster[index].allquestion[jIndex].Question_Id,
+                mQuestionMaster[index].allquestion[jIndex].categoryName,
+                answers);
           }
       }
     }
@@ -463,14 +534,15 @@ class _QuestionListScreenState extends State<QuestionListScreen> {
               child: Text(player.question,
                   style: TextStyle(color: Colors.black, fontSize: 14)),
             ),
+            //player.answers!=null && player.answers.length>0 && player.answers[0].answerType=='YesNo' ?
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: _buildYesNoAnswers(player), /*[
+              children: [
                 Expanded(
                   child: CheckboxListTile(
                     value: player.userAnswers == 'Yes' ? true : false,
                     title: Text(
-                      player.answers[0].answerName,
+                      'Yes',
                       style: TextStyle(fontSize: 12),
                     ),
                     controlAffinity: ListTileControlAffinity.leading,
@@ -486,7 +558,7 @@ class _QuestionListScreenState extends State<QuestionListScreen> {
                   child: CheckboxListTile(
                     value: player.userAnswers == 'No' ? true : false,
                     title: Text(
-                      player.answers[1].answerName,
+                      'No',
                       style: TextStyle(fontSize: 12),
                       textAlign: TextAlign.left,
                     ),
@@ -506,19 +578,67 @@ class _QuestionListScreenState extends State<QuestionListScreen> {
                     size: 20,
                   ),
                 )),
-              ],*/
+              ],
             ),
           ])),
     );
   }
 
-  List<Widget> _buildYesNoAnswers(Allquestion question) {
+  _getYesNo(Allquestion question){
+    return Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                Expanded(
+                  child: CheckboxListTile(
+                    value: question.userAnswers == 'Yes' ? true : false,
+                    title: Text(
+                      'Yes',
+                      style: TextStyle(fontSize: 12),
+                    ),
+                    controlAffinity: ListTileControlAffinity.leading,
+                    onChanged: (checked) {
+                      //ischeck[getCheckboxIndex(player.question)] = false;
+                      question.userAnswers = 'Yes';
+                      updateAnswers(question, 'Yes');
+                      setState(() {});
+                    },
+                  ),
+                ),
+                Expanded(
+                  child: CheckboxListTile(
+                    value: question.userAnswers == 'No' ? true : false,
+                    title: Text(
+                      'No',
+                      style: TextStyle(fontSize: 12),
+                      textAlign: TextAlign.left,
+                    ),
+                    controlAffinity: ListTileControlAffinity.leading,
+                    onChanged: (checked) {
+                      question.userAnswers = 'No';
+                      updateAnswers(question, 'No');
+                      setState(() {});
+                    },
+                  ),
+                ),
+                const Expanded(
+                    child: Padding(
+                  padding: EdgeInsets.all(8.0),
+                  child: Icon(
+                    Icons.photo,
+                    size: 20,
+                  ),
+                )),
+              ],
+            );
+  }
+
+   _buildYesNoAnswers(Allquestion question) {
     List<Widget> _rowWidget = []; // this will hold Rows according to available lines
     for(int index=0;index<question.answers.length;index++){
       bool answers = (question.userAnswers == question.answers[index].answerName || question.SelectedAnswer == question.answers[index].answerName) ? true : false;
       _rowWidget.add(_generateYesNoAnswers(question,question.answers[index].answerName,answers));
     }
-    return _rowWidget;
+    return  Row(children: _rowWidget);
   }
 
   _generateYesNoAnswers(Allquestion question,String Answer_Name, bool value){
@@ -528,11 +648,11 @@ class _QuestionListScreenState extends State<QuestionListScreen> {
         title: Text(
           Answer_Name,
           style: TextStyle(fontSize: 12),
+          textAlign: TextAlign.left,
         ),
         controlAffinity: ListTileControlAffinity.leading,
         onChanged: (checked) {
-          //ischeck[getCheckboxIndex(player.question)] = false;
-          //question.userAnswers = Answer_Name;
+          question.userAnswers = Answer_Name;
           updateAnswers(question, Answer_Name);
           setState(() {});
         },

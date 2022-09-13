@@ -38,5 +38,6 @@ class LocalStrings {
   static const String GET_PJP_EMPLOYEELIST = '/api/PJP/GetEmployeesBySuperiorID';
   static const String GET_ALL_CVF = '/api/PJP/GetAllCVFDetails';
   static const String GET_SAVE_CVF_ANSWERS = '/api/PJP/Ins_PJPCVF_Answers';
+  static const String GET_UPDATE_CVF_STATUS = '/api/PJP/AddPJPAttendance';
 
 }

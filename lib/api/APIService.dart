@@ -13,6 +13,7 @@ import 'package:intranet/api/request/cvf/centers_request.dart';
 import 'package:intranet/api/request/cvf/get_cvf_request.dart';
 import 'package:intranet/api/request/cvf/questions_request.dart';
 import 'package:intranet/api/request/cvf/save_cvfquestions_request.dart';
+import 'package:intranet/api/request/cvf/update_cvf_status_request.dart';
 import 'package:intranet/api/request/leave_balance_req.dart';
 import 'package:intranet/api/request/leave_request.dart';
 import 'package:intranet/api/request/leavelist_request_man.dart';
@@ -33,6 +34,7 @@ import 'package:intranet/api/response/cvf/category_response.dart';
 import 'package:intranet/api/response/cvf/centers_respinse.dart';
 import 'package:intranet/api/response/cvf/cvfanswers_response.dart';
 import 'package:intranet/api/response/cvf/get_all_cvf.dart';
+import 'package:intranet/api/response/cvf/update_status_response.dart';
 import 'package:intranet/api/response/employee_list_response.dart';
 import 'package:intranet/api/response/leave_list_manager.dart';
 import 'package:intranet/api/response/leave_response.dart';
@@ -603,6 +605,7 @@ class APIService {
             "content-type": "application/json"
           },
           body:requestModel.getJson());
+      print(requestModel.toJson());
       print(response.body);
       if (response.statusCode == 200 || response.statusCode == 400) {
         if(response.body is QuestionResponse){
@@ -625,6 +628,7 @@ class APIService {
 
   Future<dynamic> getPJPList(PJPListRequest requestModel) async {
     try {
+      print('in getPJP list ');
       print(Uri.parse(url + LocalStrings.GET_PJP_LIST));
       final response = await http.post(Uri.parse(url + LocalStrings.GET_PJP_LIST),
           headers: {
@@ -634,15 +638,20 @@ class APIService {
           body:requestModel.getJson());
       print(response.body);
       if (response.statusCode == 200 || response.statusCode == 400) {
-        if(response.body is PjpListResponse){
+        String data = response.body.replaceAll('null', '\"NA\"');
+        return PjpListResponse.fromJson(
+          json.decode(data),
+        );
+        /*if(response.body is PjpListResponse){
+
           return PjpListResponse.fromJson(
-            json.decode(response.body),
+            json.decode(data),
           );
         }else {
           return PjpListResponse.fromJson(
-            json.decode(response.body),
+            json.decode(data),
           );
-        }
+        }*/
       } else {
         return null; //LoginResponseModel(token:"",Status:"Invalid/Wrong Login Details");
       }
@@ -692,9 +701,11 @@ class APIService {
           body:requestModel.getJson());
       print(response.body);
       if (response.statusCode == 200 || response.statusCode == 400) {
+        String data = response.body.replaceAll('null', 'NA');
+        print(data);
         if(response.body is GetAllCVFResponse){
           return GetAllCVFResponse.fromJson(
-            json.decode(response.body),
+            json.decode(data),
           );
         }else {
           return GetAllCVFResponse.fromJson(
@@ -727,6 +738,36 @@ class APIService {
           );
         }else {
           return CVFAnswersResponse.fromJson(
+            json.decode(response.body),
+          );
+        }
+      } else {
+        return null; //LoginResponseModel(token:"",Status:"Invalid/Wrong Login Details");
+      }
+    } catch (e) {
+      print(e.toString());
+      e.toString();
+    }
+  }
+
+  Future<dynamic> updateCVFStatus(UpdateCVFStatusRequest requestModel) async {
+    try {
+      print(Uri.parse(url + LocalStrings.GET_UPDATE_CVF_STATUS));
+      final response = await http.post(Uri.parse(url + LocalStrings.GET_UPDATE_CVF_STATUS),
+          headers: {
+            "Accept": "application/json",
+            "content-type": "application/json"
+          },
+          body:requestModel.getJson());
+      print(requestModel.toJson());
+      print(response.body);
+      if (response.statusCode == 200 || response.statusCode == 400) {
+        if(response.body is UpdateCVFStatusResponse){
+          return UpdateCVFStatusResponse.fromJson(
+            json.decode(response.body),
+          );
+        }else {
+          return UpdateCVFStatusResponse.fromJson(
             json.decode(response.body),
           );
         }

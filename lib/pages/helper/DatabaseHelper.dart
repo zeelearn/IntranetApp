@@ -3,6 +3,7 @@ import 'package:intranet/pages/helper/utils.dart';
 import 'package:intranet/pages/pjp/models/PJPCenterDetails.dart';
 import 'package:path/path.dart' as path;
 import 'package:sqflite/sqflite.dart' as sql;
+import 'package:sqflite/sqflite.dart';
 
 import '../../api/response/cvf/centers_respinse.dart';
 import '../../api/response/pjp/pjplistresponse.dart';
@@ -23,7 +24,7 @@ class DBHelper {
 
   var _db;
 
-  static String CREATE_TABLE_NOTIFICATION = 'CREATE TABLE ${LocalConstant.TABLE_NOTIFICATION}'
+  static String CREATE_TABLE_NOTIFICATION = 'CREATE TABLE IF NOT EXISTS  ${LocalConstant.TABLE_NOTIFICATION}'
       '(notification_id TEXT PRIMARY KEY, '
       'title TEXT, '
       'description TEXT, '
@@ -31,7 +32,7 @@ class DBHelper {
       'imageurl TEXT, '
       'date TEXT)';
 
-  static String CREATE_TABLE_PJP_MASTER = 'CREATE TABLE ${LocalConstant.TABLE_PJP_INFO}'
+  static String CREATE_TABLE_PJP_MASTER = 'CREATE TABLE IF NOT EXISTS  ${LocalConstant.TABLE_PJP_INFO}'
       '(${DBConstant.ID} INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, '
       '${DBConstant.DATE} TEXT, '
       '${DBConstant.FROM_DATE} TEXT, '
@@ -50,7 +51,7 @@ class DBHelper {
 
 
 
-  static String CREATE_TABLE_PJP_CENTER_DETAILS = 'CREATE TABLE ${LocalConstant.TABLE_PJP_CENTERS_DETAILS}'
+  static String CREATE_TABLE_PJP_CENTER_DETAILS = 'CREATE TABLE IF NOT EXISTS  ${LocalConstant.TABLE_PJP_CENTERS_DETAILS}'
       '(${DBConstant.ID} INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, '
       '${DBConstant.PJP_ID} INT, '
       '${DBConstant.CENTRE_CODE} TEXT, '
@@ -65,7 +66,7 @@ class DBHelper {
       '${DBConstant.MODIFIED_DATE} TEXT, '
       '${DBConstant.CREATED_DATE} TEXT)';
 
-  static String CREATE_TABLE_ALL_EMPLOYEE = 'CREATE TABLE ${LocalConstant.TABLE_EMPLOYEES}'
+  static String CREATE_TABLE_ALL_EMPLOYEE = 'CREATE TABLE IF NOT EXISTS  ${LocalConstant.TABLE_EMPLOYEES}'
       '(notification_id TEXT PRIMARY KEY, '
       '${DBConstant.EMP_FULLNAME} TEXT, '
       '${DBConstant.EMP_CONTACT} TEXT, '
@@ -75,7 +76,7 @@ class DBHelper {
       '${DBConstant.EMP_APP_STATUS} TEXT, '
       '${DBConstant.EMP_DISPLAY} TEXT)';
 
-  static String CREATE_TABLE_PARENT_INFO = 'CREATE TABLE ${LocalConstant.TABLE_PARENT_INFO}'
+  static String CREATE_TABLE_PARENT_INFO = 'CREATE TABLE IF NOT EXISTS  ${LocalConstant.TABLE_PARENT_INFO}'
       '(_id TEXT PRIMARY KEY, '
       '${DBConstant.FRANCHISEE_ID} INT, '
       '${DBConstant.STUDENT_PROGRAM_ID} INT, '
@@ -105,26 +106,39 @@ class DBHelper {
 
 
 
-  static String CREATE_TABLE_CVF_CATEGOTY = 'CREATE TABLE ${LocalConstant.TABLE_CVF_CATEGORY}'
+  static String CREATE_TABLE_CVF_CATEGOTY = 'CREATE TABLE IF NOT EXISTS  ${LocalConstant.TABLE_CVF_CATEGORY}'
       '(${DBConstant.ID} INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, '
       '${DBConstant.CATEGORY_ID} INT, '
       '${DBConstant.CATEGORY_NAME} TEXT)';
 
-  static String CREATE_TABLE_CVF_QUESTIONS = 'CREATE TABLE ${LocalConstant.TABLE_CVF_QUESTIONS}'
+  static String CREATE_TABLE_CVF_QUESTIONS = 'CREATE TABLE IF NOT EXISTS ${LocalConstant.TABLE_CVF_QUESTIONS}'
       '(${DBConstant.ID} INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, '
       '${DBConstant.QUESTION_ID} INT, '
-      '${DBConstant.QUESTION} INT, '
+      '${DBConstant.QUESTION} TEXT, '
+      '${DBConstant.CATEGORY_ID} INT, '
+      '${DBConstant.IS_COMPULSARY} INT, '
       '${DBConstant.CATEGORY_NAME} TEXT)';
 
-  static String CREATE_TABLE_CVF_ANSERR_MASTER = 'CREATE TABLE ${LocalConstant.TABLE_CVF_ANSWER_MASTER}'
+  static String CREATE_TABLE_CVF_ANSERR_MASTER = 'CREATE TABLE IF NOT EXISTS  ${LocalConstant.TABLE_CVF_ANSWER_MASTER}'
       '(${DBConstant.ID} INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, '
       '${DBConstant.QUESTION_ID} INT, '
-      '${DBConstant.QUESTION} INT, '
+      '${DBConstant.CATEGORY_ID} INT, '
+      '${DBConstant.QUESTION} TEXT, '
       '${DBConstant.ANSWER_NAME} TEXT, '
       '${DBConstant.ANSWER_TYPE} TEXT, '
-      '${DBConstant.CATEGORY_NAME} TEXT)';
+      '${DBConstant.IS_COMPULSARY} INT)';
 
-  static String CREATE_TABLE_CVF_FRANCHISEE = 'CREATE TABLE ${LocalConstant.TABLE_CVF_FRANCHISEE}'
+  static String CREATE_TABLE_CVF_USER_ANSERR = 'CREATE TABLE IF NOT EXISTS  ${LocalConstant.TABLE_CVF_USER_ANSWERAS}'
+      '(${DBConstant.ID} INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, '
+      '${DBConstant.CVF_ID} INT, '
+      '${DBConstant.PJP_ID} INT, '
+      '${DBConstant.CATEGORY_NAME} INT, '
+      '${DBConstant.QUESTION_ID} INT, '
+      '${DBConstant.USER_ANSWER} TEXT, '
+      '${DBConstant.IS_SYNC} INT, '
+      '${DBConstant.CREATED_DATE} TEXT)';
+
+  static String CREATE_TABLE_CVF_FRANCHISEE = 'CREATE TABLE IF NOT EXISTS  ${LocalConstant.TABLE_CVF_FRANCHISEE}'
       '(${DBConstant.ID} INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, '
       '${DBConstant.FRANCHISEE_ID} INT, '
       '${DBConstant.FRANCHISEE_NAME} TEXT, '
@@ -154,6 +168,7 @@ class DBHelper {
           db.execute(CREATE_TABLE_CVF_CATEGOTY);
           db.execute(CREATE_TABLE_CVF_QUESTIONS);
           db.execute(CREATE_TABLE_CVF_ANSERR_MASTER);
+          db.execute(CREATE_TABLE_CVF_USER_ANSERR);
           db.execute(CREATE_TABLE_CVF_FRANCHISEE);
 
         }, version: 1);
@@ -167,6 +182,15 @@ class DBHelper {
     dbClient.insert(table, data,
         conflictAlgorithm: sql.ConflictAlgorithm.replace);
   }
+
+  Future<void> deleteCategory(int categotyId)
+  async {
+    final dbClient = await db;
+    dbClient.delete(LocalConstant.TABLE_CVF_QUESTIONS, where: '${DBConstant.CATEGORY_ID} = ?', whereArgs: [categotyId]);
+    dbClient.delete(LocalConstant.TABLE_CVF_ANSWER_MASTER, where: '${DBConstant.CATEGORY_ID} = ?', whereArgs: [categotyId]);
+
+  }
+
 
   /// delete data to db
   /// @param table: the name of the table to delete from
@@ -225,6 +249,30 @@ class DBHelper {
   Future clear() async {
     final dbPath = await sql.getDatabasesPath();
     await sql.deleteDatabase(dbPath);
+  }
+
+  Future<void> updateUserAnswer(cvfid,pjpid,quid,cat_name,useranswer) async {
+    var dbclient = await db;
+    int? count = Sqflite.firstIntValue(
+        await dbclient.rawQuery("SELECT COUNT(*) FROM ${LocalConstant.TABLE_CVF_USER_ANSWERAS} WHERE ${DBConstant.CVF_ID}=$cvfid and ${DBConstant.QUESTION_ID}=${quid}"));
+    if(count!>0){
+      //update
+      print('update');
+      await dbclient.rawUpdate('update ${LocalConstant.TABLE_CVF_USER_ANSWERAS} set ${DBConstant.USER_ANSWER} = \'${useranswer}\'  where ${DBConstant.CVF_ID}=${cvfid} and ${DBConstant.QUESTION_ID}=${quid}');
+    }else{
+      print('insert');
+      //insert
+      Map<String, Object> data = {
+        DBConstant.CREATED_DATE: Utility.parseDate(DateTime.now()),
+        DBConstant.CVF_ID: cvfid,
+        DBConstant.PJP_ID: pjpid,
+        DBConstant.CATEGORY_NAME: cat_name,
+        DBConstant.QUESTION_ID: quid,
+        DBConstant.USER_ANSWER: useranswer,
+        DBConstant.IS_SYNC: 0,
+      };
+      await dbclient.insert(LocalConstant.TABLE_CVF_USER_ANSWERAS, data);
+    }
   }
 
   Future<List<PJPModel>> getPjpList() async {

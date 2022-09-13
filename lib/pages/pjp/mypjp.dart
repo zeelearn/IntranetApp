@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:intranet/api/ServiceHandler.dart';
 import 'package:intranet/api/request/pjp/get_pjp_list_request.dart';
 import 'package:intranet/pages/pjp/new_pjp.dart';
 
@@ -12,6 +13,7 @@ import '../helper/LightColor.dart';
 import '../helper/LocalConstant.dart';
 import '../helper/constants.dart';
 import '../helper/utils.dart';
+import '../iface/onResponse.dart';
 import '../model/filter.dart';
 import '../utils/theme/colors/light_colors.dart';
 import 'PJPForm.dart';
@@ -28,9 +30,11 @@ class MyPjpListScreen extends StatefulWidget {
   _MyPjpListState createState() => _MyPjpListState();
 }
 
-class _MyPjpListState extends State<MyPjpListScreen> {
+class _MyPjpListState extends State<MyPjpListScreen> implements onResponse{
   List<PJPInfo> mPjpList = [];
   int employeeId = 0;
+
+  bool isLoading=true;
 
   //FilterSelection mFilterSelection = FilterSelection(filters: [], type: FILTERStatus.MYSELF);
   final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey =
@@ -51,16 +55,22 @@ class _MyPjpListState extends State<MyPjpListScreen> {
     final prefs = await SharedPreferences.getInstance();
     employeeId =
         int.parse(prefs.getString(LocalConstant.KEY_EMPLOYEE_ID) as String);
-    this.loadPjpSummery();
+   IntranetServiceHandler.loadPjpSummery(employeeId, 0, this);
   }
 
-  loadPjpSummery() {
-    Utility.showLoaderDialog(context);
+  /*loadPjpSummery() {
+    isLoading = true;
+    setState(() {
+      //mPjpList.addAll(response.responseData);
+    });
+    print('loadPJP 64');
+    //Utility.showLoaderDialog(context);
     mPjpList.clear();
     PJPListRequest request = PJPListRequest(Employee_id: employeeId);
     APIService apiService = APIService();
     apiService.getPJPList(request).then((value) {
       print(value.toString());
+      isLoading = false;
       if (value != null) {
         if (value == null || value.responseData == null) {
           Utility.showMessage(context, 'data not found');
@@ -123,9 +133,9 @@ class _MyPjpListState extends State<MyPjpListScreen> {
           Utility.showMessage(context, 'data not found');
         }
       }
-      Navigator.of(context).pop();
+      //Navigator.of(context).pop();
     });
-  }
+  }*/
 
   @override
   Widget build(BuildContext context) {
@@ -172,7 +182,7 @@ class _MyPjpListState extends State<MyPjpListScreen> {
             onRefresh: () async {
               // Replace this delay with the code to be executed during refresh
               // and return a Future when code finishs execution.
-              loadPjpSummery();
+              IntranetServiceHandler.loadPjpSummery(employeeId, 0, this);
               return Future<void>.delayed(const Duration(seconds: 3));
             },
             // Pull from top to show refresh indicator.
@@ -199,7 +209,7 @@ class _MyPjpListState extends State<MyPjpListScreen> {
     );
     print('Response Received');
 
-    loadPjpSummery();
+    IntranetServiceHandler.loadPjpSummery(employeeId, 0, this);
   }
 
   void goToSecondScreen(BuildContext context) async {
@@ -221,20 +231,26 @@ class _MyPjpListState extends State<MyPjpListScreen> {
     ));
     if (result is FilterSelection) {
       FilterSelection filter = result;
-      setState() {
         widget.mFilterSelection.type = filter.type;
         widget.mFilterSelection.filters.clear();
-        widget.mFilterSelection.filters.addAll(filter.filters);
-        loadPjpSummery();
+        for(int index=0;index<filter.filters.length;index++){
+          if(filter.filters[index].isSelected){
+            widget.mFilterSelection.filters.add(filter.filters[index]);
+            print('--${filter.filters[index].name}');
+          }
+        }
+        print(filter.filters.toList());
+        IntranetServiceHandler.loadPjpSummery(employeeId, 0, this);
       }
-
-      ;
-    }
     //Scaffold.of(context).showSnackBar(SnackBar(content: Text("$result"),duration: Duration(seconds: 3),));
   }
 
   getPjpListView() {
-    if (mPjpList.isEmpty) {
+    if(isLoading){
+      return Center(child: Image.asset(
+        "assets/images/loading.gif",
+      ),);
+    }else  if (mPjpList.isEmpty) {
       print('PJP List not avaliable');
       return Utility.emptyDataSet(context);
     } else {
@@ -280,11 +296,24 @@ class _MyPjpListState extends State<MyPjpListScreen> {
                 padding: EdgeInsetsDirectional.fromSTEB(12, 4, 12, 4),
                 child: Row(
                   mainAxisSize: MainAxisSize.max,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Padding(
                       padding: EdgeInsetsDirectional.fromSTEB(0, 4, 0, 0),
                       child: Text(
                         'Created By : ${pjpInfo.displayName}',
+                        style: TextStyle(
+                          fontFamily: 'Lexend Deca',
+                          color: Color(0xFF4B39EF),
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    Padding(
+                      padding: EdgeInsetsDirectional.fromSTEB(0, 4, 0, 0),
+                      child: Text(
+                        'Ref Id : P-${pjpInfo.PJP_Id}',
                         style: TextStyle(
                           fontFamily: 'Lexend Deca',
                           color: Color(0xFF4B39EF),
@@ -519,10 +548,105 @@ class _MyPjpListState extends State<MyPjpListScreen> {
       FilterSelection filter = result;
       widget.mFilterSelection.type = filter.type;
       widget.mFilterSelection.filters.clear();
-      widget.mFilterSelection.filters.addAll(filter.filters);
-      loadPjpSummery();
+
+      for(int index=0;index<filter.filters.length;index++){
+        if(filter.filters[index].isSelected){
+          widget.mFilterSelection.filters.add(filter.filters[index]);
+          print(filter.filters[index].name);
+        }
+      }
+      print(filter.filters.toList());
+      IntranetServiceHandler.loadPjpSummery(employeeId, 0, this);
     } else {
       print('Object not found ${result}');
+    }
+  }
+
+
+  @override
+  void onError(value) {
+    Navigator.of(context).pop();
+  }
+
+  @override
+  void onStart() {
+    Utility.showLoaderDialog(context);
+  }
+
+  @override
+  void onSuccess(value) {
+    Navigator.of(context).pop();
+    if(value is PjpListResponse){
+      PjpListResponse response = value;
+      print('onResponse in if ${widget.mFilterSelection.type}');
+      isLoading = false;
+      mPjpList.clear();
+      if(response.responseData!=null && response.responseData.length>0){
+        if (response != null && response.responseData != null) {
+          if (widget.mFilterSelection == null ||
+              widget.mFilterSelection.type == FILTERStatus.MYTEAM) {
+            print(('FOR MY TEAM'));
+            //mPjpList.addAll(response.responseData);
+            for (int index = 0;
+            index < response.responseData.length;
+            index++) {
+              if (response.responseData[index].isSelfPJP == '0') {
+                //mPjpList.add(response.responseData[index]);
+
+                for(int jIndex=0;jIndex<widget.mFilterSelection.filters.length;jIndex++){
+                  if(widget.mFilterSelection.filters[jIndex].isSelected && response.responseData[index].displayName==widget.mFilterSelection.filters[jIndex].name){
+                    mPjpList.add(response.responseData[index]);
+                    print(('FOR MY TEAM ${widget.mFilterSelection.filters[jIndex].isSelected}  ${response.responseData[index].displayName}'));
+                  }
+                }
+              }
+            }
+          } else if (widget.mFilterSelection.type == FILTERStatus.MYSELF) {
+            print(('FOR MY SELF'));
+            for (int index = 0;
+            index < response.responseData.length;
+            index++) {
+              if (response.responseData[index].isSelfPJP == '1') {
+                mPjpList.add(response.responseData[index]);
+
+
+              }
+            }
+          } else if (widget.mFilterSelection.type == FILTERStatus.MYSELF) {
+            print(('FOR MY CUSTOM TEAM'));
+            for (int index = 0;
+            index < response.responseData.length;
+            index++) {
+              if (response.responseData[index].isSelfPJP == 0) {
+                mPjpList.add(response.responseData[index]);
+              }
+            }
+          } else {
+            print('In else');
+            for (int index = 0;
+            index < response.responseData.length;
+            index++) {
+              for (int jIndex = 0;
+              jIndex < widget.mFilterSelection.filters.length;
+              jIndex++) {
+                if (response.responseData[index].displayName ==
+                    widget.mFilterSelection.filters[jIndex].name) {
+                  mPjpList.add(response.responseData[index]);
+                }
+              }
+            }
+          }
+          //mPjpList.addAll(response.responseData);
+          print('========================${mPjpList.length}');
+          print(response.toJson());
+
+          setState(() {
+            //mPjpList.addAll(response.responseData);
+          });
+        }
+      }else{
+        print('onResponse in if else');
+      }
     }
   }
 }
