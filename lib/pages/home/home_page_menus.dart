@@ -50,7 +50,7 @@ class HomePageMenu extends StatelessWidget {
                       width: MediaQuery.of(context).size.width * 0.4,
                       height: 150,
                       decoration: BoxDecoration(
-                        color: Color(0xFF4B39EF),
+                        color: LightColors.kDarkBlue,
                         boxShadow: [
                           BoxShadow(
                             blurRadius: 3,
@@ -106,7 +106,7 @@ class HomePageMenu extends StatelessWidget {
                       width: MediaQuery.of(context).size.width * 0.4,
                       height: 150,
                       decoration: BoxDecoration(
-                        color: Color(0xFF4B39EF),
+                        color: LightColors.kDarkBlue,
                         boxShadow: const [
                           BoxShadow(
                             blurRadius: 3,

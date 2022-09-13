@@ -1,6 +1,7 @@
 import 'dart:collection';
-
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:intranet/api/request/cvf/questions_request.dart';
 import 'package:intranet/api/request/cvf/save_cvfquestions_request.dart';
 import 'package:intranet/pages/helper/DatabaseHelper.dart';
@@ -31,6 +32,8 @@ class QuestionListScreen extends StatefulWidget {
 class _QuestionListScreenState extends State<QuestionListScreen> {
   List<QuestionMaster> mQuestionMaster = [];
   bool isLoading = true;
+  final ImagePicker _picker = ImagePicker();
+  List<XFile>? _imageFileList;
 
   TextEditingController _textEditingController= TextEditingController();
 
@@ -190,13 +193,7 @@ class _QuestionListScreenState extends State<QuestionListScreen> {
         appBar: AppBar(
           title: Text('Questions'),
           actions: [
-            IconButton(
-              icon: const Icon(Icons.drafts),
-              tooltip: 'Save as Draft',
-              onPressed: () {
-                saveAnswers();
-              },
-            ),
+
             IconButton(
               icon: const Icon(Icons.done),
               tooltip: 'Filter',
@@ -540,7 +537,7 @@ class _QuestionListScreenState extends State<QuestionListScreen> {
               children: [
                 Expanded(
                   child: CheckboxListTile(
-                    value: player.userAnswers == 'Yes' ? true : false,
+                    value: player.SelectedAnswer == 'Yes' ? true : false,
                     title: Text(
                       'Yes',
                       style: TextStyle(fontSize: 12),
@@ -548,7 +545,7 @@ class _QuestionListScreenState extends State<QuestionListScreen> {
                     controlAffinity: ListTileControlAffinity.leading,
                     onChanged: (checked) {
                       //ischeck[getCheckboxIndex(player.question)] = false;
-                      player.userAnswers = 'Yes';
+                      player.SelectedAnswer = 'Yes';
                       updateAnswers(player, 'Yes');
                       setState(() {});
                     },
@@ -556,7 +553,7 @@ class _QuestionListScreenState extends State<QuestionListScreen> {
                 ),
                 Expanded(
                   child: CheckboxListTile(
-                    value: player.userAnswers == 'No' ? true : false,
+                    value: player.SelectedAnswer == 'No' ? true : false,
                     title: Text(
                       'No',
                       style: TextStyle(fontSize: 12),
@@ -564,20 +561,27 @@ class _QuestionListScreenState extends State<QuestionListScreen> {
                     ),
                     controlAffinity: ListTileControlAffinity.leading,
                     onChanged: (checked) {
-                      player.userAnswers = 'No';
+                      player.SelectedAnswer = 'No';
                       updateAnswers(player, 'No');
                       setState(() {});
                     },
                   ),
                 ),
-                const Expanded(
-                    child: Padding(
-                  padding: EdgeInsets.all(8.0),
-                  child: Icon(
-                    Icons.photo,
-                    size: 20,
-                  ),
-                )),
+                GestureDetector(
+                  onTap: (){
+                    pickImage(player);
+                  },
+                  child: Expanded(
+                      child: Padding(
+                        padding: EdgeInsets.all(8.0),
+                        child: player.files.isEmpty ? Icon(
+                          Icons.photo,
+                          size: 20,
+                        ) : Image.file(
+                            File(player.files),
+                        ),
+                      )),
+                )
               ],
             ),
           ])),
@@ -708,6 +712,35 @@ class _QuestionListScreenState extends State<QuestionListScreen> {
     setState() {
       print('data updated');
       //player.userAnswers = '1';
+    }
+  }
+
+  void pickImage(Allquestion player) async {
+    try {
+      final List<XFile>? pickedFileList = await _picker.pickMultiImage(
+        maxWidth: 50,
+        maxHeight: 50,
+        imageQuality: 72,
+      );
+      setState(() {
+        _imageFileList = pickedFileList;
+        player.files = pickedFileList![0].path;
+        updateImage(player, player.files);
+      });
+    } catch (e) {
+      /*setState(() {
+        _pickImageError = e;
+      });*/
+    }
+  }
+  updateImage(Allquestion questions,String path){
+    for(int index=0;index<mQuestionMaster.length;index++){
+      for(int jIndex=0;jIndex<mQuestionMaster[index].allquestion.length;jIndex++){
+        if(mQuestionMaster[index].allquestion[jIndex].question == questions.question){
+          mQuestionMaster[index].allquestion[jIndex].files = path;
+
+        }
+      }
     }
   }
 }
