@@ -342,11 +342,11 @@ class _AddNewPJPState extends State<AddNewPJPScreen> implements onResponse{
           print('New PJP ID ${mPjpModel.pjpId} ');
 
           addPJPinDB(1);
-
-          IntranetServiceHandler.loadPjpSummery(widget.employeeId, mPjpModel.pjpId,this);
+          Navigator.pop(context, 'DONE');
+          //IntranetServiceHandler.loadPjpSummery(widget.employeeId, mPjpModel.pjpId,this);
         } else {
           addPJPinDB(0);
-          Utility.showMessage(context, 'data not found');
+          Utility.showMessage(context, 'Unable to Add New PJP Details');
         }
       }
       Navigator.of(context).pop();

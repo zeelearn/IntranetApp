@@ -22,6 +22,8 @@ import 'package:intranet/api/request/outdoor_request.dart';
 import 'package:intranet/api/request/pjp/add_pjp_request.dart';
 import 'package:intranet/api/request/pjp/employee_request.dart';
 import 'package:intranet/api/request/pjp/get_pjp_list_request.dart';
+import 'package:intranet/api/request/pjp/update_pjpstatus_request.dart';
+import 'package:intranet/api/request/report/myreport_request.dart';
 import 'package:intranet/api/response/LeaveRequisitionResponse.dart';
 import 'package:intranet/api/response/apply_leave_response.dart';
 import 'package:intranet/api/response/approve_attendance_response.dart';
@@ -43,6 +45,8 @@ import 'package:intranet/api/response/outdoor_response.dart';
 import 'package:intranet/api/response/pjp/add_pjp_response.dart';
 import 'package:intranet/api/response/pjp/employee_response.dart';
 import 'package:intranet/api/response/pjp/pjplistresponse.dart';
+import 'package:intranet/api/response/pjp/update_pjpstatus_response.dart';
+import 'package:intranet/api/response/report/my_report.dart';
 
 import '../pages/helper/LocalStrings.dart';
 
@@ -768,6 +772,64 @@ class APIService {
           );
         }else {
           return UpdateCVFStatusResponse.fromJson(
+            json.decode(response.body),
+          );
+        }
+      } else {
+        return null; //LoginResponseModel(token:"",Status:"Invalid/Wrong Login Details");
+      }
+    } catch (e) {
+      print(e.toString());
+      e.toString();
+    }
+  }
+
+  Future<dynamic> getMyReports(MyReportRequest requestModel) async {
+    try {
+      print(Uri.parse(url + LocalStrings.GET_GETPJPREPORT));
+      final response = await http.post(Uri.parse(url + LocalStrings.GET_GETPJPREPORT),
+          headers: {
+            "Accept": "application/json",
+            "content-type": "application/json"
+          },
+          body:requestModel.getJson());
+      print(response.body);
+      if (response.statusCode == 200 || response.statusCode == 400) {
+        if(response.body is MyReportResponse){
+          return MyReportResponse.fromJson(
+            json.decode(response.body),
+          );
+        }else {
+          return MyReportResponse.fromJson(
+            json.decode(response.body),
+          );
+        }
+      } else {
+        return null; //LoginResponseModel(token:"",Status:"Invalid/Wrong Login Details");
+      }
+    } catch (e) {
+      print(e.toString());
+      e.toString();
+    }
+  }
+
+  Future<dynamic> updatePjpStatus(UpdatePJPStatusRequest requestModel) async {
+    try {
+      print(Uri.parse(url + LocalStrings.UPDATE_MODIFY_STATUS));
+      final response = await http.post(Uri.parse(url + LocalStrings.UPDATE_MODIFY_STATUS),
+          headers: {
+            "Accept": "application/json",
+            "content-type": "application/json"
+          },
+          body:requestModel.getJson());
+      print(response.body);
+      if (response.statusCode == 200 || response.statusCode == 400) {
+        if(response.body is UpdatePJPStatusResponse){
+          return UpdatePJPStatusResponse.fromJson(
+            json.decode(response.body),
+          );
+        }else {
+          return UpdatePJPStatusResponse.fromJson(
             json.decode(response.body),
           );
         }

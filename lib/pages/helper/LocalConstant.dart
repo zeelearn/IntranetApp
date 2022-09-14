@@ -33,6 +33,8 @@ class LocalConstant {
   static const String KEY_DATE_OF_MARRAGE= "marrage_date";
   static const String KEY_LOCATION = "location";
 
+  static const String KEY_CVF_QUESTIONS = "_cvfques";
+
 
   static const String KEY_AUTH_TOKEN = "authtoken";
 

@@ -3,12 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intranet/api/ServiceHandler.dart';
 import 'package:intranet/api/request/pjp/get_pjp_list_request.dart';
+import 'package:intranet/api/request/pjp/update_pjpstatus_request.dart';
 import 'package:intranet/pages/pjp/new_pjp.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../api/APIService.dart';
 import '../../api/response/pjp/pjplistresponse.dart';
+import '../../api/response/pjp/update_pjpstatus_response.dart';
 import '../helper/LightColor.dart';
 import '../helper/LocalConstant.dart';
 import '../helper/constants.dart';
@@ -332,44 +334,44 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse{
                   color: Color(0xFFF1F4F8),
                 ),
               ),
-              Padding(
-                padding: EdgeInsetsDirectional.fromSTEB(12, 4, 12, 4),
-                child: Row(
-                  mainAxisSize: MainAxisSize.max,
-                  children: [
-                    Padding(
-                      padding: EdgeInsetsDirectional.fromSTEB(0, 4, 0, 0),
-                      child: Text(
-                        'Date : ${Utility.getShortDate(pjpInfo.fromDate)} to ${Utility.getShortDate(pjpInfo.toDate)}',
-                        style: TextStyle(
-                          fontFamily: 'Lexend Deca',
-                          color: Color(0xFF090F13),
-                          fontSize: 18,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
+              ListTile(
+                title: Padding(
+                  padding: EdgeInsetsDirectional.all(0),
+                  child: Text(
+                    'Date : ${Utility.getShortDate(pjpInfo.fromDate)} to ${Utility.getShortDate(pjpInfo.toDate)}',
+                    style: const TextStyle(
+                      fontFamily: 'Lexend Deca',
+                      color: Color(0xFF090F13),
+                      fontSize: 18,
+                      fontWeight: FontWeight.w500,
                     ),
-                  ],
+                  ),
                 ),
-              ),
-              Padding(
-                padding: EdgeInsetsDirectional.fromSTEB(12, 4, 12, 4),
-                child: Row(
-                  mainAxisSize: MainAxisSize.max,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        'Remark : ${pjpInfo.remarks}',
-                        style: TextStyle(
-                          fontFamily: 'Lexend Deca',
-                          color: Color(0xFF95A1AC),
-                          fontSize: 14,
-                          fontWeight: FontWeight.normal,
-                        ),
-                      ),
+                subtitle: Expanded(
+                  child: Text(
+                    'Remark : ${pjpInfo.remarks}',
+                    style: const TextStyle(
+                      fontFamily: 'Lexend Deca',
+                      color: Color(0xFF95A1AC),
+                      fontSize: 14,
+                      fontWeight: FontWeight.normal,
                     ),
-                  ],
+                  ),
                 ),
+                trailing: pjpInfo.isSelfPJP=='0' && pjpInfo.ApprovalStatus =='Pending'? OutlinedButton(
+                  onPressed: () {
+                    approvePjp(pjpInfo,1);
+                  },
+                  child: Text(
+                    'Approve',
+                    style: TextStyle(
+                      fontFamily: 'Lexend Deca',
+                      color: Color(0xFF4B39EF),
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ) : null,
               ),
               Padding(
                 padding: EdgeInsetsDirectional.fromSTEB(12, 4, 12, 8),
@@ -428,27 +430,6 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse{
                             ],
                           )
                         : Text(''),
-
-                    /*Padding(
-                    padding: EdgeInsetsDirectional.fromSTEB(24, 0, 0, 4),
-                    child: Icon(
-                      Icons.task,
-                      color: Color(0xFF4B39EF),
-                      size: 20,
-                    ),
-                  ),
-                  Padding(
-                    padding: EdgeInsetsDirectional.fromSTEB(4, 0, 0, 0),
-                    child: Text(
-                      pjpInfo.getDetailedPJP==null || pjpInfo.getDetailedPJP.length==0 ? '' : '${pjpInfo.getDetailedPJP.length} Activity',
-                      style: TextStyle(
-                        fontFamily: 'Lexend Deca',
-                        color: Color(0xFF4B39EF),
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),*/
                   ],
                 ),
               ),
@@ -576,7 +557,12 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse{
   @override
   void onSuccess(value) {
     Navigator.of(context).pop();
-    if(value is PjpListResponse){
+    if(value is String){
+      IntranetServiceHandler.loadPjpSummery(employeeId, 0, this);
+    } if(value is UpdatePJPStatusResponse){
+      //IntranetServiceHandler.loadPjpSummery(employeeId, 0, this);
+      Utility.getConfirmationDialog(context,this);
+    }else if(value is PjpListResponse){
       PjpListResponse response = value;
       print('onResponse in if ${widget.mFilterSelection.type}');
       isLoading = false;
@@ -648,5 +634,11 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse{
         print('onResponse in if else');
       }
     }
+  }
+
+  void approvePjp(PJPInfo pjpInfo,int isApprove) {
+    UpdatePJPStatusRequest request= UpdatePJPStatusRequest(PJP_id: int.parse(pjpInfo.PJP_Id),
+        Is_Approved: isApprove, Workflow_user: employeeId.toString());
+    IntranetServiceHandler.updatePJPStatus(request, this);
   }
 }

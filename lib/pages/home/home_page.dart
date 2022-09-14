@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:percent_indicator/circular_percent_indicator.dart';
+
 import '../utils/theme/colors/light_colors.dart';
 import '../utils/widgets/active_project_card.dart';
-import '../utils/widgets/back_button.dart';
-import '../utils/widgets/my_text_field.dart';
 import '../utils/widgets/task_column.dart';
 import '../utils/widgets/top_container.dart';
 import 'calendar_page.dart';
@@ -52,7 +50,7 @@ class HomePage extends StatelessWidget {
                         Icon(Icons.menu,
                             color: LightColors.kDarkBlue, size: 30.0),
                         Text(
-                          'Sourav Suman',
+                          '',
                           textAlign: TextAlign.start,
                           style: TextStyle(
                             fontSize: 22.0,

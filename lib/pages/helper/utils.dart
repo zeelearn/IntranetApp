@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
+import 'package:intranet/pages/iface/onResponse.dart';
+import 'package:material_dialogs/material_dialogs.dart';
+import 'package:material_dialogs/widgets/buttons/icon_button.dart';
 
 enum TaskPageStatus {
   all,
@@ -260,6 +263,34 @@ class Utility{
 
   static getDateTime(){
     return DateFormat('yyyy-MM-dd hh:mm').format(DateTime.now());
+  }
+
+  static getConfirmationDialog(BuildContext context,onResponse response){
+    Dialogs.materialDialog(
+      color: Colors.white,
+      msg: 'Thank you for Approve the PJP',
+      title: 'Approved',
+      lottieBuilder: Lottie.asset(
+        'assets/json/85594-done.json',
+        fit: BoxFit.contain,
+      ),
+      dialogWidth: kIsWeb ? 0.3 : null,
+      context: context,
+      actions: [
+        IconsButton(
+          onPressed: () {
+            Future.delayed(Duration(milliseconds: 50)).then((_) {
+              response.onSuccess('SUCCESS');
+            });
+          },
+          text: 'OK',
+          iconData: Icons.done,
+          color: Colors.blue,
+          textStyle: TextStyle(color: Colors.white),
+          iconColor: Colors.white,
+        ),
+      ],
+    );
   }
 
 }

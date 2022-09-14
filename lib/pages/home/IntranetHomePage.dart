@@ -543,6 +543,16 @@ print('_getEventsForRange');
               'My Menu',
             ),
           ),
+          ListTile(
+            leading: SizedBox(
+                height: 32.0,
+                width: 32.0,
+                child: Image.asset('assets/icons/ic_home.png')
+            ),
+            title: Text('Home'),
+            selected: widget._selectedDestination == MENU_HOME,
+            onTap: () => selectDestination(MENU_HOME),
+          ),
           Divider(),
           ListTile(
             leading: SizedBox(

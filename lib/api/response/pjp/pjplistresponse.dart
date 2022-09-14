@@ -55,6 +55,7 @@ class PJPInfo {
   late String isSelfPJP = '';
   late String PJP_Id;
   late String Status;
+  late String ApprovalStatus;
   List<GetDetailedPJP>? getDetailedPJP = [];
 
   PJPInfo(
@@ -65,6 +66,7 @@ class PJPInfo {
       required this.remarks,
       required this.isSelfPJP,
       required this.Status,
+      required this.ApprovalStatus,
       this.getDetailedPJP});
 
   PJPInfo.fromJson(Map<String, dynamic> json) {
@@ -75,6 +77,7 @@ class PJPInfo {
       fromDate = json['FromDate'] ?? ' NA';
       toDate = json['ToDate'] ?? ' NA';
       Status = json['Status'] ?? 'Check In';
+      ApprovalStatus = json['ApprovalStatus'] ?? 'NA';
       remarks = json['Remarks'] == null || json['Remarks'] == 'null'
           ? ' NA'
           : json['Remarks'];
@@ -104,6 +107,7 @@ class PJPInfo {
     data['FromDate'] = this.fromDate;
     data['ToDate'] = this.toDate;
     data['Status'] = this.Status;
+    data['ApprovalStatus'] = this.ApprovalStatus;
     data['Remarks'] = this.remarks;
     data['isSelfPJP'] = this.isSelfPJP;
     if (this.getDetailedPJP != null) {

@@ -304,6 +304,20 @@ class DBHelper {
     return pjpList;
   }
 
+  Future<Map<String,String>> getUsersAnswerList(int cvfId) async {
+    Map<String,String> mMap = Map();
+
+    List<Map<String, dynamic>> list = await  DBHelper().getData(LocalConstant.TABLE_CVF_USER_ANSWERAS);
+    if(list !=null){
+      print('----${list.length}');
+      for(int index=0;index<list.length;index++) {
+        Map<String, dynamic> map = list[index];
+        mMap.putIfAbsent(map[DBConstant.QUESTION_ID].toString(), () => map[DBConstant.USER_ANSWER]);
+      }
+    }
+    return mMap;
+  }
+
   Future<List<GetDetailedPJP>> getCVFList() async {
     List<GetDetailedPJP> cvfList = [];
 

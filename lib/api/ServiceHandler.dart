@@ -2,8 +2,12 @@ import 'dart:convert';
 
 import 'package:intranet/api/request/cvf/update_cvf_status_request.dart';
 import 'package:intranet/api/request/pjp/get_pjp_list_request.dart';
+import 'package:intranet/api/request/pjp/update_pjpstatus_request.dart';
+import 'package:intranet/api/request/report/myreport_request.dart';
 import 'package:intranet/api/response/cvf/update_status_response.dart';
 import 'package:intranet/api/response/pjp/pjplistresponse.dart';
+import 'package:intranet/api/response/pjp/update_pjpstatus_response.dart';
+import 'package:intranet/api/response/report/my_report.dart';
 
 import '../pages/iface/onResponse.dart';
 import 'APIService.dart';
@@ -58,6 +62,49 @@ class IntranetServiceHandler{
         }
       }else{
         onResponse.onError('Unable to update the status');
+      }
+    });
+  }
+
+
+  static getMyReport(MyReportRequest request,onResponse onResponse) {
+
+    onResponse.onStart();
+    APIService apiService = APIService();
+    apiService.getMyReports(request).then((value) {
+      print(value.toString());
+      if (value != null) {
+        if (value == null || value.responseData == null) {
+          onResponse.onError('Unable to get Reports');
+        } else if (value is MyReportResponse) {
+          MyReportResponse response = value;
+          onResponse.onSuccess(response);
+        } else {
+          onResponse.onError('Unable to get Reports ');
+        }
+      }else{
+        onResponse.onError('Unable to get Reports');
+      }
+    });
+  }
+
+  static updatePJPStatus(UpdatePJPStatusRequest request,onResponse onResponse) {
+
+    onResponse.onStart();
+    APIService apiService = APIService();
+    apiService.updatePjpStatus(request).then((value) {
+      print(value.toString());
+      if (value != null) {
+        if (value == null || value.responseData == null) {
+          onResponse.onError('Unable to get Reports');
+        } else if (value is UpdatePJPStatusResponse) {
+          UpdatePJPStatusResponse response = value;
+          onResponse.onSuccess(response);
+        } else {
+          onResponse.onError('Unable to get Reports ');
+        }
+      }else{
+        onResponse.onError('Unable to get Reports');
       }
     });
   }
