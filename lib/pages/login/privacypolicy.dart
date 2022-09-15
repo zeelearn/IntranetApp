@@ -79,7 +79,7 @@ class _WebViewXPageState extends State<WebViewXPage> {
       dartCallBacks: {
         DartCallback(
           name: 'TestDartCallback',
-          callBack: (msg) => showSnackBar(msg.toString(), context),
+          callBack: (msg) => {},
         )
       },
       webSpecificParams: const WebSpecificParams(
@@ -128,18 +128,18 @@ class _WebViewXPageState extends State<WebViewXPage> {
   Future<void> _goForward() async {
     if (await webviewController.canGoForward()) {
       await webviewController.goForward();
-      showSnackBar('Did go forward', context);
+
     } else {
-      showSnackBar('Cannot go forward', context);
+
     }
   }
 
   Future<void> _goBack() async {
     if (await webviewController.canGoBack()) {
       await webviewController.goBack();
-      showSnackBar('Did go back', context);
+
     } else {
-      showSnackBar('Cannot go back', context);
+
     }
   }
 
@@ -150,7 +150,7 @@ class _WebViewXPageState extends State<WebViewXPage> {
   void _toggleIgnore() {
     final ignoring = webviewController.ignoresAllGestures;
     webviewController.setIgnoreAllGestures(!ignoring);
-    showSnackBar('Ignore events = ${!ignoring}', context);
+
   }
 
 

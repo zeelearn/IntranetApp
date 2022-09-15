@@ -88,6 +88,14 @@ class FastChoiceChip
 
   @override
   bool get isEnabled => enabled;
+
+  @override
+  // TODO: implement iconTheme
+  IconThemeData? get iconTheme => throw UnimplementedError();
+
+  @override
+  // TODO: implement surfaceTintColor
+  Color? get surfaceTintColor => throw UnimplementedError();
 }
 
 typedef FastChoiceChipBuilder = Widget Function(

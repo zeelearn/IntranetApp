@@ -226,11 +226,6 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse{
                 employeeId: employeeId,
               )),
     );
-    print('Response Received');
-    Scaffold.of(context).showSnackBar(SnackBar(
-      content: Text("Data Received"),
-      duration: Duration(seconds: 3),
-    ));
     if (result is FilterSelection) {
       FilterSelection filter = result;
         widget.mFilterSelection.type = filter.type;

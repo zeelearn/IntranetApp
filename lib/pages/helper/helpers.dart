@@ -104,14 +104,14 @@ Future<String> getUniqueDeviceId() async {
 
 
 void showSnackBar(String content, BuildContext context) {
-  ScaffoldMessenger.of(context)
+ /* ScaffoldMessenger.of(context)
     ..hideCurrentSnackBar()
     ..showSnackBar(
       SnackBar(
         content: Text(content),
         duration: const Duration(seconds: 1),
       ),
-    );
+    );*/
 }
 
 Widget createButton({

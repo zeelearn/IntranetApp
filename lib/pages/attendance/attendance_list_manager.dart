@@ -1,17 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:intl/intl.dart';
 import 'package:intranet/api/request/attendance_summery_request.dart';
 import 'package:intranet/pages/helper/LocalConstant.dart';
 import 'package:intranet/pages/helper/utils.dart';
-import 'package:month_picker_dialog/month_picker_dialog.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../api/APIService.dart';
 import '../../api/response/attendance_response.dart';
 import '../utils/theme/colors/light_colors.dart';
-import '../utils/widgets/top_container.dart';
 import '../widget/TimeBoard.dart';
+import '../widget/month_picker_dialog.dart';
 import 'attendance_marking.dart';
 
 class AttendanceSummeryManagerScreen extends StatefulWidget {

@@ -1,3 +1,4 @@
+/*
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
@@ -25,7 +26,8 @@ class MyProgressIndicator extends StatelessWidget {
                 percent: percent,
                 progressColor: Colors.yellow,
               )
-              /*Positioned(
+              */
+/*Positioned(
                 top: 40, // you can adjust this through negatives to raise your child widget
                  // child width / 2 (this is to get the center of the widget),
                 child: Center(
@@ -35,8 +37,10 @@ class MyProgressIndicator extends StatelessWidget {
                     child: Text('${percent * 100}%'),
                   ),
                 ),
-              ),*/
-              /*Positioned(
+              ),*//*
+
+              */
+/*Positioned(
                 top: 0,
                 right: 0,
                 left: 0,
@@ -49,11 +53,12 @@ class MyProgressIndicator extends StatelessWidget {
                   percent: percent,
                   progressColor: Colors.yellow,
                 ),
-              ),*/
+              ),*//*
+
             ],
           ),
         );
       },
     );
   }
-}
+}*/

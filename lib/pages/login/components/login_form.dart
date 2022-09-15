@@ -257,7 +257,7 @@ class _LoginFormState extends State<LoginForm> implements changePasswordInterfac
             ),
           ),
           actions: <Widget>[
-            FlatButton(
+            TextButton(
               child: Text('Ok'),
               onPressed: () {
                 Navigator.of(context).pop();
