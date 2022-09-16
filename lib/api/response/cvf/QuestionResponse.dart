@@ -41,13 +41,13 @@ class QuestionMaster {
   QuestionMaster.fromJson(Map<String, dynamic> json) {
     categoryName = json['Category_Name'];
     categoryId = json['Category_Id'];
-    if (json['allquestion'] != null) {
-      allquestion = <Allquestion>[];
-      try {
+    allquestion = <Allquestion>[];
+    if (json.containsKey('allquestion')) {
+      if( json['allquestion'] is List) {
         json['allquestion'].forEach((v) {
           allquestion.add(new Allquestion.fromJson(v));
         });
-      }catch(e){
+      }else{
         allquestion.add(new Allquestion.fromJson(json['allquestion']));
       }
     }
@@ -86,15 +86,30 @@ class Allquestion {
     isCompulsory = json['isCompulsory'] ?? '';
     SelectedAnswer = json['SelectedAnswer'] ?? '';
     files = json['files'] ?? '';
-    if (json['answers'] != null) {
+    /*if (json['answers'] != null) {
       answers = <Answers>[];
-      /*if(json['answers'].toString().contains('[')) {
+      *//*if(json['answers'].toString().contains('[')) {
         json['answers'].forEach((v) {
           answers.add(new Answers.fromJson(v));
         });
       }else{
         answers.add(new Answers.fromJson(json['answers']));
-      }*/
+      }*//*
+    }*/
+    print('Data from model');
+    print(json['answers']);
+    answers = <Answers>[];
+    if (json.containsKey('answers')) {
+      print('key found');
+      if( json['answers'] is List) {
+        print('key found -- list');
+        json['answers'].forEach((v) {
+          answers.add(new Answers.fromJson(v));
+        });
+      }else{
+        print('key found Object');
+        answers.add(new Answers.fromJson(json['answers']));
+      }
     }
   }
 

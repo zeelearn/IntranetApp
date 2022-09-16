@@ -162,7 +162,7 @@ class _MyCVFListScreen extends State<MyCVFListScreen> implements onResponse{
     return GestureDetector(
       onTap: () {
         print('status clicked ${cvfView.Status}');
-        if (cvfView.Status == 'Check In' || cvfView.Status == 'NA') {
+        if (cvfView.Status == 'Check In' || cvfView.Status == ' Check In' || cvfView.Status == 'NA') {
           Utility.showMessage(context, 'Please Click on Check In button');
         } else {
           Navigator.push(
@@ -304,6 +304,200 @@ class _MyCVFListScreen extends State<MyCVFListScreen> implements onResponse{
               Padding(
                 padding: EdgeInsetsDirectional.fromSTEB(0, 4, 0, 0),
                 child: Text(
+                  'Ref Id : C-${cvfView.PJPCVF_Id}',
+                  style: TextStyle(
+                    fontFamily: 'Lexend Deca',
+                    color: Color(0xFF4B39EF),
+                    fontSize: 10,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        Row(
+          children: [
+            Expanded(
+              flex: 3,
+              child: Padding(
+                padding: EdgeInsetsDirectional.fromSTEB(5, 4, 12, 4),
+                child: Column(
+                  mainAxisSize: MainAxisSize.max,
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Container(
+                        padding: EdgeInsetsDirectional.fromSTEB(0, 4, 0, 0),
+                        child: Text(
+                          cvfView.franchiseeName != 'NA'
+                              ? '${cvfView.franchiseeName}'
+                              : '${cvfView.Address}',
+                          style: TextStyle(
+                            fontFamily: 'Lexend Deca',
+                            color: Color(0xFF090F13),
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        cvfView.franchiseeCode != 'NA'
+                            ? 'PJP Remark - '
+                            : 'Activity Name ',
+                        style: TextStyle(
+                          fontFamily: 'Lexend Deca',
+                          color: Colors.black87,
+                          fontSize: 12,
+                          fontWeight: FontWeight.normal,
+                        ),
+                      ),
+                    ),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Flexible(
+                        child: Text(
+                            cvfView.franchiseeCode != 'NA'
+                                ? ''
+                                : '${cvfView.ActivityTitle}',
+                            maxLines: 3,
+                            style: const TextStyle(
+                                color: Colors.black45,
+                                fontWeight: FontWeight.normal)),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            Expanded(flex: 1, child: getTextRounded(cvfView, 'Fill CVF')),
+          ],
+        ),
+
+        /*Padding(
+          padding: EdgeInsetsDirectional.fromSTEB(5, 4, 12, 8),
+          child: Row(
+            mainAxisSize: MainAxisSize.max,
+            children: [
+              Padding(
+                padding: EdgeInsetsDirectional.fromSTEB(0, 0, 0, 4),
+                child: Icon(
+                  Icons.schedule,
+                  color: Color(0xFF4B39EF),
+                  size: 20,
+                ),
+              ),
+              Padding(
+                padding: EdgeInsetsDirectional.fromSTEB(4, 0, 0, 0),
+                child: Text(
+                  '${Utility.shortDate(Utility.convertDate(cvfView.visitDate))} : ${Utility.shortTimeFormat(Utility.convertDate(cvfView.visitDate))}',
+                  style: TextStyle(
+                    fontFamily: 'Lexend Deca',
+                    color: Color(0xFF4B39EF),
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),*/
+        Container(
+          width: double.infinity,
+          decoration: BoxDecoration(
+            color: LightColors.kLightGray,
+            boxShadow: [
+              BoxShadow(
+                blurRadius: 3,
+                color: Colors.white70,
+                offset: Offset(0, 1),
+              )
+            ],
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child:
+          Padding(
+              padding: EdgeInsetsDirectional.fromSTEB(5, 4, 12, 4),
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: LightColors.kLightGray,
+                    boxShadow: [
+                      BoxShadow(
+                        blurRadius: 3,
+                        color: Colors.white70,
+                        offset: Offset(0, 1),
+                      )
+                    ],
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.max,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(' Category '),
+                      cvfView.purpose!.length > 0
+                          ? getTextCategory(
+                          cvfView, cvfView.purpose![0].categoryName)
+                          : Text(''),
+                      cvfView.purpose!.length > 1
+                          ? getTextCategory(
+                          cvfView, cvfView.purpose![1].categoryName)
+                          : Text(''),
+                      cvfView.purpose!.length > 2
+                          ? getTextCategory(
+                          cvfView, cvfView.purpose![2].categoryName)
+                          : Text(''),
+                      cvfView.purpose!.length > 3
+                          ? getTextCategory(
+                          cvfView, cvfView.purpose![3].categoryName)
+                          : Text(''),
+                      cvfView.purpose!.length > 4
+                          ? getTextCategory(
+                          cvfView, cvfView.purpose![4].categoryName)
+                          : Text(''),
+                    ],
+                  ),
+                ),
+              )),
+        ),
+      ],
+    );
+  }
+
+  getview1(final GetDetailedPJP cvfView) {
+    print(cvfView.Status);
+    return Column(
+      mainAxisSize: MainAxisSize.max,
+      children: [
+        Padding(
+          padding: EdgeInsetsDirectional.fromSTEB(5, 4, 12, 4),
+          child: Row(
+            mainAxisSize: MainAxisSize.max,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Padding(
+                padding: EdgeInsetsDirectional.fromSTEB(0, 4, 0, 0),
+                child: Text(
+                  cvfView.franchiseeCode != 'NA'
+                      ? 'Fran Code : ${cvfView.franchiseeCode}'
+                      : '',
+                  style: TextStyle(
+                    fontFamily: 'Lexend Deca',
+                    color: Color(0xFF4B39EF),
+                    fontSize: 10,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              Padding(
+                padding: EdgeInsetsDirectional.fromSTEB(0, 4, 0, 0),
+                child: Text(
                   'Ref Id :  C-${cvfView.PJPCVF_Id}',
                   style: TextStyle(
                     fontFamily: 'Lexend Deca',
@@ -338,7 +532,7 @@ class _MyCVFListScreen extends State<MyCVFListScreen> implements onResponse{
                       child: Container(
                         padding: EdgeInsetsDirectional.fromSTEB(0, 4, 0, 0),
                         child: Text(
-                          cvfView.franchiseeCode != 'NA'
+                          cvfView.franchiseeName != 'NA'
                               ? '${cvfView.franchiseeName}'
                               : cvfView.Address,
                           style: TextStyle(
@@ -481,7 +675,7 @@ class _MyCVFListScreen extends State<MyCVFListScreen> implements onResponse{
     return
       GestureDetector(
         onTap: () {
-          if (cvfView.Status == 'Check In' || cvfView.Status == 'NA') {
+          if (cvfView.Status == 'Check In' || cvfView.Status == ' Check In' || cvfView.Status == 'NA') {
             Utility.showMessage(context, 'Please Click on Check In button');
           } else {
             Navigator.push(
@@ -496,7 +690,6 @@ class _MyCVFListScreen extends State<MyCVFListScreen> implements onResponse{
                   )),
             );
           }
-          Utility.showMessage(context, '${cvfView.Status} clicked');
         },
         child: Padding(
           padding:
@@ -598,8 +791,6 @@ class _MyCVFListScreen extends State<MyCVFListScreen> implements onResponse{
             TextButton(
               child: Text('Confirm'),
               onPressed: () {
-                print('Confirmed');
-
                 Navigator.of(context).pop();
                 IntranetServiceHandler.updateCVFStatus(
                     employeeId,
@@ -607,7 +798,6 @@ class _MyCVFListScreen extends State<MyCVFListScreen> implements onResponse{
                     Utility.getDateTime(),
                     getNextStatus(cvfView.Status),
                     this);
-                Utility.showMessage(context, '${cvfView.Status} clicked');
               },
             ),
             TextButton(

@@ -23,3 +23,6 @@ const kPrimaryGradient = LinearGradient(
 );
 
 const double kDefaultPadding = 20.0;
+
+const int ACTION_ADD_NEW_IMAGE=10001;
+const int ACTION_DELETE_IMAGE=10002;

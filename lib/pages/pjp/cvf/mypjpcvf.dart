@@ -534,6 +534,7 @@ class _MyCVFListScreen extends State<MyPJPCVFListScreen> implements onResponse {
                 print('Confirmed');
 
                 Navigator.of(context).pop();
+
                 IntranetServiceHandler.updateCVFStatus(
                     employeeId,
                     cvfView.PJPCVF_Id,

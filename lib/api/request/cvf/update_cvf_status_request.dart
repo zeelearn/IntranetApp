@@ -5,9 +5,11 @@ class UpdateCVFStatusRequest {
   late String DateTime;
   late String Status;
   late int Employee_id;
+  late double Latitude;
+  late double Longitude;
 
   UpdateCVFStatusRequest(
-      {required this.PJPCVF_id,required this.DateTime,required this.Status,required this.Employee_id
+      {required this.PJPCVF_id,required this.DateTime,required this.Status,required this.Employee_id,required this.Latitude,required this.Longitude
       });
 
   getJson(){
@@ -16,6 +18,8 @@ class UpdateCVFStatusRequest {
       'DateTime': DateTime,
       'Status': Status,
       'Employee_id': Employee_id,
+      'Latitude': Latitude,
+      'Longitude': Longitude,
     });
   }
 
@@ -25,6 +29,8 @@ class UpdateCVFStatusRequest {
       'DateTime': DateTime,
       'Status': Status,
       'Employee_id': Employee_id,
+      'Latitude': Latitude,
+      'Longitude': Longitude,
     };
     return map;
   }

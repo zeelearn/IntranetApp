@@ -696,7 +696,6 @@ class APIService {
 
   Future<dynamic> getAllCVF(GetAllCVF requestModel) async {
     try {
-      print(Uri.parse(url + LocalStrings.GET_ALL_CVF));
       final response = await http.post(Uri.parse(url + LocalStrings.GET_ALL_CVF),
           headers: {
             "Accept": "application/json",

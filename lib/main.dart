@@ -1,9 +1,56 @@
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:intranet/pages/firebase/firebase_options.dart';
 import 'package:intranet/pages/helper/LightColor.dart';
 import 'package:intranet/pages/intro/splash.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter/foundation.dart';
 
-void main() {
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp();
+}
+
+AndroidNotificationChannel? channel;
+
+FlutterLocalNotificationsPlugin? flutterLocalNotificationsPlugin;
+late FirebaseMessaging messaging;
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  messaging = FirebaseMessaging.instance;
+  messaging.subscribeToTopic("intranet");
+
+  // Set the background messaging handler early on, as a named top-level function
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+
+  if (!kIsWeb) {
+    channel = const AndroidNotificationChannel(
+        'intranet', // id
+        'intranet', // title
+        importance: Importance.high,
+        enableLights: true,
+        enableVibration: true,
+        showBadge: true,
+        playSound: true);
+
+    flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+    await flutterLocalNotificationsPlugin!
+      .resolvePlatformSpecificImplementation<
+  AndroidFlutterLocalNotificationsPlugin>()
+      ?.createNotificationChannel(channel!);
+
+  await FirebaseMessaging.instance
+      .setForegroundNotificationPresentationOptions(
+  alert: true,
+  badge: true,
+  sound: true,
+  );
+  }
+
   runApp(const MyApp());
 }
 

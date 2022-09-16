@@ -166,12 +166,12 @@ class GetDetailedPJP {
       visitDate = json['Visit_Date'] ?? ' NA';
       visitTime = json['Visit_Time'] ?? ' NA';
       Status = json['Status'] ?? ' Check In';
-      franchiseeCode = json['Franchisee_Code'] ?? ' NA';
-      franchiseeName = json['Franchisee_Name'] ?? ' NA';
+      franchiseeCode = json['Franchisee_Code'] ?? 'NA';
+      franchiseeName = json['Franchisee_Name'] ?? 'NA';
       Latitude = json['Latitude'] ?? ' NA';
       Longitude = json['Longitude'] ?? ' NA';
       Address = json['Address'] ?? ' NA';
-      ActivityTitle = json['ActivityTitle'] ?? ' NA';
+      ActivityTitle = json['ActivityTitle'] ?? 'NA';
       purpose = <Purpose>[];
       if(json.containsKey('Purpose')) {
         if (json['Purpose'] is List) {

@@ -6,6 +6,8 @@ import 'package:intranet/pages/iface/onResponse.dart';
 import 'package:material_dialogs/material_dialogs.dart';
 import 'package:material_dialogs/widgets/buttons/icon_button.dart';
 
+import '../utils/theme/colors/light_colors.dart';
+
 enum TaskPageStatus {
   all,
   completed,
@@ -92,9 +94,31 @@ class Utility{
   }
 
   static void showMessage(BuildContext context,String message) {
-    /*ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text(message),
-    ));*/
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        // return object of type Dialog
+        return AlertDialog(
+          title: new Text("Alert"),
+          content: new Text(
+              message),
+          actions: <Widget>[
+            // usually buttons at the bottom of the dialog
+
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              // style: ButtonStyle(elevation: MaterialStateProperty(12.0 )),
+              style: ElevatedButton.styleFrom(
+                  elevation: 12.0,
+                  textStyle: const TextStyle(color: LightColors.kLightGreen)),
+              child: const Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
   }
   static void showMessages(BuildContext context,String? message) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
