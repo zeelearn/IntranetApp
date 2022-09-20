@@ -213,7 +213,7 @@ class _AttendanceManagerScreen extends State<AttendanceManagerScreen>
   getAttendanceListView() {
     if (requisitionList == null || requisitionList.length <= 0) {
       print('data not found');
-      return Utility.emptyDataSet(context);
+      return Utility.emptyDataSet(context,"Attendance Requisition request are not available");
     } else {
       return Column(
         children: [

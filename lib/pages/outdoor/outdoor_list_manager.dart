@@ -85,6 +85,11 @@ class _OutdoorManagerScreen extends State<OutdoorManagerScreen>
             padding: const EdgeInsets.all(8.0),
             child: ListView(
               children: [
+                Text(
+                  'Outdoor Duty Approval',
+                  style: TextStyle(
+                      fontSize: 16, fontWeight: FontWeight.bold),
+                ),
                 /// Custom Tabbar with solid selected bg and transparent tabbar bg
                 Container(
                   height: kToolbarHeight - 8.0,
@@ -212,8 +217,8 @@ class _OutdoorManagerScreen extends State<OutdoorManagerScreen>
 
   getAttendanceListView() {
     if (requisitionList == null || requisitionList.length <= 0) {
-      print('data not found');
-      return Utility.emptyDataSet(context);
+      String message = _tabController.index==0 ? "No pending Outdoor Duty Requisition Approvals" : "Outdoor Duty Requisition requests are not available";
+      return Utility.emptyDataSet(context,message);
     } else {
       return Column(
         children: [

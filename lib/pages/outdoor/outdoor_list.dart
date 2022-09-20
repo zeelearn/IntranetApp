@@ -29,6 +29,7 @@ class _OutdoorScreen extends State<OutdoorScreen>
 
 
   List<OutdoorModel> outdoorRequisitionList = [];
+  bool isLoading = true;
 
   @override
   void initState() {
@@ -62,7 +63,11 @@ class _OutdoorScreen extends State<OutdoorScreen>
 
 
   loadOutdoorRequisition() {
-    Utility.showLoaderDialog(context);
+    //Utility.showLoaderDialog(context);
+    isLoading=true;
+    setState(() {
+
+    });
     outdoorRequisitionList.clear();
     DateTime time = DateTime.now();
     DateTime selectedDate = new DateTime(time.year, time.month - 5, time.day);
@@ -75,6 +80,7 @@ class _OutdoorScreen extends State<OutdoorScreen>
     APIService apiService = APIService();
     apiService.outdoorRequisition(request).then((value) {
       print(value.toString());
+      isLoading=false;
       if (value != null) {
         if (value == null || value.responseData == null) {
           Utility.showMessage(context, 'data not found');
@@ -89,7 +95,7 @@ class _OutdoorScreen extends State<OutdoorScreen>
           Utility.showMessage(context, 'data not found');
         }
       }
-      Navigator.of(context).pop();
+     // Navigator.of(context).pop();
       setState(() {});
     });
   }
@@ -99,7 +105,7 @@ class _OutdoorScreen extends State<OutdoorScreen>
     double width = MediaQuery.of(context).size.width;
     return Scaffold(
         extendBodyBehindAppBar: true,
-        backgroundColor: LightColors.kLightYellow,
+        backgroundColor: Colors.white,
         body: SafeArea(
           child: RefreshIndicator(
             key: _refreshIndicatorKey,
@@ -109,6 +115,7 @@ class _OutdoorScreen extends State<OutdoorScreen>
             onRefresh: () async {
               // Replace this delay with the code to be executed during refresh
               // and return a Future when code finishs execution.
+              loadOutdoorRequisition();
               return Future<void>.delayed(const Duration(seconds: 3));
             },
             // Pull from top to show refresh indicator.
@@ -155,9 +162,13 @@ class _OutdoorScreen extends State<OutdoorScreen>
   }
 
   getOutdoorListView() {
-    if (outdoorRequisitionList == null || outdoorRequisitionList.length <= 0) {
+    if(isLoading){
+      return Center(child: Image.asset(
+        "assets/images/loading.gif",
+      ),);
+    }else if (outdoorRequisitionList == null || outdoorRequisitionList.length <= 0) {
       print('data not found');
-      return Utility.emptyDataSet(context);
+      return Utility.emptyDataSet(context,"Outdoor Requisition are not avaliable");
     } else {
       return Flexible(
           child: ListView.builder(
@@ -173,9 +184,7 @@ class _OutdoorScreen extends State<OutdoorScreen>
   generateRow(OutdoorModel model) {
     double width = MediaQuery.of(context).size.width;
 
-    return Expanded(
-        flex: 1,
-        child: Column(
+    return Column(
           children: [
             Container(
               color: LightColors.kAbsent,
@@ -301,7 +310,7 @@ class _OutdoorScreen extends State<OutdoorScreen>
                   ],
                 )),
           ],
-        ));
+        );
   }
 
   DateTime parseDate(String value) {

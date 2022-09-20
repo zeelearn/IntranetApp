@@ -1,12 +1,12 @@
 class LocalStrings {
   static String appName = "Kidzee";
-  static var stepOneTitle = "Attendance ";
+  static var stepOneTitle = "Intranet ";
   static var stepOneContent =
-      "";
-  static var stepTwoTitle = "Intranet";
+      "Attendance, Leave and outdoor Requisition ";
+  static var stepTwoTitle = "Permanent Journey Planner";
   static var stepTwoContent =
-      "";
-  static var stepThreeTitle = "Connect";
+      "PJP Planning and approval for manager";
+  static var stepThreeTitle = "Center Visit Form";
   static var stepThreeContent =
       "";
 
@@ -25,6 +25,7 @@ class LocalStrings {
   static const String GET_APPROVE_ATTENDANCE_REQUISITION = '/api/EmployeeInfo/AttendanceMarking';
   static const String GET_LEAVE_REQUISITION_MANAGER = '/api/EmployeeInfo/LeaveReqList';
   static const String GET_APPROVE_LEAVE_REQUISITION = '/api/Leave/UpdateWorkflowGeneric';
+  static const String GET_APPROVE_LEAVE_REQUISITION_MULTIPLE = '/api/Leave/UpdateWorkflowGenericNew';
 
   static const String GET_EMPLOYEE_LIST = '/api/EmployeeInfo/GetEmployees';
 

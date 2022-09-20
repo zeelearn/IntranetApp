@@ -7,9 +7,11 @@ import 'package:intranet/api/response/apply_leave_response.dart';
 import 'package:intranet/pages/helper/LocalConstant.dart';
 import 'package:intranet/pages/helper/utils.dart';
 import 'package:intranet/pages/widget/MyWidget.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../api/APIService.dart';
 import '../helper/LightColor.dart';
+import '../iface/onClick.dart';
 import '../utils/theme/colors/light_colors.dart';
 
 class ApplyLeaveScreen extends StatefulWidget {
@@ -22,6 +24,7 @@ class ApplyLeaveScreen extends StatefulWidget {
   String avaliableForEncash = '-';
   String totalLeaveBalance = '-';
   int employeeId = 0;
+
 
   ApplyLeaveScreen(
       {Key? key,
@@ -39,7 +42,7 @@ class ApplyLeaveScreen extends StatefulWidget {
   _ApplyLeaveScreen createState() => _ApplyLeaveScreen();
 }
 
-class _ApplyLeaveScreen extends State<ApplyLeaveScreen> {
+class _ApplyLeaveScreen extends State<ApplyLeaveScreen> implements onClickListener{
   List<LeaveRequisitionInfo> leaveRequisitionList = [];
   TextEditingController _startDateController = TextEditingController();
   TextEditingController _endDateController = TextEditingController();
@@ -47,7 +50,7 @@ class _ApplyLeaveScreen extends State<ApplyLeaveScreen> {
   DateTime minDate = DateTime(DateTime.now().year, DateTime.now().month - 3, 1);
   DateTime maxDate = DateTime(DateTime.now().year, DateTime.now().month + 3, 1);
   bool isMaternaty = false;
-
+  String appVersion='';
   @override
   void initState() {
     // TODO: implement initState
@@ -59,6 +62,16 @@ class _ApplyLeaveScreen extends State<ApplyLeaveScreen> {
     final prefs = await SharedPreferences.getInstance();
     widget.employeeId =
         int.parse(prefs.getString(LocalConstant.KEY_EMPLOYEE_ID) as String);
+    PackageInfo.fromPlatform().then((PackageInfo packageInfo) {
+      String appName = packageInfo.appName;
+      String packageName = packageInfo.packageName;
+      String version = packageInfo.version;
+      String buildNumber = packageInfo.buildNumber;
+      appVersion = version;
+    });
+    setState(() {
+
+    });
   }
 
   @override
@@ -80,6 +93,20 @@ class _ApplyLeaveScreen extends State<ApplyLeaveScreen> {
         resizeToAvoidBottomInset: false,
         extendBodyBehindAppBar: true,
         backgroundColor: LightColors.kLightYellow,
+        appBar: AppBar(
+          title: Text(
+            'Leave Application',
+            style:
+            TextStyle(fontSize: 17, color: Colors.black, letterSpacing: 0.53),
+          ),
+            leading: new IconButton(
+              icon: new Icon(Icons.arrow_back_ios, color: Colors.black),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+            backgroundColor: Colors.blue.withOpacity(0.7), //You can make this transparent
+            elevation: 0.0,
+
+        ),
         body: SafeArea(
           child: Column(
             children: [
@@ -87,26 +114,14 @@ class _ApplyLeaveScreen extends State<ApplyLeaveScreen> {
                 color: LightColors.kLightBlue,
                 padding: EdgeInsets.only(left: 10, right: 10),
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
                       'Leave Balance',
                       style:
                           TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                     ),
-                    InkWell(
-                      onTap: () {
-                        /*Navigator.push(
-                context, MaterialPageRoute(builder: (context) => UserNotification()));*/
-                      },
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Icon(
-                          Icons.add_box,
-                          size: 20,
-                        ),
-                      ),
-                    ),
+
                   ],
                 ),
               ),
@@ -135,7 +150,7 @@ class _ApplyLeaveScreen extends State<ApplyLeaveScreen> {
                     MyWidget().normalTextAreaField(
                         context, 'Purpose', _purposeController),
                     SizedBox(
-                      height: size.height * 0.05,
+                      height: size.height * 0.01,
                     ),
                     Row(
                       mainAxisSize: MainAxisSize.max,
@@ -194,7 +209,9 @@ class _ApplyLeaveScreen extends State<ApplyLeaveScreen> {
               ),
             ],
           ),
-        ));
+        ),
+      bottomNavigationBar: Utility.footer(appVersion),
+    );
   }
 
   validate() {
@@ -231,14 +248,14 @@ class _ApplyLeaveScreen extends State<ApplyLeaveScreen> {
 
     APIService apiService = APIService();
     apiService.applyLeave(request).then((value) {
+      Navigator.of(context).pop();
       if (value != null) {
         if (value == null || value.responseData == null) {
           Utility.showMessage(context, 'Unable to Apply Leave Request');
         } else if (value is ApplyLeaveResponse) {
           ApplyLeaveResponse response = value;
-          Utility.showMessage(context, response.responseMessage);
-          Navigator.of(context).pop();
-          Navigator.of(context).pop();
+          Utility.showMessageSingleButton(context, response.responseMessage,this);
+
         }
       } else {
         Navigator.pop(context);
@@ -360,5 +377,10 @@ class _ApplyLeaveScreen extends State<ApplyLeaveScreen> {
         ),
       ],
     );
+  }
+
+  @override
+  void onClick(int action, value) {
+    Navigator.of(context).pop();
   }
 }

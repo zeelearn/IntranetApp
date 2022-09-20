@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:intranet/pages/iface/onClick.dart';
 import 'package:intranet/pages/iface/onResponse.dart';
 import 'package:material_dialogs/material_dialogs.dart';
 import 'package:material_dialogs/widgets/buttons/icon_button.dart';
 
 import '../utils/theme/colors/light_colors.dart';
+import 'LightColor.dart';
 
 enum TaskPageStatus {
   all,
@@ -17,6 +20,7 @@ enum TaskPageStatus {
 
 class Utility{
 
+  static int ACTION_OK=100012;
 
   static Future<bool> isInternet() async{
     bool isConnected = true;
@@ -60,23 +64,43 @@ class Utility{
   // }
 
 
-  static Container emptyDataSet(BuildContext context){
+  static Container emptyDataSet(BuildContext context,String message){
     return Container(
       width: MediaQuery.of(context).size.width,
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: <Widget>[
-          SizedBox(height: 100,),
-          Image.asset(
+          /*Image.asset(
             'assets/images/ic_empty_box.png',
             height: 200.0,
-          ),
-          const Text("No Data Found", style: TextStyle(
-              color: Colors.redAccent,
-              fontSize: 16,
-              fontWeight: FontWeight.w600
-          ),),
+          ),*/
+          Lottie.asset('assets/json/search_notfound.json'),
+          Center(
+            child: Text(message, style: GoogleFonts.inter(
+              fontSize: 16.0,
+              color: LightColor.black,
+              fontWeight: FontWeight.w600,
+              height: 1.5,
+            ),
+                textAlign: TextAlign.center,),
+          )
         ],
+      ),
+    );
+  }
+
+  static footer(String appVersion){
+    return Container(
+      height: 30,
+      decoration: BoxDecoration(
+        color: LightColors.kLightGray,
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(20),
+          topRight: Radius.circular(20),
+        ),
+      ),
+      child: Center(
+        child: Text('Intranet_${appVersion}'),
       ),
     );
   }
@@ -108,6 +132,34 @@ class Utility{
             ElevatedButton(
               onPressed: () {
                 Navigator.of(context).pop();
+              },
+              // style: ButtonStyle(elevation: MaterialStateProperty(12.0 )),
+              style: ElevatedButton.styleFrom(
+                  elevation: 12.0,
+                  textStyle: const TextStyle(color: LightColors.kLightGreen)),
+              child: const Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+  static void showMessageSingleButton(BuildContext context,String message,onClickListener listener) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        // return object of type Dialog
+        return AlertDialog(
+          title: new Text("Alert"),
+          content: new Text(
+              message),
+          actions: <Widget>[
+            // usually buttons at the bottom of the dialog
+
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                listener.onClick(ACTION_OK, '');
               },
               // style: ButtonStyle(elevation: MaterialStateProperty(12.0 )),
               style: ElevatedButton.styleFrom(

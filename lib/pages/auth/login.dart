@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intranet/pages/auth/social_button.dart';
 import 'package:intranet/pages/widget/MyWidget.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../api/APIService.dart';
@@ -33,6 +34,26 @@ class _LoginPage extends State<LoginPage> {
 
   bool isChecked = false;
   bool isApiCallProcess = false;
+
+  String appVersion='';
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    Future.delayed(Duration.zero, () {
+      this.getDeviceInfo();
+    });
+  }
+  Future<void> getDeviceInfo() async {
+    PackageInfo.fromPlatform().then((PackageInfo packageInfo) {
+      String appName = packageInfo.appName;
+      String packageName = packageInfo.packageName;
+      String version = packageInfo.version;
+      String buildNumber = packageInfo.buildNumber;
+      appVersion = version;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -126,11 +147,11 @@ class _LoginPage extends State<LoginPage> {
                 SizedBox(
                   height: size.height * 0.02,
                 ),*/
-                  SignInOneSocialButton(
+                  /*SignInOneSocialButton(
                     iconPath: 'assets/icons/google_logo.svg',
                     text: 'Sign in with Google',
                     size: MediaQuery.of(context).size,
-                  ),
+                  ),*/
                   // signInAppleButton(size),
                   SizedBox(
                     height: size.height * 0.03,
@@ -144,6 +165,7 @@ class _LoginPage extends State<LoginPage> {
               ),
             ),
           ),
+          bottomNavigationBar: Utility.footer(appVersion),
         ),
         new Positioned(
           top: 0.0,
@@ -151,10 +173,10 @@ class _LoginPage extends State<LoginPage> {
           right: 0.0,
           child: AppBar(
             title: Text(''),// You can add title here
-            leading: new IconButton(
+            /*leading: new IconButton(
               icon: new Icon(Icons.arrow_back_ios, color: Colors.grey),
               onPressed: () => Navigator.of(context).pop(),
-            ),
+            ),*/
             backgroundColor: Colors.transparent, //You can make this transparent
             elevation: 0.0, //No shadow
           ),),
@@ -415,14 +437,14 @@ class _LoginPage extends State<LoginPage> {
           width: 16,
           height: 20,
         ),
-        Text(
+        /*Text(
           'Or Sign in with',
           style: GoogleFonts.inter(
             fontSize: 12.0,
             color: LightColor.grey,
           ),
           textAlign: TextAlign.center,
-        ),
+        ),*/
         const SizedBox(
           width: 16,
         ),
@@ -449,13 +471,13 @@ class _LoginPage extends State<LoginPage> {
               color: Color(0xFF21899C),
             ),
           ),
-          TextSpan(
+          /*TextSpan(
             text: 'Forgot Password',
             style: TextStyle(
               color: Color(0xFF21899C),
               fontWeight: FontWeight.w700,
             ),
-          ),
+          ),*/
         ],
       ),
     );

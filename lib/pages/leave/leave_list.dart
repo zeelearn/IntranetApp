@@ -11,6 +11,7 @@ import 'package:intranet/pages/leave/apply_leave.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../api/APIService.dart';
+import '../firebase/anylatics.dart';
 import '../helper/helpers.dart';
 import '../utils/theme/colors/light_colors.dart';
 
@@ -38,6 +39,7 @@ class _LeaveSummeryScreenState extends State<LeaveSummeryScreen>
 
   List<LeaveBalanceInfo> leaveBalanceList = [];
   List<LeaveRequisitionInfo> leaveRequisitionList = [];
+  bool isLoading = true;
 
   @override
   void initState() {
@@ -71,7 +73,8 @@ class _LeaveSummeryScreenState extends State<LeaveSummeryScreen>
   }
 
   loadSummery() {
-    Utility.showLoaderDialog(context);
+    isLoading = true;
+    //Utility.showLoaderDialog(context);
     leaveBalanceList.clear();
     DateTime time = DateTime.now();
     DateTime selectedDate = new DateTime(time.year, time.month - 1, time.day);
@@ -84,6 +87,7 @@ class _LeaveSummeryScreenState extends State<LeaveSummeryScreen>
     APIService apiService = APIService();
     apiService.LeaveBalance(request).then((value) {
       print(value.toString());
+      isLoading = false;
       if (value != null) {
         if (value == null || value.responseData == null) {
           Utility.showMessage(context, 'data not found');
@@ -106,13 +110,17 @@ class _LeaveSummeryScreenState extends State<LeaveSummeryScreen>
           Utility.showMessage(context, 'data not found');
         }
       }
-      Navigator.of(context).pop();
+      //Navigator.of(context).pop();
       setState(() {});
     });
   }
 
   loadLeaveRequsition() {
-    Utility.showLoaderDialog(context);
+   // Utility.showLoaderDialog(context);
+    isLoading = true;
+    setState(() {
+
+    });
     leaveRequisitionList.clear();
     DateTime time = DateTime.now();
     DateTime selectedDate = new DateTime(time.year, time.month - 5, time.day);
@@ -128,7 +136,8 @@ class _LeaveSummeryScreenState extends State<LeaveSummeryScreen>
 
     APIService apiService = APIService();
     apiService.LeaveRequisition(request).then((value) {
-      print(value.toString());
+      //print(value.toString());
+      isLoading = false;
       if (value != null) {
         if (value == null || value.responseData == null) {
           Utility.showMessage(context, 'data not found');
@@ -143,17 +152,18 @@ class _LeaveSummeryScreenState extends State<LeaveSummeryScreen>
           Utility.showMessage(context, 'data not found');
         }
       }
-      Navigator.of(context).pop();
+      //Navigator.of(context).pop();
       setState(() {});
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    FirebaseAnalyticsUtils().sendAnalyticsEvent('LeaveRequisition');
     double width = MediaQuery.of(context).size.width;
     return Scaffold(
         extendBodyBehindAppBar: true,
-        backgroundColor: LightColors.kLightYellow,
+        backgroundColor: Colors.white,
         body: SafeArea(
           child: RefreshIndicator(
             key: _refreshIndicatorKey,
@@ -163,6 +173,7 @@ class _LeaveSummeryScreenState extends State<LeaveSummeryScreen>
             onRefresh: () async {
               // Replace this delay with the code to be executed during refresh
               // and return a Future when code finishs execution.
+              loadLeaveRequsition();
               return Future<void>.delayed(const Duration(seconds: 3));
             },
             // Pull from top to show refresh indicator.
@@ -220,9 +231,13 @@ class _LeaveSummeryScreenState extends State<LeaveSummeryScreen>
   }
 
   getLeaveListView() {
-    if (leaveRequisitionList == null || leaveRequisitionList.length <= 0) {
+    if(isLoading){
+      return Center(child: Image.asset(
+        "assets/images/loading.gif",
+      ),);
+    }else if (leaveRequisitionList == null || leaveRequisitionList.length <= 0) {
       print('data not found');
-      return Utility.emptyDataSet(context);
+      return Utility.emptyDataSet(context,"Leave Requisition are not available");
     } else {
       return Flexible(
           child: ListView.builder(
@@ -237,9 +252,7 @@ class _LeaveSummeryScreenState extends State<LeaveSummeryScreen>
 
   generateLeaveRow(LeaveRequisitionInfo model) {
     double width = MediaQuery.of(context).size.width;
-    return Expanded(
-        flex: 1,
-        child: Column(
+    return Column(
           children: [
             Container(
               color: LightColors.kAbsent,
@@ -351,7 +364,7 @@ class _LeaveSummeryScreenState extends State<LeaveSummeryScreen>
                   ],
                 )),
           ],
-        ));
+        );
   }
 
   DateTime parseDate(String value) {

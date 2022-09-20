@@ -215,8 +215,7 @@ class _AttendanceSummeryState extends State<AttendanceSummeryManagerScreen> {
 
   getAttendanceListView() {
     if (summeryModleList == null || summeryModleList.length <= 0) {
-      print('data not found');
-      return Utility.emptyDataSet(context);
+      return Utility.emptyDataSet(context,"Requisition request not found");
     } else {
       return  Flexible(child: ListView.builder(
           controller: ScrollController(),

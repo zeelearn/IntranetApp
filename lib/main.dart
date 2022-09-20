@@ -7,9 +7,11 @@ import 'package:intranet/pages/helper/LightColor.dart';
 import 'package:intranet/pages/intro/splash.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter/foundation.dart';
+import 'package:upgrader/upgrader.dart';
 
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
+  print('Handling a background message ${message.messageId}');
 }
 
 AndroidNotificationChannel? channel;
@@ -19,13 +21,22 @@ late FirebaseMessaging messaging;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  await Firebase.initializeApp(name: "Intranet", options: DefaultFirebaseOptions.currentPlatform);
 
   messaging = FirebaseMessaging.instance;
   messaging.subscribeToTopic("intranet");
 
+
   // Set the background messaging handler early on, as a named top-level function
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+  FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+    print('Got a message whilst in the foreground! main');
+    print('Message data: ${message.data}');
+
+    if (message.notification != null) {
+      print('Message also contained a notification: ${message.notification}');
+    }
+  });
 
   if (!kIsWeb) {
     channel = const AndroidNotificationChannel(
@@ -50,16 +61,18 @@ Future<void> main() async {
   sound: true,
   );
   }
-
+  await FirebaseMessaging.instance.setAutoInitEnabled(true);
   runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
 
+
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
+
     return MaterialApp(
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,
@@ -83,7 +96,10 @@ class MyApp extends StatelessWidget {
         primaryColorDark: LightColor.primarydark_color,
         primaryColor: LightColor.primary_color,
       ),
-      home: const SplashScreen(),
+      home: Scaffold(
+          body: UpgradeAlert(
+            child: const SplashScreen(),
+          )),
     );
   }
 }

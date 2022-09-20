@@ -18,6 +18,7 @@ import '../../../api/response/cvf/QuestionResponse.dart';
 import '../../../api/response/cvf/cvfanswers_response.dart';
 import '../../../api/response/cvf/update_status_response.dart';
 import '../../../api/response/pjp/pjplistresponse.dart';
+import '../../firebase/anylatics.dart';
 import '../../helper/DBConstant.dart';
 import '../../helper/constants.dart';
 import '../../helper/utils.dart';
@@ -136,6 +137,7 @@ class _QuestionListScreenState extends State<QuestionListScreen> implements onUp
             saveCvfQuestionsPref(
                 widget.mCategoryId, json.encode(response.toJson()));
             mQuestionMaster.addAll(response.responseData);
+            //Utility.showMessageSingleButton(context, "Thanks for submitting Data", this);
             /*if (widget.mCategory.isEmpty || widget.mCategory == 'All') {
               List<Purpose> purposeList = getUniqueCategory();
               for (int index = 0;
@@ -282,6 +284,7 @@ class _QuestionListScreenState extends State<QuestionListScreen> implements onUp
 
   @override
   Widget build(BuildContext context) {
+    FirebaseAnalyticsUtils().sendAnalyticsEvent('CVFQuestions');
     return Scaffold(
         appBar: AppBar(
           title: const Text('Questions'),
@@ -335,7 +338,7 @@ class _QuestionListScreenState extends State<QuestionListScreen> implements onUp
       );
     } else if (mQuestionMaster.isEmpty) {
       //print('List not avaliable');
-      return Utility.emptyDataSet(context);
+      return Utility.emptyDataSet(context,"CVF Questions are not avaliable");
     } else {
       return Flexible(
           child: ListView.builder(

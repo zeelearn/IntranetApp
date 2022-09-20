@@ -163,7 +163,7 @@ class _FiltersScreenState extends State<FiltersScreen> {
   getFilterListView() {
     if (_selection.filters.isEmpty) {
       print('PJP List not available');
-      return Utility.emptyDataSet(context);
+      return Utility.emptyDataSet(context,"Filters are not avaliable");
     } else {
       return getListView();
     }

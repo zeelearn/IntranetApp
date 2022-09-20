@@ -8,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../api/APIService.dart';
 import '../../api/response/attendance_response.dart';
+import '../firebase/anylatics.dart';
 import '../utils/theme/colors/light_colors.dart';
 import '../utils/widgets/top_container.dart';
 import '../widget/TimeBoard.dart';
@@ -32,6 +33,7 @@ class _AttendanceSummeryState extends State<AttendanceSummeryScreen> {
   int employeeId = 0;
 
   List<AttendanceSummeryModel> summeryModleList = [];
+  bool isLoading = true;
 
   @override
   void initState() {
@@ -49,7 +51,11 @@ class _AttendanceSummeryState extends State<AttendanceSummeryScreen> {
   }
 
   loadSummery() {
-    Utility.showLoaderDialog(context);
+    //Utility.showLoaderDialog(context);
+    isLoading=true;
+    setState(() {
+
+    });
     int _FromMonth = selectedDate.month - 1;
     int _fromYear = selectedDate.year;
     if (selectedDate.month == 1) {
@@ -67,7 +73,7 @@ class _AttendanceSummeryState extends State<AttendanceSummeryScreen> {
     //loginRequestModel.User_Password = 'Niharika#123';
     APIService apiService = APIService();
     apiService.attendanceSummery(request).then((value) {
-      print(value.toString());
+      isLoading = false;
       if (value != null) {
         if (value == null || value.responseData == null) {
           Utility.showMessage(context, 'data not found');
@@ -80,7 +86,7 @@ class _AttendanceSummeryState extends State<AttendanceSummeryScreen> {
           Utility.showMessage(context, 'data not found');
         }
       }
-      Navigator.of(context).pop();
+      //Navigator.of(context).pop();
       setState(() {});
     });
   }
@@ -92,13 +98,14 @@ class _AttendanceSummeryState extends State<AttendanceSummeryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    FirebaseAnalyticsUtils().sendAnalyticsEvent('AttendanceRequisition');
     double width = MediaQuery
         .of(context)
         .size
         .width;
     return Scaffold(
         extendBodyBehindAppBar: true,
-        backgroundColor: LightColors.kLightYellow,
+        backgroundColor: Colors.white,
         body: RefreshIndicator(
           onRefresh: _pullRefresh,
           child: SafeArea(
@@ -115,7 +122,7 @@ class _AttendanceSummeryState extends State<AttendanceSummeryScreen> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              'Attrndance Marking',
+                              'Attrndance Summary',
                               style: TextStyle(
                                   fontSize: 16, fontWeight: FontWeight.bold),
                             ),
@@ -216,9 +223,13 @@ class _AttendanceSummeryState extends State<AttendanceSummeryScreen> {
   }
 
   getAttendanceListView() {
-    if (summeryModleList == null || summeryModleList.length <= 0) {
+    if(isLoading){
+      return Center(child: Image.asset(
+        "assets/images/loading.gif",
+      ),);
+    }else if (summeryModleList == null || summeryModleList.length <= 0) {
       print('data not found');
-      return Utility.emptyDataSet(context);
+      return Utility.emptyDataSet(context,"Attendence Requisition not avaliable, Please try again later");
     } else {
       return  Flexible(child: ListView.builder(
           controller: ScrollController(),
@@ -239,7 +250,7 @@ class _AttendanceSummeryState extends State<AttendanceSummeryScreen> {
     } else if (model.status == 'Absent' && model.reqDateAtn != null &&
         model.reqDateAtn != '') {
       return getAbsentButRequestedInfo(model);
-    } else if (model.status == 'Absent') {
+    } else if ( model.status == 'Absent') {
       return getAbsentInfo(model);
     } else {
       return getFullDayInfo(model);
@@ -252,9 +263,7 @@ class _AttendanceSummeryState extends State<AttendanceSummeryScreen> {
         .size
         .width;
 
-    return Expanded(
-      flex: 1,
-      child: Container(
+    return Container(
         color: LightColors.kLightFULLDAY,
         margin: const EdgeInsets.only(left: 5, right: 5, bottom: 5, top: 0),
         padding: const EdgeInsets.all(0.0),
@@ -355,8 +364,7 @@ class _AttendanceSummeryState extends State<AttendanceSummeryScreen> {
             ],
           ),
         ),
-      ),
-    );
+      );
 
     /*if(model.status=='Weekend'){
       return getHoliday(model);
@@ -371,9 +379,7 @@ class _AttendanceSummeryState extends State<AttendanceSummeryScreen> {
         .size
         .width;
 
-    return Expanded(
-      flex: 1,
-      child: Container(
+    return Container(
         color: LightColors.kAbsent,
         margin: const EdgeInsets.only(left: 5, right: 5, bottom: 5, top: 0),
         padding: const EdgeInsets.all(0.0),
@@ -429,8 +435,7 @@ class _AttendanceSummeryState extends State<AttendanceSummeryScreen> {
             ],
           ),
         ),
-      ),
-    );
+      );
   }
 
   getAbsentButRequestedInfo(AttendanceSummeryModel model) {
@@ -439,9 +444,7 @@ class _AttendanceSummeryState extends State<AttendanceSummeryScreen> {
         .size
         .width;
 
-    return Expanded(
-        flex: 1,
-        child: Column(
+    return Column(
           children: [
             Container(
               color: LightColors.kAbsent,
@@ -523,8 +526,7 @@ class _AttendanceSummeryState extends State<AttendanceSummeryScreen> {
                 )
             ),
           ],
-        )
-    );
+        );
   }
 
 
@@ -534,9 +536,8 @@ class _AttendanceSummeryState extends State<AttendanceSummeryScreen> {
         .size
         .width;
 
-    return Expanded(
-      flex: 1,
-      child: Container(
+    return Container(
+        height: 80,
         color: LightColors.kLightOrange,
         margin: const EdgeInsets.only(left: 5, right: 5, bottom: 5, top: 0),
         padding: const EdgeInsets.all(0.0),
@@ -590,8 +591,7 @@ class _AttendanceSummeryState extends State<AttendanceSummeryScreen> {
             ],
           ),
         ),
-      ),
-    );
+      );
 
     /*if(model.status=='Weekend'){
       return getHoliday(model);
@@ -751,7 +751,6 @@ class _AttendanceSummeryState extends State<AttendanceSummeryScreen> {
     //2022-07-18T00:00:00
     try {
       dt = new DateFormat('yyyy-MM-ddTmm:hh:ss').parse(value);
-      print('asasdi   ' + dt.day.toString());
     } catch (e) {
       e.toString();
     }

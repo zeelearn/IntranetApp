@@ -1,9 +1,12 @@
 import 'dart:collection';
 import 'dart:io';
 
+import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:in_app_update/in_app_update.dart';
 import 'package:intl/intl.dart';
 import 'package:intranet/pages/helper/LocalConstant.dart';
 import 'package:intranet/pages/helper/utils.dart';
@@ -13,11 +16,15 @@ import 'package:intranet/pages/pjp/PJPForm.dart';
 import 'package:intranet/pages/pjp/models/PjpModel.dart';
 import 'package:intranet/pages/pjp/mypjp.dart';
 import 'package:intranet/pages/userinfo/employee_list.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 import '../attendance/attendance_list.dart';
+import '../attendance/attendance_marking.dart';
 import '../attendance/manager_screen.dart';
+import '../firebase/anylatics.dart';
+import '../firebase/notification.dart';
 import '../helper/DatabaseHelper.dart';
 import '../helper/constants.dart';
 import '../leave/leave_list_manager.dart';
@@ -48,6 +55,7 @@ class _IntranetHomePageState extends State<IntranetHomePage> {
 
   static const int MENU_HOME= 1;
   static const int MENU_ATTENDANCE= 2;
+  static const int MENU_ATTENDANCE_MARKING= 10;
   static const int MENU_OUTDOOR=3;
   static const int MENU_LEAVE= 4;
   static const int MENU_LEAVE_APPROVAL= 5;
@@ -69,20 +77,81 @@ class _IntranetHomePageState extends State<IntranetHomePage> {
   Map<DateTime, List<PJPModel>> attendanceEvent = Map();
   int employeeId=0;
   String mDesignation='';
-  String _profileImage='https://cdn-icons-png.flaticon.com/128/4333/4333609.png';
+  String _profileImage='https://cdn-icons-png.flaticon.com/128/149/149071.png';
   List<PJPModel> mPjpList=[];
   late String mTitle = "";
 
+  bool _flexibleUpdateAvailable = false;
+  AppUpdateInfo? _updateInfo;
+
+  FirebaseAnalytics analytics = FirebaseAnalytics.instance;
+  FirebaseMessaging messaging = FirebaseMessaging.instance;
+  String appVersion='';
+
   @override
   void initState() {
+    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+      print('message received');
+      print(message.toString());
+    });
     super.initState();
     print('initstate');
     _selectedDay = _focusedDay;
     _selectedEvents = ValueNotifier(_getEventsForDay(_selectedDay!));
     //addEvent();
     getUserInfo();
+    //_listenForMessages();
+    final firebaseMessaging = FCM();
+    firebaseMessaging.setNotifications();
+    _listenForMessages();
 
+  }
 
+  // It is assumed that all messages contain a data field with the key 'type'
+  Future<void> setupInteractedMessage() async {
+    // Get any messages which caused the application to open from
+    // a terminated state.
+    RemoteMessage? initialMessage =
+    await FirebaseMessaging.instance.getInitialMessage();
+
+    // If the message also contains a data property with a "type" of "chat",
+    // navigate to a chat screen
+    if (initialMessage != null) {
+      _handleMessage(initialMessage);
+    }
+
+    // Also handle any interaction when the app is in the background via a
+    // Stream listener
+    FirebaseMessaging.onMessageOpenedApp.listen(_handleMessage);
+  }
+
+  void _handleMessage(RemoteMessage message) {
+    if (message.data['type'] == 'chat') {
+      /*Navigator.pushNamed(
+        context,
+        '/chat',
+        arguments: message,
+      );*/
+    }
+  }
+
+  void _listenForMessages() {
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      print('Got a message whilst in the foreground!');
+      print('Message data: ${message.data}');
+
+      if (message.notification != null) {
+        print('Message also contained a notification: ${message.notification}');
+        setState(() {
+          String? body = message.notification?.body;
+          if (body != null) {
+            //this._receivedPushMessage = body;
+          } else {
+            //this._receivedPushMessage = "message boy was null";
+          }
+        });
+      }
+    });
   }
 
   Future<void> getUserInfo() async {
@@ -90,13 +159,20 @@ class _IntranetHomePageState extends State<IntranetHomePage> {
     employeeId = int.parse(prefs.getString(LocalConstant.KEY_EMPLOYEE_ID) as String);
     mDesignation = prefs.getString(LocalConstant.KEY_DESIGNATION) as String;
     mTitle = prefs.getString(LocalConstant.KEY_FIRST_NAME).toString() +" "+ prefs.getString(LocalConstant.KEY_LAST_NAME).toString();
-    _profileImage = 'https://cdn-icons-png.flaticon.com/128/4333/4333609.png';
+    _profileImage = 'https://cdn-icons-png.flaticon.com/128/149/149071.png';
     /*String sex = prefs.getString(LocalConstant.KEY_GENDER) as String;
     if(sex == 'male'){
       _profileImage = 'https://cdn-icons-png.flaticon.com/128/4333/4333609.png';
     }else{
       _profileImage='https://cdn-icons.flaticon.com/png/128/4140/premium/4140047.png';
     }*/
+    PackageInfo.fromPlatform().then((PackageInfo packageInfo) {
+      String appName = packageInfo.appName;
+      String packageName = packageInfo.packageName;
+      String version = packageInfo.version;
+      String buildNumber = packageInfo.buildNumber;
+      appVersion = version;
+    });
     setState(() {});
 
   }
@@ -270,6 +346,12 @@ print('_getEventsForRange');
   @override
   Widget build(BuildContext context) {
     EasyLoading.init();
+    FirebaseAnalyticsUtils().enableAnytics();
+    FirebaseAnalyticsUtils().sendAnalyticsEvent('HomeScreen');
+    analytics.logAppOpen();
+    if(Platform.isAndroid) {
+      checkForUpdate();
+    }
     return  WillPopScope(
       onWillPop: () async{
         onBackClickListener();
@@ -283,6 +365,7 @@ print('_getEventsForRange');
         appBar: getAppbar(),
         drawer: getNavigationalDrawar(),
         body: getScreen(),
+        bottomNavigationBar: Utility.footer(appVersion),
         /*floatingActionButton:_selectedDestination==MENU_HOME ? FloatingActionButton.extended(
           onPressed: () {
             // Add your onPressed code here!
@@ -299,6 +382,31 @@ print('_getEventsForRange');
       ),
     );
   }
+
+  // Platform messages are asynchronous, so we initialize in an async method.
+  Future<void> checkForUpdate() async {
+    InAppUpdate.checkForUpdate().then((info) {
+      setState(() {
+        _updateInfo = info;
+        if(_updateInfo?.updateAvailability ==
+            UpdateAvailability.updateAvailable) {
+          InAppUpdate.performImmediateUpdate()
+              .catchError((e) => showSnack(e.toString()));
+        }
+      });
+    }).catchError((e) {
+      //showSnack(e.toString());
+
+    });
+  }
+
+  void showSnack(String text) {
+    if (_scaffoldKey.currentContext != null) {
+      ScaffoldMessenger.of(_scaffoldKey.currentContext!)
+          .showSnackBar(SnackBar(content: Text(text)));
+    }
+  }
+
 
   AppBar getAppbar(){
     return AppBar(
@@ -365,6 +473,11 @@ print('_getEventsForRange');
         break;
       case MENU_ATTENDANCE:
         return AttendanceSummeryScreen(displayName: mTitle,);
+        break;
+      case MENU_ATTENDANCE_MARKING:
+        return AttendanceMarkingScreen(
+            employeeId: employeeId,
+            displayName: '--');
         break;
       case MENU_OUTDOOR:
         return OutdoorScreen(displayName: mTitle,);
@@ -558,16 +671,6 @@ print('_getEventsForRange');
             leading: SizedBox(
                 height: 32.0,
                 width: 32.0,
-                child: Image.asset('assets/icons/ic_attendance.png')
-            ),
-            title: Text('Attendance'),
-            selected: widget._selectedDestination == MENU_ATTENDANCE,
-            onTap: () => selectDestination(MENU_ATTENDANCE),
-          ),
-          ListTile(
-            leading: SizedBox(
-                height: 32.0,
-                width: 32.0,
                 child: Image.asset('assets/icons/ic_leave.png')
             ),
             title: Text('Leave'),
@@ -580,15 +683,37 @@ print('_getEventsForRange');
                 width: 32.0,
                 child: Image.asset('assets/icons/ic_outdoor.png')
             ),
-            title: Text('Outdoor'),
+            title: Text('Outdoor Duty'),
             selected: widget._selectedDestination == MENU_OUTDOOR,
             onTap: () => selectDestination(MENU_OUTDOOR),
           ),
+          ListTile(
+            leading: SizedBox(
+                height: 32.0,
+                width: 32.0,
+                child: Image.asset('assets/icons/ic_attendance.png')
+            ),
+            title: Text('Attendance Summary'),
+            selected: widget._selectedDestination == MENU_ATTENDANCE,
+            onTap: () => selectDestination(MENU_ATTENDANCE),
+          ),
+          ListTile(
+            leading: SizedBox(
+                height: 32.0,
+                width: 32.0,
+                child: Image.asset('assets/icons/ic_attendance_marking.png')
+            ),
+            title: Text('Attendance Marking'),
+            selected: widget._selectedDestination == MENU_ATTENDANCE_MARKING,
+            onTap: () => selectDestination(MENU_ATTENDANCE_MARKING),
+          ),
+
+
           Divider(),
           const Padding(
             padding: EdgeInsets.all(16.0),
             child: Text(
-              'Manager Access',
+              'Approvals',
             ),
           ),
           Divider(),
@@ -598,7 +723,7 @@ print('_getEventsForRange');
                 width: 32.0,
                 child: Image.asset('assets/icons/ic_leave.png')
             ),
-            title: Text('Leave Approval'),
+            title: Text('Leave'),
             selected: widget._selectedDestination == MENU_LEAVE_APPROVAL,
             onTap: () => selectDestination(MENU_LEAVE_APPROVAL),
           ),
@@ -606,22 +731,23 @@ print('_getEventsForRange');
             leading: SizedBox(
                 height: 32.0,
                 width: 32.0,
-                child: Image.asset('assets/icons/ic_attendance.png')
+                child: Image.asset('assets/icons/ic_outdoor.png')
             ),
-            title: Text('Apptendnce Marking Approval'),
-            selected: widget._selectedDestination == MENU_ATTENDANCE_MARKING_APPROVAL,
-            onTap: () => selectDestination(MENU_ATTENDANCE_MARKING_APPROVAL),
+            title: Text('Outdoor Duty'),
+            selected: widget._selectedDestination == MENU_OUTDOOR_APPROVAL,
+            onTap: () => selectDestination(MENU_OUTDOOR_APPROVAL),
           ),
           ListTile(
             leading: SizedBox(
                 height: 32.0,
                 width: 32.0,
-                child: Image.asset('assets/icons/ic_outdoor.png')
+                child: Image.asset('assets/icons/ic_attendance.png')
             ),
-            title: Text('Outdoor Duty Approval'),
-            selected: widget._selectedDestination == MENU_OUTDOOR_APPROVAL,
-            onTap: () => selectDestination(MENU_OUTDOOR_APPROVAL),
+            title: Text('Apptendnce Marking'),
+            selected: widget._selectedDestination == MENU_ATTENDANCE_MARKING_APPROVAL,
+            onTap: () => selectDestination(MENU_ATTENDANCE_MARKING_APPROVAL),
           ),
+
           Divider(),
           ListTile(
             leading: SizedBox(

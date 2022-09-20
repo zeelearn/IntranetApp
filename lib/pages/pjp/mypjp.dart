@@ -2,23 +2,18 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intranet/api/ServiceHandler.dart';
-import 'package:intranet/api/request/pjp/get_pjp_list_request.dart';
 import 'package:intranet/api/request/pjp/update_pjpstatus_request.dart';
-import 'package:intranet/pages/pjp/new_pjp.dart';
-
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../api/APIService.dart';
 import '../../api/response/pjp/pjplistresponse.dart';
 import '../../api/response/pjp/update_pjpstatus_response.dart';
-import '../helper/LightColor.dart';
+import '../firebase/anylatics.dart';
 import '../helper/LocalConstant.dart';
 import '../helper/constants.dart';
 import '../helper/utils.dart';
 import '../iface/onResponse.dart';
 import '../model/filter.dart';
 import '../utils/theme/colors/light_colors.dart';
-import 'PJPForm.dart';
 import 'add_new_pjp.dart';
 import 'cvf/mypjpcvf.dart';
 import 'filters.dart';
@@ -46,7 +41,7 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse{
   void initState() {
     // TODO: implement initState
     super.initState();
-
+    FirebaseAnalyticsUtils().sendAnalyticsEvent('MyPjp');
     Future.delayed(Duration.zero, () {
       this.getUserInfo();
 
@@ -249,7 +244,7 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse{
       ),);
     }else  if (mPjpList.isEmpty) {
       print('PJP List not avaliable');
-      return Utility.emptyDataSet(context);
+      return Utility.emptyDataSet(context,"your PJP list is Empty, Please plan your journey");
     } else {
       return Flexible(
           child: ListView.builder(
@@ -275,6 +270,7 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse{
         padding: EdgeInsetsDirectional.fromSTEB(16, 0, 16, 8),
         child: Container(
           width: double.infinity,
+          height: 130,
           decoration: BoxDecoration(
             color: Colors.white,
             boxShadow: [
@@ -322,13 +318,13 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse{
                   ],
                 ),
               ),
-              Container(
+              /*Container(
                 width: MediaQuery.of(context).size.width * 0.85,
                 height: 1,
                 decoration: BoxDecoration(
                   color: Color(0xFFF1F4F8),
                 ),
-              ),
+              ),*/
               ListTile(
                 title: Padding(
                   padding: EdgeInsetsDirectional.all(0),
@@ -342,8 +338,9 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse{
                     ),
                   ),
                 ),
-                subtitle: Expanded(
-                  child: Text(
+                subtitle: /*Expanded(
+                  flex: 1,
+                  child:*/ Text(
                     'Remark : ${pjpInfo.remarks}',
                     style: const TextStyle(
                       fontFamily: 'Lexend Deca',
@@ -352,7 +349,7 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse{
                       fontWeight: FontWeight.normal,
                     ),
                   ),
-                ),
+                //),
                 trailing: pjpInfo.isSelfPJP=='0' && pjpInfo.ApprovalStatus =='Pending'? OutlinedButton(
                   onPressed: () {
                     approvePjp(pjpInfo,1);
@@ -369,7 +366,7 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse{
                 ) : null,
               ),
               Padding(
-                padding: EdgeInsetsDirectional.fromSTEB(12, 4, 12, 8),
+                padding: EdgeInsetsDirectional.fromSTEB(12, 0, 12, 8),
                 child: Row(
                   mainAxisSize: MainAxisSize.max,
                   children: [

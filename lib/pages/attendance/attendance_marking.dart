@@ -5,6 +5,7 @@ import 'package:intranet/api/request/attendance_marking_request.dart';
 import 'package:intranet/api/response/LeaveRequisitionResponse.dart';
 import 'package:intranet/pages/helper/LocalConstant.dart';
 import 'package:intranet/pages/helper/utils.dart';
+import 'package:intranet/pages/iface/onClick.dart';
 import 'package:intranet/pages/widget/MyWidget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../api/APIService.dart';
@@ -28,7 +29,7 @@ class AttendanceMarkingScreen extends StatefulWidget {
   _AttendanceMarkingScreen createState() => _AttendanceMarkingScreen();
 }
 
-class _AttendanceMarkingScreen extends State<AttendanceMarkingScreen> {
+class _AttendanceMarkingScreen extends State<AttendanceMarkingScreen> implements onClickListener{
   List<LeaveRequisitionInfo> leaveRequisitionList = [];
   TextEditingController _startDateController = TextEditingController();
   TextEditingController _fromTimeController = TextEditingController();
@@ -72,11 +73,14 @@ class _AttendanceMarkingScreen extends State<AttendanceMarkingScreen> {
         resizeToAvoidBottomInset: false,
         extendBodyBehindAppBar: true,
         backgroundColor: LightColors.kLightYellow,
-        appBar: AppBar(title: Text('MARKING ATTENDANCE - BASE LOCATION (HQ) WORKING'),),
+        appBar: widget.displayName=='--' ? null : AppBar(title: Text('MARKING ATTENDANCE - BASE LOCATION (HQ) WORKING'),),
         body: SafeArea(
           child: Column(
             children: [
-
+              SizedBox(
+                height: size.height * 0.02,
+              ),
+              MyWidget().richText(14, 'MARKING ATTENDANCE - BASE LOCATION (HQ) WORKING'),
               /*SizedBox(
                 height: size.height * 0.02,
               ),
@@ -253,17 +257,18 @@ class _AttendanceMarkingScreen extends State<AttendanceMarkingScreen> {
   print(request.getJson());
     APIService apiService = APIService();
     apiService.attendanceMarking(request).then((value) {
+      Navigator.of(context).pop();
       if (value != null) {
         if (value == null || value.responseData == null) {
           Utility.showMessage(context, 'Unable to Apply Leave Request');
         } else if (value is AttendanceMarkingResponse) {
           AttendanceMarkingResponse response = value;
-          Utility.showMessage(context, response.responseMessage);
-          if(response.responseMessage=='Attendance marked successfully') {
+          Utility.showMessageSingleButton(context, response.responseMessage,this);
+          /*if(response.responseMessage=='Attendance marked successfully') {
 
             clearForm();
-          }
-          Navigator.of(context).pop();
+          }*/
+
         }
       } else {
         Navigator.pop(context);
@@ -300,6 +305,11 @@ class _AttendanceMarkingScreen extends State<AttendanceMarkingScreen> {
   String getParsedShortDate(String value) {
     DateTime dateTime = parseDate(value);
     return DateFormat("MMM-dd").format(dateTime);
+  }
+
+  @override
+  void onClick(int action, value) {
+    clearForm();
   }
 
 

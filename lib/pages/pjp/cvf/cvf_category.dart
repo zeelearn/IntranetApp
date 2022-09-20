@@ -218,8 +218,8 @@ class _CategotyScreenState extends State<CVfCategotyScreen> {
   categoryListWidget() {
     double width = MediaQuery.of(context).size.width;
     if (mCategoryList == null || mCategoryList.length <= 0) {
-      print('data not found');
-      return Utility.emptyDataSet(context);
+      //print('data not found');
+      return Utility.emptyDataSet(context,"CVF Categories are not available");
     } else {
       return Flexible(
           child: ListView.builder(

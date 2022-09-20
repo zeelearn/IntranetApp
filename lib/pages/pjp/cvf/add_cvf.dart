@@ -4,6 +4,7 @@ import 'package:flutter_google_places/flutter_google_places.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:intranet/api/response/pjp/pjplistresponse.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../api/APIService.dart';
@@ -60,6 +61,7 @@ class _AddCVFState extends State<AddCVFScreen> {
   int employeeId = 0;
   double latitude=0.0;
   double longitude=0.0;
+  String appVersion='';
 
   var _categoryController = TextEditingController(text: 'Select Purpose');
   var _dateController = TextEditingController(text: 'Select Date');
@@ -70,6 +72,13 @@ class _AddCVFState extends State<AddCVFScreen> {
     final prefs = await SharedPreferences.getInstance();
     employeeId =
         int.parse(prefs.getString(LocalConstant.KEY_EMPLOYEE_ID) as String);
+    PackageInfo.fromPlatform().then((PackageInfo packageInfo) {
+      String appName = packageInfo.appName;
+      String packageName = packageInfo.packageName;
+      String version = packageInfo.version;
+      String buildNumber = packageInfo.buildNumber;
+      appVersion = version;
+    });
   }
 
   fetchCategory() {
@@ -739,6 +748,7 @@ class _AddCVFState extends State<AddCVFScreen> {
           ],
         ),
       ),
+      bottomNavigationBar: Utility.footer(appVersion),
       /*floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
           // Add your onPressed code here!

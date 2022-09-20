@@ -1,13 +1,11 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:intranet/api/ServiceHandler.dart';
-import 'package:intranet/api/request/cvf/get_cvf_request.dart';
-import 'package:intranet/pages/iface/onResponse.dart';
-import 'package:intranet/pages/pjp/cvf/cvf_questions.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../api/APIService.dart';
+import '../../../api/ServiceHandler.dart';
 import '../../../api/request/pjp/get_pjp_list_request.dart';
 import '../../../api/response/cvf/get_all_cvf.dart';
 import '../../../api/response/cvf/update_status_response.dart';
@@ -15,9 +13,11 @@ import '../../../api/response/pjp/pjplistresponse.dart';
 import '../../helper/LocalConstant.dart';
 import '../../helper/constants.dart';
 import '../../helper/utils.dart';
+import '../../iface/onResponse.dart';
 import '../../utils/theme/colors/light_colors.dart';
 import '../new_pjp.dart';
 import 'add_cvf.dart';
+import 'cvf_questions.dart';
 
 class MyPJPCVFListScreen extends StatefulWidget {
   PJPInfo mPjpInfo;
@@ -30,6 +30,7 @@ class MyPJPCVFListScreen extends StatefulWidget {
 
 class _MyCVFListScreen extends State<MyPJPCVFListScreen> implements onResponse {
   int employeeId = 0;
+  String appVersion='';
 
   //FilterSelection mFilterSelection = FilterSelection(filters: [], type: FILTERStatus.MYSELF);
   final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey =
@@ -51,6 +52,13 @@ class _MyCVFListScreen extends State<MyPJPCVFListScreen> implements onResponse {
         int.parse(prefs.getString(LocalConstant.KEY_EMPLOYEE_ID) as String);
     IntranetServiceHandler.loadPjpSummery(
         employeeId, int.parse(widget.mPjpInfo.PJP_Id), this);
+    PackageInfo.fromPlatform().then((PackageInfo packageInfo) {
+      String appName = packageInfo.appName;
+      String packageName = packageInfo.packageName;
+      String version = packageInfo.version;
+      String buildNumber = packageInfo.buildNumber;
+      appVersion = version;
+    });
   }
 
   @override
@@ -107,7 +115,9 @@ class _MyCVFListScreen extends State<MyPJPCVFListScreen> implements onResponse {
               ],
             ),
           ),
-        ));
+        ),
+      bottomNavigationBar: Utility.footer(appVersion),
+    );
   }
 
   getCVFListView() {
@@ -154,7 +164,7 @@ class _MyCVFListScreen extends State<MyPJPCVFListScreen> implements onResponse {
     }
   }
 
-  getView(GetDetailedPJP cvfView) {
+ /* getView(GetDetailedPJP cvfView) {
     return GestureDetector(
       onTap: () {
         if (cvfView.Status == 'Check In' || cvfView.Status == 'NA') {
@@ -170,6 +180,100 @@ class _MyCVFListScreen extends State<MyPJPCVFListScreen> implements onResponse {
                       employeeId: employeeId,
                       mCategoryId: cvfView.purpose![0].categoryId,
                     )),
+          );
+        }
+      },
+      child: Padding(
+        padding: EdgeInsetsDirectional.fromSTEB(16, 0, 16, 8),
+        child: Container(
+          height: 130,
+          width: double.infinity,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            boxShadow: [
+              BoxShadow(
+                blurRadius: 3,
+                color: Color(0x430F1113),
+                offset: Offset(0, 1),
+              )
+            ],
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    flex: 1,
+                    child: Container(
+                      child: Padding(
+                        padding: EdgeInsets.all(5),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              Utility.shortDate(
+                                  Utility.convertTime(cvfView.visitDate)),
+                              style: TextStyle(
+                                fontSize: 12.0,
+                                color: Colors.black,
+                              ),
+                            ),
+                            Column(
+                              mainAxisAlignment: MainAxisAlignment.spaceAround,
+                              children: [
+                                Text(
+                                  Utility.shortTime(
+                                      Utility.convertTime(cvfView.visitTime)),
+                                  style: TextStyle(
+                                    fontSize: 16.0,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                                Text(
+                                  Utility.shortTimeAMPM(
+                                      Utility.convertTime(cvfView.visitTime)),
+                                  style: TextStyle(
+                                    fontSize: 11.0,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                              ],
+                            )
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  Expanded(flex: 5, child: getview(cvfView)),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+*/
+  getView(GetDetailedPJP cvfView) {
+    return GestureDetector(
+      onTap: () {
+        print('status clicked ${cvfView.Status}');
+        if (cvfView.Status == 'Check In' || cvfView.Status == ' Check In' || cvfView.Status == 'NA') {
+          Utility.showMessage(context, 'Please Click on Check In button');
+        } else {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) => QuestionListScreen(
+                  cvfView: cvfView,
+                  mCategory: 'All',
+                  PJPCVF_Id: int.parse(cvfView.PJPCVF_Id),
+                  employeeId: employeeId,
+                  mCategoryId: cvfView.purpose![0].categoryId,
+                )),
           );
         }
       },
@@ -246,29 +350,28 @@ class _MyCVFListScreen extends State<MyPJPCVFListScreen> implements onResponse {
   }
 
   getCategoryView(GetDetailedPJP cvfView) {
-    print(widget.mPjpInfo.toJson());
     if (cvfView.purpose!.isEmpty) {
       return Text('No Category Found');
     } else {
       return Flexible(
           child: ListView.builder(
-        itemCount: 2,
-        shrinkWrap: false,
-        physics: const NeverScrollableScrollPhysics(),
-        itemBuilder: (context, index) {
-          return Text('${cvfView.purpose![0].categoryName} ',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                background: Paint()
-                  ..color = Colors.blue
-                  ..strokeWidth = 20
-                  ..strokeJoin = StrokeJoin.round
-                  ..strokeCap = StrokeCap.round
-                  ..style = PaintingStyle.stroke,
-                color: Colors.white,
-              ));
-        },
-      ));
+            itemCount: 2,
+            shrinkWrap: false,
+            physics: const NeverScrollableScrollPhysics(),
+            itemBuilder: (context, index) {
+              return Text('${cvfView.purpose![0].categoryName} ',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    background: Paint()
+                      ..color = Colors.blue
+                      ..strokeWidth = 20
+                      ..strokeJoin = StrokeJoin.round
+                      ..strokeCap = StrokeCap.round
+                      ..style = PaintingStyle.stroke,
+                    color: Colors.white,
+                  ));
+            },
+          ));
     }
   }
 
@@ -300,7 +403,7 @@ class _MyCVFListScreen extends State<MyPJPCVFListScreen> implements onResponse {
               Padding(
                 padding: EdgeInsetsDirectional.fromSTEB(0, 4, 0, 0),
                 child: Text(
-                  'Ref Id : P-${widget.mPjpInfo.PJP_Id} C-${cvfView.PJPCVF_Id}',
+                  'Ref Id : C-${cvfView.PJPCVF_Id}',
                   style: TextStyle(
                     fontFamily: 'Lexend Deca',
                     color: Color(0xFF4B39EF),
@@ -312,14 +415,8 @@ class _MyCVFListScreen extends State<MyPJPCVFListScreen> implements onResponse {
             ],
           ),
         ),
-        /*Container(
-          width: MediaQuery.of(context).size.width * 0.85,
-          height: 1,
-          decoration: BoxDecoration(
-            color: Color(0xFFF1F4F8),
-          ),
-        ),*/
         Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
             Expanded(
               flex: 3,
@@ -334,9 +431,9 @@ class _MyCVFListScreen extends State<MyPJPCVFListScreen> implements onResponse {
                       child: Container(
                         padding: EdgeInsetsDirectional.fromSTEB(0, 4, 0, 0),
                         child: Text(
-                          cvfView.franchiseeCode != 'NA'
+                          cvfView.franchiseeName != 'NA'
                               ? '${cvfView.franchiseeName}'
-                              : cvfView.Address,
+                              : '${cvfView.Address}',
                           style: TextStyle(
                             fontFamily: 'Lexend Deca',
                             color: Color(0xFF090F13),
@@ -349,7 +446,7 @@ class _MyCVFListScreen extends State<MyPJPCVFListScreen> implements onResponse {
                     Align(
                       alignment: Alignment.centerLeft,
                       child: Text(
-                        cvfView.franchiseeCode != 'NA'
+                        cvfView.franchiseeName != 'NA' || cvfView.franchiseeName != ' NA'
                             ? 'PJP Remark - '
                             : 'Activity Name ',
                         style: TextStyle(
@@ -362,17 +459,17 @@ class _MyCVFListScreen extends State<MyPJPCVFListScreen> implements onResponse {
                     ),
                     Align(
                       alignment: Alignment.centerLeft,
-                      child: Flexible(
-                        child: Text(
-                            cvfView.franchiseeCode != 'NA'
-                                ? '${widget.mPjpInfo.remarks}'
-                                : '${cvfView.ActivityTitle}',
-                            maxLines: 3,
-                            style: const TextStyle(
-                                color: Colors.black45,
-                                fontWeight: FontWeight.normal)),
-                      ),
+                      child: /*Flexible(
+                        child: */Text(
+                          cvfView.franchiseeName != 'NA' || cvfView.franchiseeName != ' NA'
+                              ? widget.mPjpInfo.remarks
+                              : '${cvfView.ActivityTitle}',
+                          maxLines: 3,
+                          style: const TextStyle(
+                              color: Colors.black45,
+                              fontWeight: FontWeight.normal)),
                     ),
+                    /*),*/
                   ],
                 ),
               ),
@@ -380,36 +477,8 @@ class _MyCVFListScreen extends State<MyPJPCVFListScreen> implements onResponse {
             Expanded(flex: 1, child: getTextRounded(cvfView, 'Fill CVF')),
           ],
         ),
-
-        /*Padding(
-          padding: EdgeInsetsDirectional.fromSTEB(5, 4, 12, 8),
-          child: Row(
-            mainAxisSize: MainAxisSize.max,
-            children: [
-              Padding(
-                padding: EdgeInsetsDirectional.fromSTEB(0, 0, 0, 4),
-                child: Icon(
-                  Icons.schedule,
-                  color: Color(0xFF4B39EF),
-                  size: 20,
-                ),
-              ),
-              Padding(
-                padding: EdgeInsetsDirectional.fromSTEB(4, 0, 0, 0),
-                child: Text(
-                  '${Utility.shortDate(Utility.convertDate(cvfView.visitDate))} : ${Utility.shortTimeFormat(Utility.convertDate(cvfView.visitDate))}',
-                  style: TextStyle(
-                    fontFamily: 'Lexend Deca',
-                    color: Color(0xFF4B39EF),
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),*/
         Container(
+          height: 40,
           width: double.infinity,
           decoration: BoxDecoration(
             color: LightColors.kLightGray,
@@ -424,50 +493,50 @@ class _MyCVFListScreen extends State<MyPJPCVFListScreen> implements onResponse {
           ),
           child:
           Padding(
-            padding: EdgeInsetsDirectional.fromSTEB(5, 4, 12, 4),
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Container(
-                decoration: BoxDecoration(
-                  color: LightColors.kLightGray,
-                  boxShadow: [
-                    BoxShadow(
-                      blurRadius: 3,
-                      color: Colors.white70,
-                      offset: Offset(0, 1),
-                    )
-                  ],
-                  borderRadius: BorderRadius.circular(8),
+              padding: EdgeInsetsDirectional.fromSTEB(5, 4, 12, 4),
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: LightColors.kLightGray,
+                    boxShadow: [
+                      BoxShadow(
+                        blurRadius: 3,
+                        color: Colors.white70,
+                        offset: Offset(0, 1),
+                      )
+                    ],
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.max,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(' Category '),
+                      cvfView.purpose!.length > 0
+                          ? getTextCategory(
+                          cvfView, cvfView.purpose![0].categoryName)
+                          : Text(''),
+                      cvfView.purpose!.length > 1
+                          ? getTextCategory(
+                          cvfView, cvfView.purpose![1].categoryName)
+                          : Text(''),
+                      cvfView.purpose!.length > 2
+                          ? getTextCategory(
+                          cvfView, cvfView.purpose![2].categoryName)
+                          : Text(''),
+                      cvfView.purpose!.length > 3
+                          ? getTextCategory(
+                          cvfView, cvfView.purpose![3].categoryName)
+                          : Text(''),
+                      cvfView.purpose!.length > 4
+                          ? getTextCategory(
+                          cvfView, cvfView.purpose![4].categoryName)
+                          : Text(''),
+                    ],
+                  ),
                 ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.max,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(' Category '),
-                    cvfView.purpose!.length > 0
-                        ? getTextCategory(
-                        cvfView, cvfView.purpose![0].categoryName)
-                        : Text(''),
-                    cvfView.purpose!.length > 1
-                        ? getTextCategory(
-                        cvfView, cvfView.purpose![1].categoryName)
-                        : Text(''),
-                    cvfView.purpose!.length > 2
-                        ? getTextCategory(
-                        cvfView, cvfView.purpose![2].categoryName)
-                        : Text(''),
-                    cvfView.purpose!.length > 3
-                        ? getTextCategory(
-                        cvfView, cvfView.purpose![3].categoryName)
-                        : Text(''),
-                    cvfView.purpose!.length > 4
-                        ? getTextCategory(
-                        cvfView, cvfView.purpose![4].categoryName)
-                        : Text(''),
-                  ],
-                ),
-              ),
-            )),
+              )),
         ),
       ],
     );
@@ -475,42 +544,42 @@ class _MyCVFListScreen extends State<MyPJPCVFListScreen> implements onResponse {
 
   getTextCategory(GetDetailedPJP cvfView, String categoryname) {
     return
-          GestureDetector(
-            onTap: () {
-              if (cvfView.Status == 'Check In' || cvfView.Status == 'NA') {
-                Utility.showMessage(context, 'Please Click on Check In button');
-              } else {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => QuestionListScreen(
-                            cvfView: cvfView,
-                            PJPCVF_Id: int.parse(cvfView.PJPCVF_Id),
-                            employeeId: employeeId,
-                            mCategory: categoryname,
-                            mCategoryId: cvfView.purpose![0].categoryId,
-                          )),
-                );
-              }
-              Utility.showMessage(context, '${cvfView.Status} clicked');
-            },
-            child: Padding(
-              padding:
-                  EdgeInsets.only(left: 10, right: 10, top: 10, bottom: 10),
-              child: Text('${categoryname}',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    background: Paint()
-                      ..color = LightColors.kLightRed
-                      ..strokeWidth = 18
-                      ..strokeJoin = StrokeJoin.round
-                      ..strokeCap = StrokeCap.round
-                      ..style = PaintingStyle.stroke,
-                    color: Color(0xFF4B39EF),
+      GestureDetector(
+        onTap: () {
+          if (cvfView.Status == 'Check In' || cvfView.Status == ' Check In' || cvfView.Status == 'NA') {
+            Utility.showMessage(context, 'Please Click on Check In button');
+          } else {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => QuestionListScreen(
+                    cvfView: cvfView,
+                    PJPCVF_Id: int.parse(cvfView.PJPCVF_Id),
+                    employeeId: employeeId,
+                    mCategory: categoryname,
+                    mCategoryId: cvfView.purpose![0].categoryId,
                   )),
-            ),
-          );
+            );
+          }
+        },
+        child: Padding(
+          padding:
+          EdgeInsets.only(left: 10, right: 10, top: 10, bottom: 10),
+          child: Text('${categoryname}',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                background: Paint()
+                  ..color = LightColors.kLightRed
+                  ..strokeWidth = 18
+                  ..strokeJoin = StrokeJoin.round
+                  ..strokeCap = StrokeCap.round
+                  ..style = PaintingStyle.stroke,
+                color: Color(0xFF4B39EF),
+              )),
+        ),
+      );
   }
+
 
   Future<void> _showMyDialog(GetDetailedPJP cvfView) async {
     return showDialog<void>(
@@ -602,6 +671,7 @@ class _MyCVFListScreen extends State<MyPJPCVFListScreen> implements onResponse {
         }
       },
       child: Container(
+        height: 40,
         margin: EdgeInsets.only(right: 2),
         decoration: BoxDecoration(
             shape: BoxShape.rectangle, // BoxShape.circle or BoxShape.retangle

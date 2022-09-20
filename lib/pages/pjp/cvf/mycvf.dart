@@ -10,6 +10,7 @@ import '../../../api/ServiceHandler.dart';
 import '../../../api/response/cvf/get_all_cvf.dart';
 import '../../../api/response/cvf/update_status_response.dart';
 import '../../../api/response/pjp/pjplistresponse.dart';
+import '../../firebase/anylatics.dart';
 import '../../helper/LocalConstant.dart';
 import '../../helper/constants.dart';
 import '../../helper/utils.dart';
@@ -84,6 +85,7 @@ class _MyCVFListScreen extends State<MyCVFListScreen> implements onResponse{
 
   @override
   Widget build(BuildContext context) {
+    FirebaseAnalyticsUtils().sendAnalyticsEvent('MyCVF');
     return Scaffold(
         extendBodyBehindAppBar: true,
         backgroundColor: Colors.white,
@@ -145,7 +147,7 @@ class _MyCVFListScreen extends State<MyCVFListScreen> implements onResponse{
         "assets/images/loading.gif",
       ),);
     }else if (mCvfList.isEmpty) {
-      return Utility.emptyDataSet(context);
+      return Utility.emptyDataSet(context,"your CVF list is Empty");
     } else {
       return Flexible(
           child: ListView.builder(
@@ -317,6 +319,7 @@ class _MyCVFListScreen extends State<MyCVFListScreen> implements onResponse{
           ),
         ),
         Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
             Expanded(
               flex: 3,
@@ -329,6 +332,7 @@ class _MyCVFListScreen extends State<MyCVFListScreen> implements onResponse{
                     Align(
                       alignment: Alignment.centerLeft,
                       child: Container(
+                        height: 30,
                         padding: EdgeInsetsDirectional.fromSTEB(0, 4, 0, 0),
                         child: Text(
                           cvfView.franchiseeName != 'NA'
@@ -346,7 +350,7 @@ class _MyCVFListScreen extends State<MyCVFListScreen> implements onResponse{
                     Align(
                       alignment: Alignment.centerLeft,
                       child: Text(
-                        cvfView.franchiseeCode != 'NA'
+                        cvfView.franchiseeName != 'NA' || cvfView.franchiseeName != ' NA'
                             ? 'PJP Remark - '
                             : 'Activity Name ',
                         style: TextStyle(
@@ -359,9 +363,9 @@ class _MyCVFListScreen extends State<MyCVFListScreen> implements onResponse{
                     ),
                     Align(
                       alignment: Alignment.centerLeft,
-                      child: Flexible(
-                        child: Text(
-                            cvfView.franchiseeCode != 'NA'
+                      child: /*Flexible(
+                        child: */Text(
+                            cvfView.franchiseeName != 'NA' || cvfView.franchiseeName != ' NA'
                                 ? ''
                                 : '${cvfView.ActivityTitle}',
                             maxLines: 3,
@@ -369,7 +373,7 @@ class _MyCVFListScreen extends State<MyCVFListScreen> implements onResponse{
                                 color: Colors.black45,
                                 fontWeight: FontWeight.normal)),
                       ),
-                    ),
+                    /*),*/
                   ],
                 ),
               ),
@@ -377,36 +381,8 @@ class _MyCVFListScreen extends State<MyCVFListScreen> implements onResponse{
             Expanded(flex: 1, child: getTextRounded(cvfView, 'Fill CVF')),
           ],
         ),
-
-        /*Padding(
-          padding: EdgeInsetsDirectional.fromSTEB(5, 4, 12, 8),
-          child: Row(
-            mainAxisSize: MainAxisSize.max,
-            children: [
-              Padding(
-                padding: EdgeInsetsDirectional.fromSTEB(0, 0, 0, 4),
-                child: Icon(
-                  Icons.schedule,
-                  color: Color(0xFF4B39EF),
-                  size: 20,
-                ),
-              ),
-              Padding(
-                padding: EdgeInsetsDirectional.fromSTEB(4, 0, 0, 0),
-                child: Text(
-                  '${Utility.shortDate(Utility.convertDate(cvfView.visitDate))} : ${Utility.shortTimeFormat(Utility.convertDate(cvfView.visitDate))}',
-                  style: TextStyle(
-                    fontFamily: 'Lexend Deca',
-                    color: Color(0xFF4B39EF),
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),*/
         Container(
+          height: 40,
           width: double.infinity,
           decoration: BoxDecoration(
             color: LightColors.kLightGray,

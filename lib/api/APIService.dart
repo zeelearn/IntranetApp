@@ -14,6 +14,7 @@ import 'package:intranet/api/request/cvf/get_cvf_request.dart';
 import 'package:intranet/api/request/cvf/questions_request.dart';
 import 'package:intranet/api/request/cvf/save_cvfquestions_request.dart';
 import 'package:intranet/api/request/cvf/update_cvf_status_request.dart';
+import 'package:intranet/api/request/leave/leave_approve_request.dart';
 import 'package:intranet/api/request/leave_balance_req.dart';
 import 'package:intranet/api/request/leave_request.dart';
 import 'package:intranet/api/request/leavelist_request_man.dart';
@@ -271,6 +272,43 @@ class APIService {
       print(response.body);
       if (response.statusCode == 200 || response.statusCode == 400) {
         if(response.body is AttendanceSummeryResponse){
+          return ApplyLeaveResponse.fromJson(
+            json.decode(response.body),
+          );
+        }else {
+          return ApplyLeaveResponse.fromJson(
+            json.decode(response.body),
+          );
+        }
+      } else {
+        return null; //LoginResponseModel(token:"",Status:"Invalid/Wrong Login Details");
+      }
+    } catch (e) {
+      print(e.toString());
+      e.toString();
+    }
+  }
+
+  Future<dynamic> approveLeaveManager(ApproveLeaveRequestManager request) async {
+    try {
+      print(request.toJson());
+      var body = jsonEncode( {
+        'xml': request.xml,
+        'User_Id': request.userId,
+
+      });
+      print('request body');
+      print(body);
+      print(Uri.parse(url + LocalStrings.GET_APPROVE_LEAVE_REQUISITION_MULTIPLE));
+      final response = await http.post(Uri.parse(url + LocalStrings.GET_APPROVE_LEAVE_REQUISITION_MULTIPLE),
+          headers: {
+            "Accept": "application/json",
+            "content-type": "application/json"
+          },
+          body:body);
+      print(response.body);
+      if (response.statusCode == 200 || response.statusCode == 400) {
+        if(response.body is ApplyLeaveResponse){
           return ApplyLeaveResponse.fromJson(
             json.decode(response.body),
           );

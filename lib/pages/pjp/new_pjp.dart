@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:table_calendar/table_calendar.dart';
 
@@ -12,6 +13,7 @@ import '../../api/request/cvf/centers_request.dart';
 import '../../api/response/cvf/add_cvf_response.dart';
 import '../../api/response/cvf/category_response.dart';
 import '../../api/response/cvf/centers_respinse.dart';
+import '../firebase/anylatics.dart';
 import '../helper/DBConstant.dart';
 import '../helper/DatabaseHelper.dart';
 import '../helper/LightColor.dart';
@@ -59,7 +61,7 @@ class _PjpState extends State<NewPJP> {
   List<String> _selectedItems = [];
   bool isAddCVF = false;
   int employeeId = 0;
-
+  String appVersion='';
   Future<void> getUserInfo() async {
     final prefs = await SharedPreferences.getInstance();
     employeeId =
@@ -67,6 +69,13 @@ class _PjpState extends State<NewPJP> {
     getCvfList();
     fetchCategory();
     getFrichinseeList();
+    PackageInfo.fromPlatform().then((PackageInfo packageInfo) {
+      String appName = packageInfo.appName;
+      String packageName = packageInfo.packageName;
+      String version = packageInfo.version;
+      String buildNumber = packageInfo.buildNumber;
+      appVersion = version;
+    });
   }
 
   fetchCategory() {
@@ -542,8 +551,7 @@ class _PjpState extends State<NewPJP> {
 
   @override
   Widget build(BuildContext context) {
-    print('From Date ${Utility.shortDate(widget.mPjpModel.fromDate)}');
-    print('To Date ${Utility.shortDate(widget.mPjpModel.toDate)}');
+    FirebaseAnalyticsUtils().sendAnalyticsEvent('New PJP');
 
     Size size = MediaQuery
         .of(context)
@@ -690,7 +698,7 @@ class _PjpState extends State<NewPJP> {
           ],
         ),
       ),
-
+      bottomNavigationBar: Utility.footer(appVersion),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
           // Add your onPressed code here!

@@ -38,14 +38,22 @@ class _IntroPageState extends State<IntroPage> {
         elevation: 0,
         backgroundColor: Colors.white,
         actions: <Widget>[
-          Padding(
-            padding: EdgeInsets.only(right: 20, top: 20),
-            child: Text('Skip', style: TextStyle(
-                color: ColorSys.gray,
-                fontSize: 18,
-                fontWeight: FontWeight.w400
-            ),),
+          GestureDetector(
+            onTap: (){
+              Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => LoginPage()));
+            },
+            child: Padding(
+              padding: EdgeInsets.only(right: 20, top: 20),
+              child: Text('Skip', style: TextStyle(
+                  color: ColorSys.gray,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w400
+              ),),
+            ),
           )
+
         ],
       ),
       body: Stack(

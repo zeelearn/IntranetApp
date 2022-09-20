@@ -2,11 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:intranet/api/request/ApproveAttendanceMarking.dart';
 import 'package:intranet/api/request/leavelist_request_man.dart';
+import 'package:intranet/pages/iface/onClick.dart';
 import 'package:intranet/pages/widget/MyWidget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../api/APIService.dart';
 import '../../api/request/approve_leave_request.dart';
+import '../../api/request/leave/ApproveLeaveRequsitionRequest.dart';
+import '../../api/request/leave/leave_approve_request.dart';
 import '../../api/response/apply_leave_response.dart';
 import '../../api/response/approve_attendance_response.dart';
 import '../../api/response/attendance_marking_man.dart';
@@ -26,7 +29,7 @@ class LeaveManagerScreen extends StatefulWidget {
 }
 
 class _LeaveManagerScreen extends State<LeaveManagerScreen>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin implements onClickListener {
   late TabController _tabController;
   List<bool> _isChecked = [];
   bool _isSelectAll = false;
@@ -40,6 +43,7 @@ class _LeaveManagerScreen extends State<LeaveManagerScreen>
   ];
 
   List<LeaveInfoMan> requisitionList = [];
+  bool isLoading = true;
 
   updateListView() {
     if (requisitionList != null) {
@@ -99,7 +103,11 @@ class _LeaveManagerScreen extends State<LeaveManagerScreen>
             padding: const EdgeInsets.all(8.0),
             child: ListView(
               children: [
-
+                Text(
+                  'Leave Approval',
+                  style: TextStyle(
+                      fontSize: 16, fontWeight: FontWeight.bold),
+                ),
                 /// Custom Tabbar with solid selected bg and transparent tabbar bg
                 Container(
                   height: kToolbarHeight - 8.0,
@@ -154,15 +162,39 @@ class _LeaveManagerScreen extends State<LeaveManagerScreen>
     }
   }
 
-  singleSelection(int position) {
-    late AttendanceReqManModel model;
+  getSelectedModels(String status) {
+    //ApproveLeaveRequsitionRequest request = ApproveLeaveRequsitionRequest();
+    late var jsonValue="[";
     if (_isChecked != null && _isChecked.length > 0) {
+      String token="";
+      print(status);
       for (int index = 0; index < _isChecked.length; index++) {
-        if (position == index) {
-          _isChecked[index] = true;
-        } else {
-          _isChecked[index] = false;
-        }
+        String data= "{'Requisition_Id': ${requisitionList[index].requisitionId.toInt().toString()},'WorkflowTypeCode': 'LV1','RequisitionTypeCode': '${requisitionList[index].requisitionTypeCode}','Requistion_Status_Code': '${status}','Is_Approved': ${status=='REJ' ? "0" : "1"},'Workflow_UserType': 'MAN','Workflow_Remark': '${status=='REJ' ? 'Rejected by Intranet App' : 'Approved from Intranet app'}'}";
+          /*ApproveLeaveRequest request= ApproveLeaveRequest(RequisitionTypeCode: requisitionList[index].requisitionTypeCode,
+              User_Id: widget.employeeId.toInt().toString(),
+              Requisition_Id: requisitionList[index].requisitionId.toInt().toString(),
+              WorkflowTypeCode: requisitionList[index].workflowTypeCode,
+              Requistion_Status_Code: status,
+              Is_Approved: status=='REJ' ? false : true,
+              Workflow_UserType: 'MAN',
+              Workflow_Remark: 'approved from Intranet App');*/
+          jsonValue = jsonValue+token+' '+data;
+          //list.add(request);
+        token=",";
+
+      }
+    }
+    jsonValue = jsonValue+"]";
+    return jsonValue;
+  }
+
+  updateSelection() {
+    //ApproveLeaveRequsitionRequest request = ApproveLeaveRequsitionRequest();
+    late var jsonValue="[";
+    if (_isChecked != null && _isChecked.length > 0) {
+
+      for (int index = 0; index < _isChecked.length; index++) {
+        _isChecked[index] = _isSelectAll;
       }
     }
   }
@@ -173,10 +205,26 @@ class _LeaveManagerScreen extends State<LeaveManagerScreen>
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Padding(
-            padding: EdgeInsets.only(left: 20),
-            child: Text(
-              'Select and approve the acquisition',
-              style: TextStyle(fontSize: 12),
+            padding: EdgeInsets.only(left: 10),
+            child: Row(
+              children: [
+                Checkbox(
+                  checkColor: Colors.black,
+                  activeColor: LightColors.kLavender,
+                  value: _isSelectAll,
+                  onChanged: (bool? value) {
+                    setState(() {
+                      _isSelectAll = value!;
+                      updateSelection();
+                    });
+                  },
+                ),
+                Text(
+                  'Select All',
+                  style: TextStyle(fontSize: 12),
+                ),
+              ],
+
             ),
           ),
           /*Row(
@@ -198,8 +246,9 @@ class _LeaveManagerScreen extends State<LeaveManagerScreen>
                   ),
                 ],
               ),*/
+
           Padding(
-            padding: EdgeInsets.only(right: 20),
+            padding: EdgeInsets.only(right: 30),
             child: Container(
               alignment: Alignment.center,
               child: Padding(
@@ -226,9 +275,13 @@ class _LeaveManagerScreen extends State<LeaveManagerScreen>
   }
 
   getAttendanceListView() {
-    if (requisitionList == null || requisitionList.length <= 0) {
-      print('data not found');
-      return Utility.emptyDataSet(context);
+    if(isLoading){
+      return Center(child: Image.asset(
+        "assets/images/loading.gif",
+      ),);
+    }else if (requisitionList == null || requisitionList.length <= 0) {
+      String message = _tabController.index==0 ? "No pending Leave Requisition Approvals" : "Leave Requisition requests are not available";
+      return Utility.emptyDataSet(context,message);
     } else {
       return Column(
         children: [
@@ -250,7 +303,11 @@ class _LeaveManagerScreen extends State<LeaveManagerScreen>
   }
 
   loadAcquisition() {
-    Utility.showLoaderDialog(context);
+    //Utility.showLoaderDialog(context);
+    isLoading = true;
+    setState(() {
+
+    });
     DateTime selectedDate = DateTime.now();
     DateTime _from = DateTime(selectedDate.year, selectedDate.month - 1, selectedDate.day);
     DateTime _to = DateTime(selectedDate.year, selectedDate.month + 1, selectedDate.day);
@@ -262,6 +319,7 @@ class _LeaveManagerScreen extends State<LeaveManagerScreen>
         ToDate: DateFormat("yyyy-MM-dd'T'hh:mm:ss").format(_to));
     APIService apiService = APIService();
     apiService.leaveRequisitionManager(request).then((value) {
+      isLoading=false;
       if (value != null) {
         if (value == null || value.responseData == null) {
           Utility.showMessage(context, 'data not found');
@@ -287,7 +345,7 @@ class _LeaveManagerScreen extends State<LeaveManagerScreen>
         }
       }
       _isChecked = List<bool>.filled(requisitionList.length, false);
-      Navigator.of(context).pop();
+      //Navigator.of(context).pop();
       setState(() {});
     });
   }
@@ -306,7 +364,8 @@ class _LeaveManagerScreen extends State<LeaveManagerScreen>
             // usually buttons at the bottom of the dialog
             ElevatedButton(
               onPressed: () {
-                approveAcquisition(model, 'MANAP');
+                Navigator.of(context).pop();
+                approveAcquisition(model, 'REJ');
               },
               // style: ButtonStyle(elevation: MaterialStateProperty(12.0 )),
               style: ElevatedButton.styleFrom(
@@ -316,7 +375,8 @@ class _LeaveManagerScreen extends State<LeaveManagerScreen>
             ),
             ElevatedButton(
               onPressed: () {
-                approveAcquisition(model, 'REJ');
+                Navigator.of(context).pop();
+                approveAcquisition(model, 'MANAP');
               },
               // style: ButtonStyle(elevation: MaterialStateProperty(12.0 )),
               style: ElevatedButton.styleFrom(
@@ -332,33 +392,30 @@ class _LeaveManagerScreen extends State<LeaveManagerScreen>
 
   approveAcquisition(LeaveInfoMan model, String status) {
     Utility.showLoaderDialog(context);
-    DateTime selectedDate = DateTime.now();
-    ApproveLeaveRequest request= ApproveLeaveRequest(RequisitionTypeCode: model.requisitionTypeCode,
-        User_Id: widget.employeeId.toInt().toString(),
-        Requisition_Id: model.requisitionId.toInt().toString(),
-        WorkflowTypeCode: model.workflowTypeCode,
-        Requistion_Status_Code: status,
-        Is_Approved: false,
-        Workflow_UserType: '',
-        Workflow_Remark: '');
+    var list = getSelectedModels(status);
+    //String xml ="{'root': {'subroot': [{'Requisition_Id': 1102411,'WorkflowTypeCode': 'LV1','RequisitionTypeCode': 'LVREQ','Requistion_Status_Code': '','Is_Approved': 1,'Workflow_UserType': 'MAN','Workflow_Remark': 'approved'}]}}";
+    //print(xml);
+    String xml ="{'root': {'subroot': ${list}}";
+    ApproveLeaveRequestManager request = ApproveLeaveRequestManager(xml: xml, userId: widget.employeeId.toString(),);
+    print('request'+request.toJson().toString());
     APIService apiService = APIService();
-    apiService.approveLeave(request).then((value) {
+    apiService.approveLeaveManager(request).then((value) {
       print(value.toString());
+      Navigator.of(context).pop();
       if (value != null) {
         if (value == null || value.responseData == null) {
           Utility.showMessage(context, 'data not found');
         } else if (value is ApplyLeaveResponse) {
           ApplyLeaveResponse response = value;
           if (response != null) {
-            Utility.showMessage(context, response.responseMessage);
-            Navigator.of(context).pop();
-            loadAcquisition();
+          print(response.responseMessage);
+            Utility.showMessageSingleButton(context, response.responseMessage,this);
           }
         } else {
           Utility.showMessage(context, 'data not found');
         }
       }
-      Navigator.of(context).pop();
+
       setState(() {});
     });
   }
@@ -456,7 +513,7 @@ class _LeaveManagerScreen extends State<LeaveManagerScreen>
                               onChanged: (bool? value) {
                                 setState(() {
                                   _isChecked[position] = value!;
-                                  singleSelection(position);
+                                  //singleSelection(position);
                                 });
                               },
                             )),
@@ -527,5 +584,10 @@ class _LeaveManagerScreen extends State<LeaveManagerScreen>
   String getParsedShortDate(String value) {
     DateTime dateTime = parseDate(value);
     return DateFormat("MMM-dd").format(dateTime);
+  }
+
+  @override
+  void onClick(int action, value) {
+    this.loadAcquisition();
   }
 }

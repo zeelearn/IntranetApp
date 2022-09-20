@@ -140,7 +140,7 @@ class _EmployeeListScreenState extends State<EmployeeListScreen>
   getLeaveListView() {
     if (employeeList == null || employeeList.length <= 0) {
       print('data not found');
-      return Utility.emptyDataSet(context);
+      return Utility.emptyDataSet(context,"Employee List are not avaliable, Please try again later");
     } else {
       return Flexible(
           child: ListView.builder(
