@@ -2,6 +2,12 @@ import 'dart:async';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:intranet/api/APIService.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import '../../api/request/fcm_request.dart';
+import '../helper/LocalConstant.dart';
 
 Future<void> onBackgroundMessage(RemoteMessage message) async {
   await Firebase.initializeApp();
@@ -25,7 +31,7 @@ class FCM {
   final titleCtlr = StreamController<String>.broadcast();
   final bodyCtlr = StreamController<String>.broadcast();
 
-  setNotifications() {
+  setNotifications(String employeeId,String deviceId,String userAgent) {
     FirebaseMessaging.onBackgroundMessage(onBackgroundMessage);
     FirebaseMessaging.onMessage.listen(
           (message) async {
@@ -44,8 +50,25 @@ class FCM {
       },
     );
     // With this token you can test it easily on your phone
-    final token =
-    _firebaseMessaging.getToken().then((value) => print('Token: $value'));
+    final token = _firebaseMessaging.getToken().then((value) => sendFcm(value!,employeeId,deviceId,userAgent) );
+
+
+  }
+  sendFcm(String token,String employeeId,deviceId,userAgent) async {
+    final prefs = await SharedPreferences.getInstance();
+    var oldoken = prefs.getString(LocalConstant.KEY_FCM_ID);
+    if(oldoken==null || oldoken != token) {
+      prefs.setString(LocalConstant.KEY_FCM_ID, token);
+      APIService service = APIService();
+
+      FcmRequestModel model = FcmRequestModel(FCM_Reg_ID: token,
+          Employee_ID: employeeId,
+          Device_ID: deviceId,
+          User_Agent: userAgent);
+      service.updateFCM(model);
+    }else{
+      print('in else notification id not change');
+    }
   }
 
   dispose() {

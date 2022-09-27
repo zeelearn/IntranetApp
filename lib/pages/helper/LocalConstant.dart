@@ -14,6 +14,7 @@ class LocalConstant {
   static const String KEY_USER_NAME = "uname";
   static const String KEY_USER_PASSWORD = "password";
   static const String KEY_EMPLOYEE_ID = "empid";
+  static const String KEY_FCM_ID = "fcmid";
   static const String KEY_EMPLOYEE_CODE = "employee_Code";
   static const String KEY_FIRST_NAME = "employee_FirstName";
   static const String KEY_LAST_NAME = "employee_LastName";
@@ -58,7 +59,7 @@ class LocalConstant {
   static Color? ratingBG = Colors.yellow[600];
 
 
-  static String TABLE_NOTIFICATION ="notification";
+  static String TABLE_NOTIFICATION ="notification_table";
   static String TABLE_EMPLOYEES ="emp_info";
   static String TABLE_PARENT_INFO ="parent_info";
   static String TABLE_PJP_INFO ="pjp_info";

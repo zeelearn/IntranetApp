@@ -1,17 +1,81 @@
+import 'dart:convert';
+import 'dart:io' show Platform;
+import 'dart:math';
+
+import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:intranet/pages/firebase/firebase_options.dart';
+import 'package:intranet/pages/firebase/notification_service.dart';
+import 'package:intranet/pages/helper/DatabaseHelper.dart';
 import 'package:intranet/pages/helper/LightColor.dart';
 import 'package:intranet/pages/intro/splash.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter/foundation.dart';
+import 'package:intranet/pages/model/NotificationDataModel.dart';
 import 'package:upgrader/upgrader.dart';
 
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
   print('Handling a background message ${message.messageId}');
+  DBHelper helper=new DBHelper();
+  if(message.data != null) {
+    print(message.data.toString());
+    String type ="";
+    String title ="";
+    String imageUrl ="";
+    String body="";
+    try{
+      String mData = message.data.toString();
+      mData = mData.replaceAll("{", "{\"");
+      mData = mData.replaceAll("}", "\"}");
+      mData = mData.replaceAll(":", "\":\"");
+      mData = mData.replaceAll(", ", "\",\"");
+      if(!message.data.containsKey("URL")){
+        NotificationActionModel model = NotificationActionModel.fromJson(
+          json.decode(mData),
+        );
+        type = model.type;
+        title = model.title;
+        imageUrl = '';
+        body = model.message;
+      }else {
+        print('in else data ${mData}');
+        NotificationDataModel model = NotificationDataModel.fromJson(
+          json.decode(mData),
+        );
+        type = model.type;
+        title = model.title;
+        imageUrl = model.image;
+        body = model.message;
+      }
+      _showNotificationWithDefaultSound(message,title, body);
+    }catch(e){
+      print(e);
+    }
+    helper.insertNotification(message.messageId as String,
+        message.data.toString(),
+        type,
+        '',
+        message.data.toString(),
+        0,
+        imageUrl);
+
+  }
+  print('Data insetted');
+  if(message.notification!=null) {
+    print(message.notification.toString());
+    helper.insertNotification(message.messageId as String,
+        message.notification!.title as String,
+        'simple',
+        message.notification!.body as String,
+        '',
+        0,
+        '');
+    _showNotificationWithDefaultSound(message,message.notification!.title as String, message.notification!.body as String);
+  }
 }
 
 AndroidNotificationChannel? channel;
@@ -36,23 +100,86 @@ Future<void> main() async {
     if (message.notification != null) {
       print('Message also contained a notification: ${message.notification}');
     }
+    DBHelper helper=new DBHelper();
+    if(message.data != null) {
+      print(message.data.toString());
+      String type ="";
+      String title ="";
+      String imageUrl ="";
+      String body ="";
+      try{
+        String mData = message.data.toString();
+        mData = mData.replaceAll("{", "{\"");
+        mData = mData.replaceAll("}", "\"}");
+        mData = mData.replaceAll(":", "\":\"");
+        mData = mData.replaceAll(", ", "\",\"");
+        print('-========================');
+        print(mData);
+        if(!message.data.containsKey("URL")){
+          NotificationActionModel model = NotificationActionModel.fromJson(
+            json.decode(mData),
+          );
+          type = model.type;
+          title = model.title;
+          imageUrl = '';
+          body = model.message;
+        }else {
+          print(mData);
+          NotificationDataModel model = NotificationDataModel.fromJson(
+            json.decode(mData),
+          );
+          type = model.type;
+          title = model.title;
+          imageUrl = model.image;
+          body = model.message;
+        }
+        _showNotificationWithDefaultSound(message,title, body);
+      }catch(e){
+        print(e);
+      }
+      helper.insertNotification(message.messageId as String,
+          message.data.toString(),
+          type,
+          '',
+          message.data.toString(),
+          0,
+          imageUrl);
+
+    }
+    print('Data insetted');
+    if(message.notification!=null) {
+      print(message.notification.toString());
+      helper.insertNotification(message.messageId as String,
+          message.notification!.title as String,
+          'simple',
+          message.notification!.body as String,
+          '',
+          0,
+          '');
+      _showNotificationWithDefaultSound(message,message.notification!.title as String, message.notification!.body as String);
+    }
   });
 
   if (!kIsWeb) {
     channel = const AndroidNotificationChannel(
         'intranet', // id
         'intranet', // title
-        importance: Importance.high,
+        importance: Importance.defaultImportance,
         enableLights: true,
         enableVibration: true,
         showBadge: true,
         playSound: true);
 
-    flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+    /*flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
     await flutterLocalNotificationsPlugin!
       .resolvePlatformSpecificImplementation<
   AndroidFlutterLocalNotificationsPlugin>()
       ?.createNotificationChannel(channel!);
+
+    */
+    NotificationService notificationService = NotificationService();
+    await notificationService.init();
+    await notificationService.requestIOSPermissions();
 
   await FirebaseMessaging.instance
       .setForegroundNotificationPresentationOptions(
@@ -62,9 +189,72 @@ Future<void> main() async {
   );
   }
   await FirebaseMessaging.instance.setAutoInitEnabled(true);
+
+
+
   runApp(const MyApp());
 }
 
+Future<void> setup() async {
+  // #1
+  const androidSetting = AndroidInitializationSettings('@mipmap/ic_launcher');
+  const iosSetting = IOSInitializationSettings();
+
+  // #2
+  const initSettings =
+  InitializationSettings(android: androidSetting, iOS: iosSetting);
+
+  // #3
+  await flutterLocalNotificationsPlugin?.initialize(initSettings).then((_) {
+    debugPrint('setupPlugin: setup success');
+  }).catchError((Object error) {
+    debugPrint('Error: $error');
+  });
+}
+
+
+Future _showNotificationWithDefaultSound(RemoteMessage message, String title,String messageData) async {
+
+  if (false && Platform.isAndroid) {
+    if(
+    !AwesomeStringUtils.isNullOrEmpty(title, considerWhiteSpaceAsEmpty: true) ||
+        !AwesomeStringUtils.isNullOrEmpty(messageData, considerWhiteSpaceAsEmpty: true)
+    ){
+      print('message also contained a notification: ${message}');
+
+      String? imageUrl;
+      imageUrl ??= message.notification!.android?.imageUrl;
+      imageUrl ??= message.notification!.apple?.imageUrl;
+
+      Map<String, dynamic> notificationAdapter = {
+        NOTIFICATION_CHANNEL_KEY: 'basic_channel',
+        NOTIFICATION_ID:
+        message.data[NOTIFICATION_CONTENT]?[NOTIFICATION_ID] ??
+            message.messageId ??
+            Random().nextInt(2147483647),
+        NOTIFICATION_TITLE:
+        message.data[NOTIFICATION_CONTENT]?[NOTIFICATION_TITLE] ??
+            message.notification?.title,
+        NOTIFICATION_BODY:
+        message.data[NOTIFICATION_CONTENT]?[NOTIFICATION_BODY] ??
+            message.notification?.body ,
+        NOTIFICATION_LAYOUT:
+        AwesomeStringUtils.isNullOrEmpty(imageUrl) ? 'Default' : 'BigPicture',
+        NOTIFICATION_BIG_PICTURE: imageUrl
+      };
+
+      AwesomeNotifications().createNotificationFromJsonData(notificationAdapter);
+    }
+    else {
+      AwesomeNotifications().createNotificationFromJsonData(message.data);
+    }
+  }else {
+    NotificationService notificationService = NotificationService();
+    notificationService.showNotification(12, title, messageData, messageData);
+  }
+  print('Send Notification');
+}
+final GlobalKey<NavigatorState> navigatorKey = new GlobalKey<NavigatorState>();
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
 
@@ -81,6 +271,7 @@ class MyApp extends StatelessWidget {
       supportedLocales: const [
         Locale('en', ''), // English, no country code
       ],
+      navigatorKey: navigatorKey,
       debugShowCheckedModeBanner: false,
       title: 'Intranet',
       theme: ThemeData(
