@@ -356,7 +356,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
 
   void onBackClickListener() {
     print(('back  ${widget._selectedDestination}'));
-    if (widget._selectedDestination == 0) {
+    if (widget._selectedDestination == MENU_HOME) {
       // set up the buttons
       Widget cancelButton = TextButton(
         child: Text("Cancel"),
@@ -365,7 +365,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
       Widget continueButton = TextButton(
         child: Text("Exit"),
         onPressed: () {
-          Navigator.pop(context);
+          Navigator.of(context).pop(true);
         },
       );
 

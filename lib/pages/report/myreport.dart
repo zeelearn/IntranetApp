@@ -50,19 +50,13 @@ class _MyReportScreenState extends State<MyReportsScreen>
       body: RefreshIndicator(
           onRefresh: _pullRefresh,
           child: SafeArea(
-            child: Stack(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SafeArea(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Padding(
-                        padding: EdgeInsets.all(10),
-                        child: Card(
-                          child: getListView(),
-                        ),
-                      ),
-                    ],
+                Padding(
+                  padding: EdgeInsets.all(10),
+                  child: Card(
+                    child: getListView(),
                   ),
                 ),
               ],
@@ -81,12 +75,11 @@ class _MyReportScreenState extends State<MyReportsScreen>
       print('data not found');
       return Utility.emptyDataSet(context,"Reports are not avaliable");
     } else {
-      return Flexible(
-          child: ListView.builder(
+      return ListView.builder(
         controller: ScrollController(),
         itemCount: mReportList.length,
         shrinkWrap: true,
-        physics: AlwaysScrollableScrollPhysics(),
+
         itemBuilder: (context, index) {
           return GestureDetector(
             onTap: () {
@@ -104,7 +97,7 @@ class _MyReportScreenState extends State<MyReportsScreen>
             ),
           );
         },
-      ));
+      );
     }
   }
 
