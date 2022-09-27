@@ -27,8 +27,10 @@ class DBHelper {
   static String CREATE_TABLE_NOTIFICATION = 'CREATE TABLE IF NOT EXISTS  ${LocalConstant.TABLE_NOTIFICATION}'
       '(notification_id TEXT PRIMARY KEY, '
       'title TEXT, '
-      'description TEXT, '
       'type TEXT, '
+      'notification TEXT, '
+      'data TEXT, '
+      'isseen int, '
       'imageurl TEXT, '
       'date TEXT)';
 
@@ -171,7 +173,11 @@ class DBHelper {
           db.execute(CREATE_TABLE_CVF_USER_ANSERR);
           db.execute(CREATE_TABLE_CVF_FRANCHISEE);
 
-        }, version: 1);
+        },
+        onUpgrade: (db,old,newversion){
+            print('Database Upgrade-------------------');
+            db.execute(CREATE_TABLE_NOTIFICATION);
+        }, version: 4);
   }
 
   /// insert data to db
@@ -249,6 +255,21 @@ class DBHelper {
   Future clear() async {
     final dbPath = await sql.getDatabasesPath();
     await sql.deleteDatabase(dbPath);
+  }
+
+  Future<void> insertNotification(String id,String title,String type,String notification,String dataNotification,int isseen,String imageurl) async{
+    var dbclient = await db;
+    Map<String, Object> data = {
+      'notification_id': id,
+      'title': title,
+      'type': type,
+      'notification': notification,
+      'data': dataNotification,
+      'isseen': isseen,
+      'imageurl': imageurl,
+      'date': Utility.parseDate(DateTime.now()),
+    };
+    await dbclient.insert(LocalConstant.TABLE_NOTIFICATION, data);
   }
 
   Future<void> updateUserAnswer(cvfid,pjpid,quid,cat_name,useranswer) async {

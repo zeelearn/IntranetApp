@@ -336,7 +336,7 @@ class _AttendanceSummeryState extends State<AttendanceSummeryScreen> {
 
   generateRow(AttendanceSummeryModel model) {
     if (model.isHoliday || model.isVacation || model.status == 'Weekend' || model.status=='Absent') {
-      return getWeekend1(model);
+      return getWeekendData(model);
     } else if (model.status == 'Absent' &&
         model.reqDateAtn != null &&
         model.reqDateAtn != '') {
@@ -466,6 +466,68 @@ class _AttendanceSummeryState extends State<AttendanceSummeryScreen> {
                 ),
                 child: const Text(
                   "Full Day",
+                  style: TextStyle(color: Colors.black),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  getWeekendData(AttendanceSummeryModel model) {
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: 5.0, horizontal: 5.0),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(10),
+        child: Container(
+          color: Colors.white,
+          child: Row(
+            children: <Widget>[
+              Container(
+                color: model.status == 'Absent' ? LightColors.kLightRed : model.status == 'Weekend' ? LightColors.kLightOrange : LightColors.kFULLDAY_BUTTON,
+                width: 70,
+                height: 70,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      '${parseDate(model.date).day.toString()} ${getShortMonth(model.date)}',
+                      style: TextStyle(
+                        fontSize: 16.0,
+                        color: Colors.black,
+                      ),
+                    ),
+                    Text(
+                      model.day.substring(0, 3),
+                      style: TextStyle(
+                        fontSize: 16.0,
+                        color: Colors.black,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: generateAttendanceView(model),
+                ),
+              ),
+              Container(
+                margin: const EdgeInsets.all(10),
+                padding: const EdgeInsets.all(10),
+                alignment: Alignment.center,
+                decoration: const BoxDecoration(
+                  color: LightColors.kLightGray,
+                  // Set border width
+                  borderRadius: BorderRadius.all(Radius.circular(10.0)),
+                ),
+                child:  Text(
+                  model.status,
                   style: TextStyle(color: Colors.black),
                 ),
               ),
@@ -788,11 +850,24 @@ class _AttendanceSummeryState extends State<AttendanceSummeryScreen> {
         'In: ${model.inTime as String} Out: ${model.outTime as String} ',
         style: GoogleFonts.inter(
           fontSize: 14.0,
-          color: Colors.blue,
-          fontWeight: FontWeight.w600,
+          color: model.status == 'Absent' ? Colors.orangeAccent : model.status == 'Weekend' ? LightColors.kLightOrange :Colors.blue,
+          fontWeight:  FontWeight.w600,
           height: 1.5,
         ),
       ),);
+    }else{
+      if(model.reqDateOut.isEmpty && model.reqDateOutApp.isEmpty && model.reqDateAtn!.isEmpty && model.reqDateAtnApp!.isEmpty) {
+        _rowWidget.add(Text(
+          model.status,
+          style: GoogleFonts.inter(
+            fontSize: 14.0,
+            color: model.status == 'Absent' ? Colors.orangeAccent : model
+                .status == 'Weekend' ? LightColors.kLightOrange : Colors.blue,
+            fontWeight: FontWeight.w600,
+            height: 1.5,
+          ),
+        ),);
+      }
     }
     if (model.lateMark.isNotEmpty && model.lateMark=='Yes') {
       _rowWidget.add(Text(

@@ -82,6 +82,7 @@ dependencies:
   flutter_launcher_icons: ^0.10.0
   package_info_plus: ^1.4.3+1
   overlay_support: ^2.0.1
+  awesome_notifications: ^0.6.21
 
 dev_dependencies:
   flutter_test:

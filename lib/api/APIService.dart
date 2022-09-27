@@ -14,6 +14,7 @@ import 'package:intranet/api/request/cvf/get_cvf_request.dart';
 import 'package:intranet/api/request/cvf/questions_request.dart';
 import 'package:intranet/api/request/cvf/save_cvfquestions_request.dart';
 import 'package:intranet/api/request/cvf/update_cvf_status_request.dart';
+import 'package:intranet/api/request/fcm_request.dart';
 import 'package:intranet/api/request/leave/leave_approve_request.dart';
 import 'package:intranet/api/request/leave_balance_req.dart';
 import 'package:intranet/api/request/leave_request.dart';
@@ -39,6 +40,7 @@ import 'package:intranet/api/response/cvf/cvfanswers_response.dart';
 import 'package:intranet/api/response/cvf/get_all_cvf.dart';
 import 'package:intranet/api/response/cvf/update_status_response.dart';
 import 'package:intranet/api/response/employee_list_response.dart';
+import 'package:intranet/api/response/fcm_response.dart';
 import 'package:intranet/api/response/leave_list_manager.dart';
 import 'package:intranet/api/response/leave_response.dart';
 import 'package:intranet/api/response/login_response.dart';
@@ -873,6 +875,36 @@ class APIService {
           );
         }else {
           return UpdatePJPStatusResponse.fromJson(
+            json.decode(response.body),
+          );
+        }
+      } else {
+        return null; //LoginResponseModel(token:"",Status:"Invalid/Wrong Login Details");
+      }
+    } catch (e) {
+      print(e.toString());
+      e.toString();
+    }
+  }
+
+  Future<dynamic> updateFCM(FcmRequestModel requestModel) async {
+    try {
+      print(Uri.parse(url + LocalStrings.UPDATE_FCM));
+      print(requestModel.getJson());
+      final response = await http.post(Uri.parse(url + LocalStrings.UPDATE_FCM),
+          headers: {
+            "Accept": "application/json",
+            "content-type": "application/json"
+          },
+          body:requestModel.getJson());
+      print(response.body);
+      if (response.statusCode == 200 || response.statusCode == 400) {
+        if(response.body is FcmResponse){
+          return FcmResponse.fromJson(
+            json.decode(response.body),
+          );
+        }else {
+          return FcmResponse.fromJson(
             json.decode(response.body),
           );
         }

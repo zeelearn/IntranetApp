@@ -1,6 +1,8 @@
 import 'dart:collection';
+import 'dart:convert';
 import 'dart:io';
 
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
@@ -102,9 +104,8 @@ class _IntranetHomePageState extends State<IntranetHomePage>
     //addEvent();
     getUserInfo();
     //_listenForMessages();
-    final firebaseMessaging = FCM();
-    firebaseMessaging.setNotifications();
-    _listenForMessages();
+
+    //_listenForMessages();
     if (Platform.isAndroid) {
       checkForUpdate();
     }
@@ -145,6 +146,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
 
   void _handleMessage(RemoteMessage message) {
     if (message.data['type'] == 'chat') {
+      print('Handle Notification');
       /*Navigator.pushNamed(
         context,
         '/chat',
@@ -153,9 +155,9 @@ class _IntranetHomePageState extends State<IntranetHomePage>
     }
   }
 
-  void _listenForMessages() {
+  /*void _listenForMessages() {
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      print('Got a message whilst in the foreground!');
+      print('Got a message whilst in the foreground! asd');
       print('Message data: ${message.data}');
 
       if (message.notification != null) {
@@ -170,12 +172,22 @@ class _IntranetHomePageState extends State<IntranetHomePage>
         });
       }
     });
+  }*/
+
+  decodeJsonValue(){
+    String message="{type: ATNDC, title: ATNDC, message: Sudhir Patil has sent a new ATNDC requisition - 1103397 for approval.}";
+    message = message.replaceAll("{", "{\"");
+    message = message.replaceAll("}", "\"}");
+    message = message.replaceAll(":", "\":\"");
+    message = message.replaceAll(", ", "\",\"");
+    print(message);
+    var json = jsonDecode(message);
+    print(json);
   }
 
   Future<void> getUserInfo() async {
     final prefs = await SharedPreferences.getInstance();
-    employeeId =
-        int.parse(prefs.getString(LocalConstant.KEY_EMPLOYEE_ID) as String);
+    employeeId = int.parse(prefs.getString(LocalConstant.KEY_EMPLOYEE_ID) as String);
     mDesignation = prefs.getString(LocalConstant.KEY_DESIGNATION) as String;
     mTitle = prefs.getString(LocalConstant.KEY_FIRST_NAME).toString() +
         " " +
@@ -193,8 +205,30 @@ class _IntranetHomePageState extends State<IntranetHomePage>
       String version = packageInfo.version;
       String buildNumber = packageInfo.buildNumber;
       appVersion = version;
+
     });
+
+    _getId(employeeId.toString());
+    decodeJsonValue();
     setState(() {});
+  }
+
+  Future<String?> _getId(String employeeId) async {
+    var deviceInfo = DeviceInfoPlugin();
+    var id;
+    String useragent='Android';
+    if (Platform.isIOS) { // import 'dart:io'
+      var iosDeviceInfo = await deviceInfo.iosInfo;
+      id= iosDeviceInfo.identifierForVendor; // unique ID on iOS
+      useragent='IOS_${iosDeviceInfo.name}';
+    } else if(Platform.isAndroid) {
+      var androidDeviceInfo = await deviceInfo.androidInfo;
+      id= androidDeviceInfo.id; // unique ID on Android
+      useragent='Android_${androidDeviceInfo.brand}_${androidDeviceInfo.model}';
+    }
+    final firebaseMessaging = FCM();
+    //useragent= Platform.isIOS ? 'IOS' : 'Android';
+    firebaseMessaging.setNotifications(employeeId.toString(),id,useragent);
   }
 
   getCurrentEvents(DateTime date, List<PJPModel> pjpListModels) {
