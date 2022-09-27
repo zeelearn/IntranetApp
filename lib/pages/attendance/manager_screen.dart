@@ -7,6 +7,7 @@ import 'package:intranet/pages/widget/MyWidget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../api/APIService.dart';
+import '../../api/request/leave/leave_approve_request.dart';
 import '../../api/response/approve_attendance_response.dart';
 import '../../api/response/attendance_marking_man.dart';
 import '../helper/LightColor.dart';
@@ -32,6 +33,8 @@ class _AttendanceManagerScreen extends State<AttendanceManagerScreen>
   final _selectedColor = LightColors.kLavender;
   final _unselectedColor = Color(0xff5f6368);
   final _tabs = [Tab(text: 'Pending Approvals'), Tab(text: 'All Approvals')];
+
+  bool isLoading=true;
 
   final _iconTabs = [
     Tab(icon: Icon(Icons.line_style)),
@@ -85,6 +88,11 @@ class _AttendanceManagerScreen extends State<AttendanceManagerScreen>
             padding: const EdgeInsets.all(8.0),
             child: ListView(
               children: [
+                const Text(
+                  'Attendance Marking Approval',
+                  style: TextStyle(
+                      fontSize: 16, fontWeight: FontWeight.bold),
+                ),
                 /// Custom Tabbar with solid selected bg and transparent tabbar bg
                 Container(
                   height: kToolbarHeight - 8.0,
@@ -116,7 +124,7 @@ class _AttendanceManagerScreen extends State<AttendanceManagerScreen>
             ),
           ),
           Padding(
-            padding: EdgeInsets.only(top: 60),
+            padding: EdgeInsets.only(top: 90),
             child: getAttendanceListView(),
           ),
         ],
@@ -139,14 +147,12 @@ class _AttendanceManagerScreen extends State<AttendanceManagerScreen>
     }
   }
 
-  singleSelection(int position) {
+  singleSelection(int position,bool value) {
     late AttendanceReqManModel model;
     if (_isChecked != null && _isChecked.length > 0) {
       for (int index = 0; index < _isChecked.length; index++) {
         if (position == index) {
-          _isChecked[index] = true;
-        } else {
-          _isChecked[index] = false;
+          _isChecked[index] = value;
         }
       }
     }
@@ -211,7 +217,11 @@ class _AttendanceManagerScreen extends State<AttendanceManagerScreen>
   }
 
   getAttendanceListView() {
-    if (requisitionList == null || requisitionList.length <= 0) {
+    if(isLoading){
+      return Center(child: Image.asset(
+        "assets/images/loading.gif",
+      ),);
+    }else if (requisitionList == null || requisitionList.length <= 0) {
       print('data not found');
       return Utility.emptyDataSet(context,"Attendance Requisition request are not available");
     } else {
@@ -235,7 +245,8 @@ class _AttendanceManagerScreen extends State<AttendanceManagerScreen>
   }
 
   loadAcquisition() {
-    Utility.showLoaderDialog(context);
+    isLoading =true;
+    //Utility.showLoaderDialog(context);
     DateTime selectedDate = DateTime.now();
     DateTime prevDate =
         DateTime(selectedDate.year, selectedDate.month - 1, selectedDate.day);
@@ -251,6 +262,7 @@ class _AttendanceManagerScreen extends State<AttendanceManagerScreen>
         Type: 'AT');
     APIService apiService = APIService();
     apiService.getAttendanceRequisitionMan(request).then((value) {
+      isLoading=false;
       if (value != null) {
         if (value == null || value.responseData == null) {
           Utility.showMessage(context, 'data not found');
@@ -276,9 +288,31 @@ class _AttendanceManagerScreen extends State<AttendanceManagerScreen>
         }
       }
       _isChecked = List<bool>.filled(requisitionList.length, false);
-      Navigator.of(context).pop();
+      //Navigator.of(context).pop();
       setState(() {});
     });
+  }
+
+  getSelectedModels(int isApprove) {
+    //ApproveLeaveRequsitionRequest request = ApproveLeaveRequsitionRequest();
+    late var jsonValue="[";
+    if (_isChecked != null && _isChecked.length > 0) {
+      String token="";
+      print(isApprove);
+      for (int index = 0; index < _isChecked.length; index++) {
+        if(_isChecked[index]) {
+          String data = "{'Requisition_Id': ${requisitionList[index]
+              .requisitionId.toInt()
+              .toString()},'Is_Approved': ${isApprove}}";
+          jsonValue = jsonValue + token + ' ' + data;
+          //list.add(request);
+          token = ",";
+        }
+
+      }
+    }
+    jsonValue = jsonValue+"]";
+    return jsonValue;
   }
 
   void _showDialog(int reqid, String name) {
@@ -295,6 +329,7 @@ class _AttendanceManagerScreen extends State<AttendanceManagerScreen>
             // usually buttons at the bottom of the dialog
             ElevatedButton(
               onPressed: () {
+                Navigator.of(context).pop();
                 approveAcquisition(reqid, 1);
               },
               // style: ButtonStyle(elevation: MaterialStateProperty(12.0 )),
@@ -305,6 +340,7 @@ class _AttendanceManagerScreen extends State<AttendanceManagerScreen>
             ),
             ElevatedButton(
               onPressed: () {
+                Navigator.of(context).pop();
                 approveAcquisition(reqid, 1);
               },
               // style: ButtonStyle(elevation: MaterialStateProperty(12.0 )),
@@ -320,29 +356,36 @@ class _AttendanceManagerScreen extends State<AttendanceManagerScreen>
   }
 
   approveAcquisition(int reqid, int isApprove) {
+
     Utility.showLoaderDialog(context);
-    DateTime selectedDate = DateTime.now();
-    ApproveAttendanceMarking request = new ApproveAttendanceMarking(
+    var list = getSelectedModels(isApprove);
+
+    String xml ="{'root': {'subroot': ${list}}";
+    ApproveLeaveRequestManager request = ApproveLeaveRequestManager(xml: xml, userId: widget.employeeId.toString(),);
+    print('request'+request.toJson().toString());
+
+    /*ApproveAttendanceMarking request = new ApproveAttendanceMarking(
         Requisition_Id: reqid.toString(),
         Modified_By: widget.employeeId.toString(),
-        Is_Approved: isApprove.toString());
+        Is_Approved: isApprove.toString());*/
     APIService apiService = APIService();
     apiService.approveAttendance(request).then((value) {
       print(value.toString());
+      Navigator.of(context).pop();
       if (value != null) {
         if (value == null || value.responseData == null) {
           Utility.showMessage(context, 'data not found');
         } else if (value is ApproveAttendanceResponse) {
           ApproveAttendanceResponse response = value;
           if (response != null) {
+            //Navigator.of(context).pop();
             Utility.showMessage(context, response.responseMessage);
-            Navigator.of(context).pop();
           }
         } else {
           Utility.showMessage(context, 'data not found');
         }
       }
-      Navigator.of(context).pop();
+
       setState(() {});
     });
   }
@@ -350,9 +393,7 @@ class _AttendanceManagerScreen extends State<AttendanceManagerScreen>
   generateRow(int position, AttendanceReqManModel model, int action) {
     double width = MediaQuery.of(context).size.width;
 
-    return Expanded(
-        flex: 1,
-        child: Column(
+    return Column(
           children: [
             Container(
               color: LightColors.kAbsent,
@@ -440,7 +481,7 @@ class _AttendanceManagerScreen extends State<AttendanceManagerScreen>
                                     onChanged: (bool? value) {
                                       setState(() {
                                         _isChecked[position] = value!;
-                                        singleSelection(position);
+                                        singleSelection(position,value!);
                                       });
                                     },
                                   )),
@@ -493,7 +534,7 @@ class _AttendanceManagerScreen extends State<AttendanceManagerScreen>
                   ],
                 )),
           ],
-        ));
+        );
   }
 
   DateTime parseDate(String value) {

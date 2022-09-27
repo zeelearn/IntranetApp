@@ -43,6 +43,9 @@ class _LoginPage extends State<LoginPage> {
     super.initState();
     Future.delayed(Duration.zero, () {
       this.getDeviceInfo();
+      setState(() {
+
+      });
     });
   }
   Future<void> getDeviceInfo() async {

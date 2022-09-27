@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -32,10 +34,11 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse{
   int employeeId = 0;
 
   bool isLoading=true;
-
+  late final prefs;
   //FilterSelection mFilterSelection = FilterSelection(filters: [], type: FILTERStatus.MYSELF);
   final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey =
       GlobalKey<RefreshIndicatorState>();
+  bool isInternet=true;
 
   @override
   void initState() {
@@ -49,90 +52,50 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse{
   }
 
   Future<void> getUserInfo() async {
-    final prefs = await SharedPreferences.getInstance();
+    prefs = await SharedPreferences.getInstance();
     employeeId =
         int.parse(prefs.getString(LocalConstant.KEY_EMPLOYEE_ID) as String);
-   IntranetServiceHandler.loadPjpSummery(employeeId, 0, this);
+
+
+    isInternet = await Utility.isInternet();
+    if(isInternet){
+      IntranetServiceHandler.loadPjpSummery(employeeId, 0, this);
+    }else{
+      var pjpList = prefs.getString(getId());
+      try {
+        isLoading = false;
+        PjpListResponse response = PjpListResponse.fromJson(
+          json.decode(pjpList),
+        );
+        if (response != null && response.responseData != null)
+          mPjpList.addAll(response.responseData);
+        setState(() {});
+      }catch(e){
+        IntranetServiceHandler.loadPjpSummery(employeeId, 0, this);
+      }
+    }
   }
 
-  /*loadPjpSummery() {
-    isLoading = true;
-    setState(() {
-      //mPjpList.addAll(response.responseData);
-    });
-    print('loadPJP 64');
-    //Utility.showLoaderDialog(context);
-    mPjpList.clear();
-    PJPListRequest request = PJPListRequest(Employee_id: employeeId);
-    APIService apiService = APIService();
-    apiService.getPJPList(request).then((value) {
-      print(value.toString());
+  getLocalData() {
+    bool isLoad = false;
+    try {
+      var attendanceList = prefs.getString(getId());
       isLoading = false;
-      if (value != null) {
-        if (value == null || value.responseData == null) {
-          Utility.showMessage(context, 'data not found');
-        } else if (value is PjpListResponse) {
-          PjpListResponse response = value;
-          if (response != null && response.responseData != null) {
-            if (widget.mFilterSelection == null ||
-                widget.mFilterSelection.type == FILTERStatus.MYTEAM) {
-              print(('FOR MY TEAM'));
-              //mPjpList.addAll(response.responseData);
-              for (int index = 0;
-                  index < response.responseData.length;
-                  index++) {
-                if (response.responseData[index].isSelfPJP == '0') {
-                  mPjpList.add(response.responseData[index]);
-                }
-              }
-            } else if (widget.mFilterSelection.type == FILTERStatus.MYSELF) {
-              print(('FOR MY SELF'));
-              for (int index = 0;
-                  index < response.responseData.length;
-                  index++) {
-                if (response.responseData[index].isSelfPJP == '1') {
-                  mPjpList.add(response.responseData[index]);
-                }
-              }
-            } else if (widget.mFilterSelection.type == FILTERStatus.MYSELF) {
-              print(('FOR MY CUSTOM TEAM'));
-              for (int index = 0;
-                  index < response.responseData.length;
-                  index++) {
-                if (response.responseData[index].isSelfPJP == 0) {
-                  mPjpList.add(response.responseData[index]);
-                }
-              }
-            } else {
-              for (int index = 0;
-                  index < response.responseData.length;
-                  index++) {
-                for (int jIndex = 0;
-                    jIndex < widget.mFilterSelection.filters.length;
-                    jIndex++) {
-                  if (response.responseData[index].displayName ==
-                      widget.mFilterSelection.filters[jIndex].name) {
-                    mPjpList.add(response.responseData[index]);
-                  }
-                }
-              }
-            }
-            //mPjpList.addAll(response.responseData);
-            print('========================');
-            print(response.toJson());
+      print(attendanceList.toString());
+      PjpListResponse response = PjpListResponse.fromJson(
+        json.decode(attendanceList!),
+      );
+      if (response != null && response.responseData != null)
+        mPjpList.addAll(response.responseData);
+      setState(() {});
+      isLoad = true;
+    }catch(e){
+      isLoad = false;
+    }
+    return isLoad;
+  }
 
-            setState(() {
-              //mPjpList.addAll(response.responseData);
-            });
-          }
-          print('pjp list ${response.responseData.length}');
-        } else {
-          Utility.showMessage(context, 'data not found');
-        }
-      }
-      //Navigator.of(context).pop();
-    });
-  }*/
+
 
   @override
   Widget build(BuildContext context) {
@@ -245,6 +208,9 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse{
     }else  if (mPjpList.isEmpty) {
       print('PJP List not avaliable');
       return Utility.emptyDataSet(context,"your PJP list is Empty, Please plan your journey");
+    }else  if (mPjpList.isEmpty && isInternet) {
+
+      return Utility.noInternetDataSet(context);
     } else {
       return Flexible(
           child: ListView.builder(
@@ -546,6 +512,14 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse{
     Utility.showLoaderDialog(context);
   }
 
+  String getId(){
+    return '${employeeId.toString()}_${LocalConstant.KEY_MY_PJP}';
+  }
+
+  savePJPLocally(String json) async{
+    prefs.setString(getId(), json);
+  }
+
   @override
   void onSuccess(value) {
     Navigator.of(context).pop();
@@ -556,14 +530,16 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse{
       Utility.getConfirmationDialog(context,this);
     }else if(value is PjpListResponse){
       PjpListResponse response = value;
-      print('onResponse in if ${widget.mFilterSelection.type}');
+      String json = jsonEncode(response);
+      savePJPLocally(json);
+      //print('onResponse in if ${widget.mFilterSelection.type}');
       isLoading = false;
       mPjpList.clear();
       if(response.responseData!=null && response.responseData.length>0){
         if (response != null && response.responseData != null) {
           if (widget.mFilterSelection == null ||
               widget.mFilterSelection.type == FILTERStatus.MYTEAM) {
-            print(('FOR MY TEAM'));
+            //print(('FOR MY TEAM'));
             //mPjpList.addAll(response.responseData);
             for (int index = 0;
             index < response.responseData.length;

@@ -139,7 +139,7 @@ class _LeaveManagerScreen extends State<LeaveManagerScreen>
             ),
           ),
           Padding(
-            padding: EdgeInsets.only(top: 60),
+            padding: EdgeInsets.only(top: 90),
             child: getAttendanceListView(),
           ),
         ],
@@ -423,9 +423,7 @@ class _LeaveManagerScreen extends State<LeaveManagerScreen>
   generateRow(int position, LeaveInfoMan model, int action) {
     double width = MediaQuery.of(context).size.width;
 
-    return Expanded(
-        flex: 1,
-        child: Column(
+    return Column(
           children: [
             Container(
               color: LightColors.kAbsent,
@@ -503,7 +501,16 @@ class _LeaveManagerScreen extends State<LeaveManagerScreen>
                                 ? SizedBox(
                               width: width / 5.5,
                               child: Center(
-                                child: Image.asset('assets/icons/ic_check_mark.png',width: 20,),
+                                child: model.status=='Manager Approved' ?  Image.asset(
+                                  'assets/icons/ic_checked.png',
+                                  height: 50,
+                                ) : model.status=='Rejected' ?  Image.asset(
+                                  'assets/icons/ic_cross.png',
+                                  height: 50,
+                                ) : Image.asset(
+                                  'assets/icons/ic_pending.png',
+                                  height: 50,
+                                ),
                               ) ,
                             )
                                 : Checkbox(
@@ -566,7 +573,7 @@ class _LeaveManagerScreen extends State<LeaveManagerScreen>
                   ],
                 )),
           ],
-        ));
+        );
   }
 
   DateTime parseDate(String value) {

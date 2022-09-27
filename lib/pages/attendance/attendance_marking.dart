@@ -72,15 +72,15 @@ class _AttendanceMarkingScreen extends State<AttendanceMarkingScreen> implements
     return Scaffold(
         resizeToAvoidBottomInset: false,
         extendBodyBehindAppBar: true,
-        backgroundColor: LightColors.kLightYellow,
-        appBar: widget.displayName=='--' ? null : AppBar(title: Text('MARKING ATTENDANCE - BASE LOCATION (HQ) WORKING'),),
+        backgroundColor: Colors.white,
+        appBar: widget.displayName=='--' ? null : AppBar(title: Text('ATTENDANCE MARKING'),),
         body: SafeArea(
           child: Column(
             children: [
               SizedBox(
                 height: size.height * 0.02,
               ),
-              MyWidget().richText(14, 'MARKING ATTENDANCE - BASE LOCATION (HQ) WORKING'),
+              widget.displayName=='--' ? MyWidget().richText(14, 'ATTENDANCE MARKING') : Text(''),
               /*SizedBox(
                 height: size.height * 0.02,
               ),

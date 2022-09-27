@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -29,6 +31,8 @@ class _MyCVFListScreen extends State<MyCVFListScreen> implements onResponse{
   int employeeId = 0;
   List<GetDetailedPJP> mCvfList = [];
   bool isLoading = true;
+  bool isInternet=true;
+  late final prefs;
 
   //FilterSelection mFilterSelection = FilterSelection(filters: [], type: FILTERStatus.MYSELF);
   final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey =
@@ -46,10 +50,46 @@ class _MyCVFListScreen extends State<MyCVFListScreen> implements onResponse{
   }
 
   Future<void> getUserInfo() async {
-    final prefs = await SharedPreferences.getInstance();
+    prefs = await SharedPreferences.getInstance();
     employeeId =
         int.parse(prefs.getString(LocalConstant.KEY_EMPLOYEE_ID) as String);
-    this.loadAllCVF();
+    isInternet = await Utility.isInternet();
+
+    if(isInternet){
+      this.loadAllCVF();
+    }else{
+      if(!getLocalData()){
+        this.loadAllCVF();
+      }
+    }
+  }
+
+  getLocalData() {
+    bool isLoad = false;
+    try {
+      var attendanceList = prefs.getString(getId());
+      isLoading = false;
+      print(attendanceList.toString());
+      GetAllCVFResponse response = GetAllCVFResponse.fromJson(
+        json.decode(attendanceList!),
+      );
+      if (response != null && response.responseData != null)
+        mCvfList.addAll(response.responseData);
+      setState(() {});
+      isLoad = true;
+    }catch(e){
+      isLoad = false;
+    }
+    return isLoad;
+  }
+
+  String getId(){
+    return '${employeeId.toString()}_${LocalConstant.KEY_MY_CVF}';
+  }
+
+  saveCVFLocally(String json) async{
+
+    prefs.setString(getId(), json);
   }
 
   loadAllCVF() {
@@ -67,6 +107,8 @@ class _MyCVFListScreen extends State<MyCVFListScreen> implements onResponse{
         } else if (value is GetAllCVFResponse) {
           GetAllCVFResponse response = value;
           if (response != null && response.responseData != null) {
+            String json = jsonEncode(response);
+            saveCVFLocally(json);
             mCvfList.addAll(response.responseData);
             setState(() {
               //mPjpList.addAll(response.responseData);
