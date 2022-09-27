@@ -56,7 +56,7 @@ class _AttendanceSummeryState extends State<AttendanceSummeryManagerScreen> {
     }
     summeryModleList.clear();
     AttendanceSummeryRequestModel request = AttendanceSummeryRequestModel(
-        Employee_Id: 2650,
+        Employee_Id: employeeId,
         PayrollFromMonth: _FromMonth,
         PayrollFromYear: _fromYear,
         PayrollToMonth: selectedDate.month,

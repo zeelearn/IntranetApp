@@ -26,6 +26,7 @@ class LocalStrings {
   static const String GET_LEAVE_REQUISITION_MANAGER = '/api/EmployeeInfo/LeaveReqList';
   static const String GET_APPROVE_LEAVE_REQUISITION = '/api/Leave/UpdateWorkflowGeneric';
   static const String GET_APPROVE_LEAVE_REQUISITION_MULTIPLE = '/api/Leave/UpdateWorkflowGenericNew';
+  static const String GET_APPROVE_ATTENDANCE_REQUISITION_NEW = '/api/EmployeeInfo/AttendanceMarkingNew';
 
   static const String GET_EMPLOYEE_LIST = '/api/EmployeeInfo/GetEmployees';
 

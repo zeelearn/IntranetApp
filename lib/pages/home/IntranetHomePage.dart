@@ -6,6 +6,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:in_app_update/in_app_update.dart';
 import 'package:intl/intl.dart';
 import 'package:intranet/pages/helper/LocalConstant.dart';
@@ -35,35 +36,33 @@ import '../pjp/cvf/mycvf.dart';
 import '../utils/theme/colors/light_colors.dart';
 import 'home_page_menus.dart';
 
-
 class IntranetHomePage extends StatefulWidget {
   String userId;
-  FilterSelection mPjpFilters = FilterSelection(filters: [], type: FILTERStatus.MYSELF);
+  FilterSelection mPjpFilters =
+      FilterSelection(filters: [], type: FILTERStatus.MYSELF);
   int _selectedDestination = 1;
 
-
-  IntranetHomePage({Key? key,required this.userId}) : super(key: key);
+  IntranetHomePage({Key? key, required this.userId}) : super(key: key);
 
   @override
   _IntranetHomePageState createState() => _IntranetHomePageState();
 }
 
-class _IntranetHomePageState extends State<IntranetHomePage> {
+class _IntranetHomePageState extends State<IntranetHomePage>
+    with WidgetsBindingObserver {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
-
-
-  static const int MENU_HOME= 1;
-  static const int MENU_ATTENDANCE= 2;
-  static const int MENU_ATTENDANCE_MARKING= 10;
-  static const int MENU_OUTDOOR=3;
-  static const int MENU_LEAVE= 4;
-  static const int MENU_LEAVE_APPROVAL= 5;
-  static const int MENU_ATTENDANCE_MARKING_APPROVAL= 6;
-  static const int MENU_OUTDOOR_APPROVAL= 7;
-  static const int MENU_PROFILE= 8;
-  static const int MENU_PJP= 9;
-
+  static const int MENU_HOME = 1;
+  static const int MENU_ATTENDANCE = 2;
+  static const int MENU_ATTENDANCE_MARKING = 10;
+  static const int MENU_OUTDOOR = 3;
+  static const int MENU_LEAVE = 4;
+  static const int MENU_LEAVE_APPROVAL = 5;
+  static const int MENU_ATTENDANCE_MARKING_APPROVAL = 6;
+  static const int MENU_OUTDOOR_APPROVAL = 7;
+  static const int MENU_PROFILE = 8;
+  static const int MENU_PJP = 9;
+  static const int MENU_CVF = 11;
 
   late final ValueNotifier<List<PJPModel>> _selectedEvents;
   CalendarFormat _calendarFormat = CalendarFormat.twoWeeks;
@@ -75,10 +74,11 @@ class _IntranetHomePageState extends State<IntranetHomePage> {
   DateTime? _rangeEnd;
 
   Map<DateTime, List<PJPModel>> attendanceEvent = Map();
-  int employeeId=0;
-  String mDesignation='';
-  String _profileImage='https://cdn-icons-png.flaticon.com/128/149/149071.png';
-  List<PJPModel> mPjpList=[];
+  int employeeId = 0;
+  String mDesignation = '';
+  String _profileImage =
+      'https://cdn-icons-png.flaticon.com/128/149/149071.png';
+  List<PJPModel> mPjpList = [];
   late String mTitle = "";
 
   bool _flexibleUpdateAvailable = false;
@@ -86,10 +86,11 @@ class _IntranetHomePageState extends State<IntranetHomePage> {
 
   FirebaseAnalytics analytics = FirebaseAnalytics.instance;
   FirebaseMessaging messaging = FirebaseMessaging.instance;
-  String appVersion='';
+  String appVersion = '';
 
   @override
   void initState() {
+    WidgetsBinding.instance?.addObserver(this);
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
       print('message received');
       print(message.toString());
@@ -104,7 +105,24 @@ class _IntranetHomePageState extends State<IntranetHomePage> {
     final firebaseMessaging = FCM();
     firebaseMessaging.setNotifications();
     _listenForMessages();
+    if (Platform.isAndroid) {
+      checkForUpdate();
+    }
+  }
 
+  @override
+  void dispose() {
+    WidgetsBinding.instance?.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      /*if (Platform.isAndroid) {
+        checkForUpdate();
+      }*/
+    }
   }
 
   // It is assumed that all messages contain a data field with the key 'type'
@@ -112,7 +130,7 @@ class _IntranetHomePageState extends State<IntranetHomePage> {
     // Get any messages which caused the application to open from
     // a terminated state.
     RemoteMessage? initialMessage =
-    await FirebaseMessaging.instance.getInitialMessage();
+        await FirebaseMessaging.instance.getInitialMessage();
 
     // If the message also contains a data property with a "type" of "chat",
     // navigate to a chat screen
@@ -156,9 +174,12 @@ class _IntranetHomePageState extends State<IntranetHomePage> {
 
   Future<void> getUserInfo() async {
     final prefs = await SharedPreferences.getInstance();
-    employeeId = int.parse(prefs.getString(LocalConstant.KEY_EMPLOYEE_ID) as String);
+    employeeId =
+        int.parse(prefs.getString(LocalConstant.KEY_EMPLOYEE_ID) as String);
     mDesignation = prefs.getString(LocalConstant.KEY_DESIGNATION) as String;
-    mTitle = prefs.getString(LocalConstant.KEY_FIRST_NAME).toString() +" "+ prefs.getString(LocalConstant.KEY_LAST_NAME).toString();
+    mTitle = prefs.getString(LocalConstant.KEY_FIRST_NAME).toString() +
+        " " +
+        prefs.getString(LocalConstant.KEY_LAST_NAME).toString();
     _profileImage = 'https://cdn-icons-png.flaticon.com/128/149/149071.png';
     /*String sex = prefs.getString(LocalConstant.KEY_GENDER) as String;
     if(sex == 'male'){
@@ -174,27 +195,28 @@ class _IntranetHomePageState extends State<IntranetHomePage> {
       appVersion = version;
     });
     setState(() {});
-
   }
 
-  getCurrentEvents(DateTime date,List<PJPModel> pjpListModels){
+  getCurrentEvents(DateTime date, List<PJPModel> pjpListModels) {
     List<PJPModel> list = [];
     print('getEvent----${pjpListModels.length}');
-    for(int index=0;index<pjpListModels.length;index++){
-      print('${Utility.shortDate(date)}  -- ${Utility.shortDate(pjpListModels[index].fromDate)}');
-      if(Utility.shortDate(date) == Utility.shortDate(pjpListModels[index].fromDate)){
+    for (int index = 0; index < pjpListModels.length; index++) {
+      print(
+          '${Utility.shortDate(date)}  -- ${Utility.shortDate(pjpListModels[index].fromDate)}');
+      if (Utility.shortDate(date) ==
+          Utility.shortDate(pjpListModels[index].fromDate)) {
         list.add(pjpListModels[index]);
       }
     }
     return list;
   }
 
-  syncPjpList() async{
+  syncPjpList() async {
     DBHelper helper = DBHelper();
     DateTime today = DateTime.now();
-    List<PJPModel> pjpListModels = await helper.getPjpList() ;
-    DateTime start = DateTime(1,today.month-1,today.year);
-    DateTime end = DateTime(today.day,today.month+1,today.year);
+    List<PJPModel> pjpListModels = await helper.getPjpList();
+    DateTime start = DateTime(1, today.month - 1, today.year);
+    DateTime end = DateTime(today.day, today.month + 1, today.year);
     kEvents.clear();
     mPjpList.clear();
     mPjpList.addAll(pjpListModels);
@@ -213,7 +235,7 @@ class _IntranetHomePageState extends State<IntranetHomePage> {
     }*/
   }
 
-  void addEvent(){
+  void addEvent() {
     print('add event');
     //kEvents.addAll(_kEventSource);
     syncPjpList();
@@ -221,20 +243,14 @@ class _IntranetHomePageState extends State<IntranetHomePage> {
     setState(() {});
   }
 
-  @override
-  void dispose() {
-    _selectedEvents.dispose();
-    super.dispose();
-  }
-
   List<PJPModel> _getEventsForDay(DateTime day) {
     // Implementation example
     print('add _getEventsForDay');
-    if(mPjpList==null || mPjpList.length==0){
+    if (mPjpList == null || mPjpList.length == 0) {
       syncPjpList();
     }
-    print('day is '+day.day.toString());
-    return getCurrentEvents(day,mPjpList);//kEvents[day] ?? [];
+    print('day is ' + day.day.toString());
+    return getCurrentEvents(day, mPjpList); //kEvents[day] ?? [];
   }
 
   BoxDecoration _getEventDecoration(DateTime day) {
@@ -265,7 +281,7 @@ class _IntranetHomePageState extends State<IntranetHomePage> {
   List<PJPModel> _getEventsForRange(DateTime start, DateTime end) {
     // Implementation example
     final days = daysInRange(start, end);
-print('_getEventsForRange');
+    print('_getEventsForRange');
     return [
       for (final d in days) ..._getEventsForDay(d),
     ];
@@ -306,7 +322,7 @@ print('_getEventsForRange');
 
   void onBackClickListener() {
     print(('back  ${widget._selectedDestination}'));
-    if(widget._selectedDestination==0) {
+    if (widget._selectedDestination == 0) {
       // set up the buttons
       Widget cancelButton = TextButton(
         child: Text("Cancel"),
@@ -336,7 +352,7 @@ print('_getEventsForRange');
           return alert;
         },
       );
-    }else{
+    } else {
       setState(() {
         widget._selectedDestination = 1;
       });
@@ -349,11 +365,9 @@ print('_getEventsForRange');
     FirebaseAnalyticsUtils().enableAnytics();
     FirebaseAnalyticsUtils().sendAnalyticsEvent('HomeScreen');
     analytics.logAppOpen();
-    if(Platform.isAndroid) {
-      checkForUpdate();
-    }
-    return  WillPopScope(
-      onWillPop: () async{
+
+    return WillPopScope(
+      onWillPop: () async {
         onBackClickListener();
         return false;
       },
@@ -369,8 +383,8 @@ print('_getEventsForRange');
         /*floatingActionButton:_selectedDestination==MENU_HOME ? FloatingActionButton.extended(
           onPressed: () {
             // Add your onPressed code here!
-           *//* Navigator.pushReplacement(
-                context, MaterialPageRoute(builder: (context) => AddNewPjp()));*//*
+           */ /* Navigator.pushReplacement(
+                context, MaterialPageRoute(builder: (context) => AddNewPjp()));*/ /*
             Navigator.push(
                 context, MaterialPageRoute(builder: (context) => AddNewPjp()));
 
@@ -388,7 +402,7 @@ print('_getEventsForRange');
     InAppUpdate.checkForUpdate().then((info) {
       setState(() {
         _updateInfo = info;
-        if(_updateInfo?.updateAvailability ==
+        if (_updateInfo?.updateAvailability ==
             UpdateAvailability.updateAvailable) {
           InAppUpdate.performImmediateUpdate()
               .catchError((e) => showSnack(e.toString()));
@@ -396,7 +410,6 @@ print('_getEventsForRange');
       });
     }).catchError((e) {
       //showSnack(e.toString());
-
     });
   }
 
@@ -407,15 +420,14 @@ print('_getEventsForRange');
     }
   }
 
-
-  AppBar getAppbar(){
+  AppBar getAppbar() {
     return AppBar(
       backgroundColor: kPrimaryLightColor,
       centerTitle: true,
-      title:  Text(
+      title: Text(
         mTitle,
         style:
-        TextStyle(fontSize: 17, color: Colors.white, letterSpacing: 0.53),
+            TextStyle(fontSize: 17, color: Colors.white, letterSpacing: 0.53),
       ),
       /*shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
@@ -435,7 +447,9 @@ print('_getEventsForRange');
         InkWell(
           onTap: () {
             Navigator.push(
-                context, MaterialPageRoute(builder: (context) => EmployeeListScreen(displayName: '')));
+                context,
+                MaterialPageRoute(
+                    builder: (context) => EmployeeListScreen(displayName: '')));
           },
           child: Padding(
             padding: const EdgeInsets.all(8.0),
@@ -472,30 +486,41 @@ print('_getEventsForRange');
         return HomePageMenu();
         break;
       case MENU_ATTENDANCE:
-        return AttendanceSummeryScreen(displayName: mTitle,);
+        return AttendanceSummeryScreen(
+          displayName: mTitle,
+        );
         break;
       case MENU_ATTENDANCE_MARKING:
         return AttendanceMarkingScreen(
-            employeeId: employeeId,
-            displayName: '--');
+            employeeId: employeeId, displayName: '--');
         break;
       case MENU_OUTDOOR:
-        return OutdoorScreen(displayName: mTitle,);
+        return OutdoorScreen(
+          displayName: mTitle,
+        );
         break;
       case MENU_LEAVE:
-        return LeaveSummeryScreen(displayName: mTitle,);
+        return LeaveSummeryScreen(
+          displayName: mTitle,
+        );
         break;
       case MENU_ATTENDANCE_MARKING_APPROVAL:
         return AttendanceManagerScreen(employeeId: employeeId);
         break;
-       case MENU_LEAVE_APPROVAL:
-        return LeaveManagerScreen(employeeId: employeeId,);
+      case MENU_LEAVE_APPROVAL:
+        return LeaveManagerScreen(
+          employeeId: employeeId,
+        );
         break;
       case MENU_OUTDOOR_APPROVAL:
-        return OutdoorManagerScreen(employeeId: employeeId,);
+        return OutdoorManagerScreen(
+          employeeId: employeeId,
+        );
         break;
       case MENU_PJP:
         return MyPjpListScreen(mFilterSelection: widget.mPjpFilters);
+      case MENU_CVF:
+        return MyCVFListScreen();
         break;
       default:
         return _homeScreen(context);
@@ -513,7 +538,7 @@ print('_getEventsForRange');
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               GestureDetector(
-              onTap: () => selectDestination(MENU_PJP),
+                onTap: () => selectDestination(MENU_PJP),
                 child: Expanded(
                   child: Padding(
                     padding: EdgeInsetsDirectional.fromSTEB(8, 8, 8, 8),
@@ -537,7 +562,7 @@ print('_getEventsForRange');
                         children: const [
                           Padding(
                             padding:
-                            EdgeInsetsDirectional.fromSTEB(0, 16, 0, 0),
+                                EdgeInsetsDirectional.fromSTEB(0, 16, 0, 0),
                             child: Icon(
                               Icons.electric_car,
                               color: Colors.white,
@@ -594,7 +619,7 @@ print('_getEventsForRange');
                         children: const [
                           Padding(
                             padding:
-                            EdgeInsetsDirectional.fromSTEB(0, 16, 0, 0),
+                                EdgeInsetsDirectional.fromSTEB(0, 16, 0, 0),
                             child: Icon(
                               Icons.calendar_today,
                               color: Colors.white,
@@ -634,155 +659,272 @@ print('_getEventsForRange');
     );
   }
 
-  getMenu(){
-      return ListView(
-        // Important: Remove any padding from the ListView.
-        padding: EdgeInsets.zero,
-        children: <Widget>[
-          UserAccountsDrawerHeader(
-            accountEmail: Text(mTitle),
-            accountName: Text(mDesignation),
-            currentAccountPicture:  CircleAvatar(
-              radius: 50.0,
-              backgroundColor: Color(0xFF778899),
-              backgroundImage: NetworkImage(
-                  _profileImage),
-            ),
+  getMenu() {
+    return ListView(
+      // Important: Remove any padding from the ListView.
+      padding: EdgeInsets.zero,
+      children: <Widget>[
+        UserAccountsDrawerHeader(
+          accountEmail: Text(mDesignation,style: TextStyle(
+            fontSize: 16.0,
+            color: Colors.white,
+          ),),
+          accountName: Text(mTitle,style: TextStyle(
+            fontSize: 20.0,
+            color: Colors.white,
+          ),),
+          currentAccountPicture: CircleAvatar(
+            radius: 50.0,
+            backgroundColor: Color(0xFF778899),
+            backgroundImage: NetworkImage(_profileImage),
           ),
-
-          const Padding(
-            padding: EdgeInsets.all(10.0),
-            child: Text(
-              'My Menu',
-            ),
-          ),
-          ListTile(
-            leading: SizedBox(
-                height: 32.0,
-                width: 32.0,
-                child: Image.asset('assets/icons/ic_home.png')
-            ),
-            title: Text('Home'),
-            selected: widget._selectedDestination == MENU_HOME,
-            onTap: () => selectDestination(MENU_HOME),
-          ),
-          Divider(),
-          ListTile(
-            leading: SizedBox(
-                height: 32.0,
-                width: 32.0,
-                child: Image.asset('assets/icons/ic_leave.png')
-            ),
-            title: Text('Leave'),
-            selected: widget._selectedDestination == MENU_LEAVE,
-            onTap: () => selectDestination(MENU_LEAVE),
-          ),
-          ListTile(
-            leading: SizedBox(
-                height: 32.0,
-                width: 32.0,
-                child: Image.asset('assets/icons/ic_outdoor.png')
-            ),
-            title: Text('Outdoor Duty'),
-            selected: widget._selectedDestination == MENU_OUTDOOR,
-            onTap: () => selectDestination(MENU_OUTDOOR),
-          ),
-          ListTile(
-            leading: SizedBox(
-                height: 32.0,
-                width: 32.0,
-                child: Image.asset('assets/icons/ic_attendance.png')
-            ),
-            title: Text('Attendance Summary'),
-            selected: widget._selectedDestination == MENU_ATTENDANCE,
-            onTap: () => selectDestination(MENU_ATTENDANCE),
-          ),
-          ListTile(
-            leading: SizedBox(
-                height: 32.0,
-                width: 32.0,
-                child: Image.asset('assets/icons/ic_attendance_marking.png')
-            ),
-            title: Text('Attendance Marking'),
-            selected: widget._selectedDestination == MENU_ATTENDANCE_MARKING,
-            onTap: () => selectDestination(MENU_ATTENDANCE_MARKING),
-          ),
-
-
-          Divider(),
-          const Padding(
-            padding: EdgeInsets.all(16.0),
+        ),
+        Ink(
+          color: widget._selectedDestination == MENU_HOME
+              ? LightColors.kLightBlue
+              : Colors.white,
+          child:
+        ListTile(
+          leading: SizedBox(
+              height: 32.0,
+              width: 32.0,
+              child: Image.asset('assets/icons/ic_home.png')),
+          trailing: widget._selectedDestination == MENU_HOME
+              ? Icon(Icons.bookmark)
+              : null,
+          title: Text('Home'),
+          selected: widget._selectedDestination == MENU_HOME,
+          onTap: () => selectDestination(MENU_HOME),
+        ),),
+        Divider(),
+        Ink(
+          color: widget._selectedDestination == MENU_LEAVE
+              ? LightColors.kLightBlue
+              : Colors.white,
+          child:
+        ListTile(
+          leading: SizedBox(
+              height: 32.0,
+              width: 32.0,
+              child: Image.asset('assets/icons/ic_leave.png')),
+          title: const Text('Leave'),
+          trailing: widget._selectedDestination == MENU_LEAVE
+              ? Icon(Icons.bookmark)
+              : null,
+          selected: widget._selectedDestination == MENU_LEAVE,
+          onTap: () => selectDestination(MENU_LEAVE),
+        ),),
+        Ink(
+          color: widget._selectedDestination == MENU_OUTDOOR
+              ? LightColors.kLightBlue
+              : Colors.white,
+          child:
+        ListTile(
+          leading: SizedBox(
+              height: 32.0,
+              width: 32.0,
+              child: Image.asset('assets/icons/ic_outdoor.png')),
+          title: Text('Outdoor Duty'),
+          trailing: widget._selectedDestination == MENU_OUTDOOR
+              ? Icon(Icons.bookmark)
+              : null,
+          selected: widget._selectedDestination == MENU_OUTDOOR,
+          onTap: () => selectDestination(MENU_OUTDOOR),
+        ),),
+    Ink(
+    color: widget._selectedDestination == MENU_ATTENDANCE
+    ? LightColors.kLightBlue
+        : Colors.white,
+    child:
+        ListTile(
+          leading: SizedBox(
+              height: 32.0,
+              width: 32.0,
+              child: Image.asset('assets/icons/ic_attendance.png')),
+          title: const Text('Attendance Summary'),
+          trailing: widget._selectedDestination == MENU_ATTENDANCE
+              ? const Icon(Icons.bookmark)
+              : null,
+          selected: widget._selectedDestination == MENU_ATTENDANCE,
+          onTap: () => selectDestination(MENU_ATTENDANCE),
+        ),),
+        Ink(
+          color: Colors.white,
+          child:
+        ListTile(
+          leading: SizedBox(
+              height: 32.0,
+              width: 32.0,
+              child: Image.asset('assets/icons/ic_journey.png')),
+          title: const Text('PJP'),
+          onTap: () {
+            Navigator.pop(context);
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => MyPjpListScreen(
+                          mFilterSelection: FilterSelection(
+                              filters: [], type: FILTERStatus.MYSELF),
+                        )));
+          },
+        ),),
+        Ink(
+          color: Colors.white,
+          child:
+        ListTile(
+          leading: SizedBox(
+              height: 32.0,
+              width: 32.0,
+              child: Image.asset('assets/icons/ic_checklist.png')),
+          title: Text('CVF'),
+          onTap: () {
+            Navigator.pop(context);
+            Navigator.push(context,
+                MaterialPageRoute(builder: (context) => MyCVFListScreen()));
+          },
+        ),),
+        Ink(
+          color: widget._selectedDestination == MENU_ATTENDANCE_MARKING
+              ? LightColors.kLightBlue
+              : Colors.white,
+          child:
+        ListTile(
+          leading: SizedBox(
+              height: 32.0,
+              width: 32.0,
+              child: Image.asset('assets/icons/ic_attendance_marking.png')),
+          title: const Text('Attendance Marking'),
+          trailing: widget._selectedDestination == MENU_ATTENDANCE_MARKING
+              ? const Icon(Icons.bookmark)
+              : null,
+          selected: widget._selectedDestination == MENU_ATTENDANCE_MARKING,
+          onTap: () => selectDestination(MENU_ATTENDANCE_MARKING),
+        ),
+        ),
+        Container(
+          color: LightColors.kLightGray,
+          child: const Padding(
+            padding: EdgeInsets.only(left: 16, top: 10, bottom: 10),
             child: Text(
               'Approvals',
+              style: TextStyle(
+                  backgroundColor: LightColors.kLightGray,
+                  color: Colors.blue,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold),
             ),
           ),
-          Divider(),
-          ListTile(
+        ),
+        Ink(
+          color: widget._selectedDestination == MENU_LEAVE_APPROVAL
+              ? LightColors.kLightBlue
+              : Colors.white,
+          child:
+        ListTile(
+          leading: SizedBox(
+              height: 32.0,
+              width: 32.0,
+              child: Image.asset('assets/icons/ic_leave.png')),
+          title: const Text('Leave'),
+          trailing: widget._selectedDestination == MENU_LEAVE_APPROVAL
+              ? const Icon(Icons.bookmark)
+              : null,
+          selected: widget._selectedDestination == MENU_LEAVE_APPROVAL,
+          onTap: () => selectDestination(MENU_LEAVE_APPROVAL),
+        ),),
+        Ink(
+          color: widget._selectedDestination == MENU_OUTDOOR_APPROVAL
+              ? LightColors.kLightBlue
+              : Colors.white,
+          child:
+        ListTile(
+          leading: SizedBox(
+              height: 32.0,
+              width: 32.0,
+              child: Image.asset('assets/icons/ic_outdoor.png')),
+          title: const Text('Outdoor Duty'),
+          trailing: widget._selectedDestination == MENU_OUTDOOR_APPROVAL
+              ? const Icon(Icons.bookmark)
+              : null,
+          selected: widget._selectedDestination == MENU_OUTDOOR_APPROVAL,
+          onTap: () => selectDestination(MENU_OUTDOOR_APPROVAL),
+        ),),
+        Ink(
+          color: widget._selectedDestination == MENU_ATTENDANCE_MARKING_APPROVAL
+          ? LightColors.kLightBlue
+        : Colors.white,
+          child: ListTile(
             leading: SizedBox(
                 height: 32.0,
                 width: 32.0,
-                child: Image.asset('assets/icons/ic_leave.png')
-            ),
-            title: Text('Leave'),
-            selected: widget._selectedDestination == MENU_LEAVE_APPROVAL,
-            onTap: () => selectDestination(MENU_LEAVE_APPROVAL),
-          ),
-          ListTile(
-            leading: SizedBox(
-                height: 32.0,
-                width: 32.0,
-                child: Image.asset('assets/icons/ic_outdoor.png')
-            ),
-            title: Text('Outdoor Duty'),
-            selected: widget._selectedDestination == MENU_OUTDOOR_APPROVAL,
-            onTap: () => selectDestination(MENU_OUTDOOR_APPROVAL),
-          ),
-          ListTile(
-            leading: SizedBox(
-                height: 32.0,
-                width: 32.0,
-                child: Image.asset('assets/icons/ic_attendance.png')
-            ),
-            title: Text('Apptendnce Marking'),
-            selected: widget._selectedDestination == MENU_ATTENDANCE_MARKING_APPROVAL,
+                child: Image.asset('assets/icons/ic_attendance.png')),
+            tileColor:
+                widget._selectedDestination == MENU_ATTENDANCE_MARKING_APPROVAL
+                    ? LightColors.kLightBlue
+                    : Colors.white,
+            title: const Text('Attendance Marking'),
+            trailing:
+                widget._selectedDestination == MENU_ATTENDANCE_MARKING_APPROVAL
+                    ? const Icon(Icons.bookmark)
+                    : null,
+            selected:
+                widget._selectedDestination == MENU_ATTENDANCE_MARKING_APPROVAL,
             onTap: () => selectDestination(MENU_ATTENDANCE_MARKING_APPROVAL),
           ),
-
-          Divider(),
-          ListTile(
-            leading: SizedBox(
-                height: 32.0,
-                width: 32.0,
-                child: Image.asset('assets/icons/ic_logout.png')
-            ),
-            title: Text('Log Out'),
-            selected: widget._selectedDestination == 0,
-            onTap: () => signOut(),
-          ),
-        ],
-      );
+        ),
+        Ink(
+          color: Colors.white,
+          child:
+        ListTile(
+          leading: SizedBox(
+              height: 32.0,
+              width: 32.0,
+              child: Image.asset('assets/icons/ic_journey.png')),
+          title: const Text('PJP'),
+          onTap: () {
+            Navigator.pop(context);
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => MyPjpListScreen(
+                          mFilterSelection: FilterSelection(
+                              filters: [], type: FILTERStatus.MYSELF),
+                        )));
+          },
+        ),),
+        Divider(),
+        ListTile(
+          leading: SizedBox(
+              height: 32.0,
+              width: 32.0,
+              child: Image.asset('assets/icons/ic_logout.png')),
+          title: const Text('Log Out'),
+          selected: widget._selectedDestination == 0,
+          onTap: () => signOut(),
+        ),
+      ],
+    );
   }
 
   void selectDestination(int index) {
     Navigator.of(context).pop();
-    if(false && index==10){
-
-    }else {
+    if (false && index == 10) {
+    } else {
       setState(() {
         widget._selectedDestination = index;
       });
     }
   }
 
-  signOut() async{
+  signOut() async {
     final prefs = await SharedPreferences.getInstance();
     prefs.clear();
     await Future.delayed(Duration(seconds: 1));
-    if(Platform.isAndroid) {
+    if (Platform.isAndroid) {
       Future.delayed(const Duration(milliseconds: 100), () {
         SystemChannels.platform.invokeMethod('SystemNavigator.pop');
       });
-    }else if (Platform.isIOS){
+    } else if (Platform.isIOS) {
       exit(0);
     }
   }
@@ -791,96 +933,89 @@ print('_getEventsForRange');
     print('home screen');
     double width = MediaQuery.of(context).size.width;
     return Scaffold(
-      backgroundColor: LightColors.kLightYellow,
-      body: SafeArea(
-        child: Column(
-          children: <Widget>[
-                TableCalendar<PJPModel>(
-                  firstDay: kFirstDay,
-                  lastDay: kLastDay,
-                  focusedDay: _focusedDay,
-                  selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
-                  rangeStartDay: _rangeStart,
-                  rangeEndDay: _rangeEnd,
-                  calendarFormat: _calendarFormat,
-                  rangeSelectionMode: _rangeSelectionMode,
-                  eventLoader: _getEventsForDay,
-                  startingDayOfWeek: StartingDayOfWeek.monday,
-                  headerStyle: HeaderStyle(
-                    titleCentered: true,
-                    formatButtonDecoration: BoxDecoration(
-                      color: Colors.orange,
-                      borderRadius: BorderRadius.circular(20.0),
-                    ),
-                    formatButtonTextStyle: TextStyle(color: Colors.white),
-                    formatButtonShowsNext: false,
-                  ),
-                  daysOfWeekStyle: const DaysOfWeekStyle(
-                    // Weekend days color (Sat,Sun)
-                    weekendStyle: TextStyle(color: Colors.deepOrangeAccent),
-                  ),
-                  // Calendar Dates styling
-                  calendarStyle:  CalendarStyle(
-                    // Weekend dates color (Sat & Sun Column)
-                    weekendTextStyle: TextStyle(color: Colors.red),
-                    // highlighted color for today
-                    todayDecoration: BoxDecoration(
-                      color: Colors.blueAccent,
-                      shape: BoxShape.rectangle,
-                    ),
-                    // highlighted color for selected day
-                    selectedDecoration: BoxDecoration(
-                      color: Colors.black26,
-                      shape: BoxShape.rectangle,
-                    ),
-                    markerDecoration:  _getEventDecoration(_focusedDay),
+        backgroundColor: LightColors.kLightYellow,
+        body: SafeArea(
+            child: Column(children: <Widget>[
+          TableCalendar<PJPModel>(
+            firstDay: kFirstDay,
+            lastDay: kLastDay,
+            focusedDay: _focusedDay,
+            selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
+            rangeStartDay: _rangeStart,
+            rangeEndDay: _rangeEnd,
+            calendarFormat: _calendarFormat,
+            rangeSelectionMode: _rangeSelectionMode,
+            eventLoader: _getEventsForDay,
+            startingDayOfWeek: StartingDayOfWeek.monday,
+            headerStyle: HeaderStyle(
+              titleCentered: true,
+              formatButtonDecoration: BoxDecoration(
+                color: Colors.orange,
+                borderRadius: BorderRadius.circular(20.0),
+              ),
+              formatButtonTextStyle: TextStyle(color: Colors.white),
+              formatButtonShowsNext: false,
+            ),
+            daysOfWeekStyle: const DaysOfWeekStyle(
+              // Weekend days color (Sat,Sun)
+              weekendStyle: TextStyle(color: Colors.deepOrangeAccent),
+            ),
+            // Calendar Dates styling
+            calendarStyle: CalendarStyle(
+              // Weekend dates color (Sat & Sun Column)
+              weekendTextStyle: TextStyle(color: Colors.red),
+              // highlighted color for today
+              todayDecoration: BoxDecoration(
+                color: Colors.blueAccent,
+                shape: BoxShape.rectangle,
+              ),
+              // highlighted color for selected day
+              selectedDecoration: BoxDecoration(
+                color: Colors.black26,
+                shape: BoxShape.rectangle,
+              ),
+              markerDecoration: _getEventDecoration(_focusedDay),
+            ),
 
-                  ),
-
-                  onDaySelected: _onDaySelected,
-                  onRangeSelected: _onRangeSelected,
-                  onFormatChanged: (format) {
-                    if (_calendarFormat != format) {
-                      setState(() {
-                        _calendarFormat = format;
-                      });
-                    }
+            onDaySelected: _onDaySelected,
+            onRangeSelected: _onRangeSelected,
+            onFormatChanged: (format) {
+              if (_calendarFormat != format) {
+                setState(() {
+                  _calendarFormat = format;
+                });
+              }
+            },
+            onPageChanged: (focusedDay) {
+              _focusedDay = focusedDay;
+              print('page changes');
+            },
+          ),
+          const SizedBox(height: 8.0),
+          Expanded(
+            child: ValueListenableBuilder<List<PJPModel>>(
+              valueListenable: _selectedEvents,
+              builder: (context, value, _) {
+                return ListView.builder(
+                  itemCount: value.length,
+                  itemBuilder: (context, index) {
+                    return Container(
+                      margin: const EdgeInsets.symmetric(
+                        horizontal: 12.0,
+                        vertical: 4.0,
+                      ),
+                      child: IntranetEventContainer(
+                        event: value[index],
+                      ),
+                    );
                   },
-                  onPageChanged: (focusedDay) {
-                    _focusedDay = focusedDay;
-                    print('page changes');
-
-                  },
-                ),
-                const SizedBox(height: 8.0),
-                Expanded(
-                  child: ValueListenableBuilder<List<PJPModel>>(
-                    valueListenable: _selectedEvents,
-                    builder: (context, value, _) {
-                      return ListView.builder(
-                        itemCount: value.length,
-                        itemBuilder: (context, index) {
-                          return Container(
-                            margin: const EdgeInsets.symmetric(
-                              horizontal: 12.0,
-                              vertical: 4.0,
-                            ),
-
-                            child: IntranetEventContainer( event: value[index],),
-                          );
-                        },
-                      );
-                    },
-                  ),
-                ),
-
-            ]
-        )
-      )
-    );
+                );
+              },
+            ),
+          ),
+        ])));
   }
 }
-
 
 /*class Event {
 
@@ -889,7 +1024,7 @@ print('_getEventsForRange');
   Event(this.title,this.mEvent);
 
 
- *//* final String title;
+ */ /* final String title;
   final String subtitle;
   final String fromDate;
   final String toDate;
@@ -898,13 +1033,14 @@ print('_getEventsForRange');
   const Event(this.title,this.subtitle,this.toDate,this.fromDate);
 
   @override
-  String toString() => title;*//*
+  String toString() => title;*/ /*
 }*/
 
 /*var pjpModel = PJPEventModel(title: 'Employee Training', subtitle: 'Employee Training at CWP-XXX', visitType: 'Training',
     purposeOfVisit: 'Training',
     businessType: 'kidzee', fromDate: '15 Aug', toDate: '18 Aug', boxColor: LightColors.kDarkYellow,icons: 'assets/icons/meeting.png',
     checkInTime: '10:00',isCheckin: true,ampm:'AM');*/
+
 /// Example events.
 ///
 /// Using a [LinkedHashMap] is highly recommended if you decide to use a map.
@@ -942,10 +1078,10 @@ List<DateTime> daysInRange(DateTime first, DateTime last) {
   final dayCount = last.difference(first).inDays + 1;
   return List.generate(
     dayCount,
-        (index) => DateTime.utc(first.year, first.month, first.day + index),
+    (index) => DateTime.utc(first.year, first.month, first.day + index),
   );
 }
 
 final kToday = DateTime.now();
 final kFirstDay = DateTime(kToday.year, kToday.month - 3, kToday.day);
-final kLastDay = DateTime(kToday.year, kToday.month+2, kToday.day);
+final kLastDay = DateTime(kToday.year, kToday.month + 2, kToday.day);

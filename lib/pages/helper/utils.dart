@@ -63,8 +63,35 @@ class Utility{
   //   return deviceIdentifier as String;
   // }
 
+  static Container noInternetDataSet(BuildContext context) {
+    return Container(
+      width: MediaQuery.of(context).size.width,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: <Widget>[
+          /*Image.asset(
+            'assets/images/ic_empty_box.png',
+            height: 200.0,
+          ),*/
+          Lottie.asset('assets/json/no_internet_connection.json'),
 
-  static Container emptyDataSet(BuildContext context,String message){
+        ],
+      ),
+    );
+  }
+
+  static isInternetConnected() async{
+    try {
+      final result = await InternetAddress.lookup('example.com');
+      if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
+        return true;
+      }
+      return false;
+    } on SocketException catch (_) {
+      return false;
+    }
+  }
+  static Container emptyDataSet(BuildContext context,String message) {
     return Container(
       width: MediaQuery.of(context).size.width,
       child: Column(

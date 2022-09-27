@@ -34,6 +34,9 @@ class LocalConstant {
   static const String KEY_LOCATION = "location";
 
   static const String KEY_CVF_QUESTIONS = "_cvfques";
+  static const String KEY_MY_ATTENDANCE = "attend";
+  static const String KEY_MY_PJP = "mypjp";
+  static const String KEY_MY_CVF = "mycvf";
 
 
   static const String KEY_AUTH_TOKEN = "authtoken";

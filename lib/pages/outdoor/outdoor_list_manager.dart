@@ -33,7 +33,7 @@ class _OutdoorManagerScreen extends State<OutdoorManagerScreen>
   final _selectedColor = LightColors.kLavender;
   final _unselectedColor = Color(0xff5f6368);
   final _tabs = [Tab(text: 'Pending Approvals'), Tab(text: 'All Approvals')];
-
+  bool isLoading=true;
   final _iconTabs = [
     Tab(icon: Icon(Icons.line_style)),
     Tab(icon: Icon(Icons.approval)),
@@ -121,7 +121,7 @@ class _OutdoorManagerScreen extends State<OutdoorManagerScreen>
             ),
           ),
           Padding(
-            padding: EdgeInsets.only(top: 60),
+            padding: EdgeInsets.only(top: 90),
             child: getAttendanceListView(),
           ),
         ],
@@ -216,7 +216,11 @@ class _OutdoorManagerScreen extends State<OutdoorManagerScreen>
   }
 
   getAttendanceListView() {
-    if (requisitionList == null || requisitionList.length <= 0) {
+    if(isLoading){
+      return Center(child: Image.asset(
+        "assets/images/loading.gif",
+      ),);
+    }else if (requisitionList == null || requisitionList.length <= 0) {
       String message = _tabController.index==0 ? "No pending Outdoor Duty Requisition Approvals" : "Outdoor Duty Requisition requests are not available";
       return Utility.emptyDataSet(context,message);
     } else {
@@ -240,7 +244,8 @@ class _OutdoorManagerScreen extends State<OutdoorManagerScreen>
   }
 
   loadAcquisition() {
-    Utility.showLoaderDialog(context);
+    //Utility.showLoaderDialog(context);
+    isLoading = true;
     DateTime selectedDate = DateTime.now();
     DateTime _from = DateTime(selectedDate.year, selectedDate.month - 1, selectedDate.day);
     DateTime _to = DateTime(selectedDate.year, selectedDate.month + 1, selectedDate.day);
@@ -252,6 +257,7 @@ class _OutdoorManagerScreen extends State<OutdoorManagerScreen>
         ToDate: DateFormat("yyyy-MM-dd'T'hh:mm:ss").format(_to));
     APIService apiService = APIService();
     apiService.leaveRequisitionManager(request).then((value) {
+      isLoading=false;
       if (value != null) {
         if (value == null || value.responseData == null) {
           Utility.showMessage(context, 'data not found');
@@ -278,7 +284,7 @@ class _OutdoorManagerScreen extends State<OutdoorManagerScreen>
         }
       }
       _isChecked = List<bool>.filled(requisitionList.length, false);
-      Navigator.of(context).pop();
+      //Navigator.of(context).pop();
       setState(() {});
     });
   }
@@ -357,9 +363,7 @@ class _OutdoorManagerScreen extends State<OutdoorManagerScreen>
   generateRow(int position, LeaveInfoMan model, int action) {
     double width = MediaQuery.of(context).size.width;
 
-    return Expanded(
-        flex: 1,
-        child: Column(
+    return Column(
           children: [
             Container(
               color: LightColors.kAbsent,
@@ -500,7 +504,7 @@ class _OutdoorManagerScreen extends State<OutdoorManagerScreen>
                   ],
                 )),
           ],
-        ));
+        );
   }
 
   DateTime parseDate(String value) {

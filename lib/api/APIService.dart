@@ -464,16 +464,22 @@ class APIService {
     }
   }
 
-  Future<dynamic> approveAttendance(ApproveAttendanceMarking requestModel) async {
+  Future<dynamic> approveAttendance(ApproveLeaveRequestManager requestModel) async {
     try {
-      print(requestModel.toJson());
-      print(Uri.parse(url + LocalStrings.GET_APPROVE_ATTENDANCE_REQUISITION));
-      final response = await http.post(Uri.parse(url + LocalStrings.GET_APPROVE_ATTENDANCE_REQUISITION),
+      var body = jsonEncode( {
+        'xml': requestModel.xml,
+        'Modified_By': requestModel.userId,
+
+      });
+      print('request body');
+      print(body);
+      print(Uri.parse(url + LocalStrings.GET_APPROVE_ATTENDANCE_REQUISITION_NEW));
+      final response = await http.post(Uri.parse(url + LocalStrings.GET_APPROVE_ATTENDANCE_REQUISITION_NEW),
           headers: {
             "Accept": "application/json",
             "content-type": "application/json"
           },
-          body:requestModel.getJson());
+          body:body);
       print(response.body);
       if (response.statusCode == 200 || response.statusCode == 400) {
         if(response.body is AttendanceSummeryResponse){
