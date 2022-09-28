@@ -346,7 +346,7 @@ class APIService {
         'WorkLocation': requestModel.WorkLocation,
         'WorkLocation': requestModel.WorkLocation,
       });
-
+      print(body);
       print(Uri.parse(url + LocalStrings.GET_APPLY_LEAVE));
       final response = await http.post(Uri.parse(url + LocalStrings.GET_APPLY_LEAVE),
           headers: {

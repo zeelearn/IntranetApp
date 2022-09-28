@@ -110,16 +110,15 @@ class _MyCVFListScreen extends State<MyCVFListScreen> implements onResponse{
             String json = jsonEncode(response);
             saveCVFLocally(json);
             mCvfList.addAll(response.responseData);
-            setState(() {
-              //mPjpList.addAll(response.responseData);
-            });
-
           }
           print('pjp list ${response.responseData.length}');
         } else {
           Utility.showMessage(context, 'data not found');
         }
       }
+      setState(() {
+        //mPjpList.addAll(response.responseData);
+      });
       Navigator.of(context).pop();
 
     });
@@ -1063,6 +1062,10 @@ class _MyCVFListScreen extends State<MyCVFListScreen> implements onResponse{
 
   @override
   void onError(value) {
+    isLoading=false;
+    setState(() {
+
+    });
     Navigator.of(context).pop();
   }
 
@@ -1077,6 +1080,7 @@ class _MyCVFListScreen extends State<MyCVFListScreen> implements onResponse{
     if (value is UpdateCVFStatusResponse) {
       UpdateCVFStatusResponse response = value;
       this.loadAllCVF();
+
     } else if (value is PjpListResponse) {
       PjpListResponse response = value;
       print('onResponse in if ');
@@ -1086,6 +1090,9 @@ class _MyCVFListScreen extends State<MyCVFListScreen> implements onResponse{
         print('onResponse in if else');
       }
     }
+    setState(() {
+
+    });
   }
 
 }

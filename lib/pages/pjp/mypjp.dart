@@ -504,6 +504,10 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse{
 
   @override
   void onError(value) {
+    isLoading=false;
+    setState(() {
+
+    });
     Navigator.of(context).pop();
   }
 

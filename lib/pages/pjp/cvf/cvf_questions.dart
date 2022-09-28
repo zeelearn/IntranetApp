@@ -1104,7 +1104,7 @@ class _QuestionListScreenState extends State<QuestionListScreen> implements onUp
 
   @override
   void onStart() {
-    Utility.showMessage(context, 'Please wait');
+    Utility.showLoaderDialog(context);
   }
 
   @override

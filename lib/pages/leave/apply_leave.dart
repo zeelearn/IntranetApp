@@ -24,6 +24,7 @@ class ApplyLeaveScreen extends StatefulWidget {
   String avaliableForEncash = '-';
   String totalLeaveBalance = '-';
   int employeeId = 0;
+  String gender="";
 
 
   ApplyLeaveScreen(
@@ -62,6 +63,8 @@ class _ApplyLeaveScreen extends State<ApplyLeaveScreen> implements onClickListen
     final prefs = await SharedPreferences.getInstance();
     widget.employeeId =
         int.parse(prefs.getString(LocalConstant.KEY_EMPLOYEE_ID) as String);
+    widget.gender = prefs.getString(LocalConstant.KEY_GENDER) as String;
+
     PackageInfo.fromPlatform().then((PackageInfo packageInfo) {
       String appName = packageInfo.appName;
       String packageName = packageInfo.packageName;
@@ -152,6 +155,7 @@ class _ApplyLeaveScreen extends State<ApplyLeaveScreen> implements onClickListen
                     SizedBox(
                       height: size.height * 0.01,
                     ),
+                    widget.gender !='Male' ?
                     Row(
                       mainAxisSize: MainAxisSize.max,
                       children: [
@@ -173,7 +177,7 @@ class _ApplyLeaveScreen extends State<ApplyLeaveScreen> implements onClickListen
                           overflow: TextOverflow.ellipsis,
                         )
                       ],
-                    ),
+                    ) : Text(''),
                     GestureDetector(
                       onTap: () {
                         validate();

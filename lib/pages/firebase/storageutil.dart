@@ -14,13 +14,6 @@ import 'package:flutter_image_compress/flutter_image_compress.dart';
 class FirebaseStorageUtil{
   uploadFile(Allquestion player,String filePath,String fileName,onUploadResponse response)async{
     File file = File(filePath);
-    /*if (null != file) {
-      String targetPath = file.path;
-      targetPath = targetPath.replaceAll('.jpg', '');
-      targetPath = targetPath+'temp.jpg';
-      print(targetPath);
-      file = File(await compressAndGetFile(file,targetPath));
-    }*/
     response.onStart();
     String imagePath = "images/cvf/${fileName}.jpg";
 // Create the file metadata

@@ -193,12 +193,12 @@ class _IntranetHomePageState extends State<IntranetHomePage>
         " " +
         prefs.getString(LocalConstant.KEY_LAST_NAME).toString();
     _profileImage = 'https://cdn-icons-png.flaticon.com/128/149/149071.png';
-    /*String sex = prefs.getString(LocalConstant.KEY_GENDER) as String;
-    if(sex == 'male'){
+    String sex = prefs.getString(LocalConstant.KEY_GENDER) as String;
+    if(sex == 'Male'){
       _profileImage = 'https://cdn-icons-png.flaticon.com/128/4333/4333609.png';
     }else{
       _profileImage='https://cdn-icons.flaticon.com/png/128/4140/premium/4140047.png';
-    }*/
+    }
     PackageInfo.fromPlatform().then((PackageInfo packageInfo) {
       String appName = packageInfo.appName;
       String packageName = packageInfo.packageName;

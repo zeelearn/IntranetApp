@@ -333,7 +333,8 @@ class DBHelper {
       print('----${list.length}');
       for(int index=0;index<list.length;index++) {
         Map<String, dynamic> map = list[index];
-        mMap.putIfAbsent(map[DBConstant.QUESTION_ID].toString(), () => map[DBConstant.USER_ANSWER]);
+        if(map[DBConstant.CVF_ID] == cvfId)
+          mMap.putIfAbsent(map[DBConstant.QUESTION_ID].toString(), () => map[DBConstant.USER_ANSWER]);
       }
     }
     return mMap;
