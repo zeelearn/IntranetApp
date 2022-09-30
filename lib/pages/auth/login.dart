@@ -375,10 +375,8 @@ class _LoginPage extends State<LoginPage> {
               prefs.setString(
                   LocalConstant.KEY_FIRST_NAME,
                   info.employeeFirstName as String);
-              prefs.setString(
-                  LocalConstant.KEY_LAST_NAME, info.employeeLastName as String);
-              prefs.setString(
-                  LocalConstant.KEY_DOJ, info.employeeDateOfJoining as String);
+              prefs.setString(LocalConstant.KEY_LAST_NAME, info.employeeLastName as String);
+              prefs.setString(LocalConstant.KEY_DOJ, info.employeeDateOfJoining as String);
               prefs.setString(LocalConstant.KEY_EMP_SUPERIOR_ID,
                   info.employeeSuperiorId.toInt().toString());
               prefs.setString(LocalConstant.KEY_DEPARTMENT,
@@ -405,6 +403,7 @@ class _LoginPage extends State<LoginPage> {
                   info.employeeDateOfMarriage as String);
               prefs.setString(
                   LocalConstant.KEY_LOCATION, info.employeeLocation as String);
+              prefs.setString(LocalConstant.KEY_GENDER, info.gender as String);
 
               Navigator.push(
                 context,

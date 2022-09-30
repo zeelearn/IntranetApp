@@ -101,7 +101,7 @@ class Utility{
             'assets/images/ic_empty_box.png',
             height: 200.0,
           ),*/
-          Lottie.asset('assets/json/search_notfound.json'),
+          Lottie.asset('assets/json/not_found.json'),
           Center(
             child: Text(message, style: GoogleFonts.inter(
               fontSize: 16.0,

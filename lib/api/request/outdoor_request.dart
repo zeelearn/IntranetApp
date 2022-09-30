@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 class OutdoorRequest {
   String Employee_Id;
@@ -26,6 +27,7 @@ class OutdoorRequest {
       'Role': Role.trim(),
       'FromDate': FromDate.trim(),
       'ToDate': ToDate.trim(),
+      'AppType' :Platform.isAndroid ? 'Android' : Platform.isIOS ? 'IOS' : 'unknown'
     });
   }
 

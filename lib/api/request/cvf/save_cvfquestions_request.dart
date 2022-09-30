@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 class SaveCVFAnswers {
   int PJPCVF_Id;
@@ -14,6 +15,7 @@ class SaveCVFAnswers {
       'PJPCVF_Id': PJPCVF_Id,
       'DocXml': DocXml,
       'UserId': UserId,
+      'AppType' :Platform.isAndroid ? 'Android' : Platform.isIOS ? 'IOS' : 'unknown'
     });
   }
 

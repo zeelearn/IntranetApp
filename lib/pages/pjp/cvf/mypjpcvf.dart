@@ -610,7 +610,7 @@ class _MyCVFListScreen extends State<MyPJPCVFListScreen> implements onResponse {
                     Utility.getDateTime(),
                     getNextStatus(cvfView.Status),
                     this);
-                Utility.showMessage(context, '${cvfView.Status} clicked');
+                //Utility.showMessage(context, '${cvfView.Status} clicked');
               },
             ),
             TextButton(

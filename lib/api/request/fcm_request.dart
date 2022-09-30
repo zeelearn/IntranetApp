@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 class FcmRequestModel {
   String FCM_Reg_ID;
@@ -31,6 +32,7 @@ class FcmRequestModel {
       'Employee_ID': Employee_ID,
       'Device_ID': Device_ID,
       'User_Agent': User_Agent,
+      'AppType' :Platform.isAndroid ? 'Android' : Platform.isIOS ? 'IOS' : 'unknown'
     });
   }
 }

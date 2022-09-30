@@ -89,6 +89,7 @@ class _EmployeeListScreenState extends State<EmployeeListScreen>
     return Scaffold(
         extendBodyBehindAppBar: true,
         backgroundColor: LightColors.kLightYellow,
+        appBar: AppBar(title: const Text('Employee Directory')),
         body: SafeArea(
           child: RefreshIndicator(
             key: _refreshIndicatorKey,

@@ -161,7 +161,26 @@ class MyWidget{
         readOnly: true, //set it true, so that user will not able to edit text
         onTap: () async {
 
-          DatePicker.showDatePicker(context,
+          DateTime? pickedDate = await showDatePicker(
+              context: context,
+              initialDate: DateTime.now(),
+              firstDate: minDate,
+              //DateTime.now() - not to allow to choose before today.
+              lastDate: maxDate);
+
+          if (pickedDate != null) {
+            print(
+                pickedDate); //pickedDate output format => 2021-03-10 00:00:00.000
+            String formattedDate = DateFormat('dd-MMM-yyyy').format(pickedDate);
+            controller.text = formattedDate;
+            print(formattedDate); //formatted date output using intl package =>  2021-03-16
+            /*setState(() {
+              dateInput.text =
+                  formattedDate; //set output date to TextField value.
+            });*/
+          } else {}
+
+          /*DatePicker.showDatePicker(context,
               showTitleActions: true,
               minTime: minDate,
               maxTime: maxDate,
@@ -180,7 +199,7 @@ class MyWidget{
                     date.timeZoneOffset.inHours.toString());
               }, onConfirm: (date) {
                 print('confirm $date');
-              }, currentTime: DateTime.now(), locale: LocaleType.en);
+              }, currentTime: DateTime.now(), locale: LocaleType.en);*/
         });
   }
 

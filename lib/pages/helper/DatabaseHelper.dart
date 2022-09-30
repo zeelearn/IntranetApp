@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:intranet/pages/helper/utils.dart';
+import 'package:intranet/pages/model/NotificationDataModel.dart';
 import 'package:intranet/pages/pjp/models/PJPCenterDetails.dart';
 import 'package:path/path.dart' as path;
 import 'package:sqflite/sqflite.dart' as sql;
@@ -272,6 +273,26 @@ class DBHelper {
     await dbclient.insert(LocalConstant.TABLE_NOTIFICATION, data);
   }
 
+  Future<List<NotificationDataModel>> getNotificationList() async {
+    List<NotificationDataModel> notificaitonList = [];
+
+    List<Map<String, dynamic>> list = await  DBHelper().getData(LocalConstant.TABLE_NOTIFICATION);
+    if(list !=null){
+      //print('----${list.length}');
+      for(int index=0;index<list.length;index++) {
+        Map<String, dynamic> map = list[index];
+        //print('date is  ${map['date']}');
+        String time = '';
+        if(map['date'] != null){
+          time = map['date'];
+        }
+
+        notificaitonList.add(NotificationDataModel(message: map['data'], title: map['title'], image: map['imageurl'], URL: '', type: map['type'],time:time));
+      }
+    }
+    return notificaitonList;
+  }
+
   Future<void> updateUserAnswer(cvfid,pjpid,quid,cat_name,useranswer) async {
     var dbclient = await db;
     int? count = Sqflite.firstIntValue(
@@ -333,7 +354,8 @@ class DBHelper {
       print('----${list.length}');
       for(int index=0;index<list.length;index++) {
         Map<String, dynamic> map = list[index];
-        mMap.putIfAbsent(map[DBConstant.QUESTION_ID].toString(), () => map[DBConstant.USER_ANSWER]);
+        if(map[DBConstant.CVF_ID] == cvfId)
+          mMap.putIfAbsent(map[DBConstant.QUESTION_ID].toString(), () => map[DBConstant.USER_ANSWER]);
       }
     }
     return mMap;

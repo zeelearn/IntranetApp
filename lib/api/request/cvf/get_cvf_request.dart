@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 class GetAllCVF {
   int Employee_id;
@@ -10,6 +11,7 @@ class GetAllCVF {
   getJson(){
     return jsonEncode( {
       'Employee_id': Employee_id,
+      'AppType' :Platform.isAndroid ? 'Android' : Platform.isIOS ? 'IOS' : 'unknown'
     });
   }
 

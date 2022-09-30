@@ -22,6 +22,7 @@ import '../../helper/LocalStrings.dart';
 import '../../helper/constants.dart';
 import '../../helper/utils.dart';
 import '../../home/IntranetHomePage.dart';
+import '../../iface/onClick.dart';
 import '../../utils/theme/colors/light_colors.dart';
 import '../../widget/MyWidget.dart';
 import '../../widget/check/checkbox.dart';
@@ -43,7 +44,7 @@ class AddCVFScreen extends StatefulWidget {
   State<AddCVFScreen> createState() => _AddCVFState();
 }
 
-class _AddCVFState extends State<AddCVFScreen> {
+class _AddCVFState extends State<AddCVFScreen> implements onClickListener{
 
   TextEditingController _activityNameController = TextEditingController();
 
@@ -62,6 +63,7 @@ class _AddCVFState extends State<AddCVFScreen> {
   double latitude=0.0;
   double longitude=0.0;
   String appVersion='';
+  TextEditingController _timeController = TextEditingController();
 
   var _categoryController = TextEditingController(text: 'Select Purpose');
   var _dateController = TextEditingController(text: 'Select Date');
@@ -266,7 +268,21 @@ class _AddCVFState extends State<AddCVFScreen> {
                   SizedBox(
                     height: 10,
                   ),
-                  Container(
+                  TextField(
+                      style: TextStyle(color: LightColor.titleTextColor),
+                      controller: _timeController, //editing controller of this TextField
+                      decoration: InputDecoration(
+                          border: OutlineInputBorder(
+                              borderRadius: BorderRadius.all(Radius.circular(5.0)),
+                              borderSide: BorderSide(color: LightColors.kLavender)),
+                          //icon of text field
+                          labelText: 'Select Time' //label text of field
+                      ),
+                      readOnly: true, //set it true, so that user will not able to edit text
+                      onTap: () async {
+                        _selectTime(context);
+                      }),
+                  /*Container(
                     decoration: BoxDecoration(
                         border: Border.all(color: LightColors.kLightGray1)),
                     height: 50,
@@ -277,7 +293,7 @@ class _AddCVFState extends State<AddCVFScreen> {
                         vistitDateTime = value;
                       },
                     ),
-                  ),
+                  ),*/
                   SizedBox(
                     height: 10,
                   ),
@@ -291,6 +307,33 @@ class _AddCVFState extends State<AddCVFScreen> {
         ],
       ),
     );
+  }
+
+  _selectTime(BuildContext context) async {
+    TimeOfDay selectedTime = TimeOfDay(hour: 12, minute: 00);
+    final TimeOfDay? timeOfDay = await showTimePicker(
+      context: context,
+      initialTime: selectedTime,
+      initialEntryMode: TimePickerEntryMode.dialOnly,
+      builder: (BuildContext context, Widget? child) {
+        return MediaQuery(
+          data: MediaQuery.of(context)
+              .copyWith(alwaysUse24HourFormat: false), child: child!,
+        );
+      },
+
+    );
+    if(timeOfDay != null )
+    {
+      setState(() {
+        final dt = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day, timeOfDay.hour, timeOfDay.minute);
+        vistitDateTime=timeOfDay;
+        _timeController.text =  DateFormat('hh:mm a').format(dt);
+        //controller.text = '${timeOfDay.hourOfPeriod}:${timeOfDay.minute}';
+      });
+
+    }
+
   }
 
   getFrichanseeId() {
@@ -308,6 +351,31 @@ class _AddCVFState extends State<AddCVFScreen> {
   }
 
   bool validate(){
+    print("Validating the CVF Form");
+    String purpose =  getCategoryList();
+    print('Purpose ${_purposeMultiSelect}');
+    print(_dateController.text);
+    if(_purposeMultiSelect.isEmpty){
+      Utility.showMessages(context, "Please Select Purpose");
+      return false;
+    }else if(_dateController.text.isEmpty || _dateController.text.toString()=='Select Date'){
+      Utility.showMessages(context, "Please Select CVF Date");
+      return false;
+    }else if(vistitDateTime==null) {
+      Utility.showMessages(context, "Please Select CVF Time");
+      return false;
+    }else if(_purposeMultiSelect=='Activity'){
+      if(_activityNameController.text.isEmpty) {
+        Utility.showMessages(context, "Please Select Activity Name");
+        return false;
+      }else if(location.isEmpty || location=='Search Location') {
+        Utility.showMessages(context, "Please Select Location");
+        return false;
+      }
+    }else if( getFrichanseeId()==0){
+      Utility.showMessages(context, "Please Select Center");
+      return false;
+    }
     return true;
   }
 
@@ -329,7 +397,8 @@ class _AddCVFState extends State<AddCVFScreen> {
       print(request.toJson());
       APIService apiService = APIService();
       apiService.saveCVF(request).then((value) {
-        print(value.toString());
+        //print(value.toString());
+        Navigator.of(context).pop();
         if (value != null) {
           if (value == null || value.responseData == null) {
             Utility.showMessage(context, 'data not found');
@@ -339,17 +408,20 @@ class _AddCVFState extends State<AddCVFScreen> {
             if (response != null) {
               //mPjpModel.pjpId=response.responseData;
             }
-            Navigator.pop(context, 'DONE');
-            Utility.showMessage(context, 'CVF Saved in server');
+
+            Utility.showMessageSingleButton(context, "CVF added successfully", this);
+            //Utility.showMessage(context, 'CVF Saved in server');
             setState(() {});
             //print('category list ${response.responseData.length}');
           } else {
             Utility.showMessage(context, 'data not found');
           }
         }
-        Navigator.of(context).pop();
+        //Navigator.of(context).pop();
         setState(() {});
       });
+    }else{
+      print("unable to Validate");
     }
   }
 
@@ -397,9 +469,6 @@ class _AddCVFState extends State<AddCVFScreen> {
         GestureDetector(
           onTap: () {
             //formKey.currentState?.build(context);
-
-            DateTime time = DateTime(cvfDate.year, cvfDate.month, cvfDate.day,
-                vistitDateTime?.hour as int, vistitDateTime?.minute as int);
             /*mPjpModel.centerList.add(PJPCentersInfo(pjpId: mPjpModel.pjpId, dateTime: time, centerCode: getCenterCode(_CenterName),
                 centerName: _CenterName, isActive: true, isNotify: true, purpose: _purposeMultiSelect, isCheckIn: false, isCheckOut: false,
                 isSync: false, isCompleted: false, createdDate: DateTime.now(), modifiedDate: DateTime.now()));*/
@@ -466,9 +535,7 @@ class _AddCVFState extends State<AddCVFScreen> {
   }
 
   Widget _getLocation(BuildContext context) {
-    return //search autoconplete input
-      Positioned(  //search input bar
-          child: InkWell(
+    return InkWell(
               onTap: () async {
                 var place = await PlacesAutocomplete.show(
                     context: context,
@@ -519,8 +586,8 @@ class _AddCVFState extends State<AddCVFScreen> {
                   ),
                 ),
               )
-          )
-      ); /*Container(
+          );
+       /*Container(
         decoration:
             BoxDecoration(border: Border.all(color: LightColors.kLightGray1)),
         height: 45,
@@ -613,6 +680,7 @@ class _AddCVFState extends State<AddCVFScreen> {
   getActivity(Size size) {
 
     return Column(
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: [
         MyWidget().normalTextField(
             context, 'Enter Activity Name', _activityNameController),
@@ -977,6 +1045,12 @@ class _AddCVFState extends State<AddCVFScreen> {
   }
 
   void openCategory() async {
-    String value = _showMultiSelect(context);
+    _showMultiSelect(context);
+  }
+
+  @override
+  void onClick(int action, value) {
+    // TODO: implement onClick
+    Navigator.pop(context, 'DONE');
   }
 }

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 class CentersRequestModel {
   int EmployeeId;
@@ -12,7 +13,8 @@ class CentersRequestModel {
   getJson(){
     return jsonEncode( {
       'EmployeeId': EmployeeId,
-      'Brand': Brand
+      'Brand': Brand,
+      'AppType' :Platform.isAndroid ? 'Android' : Platform.isIOS ? 'IOS' : 'unknown'
     });
   }
 
