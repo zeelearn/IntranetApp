@@ -1,34 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:intranet/api/request/ApproveAttendanceMarking.dart';
 import 'package:intranet/api/request/leavelist_request_man.dart';
 import 'package:intranet/pages/iface/onClick.dart';
 import 'package:intranet/pages/widget/MyWidget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../api/APIService.dart';
-import '../../api/request/approve_leave_request.dart';
-import '../../api/request/leave/ApproveLeaveRequsitionRequest.dart';
 import '../../api/request/leave/leave_approve_request.dart';
 import '../../api/response/apply_leave_response.dart';
-import '../../api/response/approve_attendance_response.dart';
-import '../../api/response/attendance_marking_man.dart';
 import '../../api/response/leave_list_manager.dart';
 import '../helper/LocalConstant.dart';
 import '../helper/utils.dart';
 import '../utils/theme/colors/light_colors.dart';
 
-class LeaveManagerScreen extends StatefulWidget {
+class OutdoorReqManagerScreen extends StatefulWidget {
   int employeeId;
 
-  LeaveManagerScreen({Key? key, required this.employeeId})
+  OutdoorReqManagerScreen({Key? key, required this.employeeId})
       : super(key: key);
 
   @override
-  _LeaveManagerScreen createState() => _LeaveManagerScreen();
+  _OutdoorReqManagerScreen createState() => _OutdoorReqManagerScreen();
 }
 
-class _LeaveManagerScreen extends State<LeaveManagerScreen>
+class _OutdoorReqManagerScreen extends State<OutdoorReqManagerScreen>
     with SingleTickerProviderStateMixin implements onClickListener {
   late TabController _tabController;
   List<bool> _isChecked = [];
@@ -104,7 +99,7 @@ class _LeaveManagerScreen extends State<LeaveManagerScreen>
             child: ListView(
               children: [
                 Text(
-                  'Leave Approval',
+                  'Outdoor Approval',
                   style: TextStyle(
                       fontSize: 16, fontWeight: FontWeight.bold),
                 ),
@@ -172,7 +167,8 @@ class _LeaveManagerScreen extends State<LeaveManagerScreen>
         if(_isChecked[index]) {
           String data = "{'Requisition_Id': ${requisitionList[index]
               .requisitionId.toInt()
-              .toString()},'WorkflowTypeCode': 'LV1','RequisitionTypeCode': '${requisitionList[index]
+              .toString()},'WorkflowTypeCode': '${requisitionList[index]
+              .workflowTypeCode}','RequisitionTypeCode': '${requisitionList[index]
               .requisitionTypeCode}','Requistion_Status_Code': '${status}','Is_Approved': ${status ==
               'REJ'
               ? "0"
@@ -180,14 +176,6 @@ class _LeaveManagerScreen extends State<LeaveManagerScreen>
               'REJ'
               ? 'Rejected by Intranet App'
               : 'Approved from Intranet app'}'}";
-          /*ApproveLeaveRequest request= ApproveLeaveRequest(RequisitionTypeCode: requisitionList[index].requisitionTypeCode,
-              User_Id: widget.employeeId.toInt().toString(),
-              Requisition_Id: requisitionList[index].requisitionId.toInt().toString(),
-              WorkflowTypeCode: requisitionList[index].workflowTypeCode,
-              Requistion_Status_Code: status,
-              Is_Approved: status=='REJ' ? false : true,
-              Workflow_UserType: 'MAN',
-              Workflow_Remark: 'approved from Intranet App');*/
           jsonValue = jsonValue + token + ' ' + data;
           //list.add(request);
           token = ",";
@@ -291,7 +279,7 @@ class _LeaveManagerScreen extends State<LeaveManagerScreen>
         "assets/images/loading.gif",
       ),);
     }else if (requisitionList == null || requisitionList.length <= 0) {
-      String message = _tabController.index==0 ? "No pending Leave Requisition Approvals" : "Leave Requisition requests are not available";
+      String message = _tabController.index==0 ? "No pending Outdoor Requisition Approvals" : "Outdoor Requisition requests are not available";
       return Utility.emptyDataSet(context,message);
     } else {
       return Column(
@@ -324,7 +312,7 @@ class _LeaveManagerScreen extends State<LeaveManagerScreen>
     DateTime _to = DateTime(selectedDate.year, selectedDate.month + 1, selectedDate.day);
     requisitionList.clear();
     ApplyLeaveManRequest request = ApplyLeaveManRequest(device: 0,
-        LeaveType: 'Leave', Employee_Id: widget.employeeId.toString(),
+        LeaveType: 'Outdoor', Employee_Id: widget.employeeId.toString(),
         Role: 'Man',
         FromDate: DateFormat("yyyy-MM-dd'T'hh:mm:ss").format(_from),
         ToDate: DateFormat("yyyy-MM-dd'T'hh:mm:ss").format(_to));
@@ -340,7 +328,7 @@ class _LeaveManagerScreen extends State<LeaveManagerScreen>
             for(int index=0;index<response.responseData.length;index++){
               if(_tabController.index==0){
                 //pending
-                if(true || response.responseData[index].status=='Pending'){
+                if(response.responseData[index].status=='Pending'){
                   requisitionList.add(response.responseData[index]);
                 }
               }else{
@@ -368,9 +356,9 @@ class _LeaveManagerScreen extends State<LeaveManagerScreen>
       builder: (BuildContext context) {
         // return object of type Dialog
         return AlertDialog(
-          title: new Text("Attendance Marking Approval"),
+          title: new Text("Outdoor Marking Approval"),
           content: new Text(
-              'Are you sure to approve attendance request for ${model.employeeName}'),
+              'Are you sure to approve Outdoor request for ${model.employeeName}'),
           actions: <Widget>[
             // usually buttons at the bottom of the dialog
             ElevatedButton(
@@ -578,7 +566,7 @@ class _LeaveManagerScreen extends State<LeaveManagerScreen>
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
                     Text(
-                      'Leave for : ${getParsedShortDate(model.fromDay)} to ${getParsedShortDate(model.toDay)} ',
+                      'Outdoor for : ${getParsedShortDate(model.fromDay)} to ${getParsedShortDate(model.toDay)} ',
                       style: TextStyle(color: Colors.black),
                     ),
                   ],

@@ -134,10 +134,11 @@ class _OutdoorScreen extends State<OutdoorScreen>
                       ),
                       InkWell(
                         onTap: () {
-                          Navigator.push(
+                          applyNewOutdoor();
+                          /*Navigator.push(
                               context,
                               MaterialPageRoute(
-                                  builder: (context) => ApplyOutDoorScreen(employeeId: employeeId,displayName: '',)));
+                                  builder: (context) => ApplyOutDoorScreen(employeeId: employeeId,displayName: '',)));*/
                         },
                         child: Padding(
                           padding: const EdgeInsets.all(8.0),
@@ -159,6 +160,17 @@ class _OutdoorScreen extends State<OutdoorScreen>
             ),
           ),
         ));
+  }
+
+  void applyNewOutdoor() async{
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+          builder: (context) => ApplyOutDoorScreen(employeeId: employeeId,displayName: '',)),
+    );
+    print('Response Received');
+
+    this.loadOutdoorRequisition();
   }
 
   getOutdoorListView() {

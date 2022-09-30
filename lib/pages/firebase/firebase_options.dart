@@ -48,7 +48,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '411998223312',
     projectId: 'intranet-9fda2',
     databaseURL: 'https://react-native-firebase-testing.firebaseio.com',
-    storageBucket: 'gs://intranet-9fda2.appspot.com',
+    storageBucket: 'intranet-9fda2',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(

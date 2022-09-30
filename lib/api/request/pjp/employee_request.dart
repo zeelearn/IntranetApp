@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 class EmployeeListRequest {
   int SuperiorId;
@@ -9,7 +10,8 @@ class EmployeeListRequest {
 
   getJson(){
     return jsonEncode( {
-      'SuperiorId': SuperiorId
+      'SuperiorId': SuperiorId,
+      'AppType' :Platform.isAndroid ? 'Android' : Platform.isIOS ? 'IOS' : 'unknown'
     });
   }
 

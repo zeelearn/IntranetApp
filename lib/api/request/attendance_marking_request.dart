@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 class AttendanceMarkingRequest {
   String Employee_Name;
@@ -27,6 +28,7 @@ class AttendanceMarkingRequest {
       'Reason': Reason.trim(),
       'FromDT': FromDT.trim(),
       'ToDT': ToDT.trim(),
+      'AppType' :Platform.isAndroid ? 'Android' : Platform.isIOS ? 'IOS' : 'unknown'
     });
   }
   Map<String, dynamic> toJson() {

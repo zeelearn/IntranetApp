@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 class UpdatePJPStatusRequest {
   late int PJP_id;
@@ -14,7 +15,7 @@ class UpdatePJPStatusRequest {
       'PJP_id': PJP_id,
       'Is_Approved': Is_Approved,
       'Workflow_user': Workflow_user,
-
+      'AppType' :Platform.isAndroid ? 'Android' : Platform.isIOS ? 'IOS' : 'unknown'
     });
   }
 

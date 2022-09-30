@@ -32,7 +32,9 @@ import '../helper/DatabaseHelper.dart';
 import '../helper/constants.dart';
 import '../leave/leave_list_manager.dart';
 import '../model/filter.dart';
+import '../notification.dart';
 import '../outdoor/outdoor_list_manager.dart';
+import '../outdoor/outdoor_requisition_manager.dart';
 import '../pjp/IntranetEvents.dart';
 import '../pjp/cvf/mycvf.dart';
 import '../utils/theme/colors/light_colors.dart';
@@ -120,9 +122,9 @@ class _IntranetHomePageState extends State<IntranetHomePage>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      /*if (Platform.isAndroid) {
+      if (Platform.isAndroid) {
         checkForUpdate();
-      }*/
+      }
     }
   }
 
@@ -195,9 +197,9 @@ class _IntranetHomePageState extends State<IntranetHomePage>
     _profileImage = 'https://cdn-icons-png.flaticon.com/128/149/149071.png';
     String sex = prefs.getString(LocalConstant.KEY_GENDER) as String;
     if(sex == 'Male'){
-      _profileImage = 'https://cdn-icons-png.flaticon.com/128/4333/4333609.png';
+      _profileImage = 'https://cdn-icons-png.flaticon.com/128/149/149071.png';
     }else{
-      _profileImage='https://cdn-icons.flaticon.com/png/128/4140/premium/4140047.png';
+      _profileImage='https://cdn-icons-png.flaticon.com/128/727/727393.png';
     }
     PackageInfo.fromPlatform().then((PackageInfo packageInfo) {
       String appName = packageInfo.appName;
@@ -209,7 +211,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
     });
 
     _getId(employeeId.toString());
-    decodeJsonValue();
+    //decodeJsonValue();
     setState(() {});
   }
 
@@ -360,12 +362,21 @@ class _IntranetHomePageState extends State<IntranetHomePage>
       // set up the buttons
       Widget cancelButton = TextButton(
         child: Text("Cancel"),
-        onPressed: () {},
+        onPressed: () {
+          Navigator.of(context).pop(true);
+        },
       );
       Widget continueButton = TextButton(
         child: Text("Exit"),
         onPressed: () {
           Navigator.of(context).pop(true);
+          if (Platform.isAndroid) {
+            Future.delayed(const Duration(milliseconds: 100), () {
+              SystemChannels.platform.invokeMethod('SystemNavigator.pop');
+            });
+          } else if (Platform.isIOS) {
+            exit(0);
+          }
         },
       );
 
@@ -495,8 +506,8 @@ class _IntranetHomePageState extends State<IntranetHomePage>
         ),
         InkWell(
           onTap: () {
-            /*Navigator.push(
-                context, MaterialPageRoute(builder: (context) => UserNotification()));*/
+            Navigator.push(
+                context, MaterialPageRoute(builder: (context) => NotificationListScreen()));
           },
           child: Padding(
             padding: const EdgeInsets.all(8.0),
@@ -547,7 +558,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
         );
         break;
       case MENU_OUTDOOR_APPROVAL:
-        return OutdoorManagerScreen(
+        return OutdoorReqManagerScreen(
           employeeId: employeeId,
         );
         break;

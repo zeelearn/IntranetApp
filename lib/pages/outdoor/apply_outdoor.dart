@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:intranet/api/response/LeaveRequisitionResponse.dart';
 import 'package:intranet/pages/helper/LocalConstant.dart';
 import 'package:intranet/pages/helper/utils.dart';
+import 'package:intranet/pages/iface/onClick.dart';
 import 'package:intranet/pages/widget/MyWidget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -29,7 +30,7 @@ class ApplyOutDoorScreen extends StatefulWidget {
   _ApplyOutDoorScreen createState() => _ApplyOutDoorScreen();
 }
 
-class _ApplyOutDoorScreen extends State<ApplyOutDoorScreen> {
+class _ApplyOutDoorScreen extends State<ApplyOutDoorScreen> implements onClickListener{
   List<LeaveRequisitionInfo> leaveRequisitionList = [];
   TextEditingController _startDateController = TextEditingController();
   TextEditingController _fromTimeController = TextEditingController();
@@ -166,16 +167,25 @@ class _ApplyOutDoorScreen extends State<ApplyOutDoorScreen> {
   }
 
   _selectTime(BuildContext context,TextEditingController controller) async {
-    TimeOfDay selectedTime = TimeOfDay.now();
+    TimeOfDay selectedTime = TimeOfDay(hour: 12, minute: 00);
     final TimeOfDay? timeOfDay = await showTimePicker(
       context: context,
       initialTime: selectedTime,
-      initialEntryMode: TimePickerEntryMode.dial,
+      initialEntryMode: TimePickerEntryMode.dialOnly,
+      builder: (BuildContext context, Widget? child) {
+        return MediaQuery(
+          data: MediaQuery.of(context)
+              .copyWith(alwaysUse24HourFormat: false), child: child!,
+        );
+      },
+
     );
-    if(timeOfDay != null && timeOfDay != selectedTime)
+    if(timeOfDay != null )
     {
       setState(() {
-        controller.text = '${timeOfDay.hour}:${timeOfDay.minute}';
+        final dt = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day, timeOfDay.hour, timeOfDay.minute);
+        controller.text =  DateFormat('hh:mm a').format(dt);
+        //controller.text = '${timeOfDay.hourOfPeriod}:${timeOfDay.minute}';
       });
 
     }
@@ -190,13 +200,13 @@ class _ApplyOutDoorScreen extends State<ApplyOutDoorScreen> {
     } else if (_jobDescController.text == '') {
       Utility.showMessage(context, 'Please Enter the purpose');
     } else {
-      DateTime startDate = parseDateTime('${_startDateController.text} ${_fromTimeController.text}:00');
-      DateTime endDate = parseDateTime('${_startDateController.text} ${_toTimeController.text}:00');
+      DateTime startDate = parseDateTime('${_startDateController.text} ${_fromTimeController.text}');
+      DateTime endDate = parseDateTime('${_startDateController.text} ${_toTimeController.text}');
       if (startDate.isAfter(endDate)) {
         Utility.showMessage(context, 'Please Enter Valid Time');
       }else {
-        DateTime startDate = parseDateTime('${_startDateController.text} ${_fromTimeController.text}:00');
-        DateTime endDate = parseDateTime('${_startDateController.text} ${_toTimeController.text}:00');
+        DateTime startDate = parseDateTime('${_startDateController.text} ${_fromTimeController.text}');
+        DateTime endDate = parseDateTime('${_startDateController.text} ${_toTimeController.text}');
         if (startDate.isAfter(endDate)) {
           Utility.showMessage(context, 'Please Enter Valid Time');
         }else {
@@ -216,6 +226,7 @@ class _ApplyOutDoorScreen extends State<ApplyOutDoorScreen> {
 
   applyOutdoor() {
     Utility.showLoaderDialog(context);
+    //2022-01-17T10:26:02
     ApplyLeaveRequest request = ApplyLeaveRequest(
         Requisition_Id: 0,
         Type: 'OutDoor',
@@ -223,27 +234,28 @@ class _ApplyOutDoorScreen extends State<ApplyOutDoorScreen> {
         Remarks: _jobDescController.text,
         Requisition_Date: DateFormat('yyyy-MM-dd').format(DateTime.now()),
         RequisitionTypeCode: 'LV2',
-        Start_Date: '${_startDateController.text} ${_fromTimeController.text}:00',
-        End_Date: '${_startDateController.text} ${_toTimeController.text}:00',
+        Start_Date: DateFormat('yyyy-MM-ddTHH:mm:ss').format(parseDateTime('${_startDateController.text} ${_fromTimeController.text}')),
+        End_Date: DateFormat('yyyy-MM-ddTHH:mm:ss').format(parseDateTime('${_startDateController.text} ${_toTimeController.text}')),
         NosDays: 0,
         IsMaternityLeave: false,
         noofChildren: "0",
         WorkLocation: "");
-
+    print(request.toJson());
     APIService apiService = APIService();
     apiService.applyLeave(request).then((value) {
       if (value != null) {
+        Navigator.of(context).pop();
         if (value == null || value.responseData == null) {
           Utility.showMessage(context, 'Unable to Apply Outdoor Request');
         } else if (value is ApplyLeaveResponse) {
           ApplyLeaveResponse response = value;
-          Utility.showMessage(context, response.responseMessage);
-          Navigator.of(context).pop();
-          Navigator.of(context).pop();
+
+          Utility.showMessageSingleButton(context, "Outdoor Request successfully submitted",this);
+
         }
       } else {
         Navigator.pop(context);
-        Utility.showMessage(context, "Unable to Apply Outdoor Request");
+        Utility.showMessages(context, "Unable to Apply Outdoor Request");
         print("null value");
       }
     });
@@ -265,7 +277,7 @@ class _ApplyOutDoorScreen extends State<ApplyOutDoorScreen> {
     DateTime dt = DateTime.now();
     //2022-07-18T00:00:00
     try {
-      dt = new DateFormat('yyyy-MM-dd mm:hh:ss').parse(value);
+      dt = new DateFormat('dd-MMM-yyyy hh:mm a').parse(value);
       //print('asasdi   ' + dt.day.toString());
     } catch (e) {
       e.toString();
@@ -276,6 +288,11 @@ class _ApplyOutDoorScreen extends State<ApplyOutDoorScreen> {
   String getParsedShortDate(String value) {
     DateTime dateTime = parseDate(value);
     return DateFormat("MMM-dd").format(dateTime);
+  }
+
+  @override
+  void onClick(int action, value) {
+    Navigator.pop(context, 'DONE');
   }
 
 

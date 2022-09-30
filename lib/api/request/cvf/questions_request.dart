@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 class QuestionsRequest {
   late String Category_Id;
@@ -24,6 +25,7 @@ class QuestionsRequest {
       'Category_Id': Category_Id.trim(),
       'Business_id': Business_id.trim(),
       'PJPCVF_Id': PJPCVF_Id.trim(),
+      'AppType' :Platform.isAndroid ? 'Android' : Platform.isIOS ? 'IOS' : 'unknown'
     };
     return map;
   }

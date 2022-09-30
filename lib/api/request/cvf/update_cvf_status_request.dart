@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 class UpdateCVFStatusRequest {
   late String PJPCVF_id;
@@ -20,6 +21,7 @@ class UpdateCVFStatusRequest {
       'Employee_id': Employee_id,
       'Latitude': Latitude,
       'Longitude': Longitude,
+      'AppType' :Platform.isAndroid ? 'Android' : Platform.isIOS ? 'IOS' : 'unknown'
     });
   }
 

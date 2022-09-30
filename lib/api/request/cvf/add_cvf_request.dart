@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 class AddCVFRequest {
   int PJP_Id;
@@ -14,6 +15,7 @@ class AddCVFRequest {
       'PJP_Id': PJP_Id,
       'DocXml': DocXml,
       'UserId': UserId,
+      'AppType' :Platform.isAndroid ? 'Android' : Platform.isIOS ? 'IOS' : 'unknown'
     });
   }
 

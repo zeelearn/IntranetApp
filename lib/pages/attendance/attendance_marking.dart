@@ -197,15 +197,29 @@ class _AttendanceMarkingScreen extends State<AttendanceMarkingScreen> implements
 
   _selectTime(BuildContext context,TextEditingController controller) async {
     TimeOfDay selectedTime = TimeOfDay.now();
-    final TimeOfDay? timeOfDay = await showTimePicker(
+
+    TimeOfDay? timeOfDay = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.now(),
+      initialEntryMode: TimePickerEntryMode.dial,
+      builder: (BuildContext context, Widget? child) {
+        return MediaQuery(
+          data: MediaQuery.of(context)
+              .copyWith(alwaysUse24HourFormat: false), child: child!,
+        );
+      },
+    );
+    /*final TimeOfDay? timeOfDay = await showTimePicker(
       context: context,
       initialTime: selectedTime,
       initialEntryMode: TimePickerEntryMode.dial,
-    );
-    if(timeOfDay != null && timeOfDay != selectedTime)
+    );*/
+    if(timeOfDay != null)
     {
       setState(() {
-        controller.text = '${timeOfDay.hour}:${timeOfDay.minute}';
+        //controller.text = '${timeOfDay.hour}:${timeOfDay.minute}';
+        final dt = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day, timeOfDay.hour, timeOfDay.minute);
+        controller.text =  DateFormat('hh:mm a').format(dt);
       });
 
     }
@@ -252,8 +266,9 @@ class _AttendanceMarkingScreen extends State<AttendanceMarkingScreen> implements
         Worklocation: _workLocationController.text,
         Employee_Id: widget.employeeId.toString(),
         Reason: _jobDescController.text,
-        FromDT: '${_startDateController.text} ${_fromTimeController.text}:00',
-        ToDT: '${_startDateController.text} ${_toTimeController.text}:00');
+        FromDT: DateFormat('yyyy-MM-ddTHH:mm:ss').format(parseDateTime('${_startDateController.text} ${_fromTimeController.text}')),
+        ToDT: DateFormat('yyyy-MM-ddTHH:mm:ss').format(parseDateTime('${_startDateController.text} ${_toTimeController.text}')));
+
   print(request.getJson());
     APIService apiService = APIService();
     apiService.attendanceMarking(request).then((value) {
@@ -264,10 +279,10 @@ class _AttendanceMarkingScreen extends State<AttendanceMarkingScreen> implements
         } else if (value is AttendanceMarkingResponse) {
           AttendanceMarkingResponse response = value;
           Utility.showMessageSingleButton(context, response.responseMessage,this);
-          /*if(response.responseMessage=='Attendance marked successfully') {
+          if(response.responseMessage=='Attendance marked successfully') {
 
             clearForm();
-          }*/
+          }
 
         }
       } else {
@@ -294,7 +309,7 @@ class _AttendanceMarkingScreen extends State<AttendanceMarkingScreen> implements
     DateTime dt = DateTime.now();
     //2022-07-18T00:00:00
     try {
-      dt = new DateFormat('yyyy-MM-dd mm:hh:ss').parse(value);
+      dt = new DateFormat('dd-MMM-yyyy hh:mm a').parse(value);
       //print('asasdi   ' + dt.day.toString());
     } catch (e) {
       e.toString();

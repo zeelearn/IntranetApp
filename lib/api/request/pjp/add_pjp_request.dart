@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 class AddPJPRequest {
   final int PJP_Id=0;
@@ -24,6 +25,7 @@ class AddPJPRequest {
       'ToDate': ToDate,
       'ByEmployee_Id': ByEmployee_Id,
       'Is_Submit': Is_Submit,
+      'AppType' :Platform.isAndroid ? 'Android' : Platform.isIOS ? 'IOS' : 'unknown'
     });
   }
 

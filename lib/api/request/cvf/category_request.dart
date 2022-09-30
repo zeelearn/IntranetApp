@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 class CVFCategoryRequest {
   String Category_Id;
@@ -9,7 +10,8 @@ class CVFCategoryRequest {
 
   getJson(){
     return jsonEncode( {
-      'Category_Id': Category_Id
+      'Category_Id': Category_Id,
+      'AppType' :Platform.isAndroid ? 'Android' : Platform.isIOS ? 'IOS' : 'unknown'
     });
   }
 

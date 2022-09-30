@@ -224,8 +224,8 @@ class _ApplyLeaveScreen extends State<ApplyLeaveScreen> implements onClickListen
     } else if (_purposeController.text == '') {
       Utility.showMessage(context, 'Please Enter the purpose of leave');
     } else {
-      DateTime start = parseDate(_startDateController.text);
-      DateTime end = parseDate(_endDateController.text);
+      DateTime start = parseDateTime(_startDateController.text);
+      DateTime end = parseDateTime(_endDateController.text);
       if (start.isAfter(end)) {
         Utility.showMessage(context, 'Please Enter Valid Date Range');
       } else {
@@ -233,9 +233,21 @@ class _ApplyLeaveScreen extends State<ApplyLeaveScreen> implements onClickListen
       }
     }
   }
+  DateTime parseDateTime(String value) {
+    DateTime dt = DateTime.now();
+    //2022-07-18T00:00:00
+    try {
+      dt = new DateFormat('dd-MMM-yyyy').parse(value);
+      //print('asasdi   ' + dt.day.toString());
+    } catch (e) {
+      e.toString();
+    }
+    return dt;
+  }
 
   applyLeave() {
     Utility.showLoaderDialog(context);
+
     ApplyLeaveRequest request = ApplyLeaveRequest(
         Requisition_Id: 0,
         Type: 'leave',
@@ -243,13 +255,13 @@ class _ApplyLeaveScreen extends State<ApplyLeaveScreen> implements onClickListen
         Remarks: _purposeController.text,
         Requisition_Date: DateFormat('yyyy-MM-dd').format(DateTime.now()),
         RequisitionTypeCode: 'LV1',
-        Start_Date: _startDateController.text,
-        End_Date: _endDateController.text,
+        Start_Date: DateFormat('yyyy-MM-dd').format(parseDateTime(_startDateController.text)),
+        End_Date: DateFormat('yyyy-MM-dd').format(parseDateTime(_endDateController.text)),
         NosDays: 0,
         IsMaternityLeave: isMaternaty,
         noofChildren: "0",
         WorkLocation: "");
-
+    print(request.toJson());
     APIService apiService = APIService();
     apiService.applyLeave(request).then((value) {
       Navigator.of(context).pop();
@@ -385,6 +397,6 @@ class _ApplyLeaveScreen extends State<ApplyLeaveScreen> implements onClickListen
 
   @override
   void onClick(int action, value) {
-    Navigator.of(context).pop();
+    Navigator.pop(context, 'DONE');
   }
 }

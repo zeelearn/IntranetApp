@@ -452,6 +452,93 @@ class _QuestionListScreenState extends State<QuestionListScreen> implements onUp
     );
   }
 
+  getCvfInfo(GetDetailedPJP cvfView){
+    return ListTile(
+      leading: Expanded(
+        flex: 1,
+        child: Container(
+          child: Padding(
+            padding: EdgeInsets.all(5),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  Utility.shortTime(
+                      Utility.convertTime(cvfView.visitTime)),
+                  style: TextStyle(
+                    fontSize: 14.0,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                ),
+                Text(
+                  Utility.shortTimeAMPM(
+                      Utility.convertTime(cvfView.visitTime)),
+                  style: TextStyle(
+                    fontSize: 12.0,
+                    color: Colors.black,
+                  ),
+                ),
+                Text(
+                  Utility.shortDate(
+                      Utility.convertServerDate(cvfView.visitTime)),
+                  style: TextStyle(
+                    fontSize: 12.0,
+                    color: Colors.black,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+      title: Text(cvfView.franchiseeName != 'NA'
+          ? '${cvfView.franchiseeName}'
+          : '${cvfView.Address}'),
+      subtitle: Padding(
+          padding: EdgeInsetsDirectional.fromSTEB(5, 4, 12, 4),
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              mainAxisSize: MainAxisSize.max,
+              children: [
+                cvfView.purpose!.length > 0
+                    ? getTextCategory(
+                    cvfView,
+                    cvfView.purpose![0].categoryName,
+                    cvfView.purpose![0].categoryId)
+                    : Text(''),
+                cvfView.purpose!.length > 1
+                    ? getTextCategory(
+                    cvfView,
+                    cvfView.purpose![1].categoryName,
+                    cvfView.purpose![1].categoryId)
+                    : Text(''),
+                cvfView.purpose!.length > 2
+                    ? getTextCategory(
+                    cvfView,
+                    cvfView.purpose![2].categoryName,
+                    cvfView.purpose![2].categoryId)
+                    : Text(''),
+                cvfView.purpose!.length > 3
+                    ? getTextCategory(
+                    cvfView,
+                    cvfView.purpose![3].categoryName,
+                    cvfView.purpose![3].categoryId)
+                    : Text(''),
+                cvfView.purpose!.length > 4
+                    ? getTextCategory(
+                    cvfView,
+                    cvfView.purpose![4].categoryName,
+                    cvfView.purpose![4].categoryId)
+                    : Text(''),
+              ],
+            ),
+          )),
+      trailing: getTextRounded(cvfView, 'Fill CVF'),
+    );
+  }
+
   getCVFView(GetDetailedPJP cvfView) {
     return Column(
       mainAxisSize: MainAxisSize.max,
@@ -504,11 +591,13 @@ class _QuestionListScreenState extends State<QuestionListScreen> implements onUp
                       child: Container(
                         padding: EdgeInsetsDirectional.fromSTEB(0, 4, 0, 0),
                         child: Text(
-                          '${cvfView.franchiseeName}',
+                          cvfView.franchiseeName != 'NA'
+                              ? '${cvfView.franchiseeName}'
+                              : '${cvfView.Address}',
                           style: TextStyle(
                             fontFamily: 'Lexend Deca',
                             color: Color(0xFF090F13),
-                            fontSize: 16,
+                            fontSize: 14,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -675,6 +764,7 @@ class _QuestionListScreenState extends State<QuestionListScreen> implements onUp
           jIndex++) {
         if (mQuestionMaster[index].allquestion[jIndex].question ==
             questions.question) {
+          mQuestionMaster[index].allquestion[jIndex].SelectedAnswer = answers;
           mQuestionMaster[index].allquestion[jIndex].userAnswers = answers;
           DBHelper helper = DBHelper();
           //print('update ansert');
@@ -688,6 +778,9 @@ class _QuestionListScreenState extends State<QuestionListScreen> implements onUp
         }
       }
     }
+    setState(() {
+
+    });
   }
 
   Widget showPlayers(Allquestion player) {
@@ -802,11 +895,11 @@ class _QuestionListScreenState extends State<QuestionListScreen> implements onUp
     List<Widget> _rowWidget = [];
     for (int index = 0; index < questions.answers.length; index++) {
       _rowWidget.add(ListTile(
-        title: Text(
+        /*title: Text(
           '${questions.Question_Id}. ${questions.question}',
           style: Theme.of(context).textTheme.bodyText1,
-        ),
-        subtitle: GestureDetector(
+        ),*/
+        title: GestureDetector(
           onTap: (){
             showBottomSheet(questions,questions.answers[index].answerName);
           },

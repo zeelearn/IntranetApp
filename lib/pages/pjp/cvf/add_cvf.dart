@@ -63,6 +63,7 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener{
   double latitude=0.0;
   double longitude=0.0;
   String appVersion='';
+  TextEditingController _timeController = TextEditingController();
 
   var _categoryController = TextEditingController(text: 'Select Purpose');
   var _dateController = TextEditingController(text: 'Select Date');
@@ -267,7 +268,21 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener{
                   SizedBox(
                     height: 10,
                   ),
-                  Container(
+                  TextField(
+                      style: TextStyle(color: LightColor.titleTextColor),
+                      controller: _timeController, //editing controller of this TextField
+                      decoration: InputDecoration(
+                          border: OutlineInputBorder(
+                              borderRadius: BorderRadius.all(Radius.circular(5.0)),
+                              borderSide: BorderSide(color: LightColors.kLavender)),
+                          //icon of text field
+                          labelText: 'Select Time' //label text of field
+                      ),
+                      readOnly: true, //set it true, so that user will not able to edit text
+                      onTap: () async {
+                        _selectTime(context);
+                      }),
+                  /*Container(
                     decoration: BoxDecoration(
                         border: Border.all(color: LightColors.kLightGray1)),
                     height: 50,
@@ -278,7 +293,7 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener{
                         vistitDateTime = value;
                       },
                     ),
-                  ),
+                  ),*/
                   SizedBox(
                     height: 10,
                   ),
@@ -292,6 +307,33 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener{
         ],
       ),
     );
+  }
+
+  _selectTime(BuildContext context) async {
+    TimeOfDay selectedTime = TimeOfDay(hour: 12, minute: 00);
+    final TimeOfDay? timeOfDay = await showTimePicker(
+      context: context,
+      initialTime: selectedTime,
+      initialEntryMode: TimePickerEntryMode.dialOnly,
+      builder: (BuildContext context, Widget? child) {
+        return MediaQuery(
+          data: MediaQuery.of(context)
+              .copyWith(alwaysUse24HourFormat: false), child: child!,
+        );
+      },
+
+    );
+    if(timeOfDay != null )
+    {
+      setState(() {
+        final dt = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day, timeOfDay.hour, timeOfDay.minute);
+        vistitDateTime=timeOfDay;
+        _timeController.text =  DateFormat('hh:mm a').format(dt);
+        //controller.text = '${timeOfDay.hourOfPeriod}:${timeOfDay.minute}';
+      });
+
+    }
+
   }
 
   getFrichanseeId() {

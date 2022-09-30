@@ -18,7 +18,7 @@ import 'package:intranet/pages/model/NotificationDataModel.dart';
 import 'package:upgrader/upgrader.dart';
 
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  await Firebase.initializeApp();
+  await Firebase.initializeApp(name: "Intranet", options: DefaultFirebaseOptions.currentPlatform);
   print('Handling a background message ${message.messageId}');
   DBHelper helper=new DBHelper();
   if(message.data != null) {

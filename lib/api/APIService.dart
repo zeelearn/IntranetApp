@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:http/http.dart' as http;
 import 'package:intranet/api/request/ApproveAttendanceMarking.dart';
@@ -60,9 +61,11 @@ class APIService {
     try {
       print(requestModel.toJson());
 
+
       var body = jsonEncode( {
         'userName': requestModel.userName,
-        'password': requestModel.password
+        'password': requestModel.password,
+        'AppType' :Platform.isAndroid ? 'Android' : Platform.isIOS ? 'IOS' : 'unknown'
       });
 
       print(Uri.parse(url + LocalStrings.GET_LOGIN));
@@ -106,6 +109,7 @@ class APIService {
         'PayrollFromYear': requestModel.PayrollFromYear,
         'PayrollToMonth': requestModel.PayrollToMonth,
         'PayrollToYear': requestModel.PayrollToYear,
+        'AppType' :Platform.isAndroid ? 'Android' : Platform.isIOS ? 'IOS' : 'unknown'
       });
 
       print(Uri.parse(url + LocalStrings.GET_ATTENDANCE_SUMMERY));
@@ -142,7 +146,8 @@ class APIService {
       var body = jsonEncode( {
         'Employee_Id': requestModel.Employee_Id,
         'FDay': requestModel.FDay,
-        'TDay': requestModel.TDay
+        'TDay': requestModel.TDay,
+        'AppType' :Platform.isAndroid ? 'Android' : Platform.isIOS ? 'IOS' : 'unknown'
       });
 
       print(Uri.parse(url + LocalStrings.GET_LEAVE_SUMMERY));
@@ -184,6 +189,7 @@ class APIService {
         'Role': requestModel.Role,
         'Status': requestModel.Status,
         'ToDate': requestModel.ToDate,
+        'AppType' :Platform.isAndroid ? 'Android' : Platform.isIOS ? 'IOS' : 'unknown'
       });
 
       print(Uri.parse(url + LocalStrings.GET_LEAVE_REQUISITION));
@@ -222,7 +228,8 @@ class APIService {
         'ToDate': requestModel.ToDate,
         'Role': requestModel.Role,
         'FromDate': requestModel.FromDate,
-        'LeaveType': requestModel.LeaveType
+        'LeaveType': requestModel.LeaveType,
+        'AppType' :Platform.isAndroid ? 'Android' : Platform.isIOS ? 'IOS' : 'unknown'
       });
       print(Uri.parse(url + LocalStrings.GET_LEAVE_REQUISITION_MANAGER));
       final response = await http.post(Uri.parse(url + LocalStrings.GET_LEAVE_REQUISITION_MANAGER),
@@ -263,6 +270,7 @@ class APIService {
         'Workflow_Remark': requestModel.Workflow_Remark,
         'Workflow_UserType': requestModel.Workflow_UserType,
         'WorkflowTypeCode': requestModel.WorkflowTypeCode,
+        'AppType' :Platform.isAndroid ? 'Android' : Platform.isIOS ? 'IOS' : 'unknown'
       });
       print(Uri.parse(url + LocalStrings.GET_APPROVE_LEAVE_REQUISITION));
       final response = await http.post(Uri.parse(url + LocalStrings.GET_APPROVE_LEAVE_REQUISITION),
@@ -297,7 +305,7 @@ class APIService {
       var body = jsonEncode( {
         'xml': request.xml,
         'User_Id': request.userId,
-
+        'AppType' :Platform.isAndroid ? 'Android' : Platform.isIOS ? 'IOS' : 'unknown'
       });
       print('request body');
       print(body);
@@ -345,6 +353,7 @@ class APIService {
         'RequisitionTypeCode': requestModel.RequisitionTypeCode,
         'WorkLocation': requestModel.WorkLocation,
         'WorkLocation': requestModel.WorkLocation,
+        'AppType' :Platform.isAndroid ? 'Android' : Platform.isIOS ? 'IOS' : 'unknown'
       });
       print(body);
       print(Uri.parse(url + LocalStrings.GET_APPLY_LEAVE));
@@ -471,7 +480,7 @@ class APIService {
       var body = jsonEncode( {
         'xml': requestModel.xml,
         'Modified_By': requestModel.userId,
-
+        'AppType' :Platform.isAndroid ? 'Android' : Platform.isIOS ? 'IOS' : 'unknown'
       });
       print('request body');
       print(body);
@@ -656,7 +665,7 @@ class APIService {
           },
           body:requestModel.getJson());
       print(requestModel.toJson());
-      print(response.body);
+      //print(response.body);
       if (response.statusCode == 200 || response.statusCode == 400) {
         if(response.body is QuestionResponse){
           return QuestionResponse.fromJson(
@@ -686,7 +695,7 @@ class APIService {
             "content-type": "application/json"
           },
           body:requestModel.getJson());
-      print(response.body);
+      //print(response.body);
       if (response.statusCode == 200 || response.statusCode == 400) {
         String data = response.body.replaceAll('null', '\"NA\"');
         return PjpListResponse.fromJson(
@@ -808,8 +817,8 @@ class APIService {
             "content-type": "application/json"
           },
           body:requestModel.getJson());
-      print(requestModel.toJson());
-      print(response.body);
+      //print(requestModel.toJson());
+      //print(response.body);
       if (response.statusCode == 200 || response.statusCode == 400) {
         if(response.body is UpdateCVFStatusResponse){
           return UpdateCVFStatusResponse.fromJson(

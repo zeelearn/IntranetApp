@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 class PJPListRequest {
   final int Employee_id;
@@ -11,7 +12,8 @@ class PJPListRequest {
   getJson(){
     return jsonEncode( {
       'Employee_id': Employee_id,
-      'PJP_id':PJP_id
+      'PJP_id':PJP_id,
+      'AppType' :Platform.isAndroid ? 'Android' : Platform.isIOS ? 'IOS' : 'unknown'
     });
   }
 

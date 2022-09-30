@@ -4,8 +4,9 @@ class NotificationDataModel {
   late String image;
   late String URL;
   late String type;
+  late String time;
 
-  NotificationDataModel({required this.message,required this.title,required this.image,required this.URL,required this.type});
+  NotificationDataModel({required this.message,required this.title,required this.image,required this.URL,required this.type,required this.time});
 
   NotificationDataModel.fromJson(Map<String, dynamic> json) {
     message = json['message'];
@@ -13,6 +14,7 @@ class NotificationDataModel {
     image = json['image'];
     URL = json['URL'];
     type = json['type'];
+    time = json['time'];
   }
 
   Map<String, dynamic> toJson() {
@@ -22,6 +24,7 @@ class NotificationDataModel {
     data['image'] = this.image;
     data['URL'] = this.URL;
     data['type'] = this.type;
+    data['time'] = this.time;
     return data;
   }
 }

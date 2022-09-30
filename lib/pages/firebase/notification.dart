@@ -8,9 +8,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../api/request/fcm_request.dart';
 import '../helper/LocalConstant.dart';
+import 'firebase_options.dart';
 
 Future<void> onBackgroundMessage(RemoteMessage message) async {
-  await Firebase.initializeApp();
+  await Firebase.initializeApp(name: "Intranet", options: DefaultFirebaseOptions.currentPlatform);
 
   if (message.data.containsKey('data')) {
     // Handle data message
@@ -45,8 +46,8 @@ class FCM {
           streamCtlr.sink.add(message.data['notification']);
         }
         // Or do other work.
-        titleCtlr.sink.add(message.notification!.title!);
-        bodyCtlr.sink.add(message.notification!.body!);
+        //titleCtlr.sink.add(message.notification!.title!);
+        //bodyCtlr.sink.add(message.notification!.body!);
       },
     );
     // With this token you can test it easily on your phone

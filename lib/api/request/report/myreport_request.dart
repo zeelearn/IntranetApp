@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 class MyReportRequest {
   String Usertype;
@@ -20,6 +21,7 @@ class MyReportRequest {
   getJson(){
     return jsonEncode( {
       'Usertype': Usertype,
+      'AppType' :Platform.isAndroid ? 'Android' : Platform.isIOS ? 'IOS' : 'unknown'
     });
   }
 

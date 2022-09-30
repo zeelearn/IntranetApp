@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 class AttendanceMarkingManRequest {
   String Role;
@@ -27,6 +28,7 @@ class AttendanceMarkingManRequest {
       'ToDate': ToDate.trim(),
       'FromDate': FromDate.trim(),
       'Type': Type.trim(),
+      'AppType' :Platform.isAndroid ? 'Android' : Platform.isIOS ? 'IOS' : 'unknown'
     });
   }
   Map<String, dynamic> toJson() {
