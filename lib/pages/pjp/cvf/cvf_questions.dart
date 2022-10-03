@@ -839,7 +839,7 @@ class _QuestionListScreenState extends State<QuestionListScreen> implements onUp
             flex: 1,
             child: CheckboxListTile(
               value: ( !userAnswerMap.containsKey(questions.Question_Id) &&  questions.SelectedAnswer == 'No') ||
-                      (questions.SelectedAnswer!='Yes' && userAnswerMap.containsKey(questions.Question_Id) &&
+                      ( userAnswerMap.containsKey(questions.Question_Id) &&
                           userAnswerMap[questions.Question_Id] == 'No')
                   ? true
                   : false,
