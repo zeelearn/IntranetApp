@@ -155,6 +155,7 @@ class _MyCVFListScreen extends State<MyPJPCVFListScreen> implements onResponse {
     } else {
       return Flexible(
           child: ListView.builder(
+            reverse: true,
         itemCount: widget.mPjpInfo.getDetailedPJP!.length,
         shrinkWrap: true,
         itemBuilder: (context, index) {
