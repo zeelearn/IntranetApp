@@ -213,7 +213,7 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse{
       return Utility.noInternetDataSet(context);
     } else {
       return Flexible(
-          child: ListView.builder(
+          child: ListView.builder(reverse: true,
         itemCount: mPjpList.length,
         shrinkWrap: true,
         itemBuilder: (context, index) {

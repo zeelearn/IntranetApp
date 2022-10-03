@@ -299,6 +299,7 @@ class _MyCVFListScreen extends State<MyCVFListScreen> implements onResponse{
     } else {
       return Flexible(
           child: ListView.builder(
+            reverse: true,
             itemCount: 2,
             shrinkWrap: false,
             physics: const NeverScrollableScrollPhysics(),
