@@ -802,6 +802,7 @@ class _QuestionListScreenState extends State<QuestionListScreen> implements onUp
 
   _getAnswerWidget(Allquestion questions) {
     if (questions.answers[0].answerType == 'YesNo') {
+      print('${questions.Question_Id}  : SelectedAnswer ${questions.SelectedAnswer} map ${userAnswerMap[questions.Question_Id]}');
       return Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
@@ -815,7 +816,7 @@ class _QuestionListScreenState extends State<QuestionListScreen> implements onUp
           Expanded(
             flex: 1,
             child: CheckboxListTile(
-              value: questions.SelectedAnswer == 'Yes' ||
+              value: (!userAnswerMap.containsKey(questions.Question_Id) && questions.SelectedAnswer == 'Yes') ||
                       (userAnswerMap.containsKey(questions.Question_Id) &&
                           userAnswerMap[questions.Question_Id] == 'Yes')
                   ? true
@@ -837,8 +838,8 @@ class _QuestionListScreenState extends State<QuestionListScreen> implements onUp
           Expanded(
             flex: 1,
             child: CheckboxListTile(
-              value: questions.SelectedAnswer == 'No' ||
-                      (userAnswerMap.containsKey(questions.Question_Id) &&
+              value: ( !userAnswerMap.containsKey(questions.Question_Id) &&  questions.SelectedAnswer == 'No') ||
+                      (questions.SelectedAnswer!='Yes' && userAnswerMap.containsKey(questions.Question_Id) &&
                           userAnswerMap[questions.Question_Id] == 'No')
                   ? true
                   : false,
@@ -1217,6 +1218,9 @@ class _QuestionListScreenState extends State<QuestionListScreen> implements onUp
       Allquestion question= value;
       updateImage(question, question.files);
     }
+    setState(() {
+
+    });
   }
 
   @override

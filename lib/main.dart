@@ -287,10 +287,9 @@ class MyApp extends StatelessWidget {
         primaryColorDark: LightColor.primarydark_color,
         primaryColor: LightColor.primary_color,
       ),
-      home: Scaffold(
-          body: UpgradeAlert(
-            child: const SplashScreen(),
-          )),
+      home: const Scaffold(
+          body:SplashScreen(),
+          ),
     );
   }
 }
