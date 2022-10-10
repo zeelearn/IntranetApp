@@ -324,13 +324,13 @@ class _AttendanceManagerScreen extends State<AttendanceManagerScreen>
         return AlertDialog(
           title: new Text("Attendance Marking Approval"),
           content: new Text(
-              'Are you sure to approve attendance request for ${name}'),
+              'Are you sure to approve attendance request'),
           actions: <Widget>[
             // usually buttons at the bottom of the dialog
             ElevatedButton(
               onPressed: () {
                 Navigator.of(context).pop();
-                approveAcquisition(reqid, 1);
+                approveAcquisition(reqid, 0);
               },
               // style: ButtonStyle(elevation: MaterialStateProperty(12.0 )),
               style: ElevatedButton.styleFrom(

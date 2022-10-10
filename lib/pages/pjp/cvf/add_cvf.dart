@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_google_places/flutter_google_places.dart';
@@ -11,6 +13,8 @@ import '../../../api/APIService.dart';
 import '../../../api/request/cvf/add_cvf_request.dart';
 import '../../../api/request/cvf/category_request.dart';
 import '../../../api/request/cvf/centers_request.dart';
+import '../../../api/request/cvf/questions_request.dart';
+import '../../../api/response/cvf/QuestionResponse.dart';
 import '../../../api/response/cvf/add_cvf_response.dart';
 import '../../../api/response/cvf/category_response.dart';
 import '../../../api/response/cvf/centers_respinse.dart';
@@ -408,7 +412,6 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener{
             if (response != null) {
               //mPjpModel.pjpId=response.responseData;
             }
-
             Utility.showMessageSingleButton(context, "CVF added successfully", this);
             //Utility.showMessage(context, 'CVF Saved in server');
             setState(() {});
@@ -858,107 +861,6 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener{
     return decoration;
   }
 
-  /*loadCVFList(){
-    double width = MediaQuery.of(context).size.width;
-    if (mCVFList == null ||  mCVFList.length <= 0) {
-      print('CVF LIST not added ');
-      return Text('');
-    } else {
-      return Flexible(
-          child: ListView.builder(
-            itemCount: mCVFList.length,
-            shrinkWrap: true,
-            itemBuilder: (context, index) {
-              return cvfView(mCVFList[index],width);
-            },
-          ));
-    }
-  }
-
-  cvfView(PJPCentersInfo model,double width){
-    return GestureDetector(
-      onTap: (){
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-              builder: (context) => QuestionListScreen()),
-        );
-      },
-      child: Padding(padding: EdgeInsets.all(1),
-          child: Container(
-            decoration: BoxDecoration(color: Colors.grey,),
-            padding: EdgeInsets.all(1),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: <Widget>[
-                Expanded(
-                  flex: 1,
-                  child: Container(
-                    height: 80,
-                    width: MediaQuery.of(context).size.width * 0.10,
-                    decoration: BoxDecoration(color: LightColors.kLightGray1,),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          Utility.shortTime(model.dateTime as DateTime),
-                          style: TextStyle(
-                            fontSize: 14.0,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black,
-                          ),
-                        ),
-                        Text(
-                          Utility.shortTimeAMPM(model.dateTime as DateTime),
-                          style: TextStyle(
-                            fontSize: 14.0,
-                            color: Colors.black,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                Expanded(
-                  flex: 3,
-                  child: Container(
-                    height: 80,
-                    width: MediaQuery.of(context).size.width * 0.30,
-                    decoration: BoxDecoration(color: LightColors.kLightGray),
-                    child: Padding(
-                      padding: EdgeInsets.all(10),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            model.centerName as String,
-                            style: TextStyle(color: Colors.black),
-                          ),
-                          Text(
-                            model.purpose as String,
-                            style: TextStyle(color: Colors.black),
-                          ),
-                          Container(
-                            padding: const EdgeInsets.only(top: 5, bottom: 5),
-                            child: Text(
-                              'Code  : ${model.centerCode}',
-                              style: TextStyle(color: Colors.black),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-
-              ],
-            ),
-          )
-      ),
-    );
-  }*/
-
   AppBar getAppbar() {
     return AppBar(
       backgroundColor: kPrimaryLightColor,
@@ -1052,5 +954,35 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener{
   void onClick(int action, value) {
     // TODO: implement onClick
     Navigator.pop(context, 'DONE');
+  }
+
+  syncQuestionsData(int cvfId,categotyId){
+    DateTime time = DateTime.now();
+    QuestionsRequest request = QuestionsRequest(
+        Category_Id: categotyId,
+        Business_id: '1',
+        PJPCVF_Id: cvfId.toString());
+    APIService apiService = APIService();
+    apiService.getCVFQuestions(request).then((value) {
+      if (value != null) {
+        if (value == null || value.responseData == null) {
+          Utility.showMessage(context, 'data not found');
+        } else if (value is QuestionResponse) {
+          QuestionResponse questionResponse = value;
+
+          if (questionResponse != null && questionResponse.responseData != null) {
+            DBHelper dbHelper = DBHelper();
+            print('data saved ....');
+            dbHelper.insertCVFQuestions(
+                cvfId.toString(), json.encode(questionResponse.toJson()), 0);
+            setState(() {});
+          }
+        } else {
+          Utility.showMessage(context, 'data not found');
+        }
+      }
+      // Navigator.of(context).pop();
+      setState(() {});
+    });
   }
 }

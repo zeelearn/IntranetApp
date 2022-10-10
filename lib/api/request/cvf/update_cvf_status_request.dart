@@ -25,6 +25,16 @@ class UpdateCVFStatusRequest {
     });
   }
 
+  UpdateCVFStatusRequest.fromJson(Map<String, dynamic> json) {
+    PJPCVF_id = json['PJPCVF_id'];
+    DateTime = json['DateTime'];
+    Status = json['Status'];
+    Employee_id = json['Employee_id'];
+    Latitude = json['Latitude'];
+    Longitude = json['Longitude'];
+
+  }
+
   Map<String, dynamic> toJson() {
     Map<String, dynamic> map = {
       'PJPCVF_id': PJPCVF_id,

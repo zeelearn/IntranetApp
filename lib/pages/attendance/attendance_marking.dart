@@ -6,6 +6,7 @@ import 'package:intranet/api/response/LeaveRequisitionResponse.dart';
 import 'package:intranet/pages/helper/LocalConstant.dart';
 import 'package:intranet/pages/helper/utils.dart';
 import 'package:intranet/pages/iface/onClick.dart';
+import 'package:intranet/pages/iface/onResponse.dart';
 import 'package:intranet/pages/widget/MyWidget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../api/APIService.dart';
@@ -226,8 +227,11 @@ class _AttendanceMarkingScreen extends State<AttendanceMarkingScreen> implements
 
   }
 
-  validate() {
-    if (_startDateController.text == '' ) {
+  validate()async {
+    bool isInternet = await Utility.isInternet();
+    if(!isInternet) {
+      Utility.noInternetConnection(context);
+    }else if (_startDateController.text == '' ) {
       Utility.showMessage(context, 'Please Select the Date ');
     }else if (_fromTimeController.text == ''  || _toTimeController.text == '' ) {
       Utility.showMessage(context, 'Please Select the Time  ');
@@ -326,6 +330,8 @@ class _AttendanceMarkingScreen extends State<AttendanceMarkingScreen> implements
   void onClick(int action, value) {
     clearForm();
   }
+
+
 
 
 }

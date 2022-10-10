@@ -192,8 +192,11 @@ class _ApplyOutDoorScreen extends State<ApplyOutDoorScreen> implements onClickLi
 
   }
 
-  validate() {
-    if (_startDateController.text == '' ) {
+  validate()async {
+    bool isInternet = await Utility.isInternet();
+    if(!isInternet) {
+      Utility.noInternetConnection(context);
+    }else if (_startDateController.text == '' ) {
       Utility.showMessage(context, 'Please Select the Date ');
     }else if (_fromTimeController.text == ''  || _toTimeController.text == '' ) {
       Utility.showMessage(context, 'Please Select the Time  ');

@@ -96,18 +96,18 @@ class Allquestion {
         answers.add(new Answers.fromJson(json['answers']));
       }*//*
     }*/
-    print('Data from model');
-    print(json['answers']);
+    //print('Data from model');
+    //print(json['answers']);
     answers = <Answers>[];
     if (json.containsKey('answers')) {
-      print('key found');
+      //print('key found');
       if( json['answers'] is List) {
-        print('key found -- list');
+        //print('key found -- list');
         json['answers'].forEach((v) {
           answers.add(new Answers.fromJson(v));
         });
       }else{
-        print('key found Object');
+        //print('key found Object');
         answers.add(new Answers.fromJson(json['answers']));
       }
     }

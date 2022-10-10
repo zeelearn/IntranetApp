@@ -340,7 +340,7 @@ class _LeaveManagerScreen extends State<LeaveManagerScreen>
             for(int index=0;index<response.responseData.length;index++){
               if(_tabController.index==0){
                 //pending
-                if(true || response.responseData[index].status=='Pending'){
+                if(response.responseData[index].status=='Pending'){
                   requisitionList.add(response.responseData[index]);
                 }
               }else{
@@ -370,7 +370,7 @@ class _LeaveManagerScreen extends State<LeaveManagerScreen>
         return AlertDialog(
           title: new Text("Attendance Marking Approval"),
           content: new Text(
-              'Are you sure to approve attendance request for ${model.employeeName}'),
+              'Are you sure to approve attendance request'),
           actions: <Widget>[
             // usually buttons at the bottom of the dialog
             ElevatedButton(

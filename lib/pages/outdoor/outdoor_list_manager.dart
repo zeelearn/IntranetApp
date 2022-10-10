@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../api/APIService.dart';
 import '../../api/request/approve_leave_request.dart';
+import '../../api/request/leave/leave_approve_request.dart';
 import '../../api/response/apply_leave_response.dart';
 import '../../api/response/approve_attendance_response.dart';
 import '../../api/response/attendance_marking_man.dart';
@@ -129,6 +130,65 @@ class _OutdoorManagerScreen extends State<OutdoorManagerScreen>
     );
   }
 
+  getSelectedModels(String status) {
+    //ApproveLeaveRequsitionRequest request = ApproveLeaveRequsitionRequest();
+    late var jsonValue="[";
+    if (_isChecked != null && _isChecked.length > 0) {
+      String token="";
+      print(status);
+      for (int index = 0; index < _isChecked.length; index++) {
+        if(_isChecked[index]) {
+          String data = "{'Requisition_Id': ${requisitionList[index]
+              .requisitionId.toInt()
+              .toString()},'WorkflowTypeCode': 'LV2','RequisitionTypeCode': '${requisitionList[index]
+              .requisitionTypeCode}','Requistion_Status_Code': '${status}','Is_Approved': ${status ==
+              'REJ'
+              ? "0"
+              : "1"},'Workflow_UserType': 'MAN','Workflow_Remark': '${status ==
+              'REJ'
+              ? 'Rejected by Intranet App'
+              : 'Approved from Intranet app'}'}";
+          jsonValue = jsonValue + token + ' ' + data;
+          //list.add(request);
+          token = ",";
+        }
+
+      }
+    }
+    jsonValue = jsonValue+"]";
+    return jsonValue;
+  }
+
+  approveAcquisition(LeaveInfoMan model, String status) {
+    Utility.showLoaderDialog(context);
+    var list = getSelectedModels(status);
+    //String xml ="{'root': {'subroot': [{'Requisition_Id': 1102411,'WorkflowTypeCode': 'LV1','RequisitionTypeCode': 'LVREQ','Requistion_Status_Code': '','Is_Approved': 1,'Workflow_UserType': 'MAN','Workflow_Remark': 'approved'}]}}";
+    //print(xml);
+    String xml ="{'root': {'subroot': ${list}}";
+    ApproveLeaveRequestManager request = ApproveLeaveRequestManager(xml: xml, userId: widget.employeeId.toString(),);
+    print('request'+request.toJson().toString());
+    /*APIService apiService = APIService();
+    apiService.approveLeaveManager(request).then((value) {
+      print(value.toString());
+      Navigator.of(context).pop();
+      if (value != null) {
+        if (value == null || value.responseData == null) {
+          Utility.showMessage(context, 'data not found');
+        } else if (value is ApplyLeaveResponse) {
+          ApplyLeaveResponse response = value;
+          if (response != null) {
+            print(response.responseMessage);
+            Utility.showMessageSingleButton(context, response.responseMessage,this);
+          }
+        } else {
+          Utility.showMessage(context, 'data not found');
+        }
+      }
+
+      setState(() {});
+    });*/
+  }
+
   approveAcquisitinoSingle() {
     late LeaveInfoMan model;
     if (_isChecked != null && _isChecked.length > 0) {
@@ -144,14 +204,12 @@ class _OutdoorManagerScreen extends State<OutdoorManagerScreen>
     }
   }
 
-  singleSelection(int position) {
+  singleSelection(int position,bool value) {
     late AttendanceReqManModel model;
     if (_isChecked != null && _isChecked.length > 0) {
       for (int index = 0; index < _isChecked.length; index++) {
         if (position == index) {
-          _isChecked[index] = true;
-        } else {
-          _isChecked[index] = false;
+          _isChecked[index] = value;
         }
       }
     }
@@ -296,9 +354,9 @@ class _OutdoorManagerScreen extends State<OutdoorManagerScreen>
       builder: (BuildContext context) {
         // return object of type Dialog
         return AlertDialog(
-          title: new Text("Attendance Marking Approval"),
+          title: new Text("Outdoor Marking Approval"),
           content: new Text(
-              'Are you sure to approve attendance request for ${model.employeeName}'),
+              'Are you sure to Outdoor attendance request'),
           actions: <Widget>[
             // usually buttons at the bottom of the dialog
             ElevatedButton(
@@ -327,6 +385,8 @@ class _OutdoorManagerScreen extends State<OutdoorManagerScreen>
     );
   }
 
+
+/*
   approveAcquisition(LeaveInfoMan model, String status) {
     Utility.showLoaderDialog(context);
     DateTime selectedDate = DateTime.now();
@@ -358,7 +418,7 @@ class _OutdoorManagerScreen extends State<OutdoorManagerScreen>
       Navigator.of(context).pop();
       setState(() {});
     });
-  }
+  }*/
 
   generateRow(int position, LeaveInfoMan model, int action) {
     double width = MediaQuery.of(context).size.width;
@@ -451,7 +511,7 @@ class _OutdoorManagerScreen extends State<OutdoorManagerScreen>
                               onChanged: (bool? value) {
                                 setState(() {
                                   _isChecked[position] = value!;
-                                  singleSelection(position);
+                                  singleSelection(position,value!);
                                 });
                               },
                             )),

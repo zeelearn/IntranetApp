@@ -21,6 +21,8 @@ enum TaskPageStatus {
 class Utility{
 
   static int ACTION_OK=100012;
+  static int ACTION_REJECT=100014;
+  static int ACTION_CCNCEL=100013;
 
   static Future<bool> isInternet() async{
     bool isConnected = true;
@@ -199,6 +201,46 @@ class Utility{
       },
     );
   }
+
+  static void showMessageMultiButton(BuildContext context,String actionOk,String actionCancel,String title,String message,dynamic object,onClickListener listener,) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        // return object of type Dialog
+        return AlertDialog(
+          title: new Text(title),
+          content: new Text(
+              message),
+          actions: <Widget>[
+            // usually buttons at the bottom of the dialog
+
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                listener.onClick(ACTION_OK, object);
+              },
+              // style: ButtonStyle(elevation: MaterialStateProperty(12.0 )),
+              style: ElevatedButton.styleFrom(
+                  elevation: 12.0,
+                  textStyle: const TextStyle(color: LightColors.kLightGreen)),
+              child:  Text(actionOk),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                listener.onClick(ACTION_CCNCEL, object);
+              },
+              // style: ButtonStyle(elevation: MaterialStateProperty(12.0 )),
+              style: ElevatedButton.styleFrom(
+                  elevation: 12.0,
+                  textStyle: const TextStyle(color: LightColors.kLightGreen)),
+              child:  Text(actionCancel),
+            ),
+          ],
+        );
+      },
+    );
+  }
   static void showMessages(BuildContext context,String? message) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text(message!),
@@ -358,10 +400,11 @@ class Utility{
     if(days>1){
       difference = days;
     }
-    if(difference>100){
-      difference = 1;
+    days=days+1;
+    if(days>100){
+      days = 1;
     }
-    return difference;
+    return days;
   }
 
   static getDateTime(){
@@ -389,6 +432,181 @@ class Utility{
           text: 'OK',
           iconData: Icons.done,
           color: Colors.blue,
+          textStyle: TextStyle(color: Colors.white),
+          iconColor: Colors.white,
+        ),
+      ],
+    );
+  }
+
+  static onSuccessMessage(BuildContext context,String title,String message,onResponse response){
+    Dialogs.materialDialog(
+      color: Colors.white,
+      msg: message,
+      title: title,
+      lottieBuilder: Lottie.asset(
+        'assets/json/85594-done.json',
+        fit: BoxFit.contain,
+      ),
+      dialogWidth: kIsWeb ? 0.3 : null,
+      context: context,
+      actions: [
+        IconsButton(
+          onPressed: () {
+            Future.delayed(Duration(milliseconds: 50)).then((_) {
+              response.onSuccess('SUCCESS');
+            });
+          },
+          text: 'OK',
+          iconData: Icons.done,
+          color: Colors.blue,
+          textStyle: TextStyle(color: Colors.white),
+          iconColor: Colors.white,
+        ),
+      ],
+    );
+  }
+
+  static onConfirmationBox(BuildContext context,String actionOk,String actionCancel,String title,String message,dynamic action,onClickListener response){
+    Dialogs.materialDialog(
+      color: Colors.white,
+      msg: message,
+      title: title,
+      lottieBuilder: Lottie.asset(
+        'assets/json/75382-question.json',
+        fit: BoxFit.contain,
+      ),
+      dialogWidth: kIsWeb ? 0.2 : null,
+      context: context,
+      actions: [
+        IconsButton(
+          onPressed: () {
+            Future.delayed(Duration(milliseconds: 50)).then((_) {
+              response.onClick(ACTION_OK, action);
+            });
+          },
+          text: actionOk,
+          iconData: Icons.check,
+          color: Colors.blue,
+          textStyle: TextStyle(color: Colors.white),
+          iconColor: Colors.white,
+        ),
+
+        IconsButton(
+          onPressed: () {
+            Future.delayed(Duration(milliseconds: 50)).then((_) {
+              response.onClick(ACTION_CCNCEL, action);
+            });
+          },
+          iconData: Icons.cancel,
+          text: actionCancel,
+          color: Colors.blue,
+          textStyle: TextStyle(color: Colors.white),
+          iconColor: Colors.white,
+        ),
+      ],
+    );
+  }
+  static onApproveConfirmationBox(BuildContext context,String title,String message,onClickListener response){
+    Dialogs.materialDialog(
+      color: Colors.white,
+      msg: message,
+      title: title,
+      lottieBuilder: Lottie.asset(
+        'assets/json/75382-question.json',
+        fit: BoxFit.contain,
+      ),
+      dialogWidth: kIsWeb ? 0.2 : null,
+      context: context,
+      actions: [
+        IconsButton(
+          onPressed: () {
+            Future.delayed(Duration(milliseconds: 50)).then((_) {
+              response.onClick(ACTION_OK, 'onConfirmationBox');
+            });
+          },
+          text: 'Approve',
+          iconData: Icons.check,
+          color: Colors.blue,
+          textStyle: TextStyle(color: Colors.white),
+          iconColor: Colors.white,
+        ),
+        IconsButton(
+          onPressed: () {
+            Future.delayed(Duration(milliseconds: 50)).then((_) {
+              response.onClick(ACTION_REJECT, 'onConfirmationBox');
+            });
+          },
+          text: 'Reject',
+
+          color: Colors.blue,
+          textStyle: TextStyle(color: Colors.white),
+          iconColor: Colors.white,
+        ),
+        IconsButton(
+          onPressed: () {
+            Future.delayed(Duration(milliseconds: 50)).then((_) {
+              response.onClick(ACTION_CCNCEL, 'onConfirmationBox');
+            });
+          },
+          text: 'Cancel',
+          color: Colors.blue,
+          textStyle: TextStyle(color: Colors.white),
+          iconColor: Colors.white,
+        ),
+      ],
+    );
+  }
+
+  static getRejectionDialog(BuildContext context,String title,String message,onResponse response){
+    Dialogs.materialDialog(
+      color: Colors.white,
+      msg: message,
+      title: title,
+      lottieBuilder: Lottie.asset(
+        'assets/json/rejected.json',
+        fit: BoxFit.contain,
+      ),
+      dialogWidth: kIsWeb ? 0.3 : null,
+      context: context,
+      actions: [
+        IconsButton(
+          onPressed: () {
+            Future.delayed(Duration(milliseconds: 50)).then((_) {
+              response.onSuccess('SUCCESS');
+            });
+          },
+          text: 'OK',
+          iconData: Icons.done,
+          color: Colors.blue,
+          textStyle: TextStyle(color: Colors.white),
+          iconColor: Colors.white,
+        ),
+      ],
+    );
+  }
+
+  static noInternetConnection(BuildContext context){
+    Dialogs.materialDialog(
+      color: Colors.white,
+      msg: 'Internet connection not avaliable please check and try again later',
+      title: 'Connectivity Error',
+      lottieBuilder: Lottie.asset(
+        'assets/json/90478-disconnect.json',
+        fit: BoxFit.contain,
+      ),
+      dialogWidth: kIsWeb ? 0.3 : null,
+      context: context,
+      actions: [
+        IconsButton(
+          onPressed: () {
+            Future.delayed(Duration(milliseconds: 50)).then((_) {
+              Navigator.of(context).pop();
+            });
+          },
+          text: 'OK',
+          iconData: Icons.done,
+          color: LightColors.kRed,
           textStyle: TextStyle(color: Colors.white),
           iconColor: Colors.white,
         ),
