@@ -13,11 +13,14 @@ import '../firebase/anylatics.dart';
 import '../helper/LocalConstant.dart';
 import '../helper/constants.dart';
 import '../helper/utils.dart';
+import '../iface/onClick.dart';
 import '../iface/onResponse.dart';
 import '../model/filter.dart';
 import '../utils/theme/colors/light_colors.dart';
 import 'add_new_pjp.dart';
+import 'cvf/mycvf.dart';
 import 'cvf/mypjpcvf.dart';
+import 'cvf/pjpcvf.dart';
 import 'filters.dart';
 
 class MyPjpListScreen extends StatefulWidget {
@@ -29,7 +32,7 @@ class MyPjpListScreen extends StatefulWidget {
   _MyPjpListState createState() => _MyPjpListState();
 }
 
-class _MyPjpListState extends State<MyPjpListScreen> implements onResponse{
+class _MyPjpListState extends State<MyPjpListScreen> implements onResponse,onClickListener{
   List<PJPInfo> mPjpList = [];
   int employeeId = 0;
 
@@ -212,8 +215,9 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse{
 
       return Utility.noInternetDataSet(context);
     } else {
+      mPjpList = mPjpList.reversed.toList();
       return Flexible(
-          child: ListView.builder(reverse: true,
+          child: ListView.builder(
         itemCount: mPjpList.length,
         shrinkWrap: true,
         itemBuilder: (context, index) {
@@ -226,11 +230,16 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse{
   getView(PJPInfo pjpInfo) {
     return GestureDetector(
       onTap: () {
-        print(pjpInfo.toJson());
-        Navigator.push(
-            context,
-            MaterialPageRoute(
-                builder: (context) => MyPJPCVFListScreen(mPjpInfo: pjpInfo)));
+        if(pjpInfo.ApprovalStatus =='Approved') {
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => CVFListScreen(mPjpInfo: pjpInfo)));
+        }else if(pjpInfo.ApprovalStatus=='Rejected'){
+          Utility.showMessageSingleButton(context, 'The PJP is Rejected by Manager', this);
+        }else{
+          Utility.showMessageSingleButton(context, 'This pjp is not approved yet, Please connect with your manager', this);
+        }
       },
       child: Padding(
         padding: EdgeInsetsDirectional.fromSTEB(16, 0, 16, 8),
@@ -318,18 +327,33 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse{
                 //),
                 trailing: pjpInfo.isSelfPJP=='0' && pjpInfo.ApprovalStatus =='Pending'? OutlinedButton(
                   onPressed: () {
-                    approvePjp(pjpInfo,1);
+                    if (pjpInfo.isSelfPJP=='0' || widget.mFilterSelection.type == FILTERStatus.MYSELF && pjpInfo.ApprovalStatus =='Approved') {
+                      Utility.showMessageMultiButton(context,'Approve','Reject', 'PJP : ${pjpInfo.PJP_Id}', 'Are you sure to approve the PJP, created by ${pjpInfo.displayName}',pjpInfo, this);
+                    }else{
+                      Utility.showMessages(context, 'Please wait Your manager need to approve the PJP');
+                    }
                   },
                   child: Text(
                     'Approve',
                     style: TextStyle(
                       fontFamily: 'Lexend Deca',
-                      color: Color(0xFF4B39EF),
+                      color: Color(0xFF4B39EF)  ,
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
-                ) : null,
+                ) : pjpInfo.ApprovalStatus=='Approved' ? Image.asset(
+                'assets/icons/ic_checked.png',
+                height: 50,
+              ) : Text(
+                  pjpInfo.ApprovalStatus,
+                  style: TextStyle(
+                    fontFamily: 'Lexend Deca',
+                    color: LightColors.kRed,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
               ),
               Padding(
                 padding: EdgeInsetsDirectional.fromSTEB(12, 0, 12, 8),
@@ -530,8 +554,14 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse{
     if(value is String){
       IntranetServiceHandler.loadPjpSummery(employeeId, 0, this);
     } if(value is UpdatePJPStatusResponse){
-      //IntranetServiceHandler.loadPjpSummery(employeeId, 0, this);
-      Utility.getConfirmationDialog(context,this);
+      UpdatePJPStatusResponse val = value;
+      print(val.toJson());
+      if(val.responseData==0){
+        //rejected
+        Utility.getRejectionDialog(context, 'Rejected', 'The Pjp is rejected by you..', this);
+      }else {
+        Utility.getConfirmationDialog(context, this);
+      }
     }else if(value is PjpListResponse){
       PjpListResponse response = value;
       String json = jsonEncode(response);
@@ -566,8 +596,6 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse{
             index++) {
               if (response.responseData[index].isSelfPJP == '1') {
                 mPjpList.add(response.responseData[index]);
-
-
               }
             }
           } else if (widget.mFilterSelection.type == FILTERStatus.MYSELF) {
@@ -595,9 +623,9 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse{
             }
           }
           //mPjpList.addAll(response.responseData);
-          print('========================${mPjpList.length}');
-          print(response.toJson());
-
+          //print('========================${mPjpList.length}');
+          //print(response.toJson());
+          //mPjpList = mPjpList.reversed.toList();
           setState(() {
             //mPjpList.addAll(response.responseData);
           });
@@ -612,5 +640,19 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse{
     UpdatePJPStatusRequest request= UpdatePJPStatusRequest(PJP_id: int.parse(pjpInfo.PJP_Id),
         Is_Approved: isApprove, Workflow_user: employeeId.toString());
     IntranetServiceHandler.updatePJPStatus(request, this);
+  }
+
+  @override
+  void onClick(int action, value) {
+    print('onClick called ${value}');
+    if(value is PJPInfo){
+      PJPInfo pjpInfo = value;
+      if(action==Utility.ACTION_OK){
+        approvePjp(pjpInfo, 1);
+      }else if(action==Utility.ACTION_CCNCEL){
+        approvePjp(pjpInfo, 0);
+      }
+    }
+
   }
 }

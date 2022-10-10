@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:intranet/pages/helper/utils.dart';
 import 'package:intranet/pages/model/NotificationDataModel.dart';
 import 'package:intranet/pages/pjp/models/PJPCenterDetails.dart';
@@ -6,8 +7,10 @@ import 'package:path/path.dart' as path;
 import 'package:sqflite/sqflite.dart' as sql;
 import 'package:sqflite/sqflite.dart';
 
+import '../../api/response/cvf/QuestionResponse.dart';
 import '../../api/response/cvf/centers_respinse.dart';
 import '../../api/response/pjp/pjplistresponse.dart';
+import '../pjp/cvf/CheckInModel.dart';
 import '../pjp/models/PjpModel.dart';
 import 'DBConstant.dart';
 import 'DatabaseHelper.dart';
@@ -33,6 +36,14 @@ class DBHelper {
       'data TEXT, '
       'isseen int, '
       'imageurl TEXT, '
+      'date TEXT)';
+
+  static String CREATE_TABLE_CHECKIN = 'CREATE TABLE IF NOT EXISTS  ${LocalConstant.TABLE_CHECKIN}'
+      '(${DBConstant.ID} INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, '
+      '${DBConstant.CVF_ID} TEXT, '
+      '${DBConstant.STATE} TEXT, '
+      'body TEXT, '
+      '${DBConstant.IS_SYNC} int, '
       'date TEXT)';
 
   static String CREATE_TABLE_PJP_MASTER = 'CREATE TABLE IF NOT EXISTS  ${LocalConstant.TABLE_PJP_INFO}'
@@ -122,6 +133,14 @@ class DBHelper {
       '${DBConstant.IS_COMPULSARY} INT, '
       '${DBConstant.CATEGORY_NAME} TEXT)';
 
+  static String CREATE_TABLE_QUESTIONS_JSON = 'CREATE TABLE IF NOT EXISTS ${LocalConstant.TABLE_CVF_QUESTION_JSON}'
+      '(${DBConstant.ID} INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, '
+      '${DBConstant.CVF_ID} INT, '
+      '${DBConstant.QUESTION} TEXT, '
+      '${DBConstant.IS_SYNC} INT, '
+      '${DBConstant.MODIFIED_DATE} INT, '
+      '${DBConstant.CREATED_DATE} TEXT)';
+
   static String CREATE_TABLE_CVF_ANSERR_MASTER = 'CREATE TABLE IF NOT EXISTS  ${LocalConstant.TABLE_CVF_ANSWER_MASTER}'
       '(${DBConstant.ID} INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, '
       '${DBConstant.QUESTION_ID} INT, '
@@ -173,12 +192,20 @@ class DBHelper {
           db.execute(CREATE_TABLE_CVF_ANSERR_MASTER);
           db.execute(CREATE_TABLE_CVF_USER_ANSERR);
           db.execute(CREATE_TABLE_CVF_FRANCHISEE);
-
+          db.execute(CREATE_TABLE_QUESTIONS_JSON);
+          db.execute(CREATE_TABLE_CHECKIN);
         },
         onUpgrade: (db,old,newversion){
             print('Database Upgrade-------------------');
-            db.execute(CREATE_TABLE_NOTIFICATION);
-        }, version: 4);
+            if(old<=3)
+              db.execute(CREATE_TABLE_NOTIFICATION);
+            if(old==4){
+              db.execute(CREATE_TABLE_QUESTIONS_JSON);
+            }
+            if(old==5){
+              db.execute(CREATE_TABLE_CHECKIN);
+            }
+        }, version: 6);
   }
 
   /// insert data to db
@@ -231,6 +258,11 @@ class DBHelper {
     return await dbClient.query(table);
   }
 
+  Future<List<Map<String, dynamic>>> getOrderedData(String table,String ordebytable,String orderby) async {
+    final dbClient = await db;
+    return await dbClient.query(table,orderBy: ordebytable+' '+orderby);
+  }
+
   //Update Data
   Future<int> updateData(String table,Map<String, Object> data,String condition,List<Object?>? whereArgs) async {
     final dbClient = await db;
@@ -271,6 +303,108 @@ class DBHelper {
       'date': Utility.parseDate(DateTime.now()),
     };
     await dbclient.insert(LocalConstant.TABLE_NOTIFICATION, data);
+  }
+
+
+
+  Future<void> insertCheckIn(String cvfId,String body,String status,int isSync) async{
+    var dbclient = await db;
+    Map<String, Object> data = {
+      'body': body,
+      '${DBConstant.CVF_ID}': cvfId,
+      '${DBConstant.STATE}': status,
+      'body': body,
+      DBConstant.IS_SYNC: isSync,
+      'date': Utility.parseDate(DateTime.now()),
+    };
+    print(data.toString());
+    await dbclient.insert(LocalConstant.TABLE_CHECKIN, data);
+  }
+
+
+  Future<void> insertCVFQuestions(String cvfid,String json,int isSync) async{
+    var dbclient = await db;
+    Map<String, Object> data = {
+      '${DBConstant.CVF_ID}': cvfid,
+      '${DBConstant.QUESTION}': json,
+      '${DBConstant.IS_SYNC}': isSync,
+      '${DBConstant.MODIFIED_DATE}': Utility.parseDate(DateTime.now()),
+      '${DBConstant.CREATED_DATE}': Utility.parseDate(DateTime.now()),
+    };
+    await dbclient.insert(LocalConstant.TABLE_CVF_QUESTION_JSON, data);
+  }
+
+  Future<void> updateCVFQuestions(String cvfId,String json,int isSync) async{
+    var dbclient = await db;
+    await dbclient.rawUpdate('update ${LocalConstant.TABLE_CVF_QUESTION_JSON} set issync = \'${json}\' ,${DBConstant.IS_SYNC} = \'${isSync}\' ,${DBConstant.MODIFIED_DATE} = \'${Utility.parseDate(DateTime.now())}\'   where ${DBConstant.CVF_ID}=${cvfId}');
+  }
+
+  Future<void> updateCheckInStatus(int id,int isSync) async{
+    var dbclient = await db;
+    await dbclient.rawUpdate('update ${LocalConstant.TABLE_CHECKIN} set ${DBConstant.IS_SYNC} = \'${isSync}\'  where id=${id}');
+  }
+
+  Future<QuestionResponse> getQuestionsList(String cvfId) async {
+    print('getQuestionsList');
+    QuestionResponse response = QuestionResponse(responseMessage: '', statusCode: 200, responseData: []);
+    List<Map<String, dynamic>> list = await  DBHelper().getData(LocalConstant.TABLE_CVF_QUESTION_JSON);
+    if(list !=null){
+      print('getQuestionsList list is not empty ${list.length}');
+      for(int index=0;index<list.length;index++) {
+        Map<String, dynamic> map = list[index];
+        print('match ${cvfId} and  ${map[DBConstant.CVF_ID]}');
+        if(cvfId==map[DBConstant.CVF_ID].toString().trim()){
+          print('trying to decode');
+          response = QuestionResponse.fromJson(
+            json.decode(map[DBConstant.QUESTION]),
+          );
+          print('decode ${response.toJson()}');
+          //notificaitonList.add(NotificationDataModel(message: map['data'], title: map['title'], image: map['imageurl'], URL: '', type: map['type'],time:time));
+        }else{
+          print('not match');
+        }
+
+      }
+    }else{
+      print('getQuestionsList list is null');
+    }
+    return response;
+  }
+
+  Future<Map<String,String>> getCheckInStatus() async {
+    Map<String,String> mMap = Map();
+
+    List<Map<String, dynamic>> list = await  DBHelper().getOrderedData(LocalConstant.TABLE_CHECKIN,'id','desc');
+    if(list !=null){
+      for(int index=0;index<list.length;index++) {
+        Map<String, dynamic> map = list[index];
+        mMap.putIfAbsent(map[DBConstant.CVF_ID].toString(), () => map[DBConstant.STATE]);
+        print('${map[DBConstant.CVF_ID]} '+map[DBConstant.STATE]);
+      }
+    }else{
+      print('offline status not found');
+    }
+    return mMap;
+  }
+
+  Future<List<CheckInModel>> getOfflineCheckInStatus() async {
+    List<CheckInModel> modelList = [];
+
+    List<Map<String, dynamic>> list = await  DBHelper().getOrderedData(LocalConstant.TABLE_CHECKIN,DBConstant.CVF_ID,"desc");
+    if(list !=null){
+      for(int index=0;index<list.length;index++) {
+        Map<String, dynamic> map = list[index];
+        print(map[DBConstant.CVF_ID].toString()+'  '+map[DBConstant.IS_SYNC].toString());
+        if(map[DBConstant.IS_SYNC]==0) {
+          modelList.add(CheckInModel(id : map['id'],cvfId: map[DBConstant.CVF_ID].toString(),
+              body: map['body'].toString(),
+              state: map[DBConstant.STATE].toString(),
+              isSync: map[DBConstant.IS_SYNC].toString() == 1 ? true : false));
+        }
+
+      }
+    }
+    return modelList;
   }
 
   Future<List<NotificationDataModel>> getNotificationList() async {

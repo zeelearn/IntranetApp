@@ -83,6 +83,7 @@ dependencies:
   package_info_plus: ^1.4.3+1
   overlay_support: ^2.0.1
   awesome_notifications: ^0.6.21
+  flutter_background_service: ^2.4.3
 
 dev_dependencies:
   flutter_test:

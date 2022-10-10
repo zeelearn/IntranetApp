@@ -24,23 +24,25 @@ import '../../iface/onClick.dart';
 import '../../iface/onResponse.dart';
 import '../../utils/theme/colors/light_colors.dart';
 import 'CheckInModel.dart';
+import 'add_cvf.dart';
 
-class MyCVFListScreen extends StatefulWidget {
+class CVFListScreen extends StatefulWidget {
+  PJPInfo mPjpInfo;
 
-  MyCVFListScreen({Key? key}) : super(key: key);
+  CVFListScreen({Key? key, required this.mPjpInfo}) : super(key: key);
+
 
   @override
   _MyCVFListScreen createState() => _MyCVFListScreen();
 }
 
-class _MyCVFListScreen extends State<MyCVFListScreen> implements onResponse,onClickListener{
+class _MyCVFListScreen extends State<CVFListScreen> implements onResponse,onClickListener{
   int employeeId = 0;
   List<GetDetailedPJP> mCvfList = [];
   bool isLoading = true;
   bool isInternet=true;
   late final prefs;
   Map<String,String> offlineStatus=Map();
-  late GetDetailedPJP McvfView;
 
   //FilterSelection mFilterSelection = FilterSelection(filters: [], type: FILTERStatus.MYSELF);
   final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey =
@@ -63,10 +65,6 @@ class _MyCVFListScreen extends State<MyCVFListScreen> implements onResponse,onCl
     prefs = await SharedPreferences.getInstance();
     employeeId =
         int.parse(prefs.getString(LocalConstant.KEY_EMPLOYEE_ID) as String);
-      loadData();
-  }
-
-  loadData() async{
     isInternet = await Utility.isInternet();
     DBHelper helper=DBHelper();
     //helper.getCheckInStatus();
@@ -78,7 +76,10 @@ class _MyCVFListScreen extends State<MyCVFListScreen> implements onResponse,onCl
         this.loadAllCVF();
       }
     }
+
+
   }
+
   getLocalData() {
     bool isLoad = false;
     try {
@@ -108,7 +109,9 @@ class _MyCVFListScreen extends State<MyCVFListScreen> implements onResponse,onCl
   }
 
   loadAllCVF() {
-    isLoading = true;
+    IntranetServiceHandler.loadPjpSummery(
+        employeeId, int.parse(widget.mPjpInfo.PJP_Id), this);
+    /*isLoading = true;
     Utility.showLoaderDialog(context);
     mCvfList.clear();
     GetAllCVF request = GetAllCVF(Employee_id: employeeId);
@@ -136,7 +139,7 @@ class _MyCVFListScreen extends State<MyCVFListScreen> implements onResponse,onCl
       });
       Navigator.of(context).pop();
 
-    });
+    });*/
   }
 
   @override
@@ -147,16 +150,17 @@ class _MyCVFListScreen extends State<MyCVFListScreen> implements onResponse,onCl
         backgroundColor: Colors.white,
         appBar: AppBar(
           title: const Text("My CVF"),
-          /*actions: <Widget>[
+          actions: widget.mPjpInfo.isSelfPJP=='1' ?  <Widget>[
             //IconButton
+
             IconButton(
               icon: const Icon(Icons.add_box),
               tooltip: 'ADD CVF',
               onPressed: () {
                 goToSecondScreen(context);
               },
-            ), //IconButton
-          ],*/
+            ) , //IconButton
+          ] : null,
           //<Widget>[]
           backgroundColor: kPrimaryLightColor,
           elevation: 50.0,
@@ -197,6 +201,26 @@ class _MyCVFListScreen extends State<MyCVFListScreen> implements onResponse,onCl
         ));
   }
 
+  void goToSecondScreen(BuildContext context) async {
+    /*var result = await Navigator.push(context, new MaterialPageRoute(
+      builder: (BuildContext context) => new FiltersScreen(),
+      fullscreenDialog: true,)
+    );*/
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+          builder: (context) => AddCVFScreen(
+            mPjpModel: widget.mPjpInfo,
+          )),
+    );
+    print('Response Received');
+    //loadPjpSummery();
+
+    IntranetServiceHandler.loadPjpSummery(
+        employeeId, int.parse(widget.mPjpInfo.PJP_Id), this);
+    //Scaffold.of(context).showSnackBar(SnackBar(content: Text("$result"),duration: Duration(seconds: 3),));
+  }
+
   getCVFListView() {
     if(isLoading){
       return Center(child: Image.asset(
@@ -222,7 +246,6 @@ class _MyCVFListScreen extends State<MyCVFListScreen> implements onResponse,onCl
       onTap: () {
         if (cvfView.Status == 'Check In' || cvfView.Status == ' Check In' || cvfView.Status == 'NA') {
           //Utility.showMessage(context, 'Please Click on Check In button');
-          Utility.onConfirmationBox(context,'Check In','Cancel', 'PJP Status Update?', 'Would you like to Check In?',cvfView, this);
         } else {
           Navigator.push(
             context,
@@ -785,8 +808,7 @@ class _MyCVFListScreen extends State<MyCVFListScreen> implements onResponse,onCl
                 )),
           );
         } else {
-          Utility.onConfirmationBox(context,'Check In','Cancel', 'PJP Status Update?', 'Would you like to Check In?',cvfView, this);
-          //_showMyDialog(cvfView);
+          _showMyDialog(cvfView);
         }
       },
       child: Container(
@@ -830,8 +852,6 @@ class _MyCVFListScreen extends State<MyCVFListScreen> implements onResponse,onCl
           Utility.getDateTime(),
           getNextStatus(cvfView.Status),
           this);
-      McvfView = cvfView;
-
     }else{
       print('internet not avaliabnle');
       //offline
@@ -999,17 +1019,33 @@ class _MyCVFListScreen extends State<MyCVFListScreen> implements onResponse,onCl
     if (value is UpdateCVFStatusResponse) {
       UpdateCVFStatusResponse response = value;
       Utility.onSuccessMessage(context,'Status Updated','Thanks for updating the CVF status', this);
+    }else if (value is PjpListResponse) {
+      PjpListResponse response = value;
+      isLoading=false;
+      print('onResponse in if ');
+      if (response.responseData != null && response.responseData.length > 0) {
+        mCvfList.clear();
+        for (int index = 0; index < response.responseData.length; index++) {
+          mCvfList
+              .addAll(response.responseData[index].getDetailedPJP!);
+        }
+        setState(() {
+          //mPjpList.addAll(response.responseData);
+        });
+
+      } else {
+        print('onResponse in if else');
+      }
     } else if (value is PjpListResponse) {
       PjpListResponse response = value;
       print('onResponse in if ');
       if (response.responseData != null && response.responseData.length > 0) {
-        saveDataOffline(McvfView);
-        loadData();
+        this.loadAllCVF();
       } else {
         print('onResponse in if else');
       }
     }else if(value is String){
-      this.loadData();
+      this.loadAllCVF();
     }
     setState(() {
 
@@ -1018,15 +1054,6 @@ class _MyCVFListScreen extends State<MyCVFListScreen> implements onResponse,onCl
 
   @override
   void onClick(int action, value) {
-    if(value is GetDetailedPJP) {
-      Navigator.of(context).pop();
-      GetDetailedPJP cvfView = value;
-      if (action == Utility.ACTION_OK) {
-        updateCVF(cvfView);
-      } else if (action == Utility.ACTION_CCNCEL) {
-
-      }
-    }
   }
 
 }

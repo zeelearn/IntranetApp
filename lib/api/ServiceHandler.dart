@@ -80,6 +80,27 @@ class IntranetServiceHandler{
 
   }
 
+  static updateCVFOfflineStatus(UpdateCVFStatusRequest request,onResponse onResponse) async{
+
+      APIService apiService = APIService();
+      apiService.updateCVFStatus(request).then((value) {
+        print(value.toString());
+        if (value != null) {
+          if (value == null || value.responseData == null) {
+            onResponse.onError('Unable to update the status');
+          } else if (value is UpdateCVFStatusResponse) {
+            UpdateCVFStatusResponse response = value;
+            onResponse.onSuccess(response);
+          } else {
+            onResponse.onError('Unable to update the status ');
+          }
+        }else{
+          onResponse.onError('Unable to update the status');
+        }
+      });
+
+  }
+
 
   static getMyReport(MyReportRequest request,onResponse onResponse) {
 
@@ -113,6 +134,7 @@ class IntranetServiceHandler{
           onResponse.onError('Unable to get Reports');
         } else if (value is UpdatePJPStatusResponse) {
           UpdatePJPStatusResponse response = value;
+          response.responseData = request.Is_Approved;
           onResponse.onSuccess(response);
         } else {
           onResponse.onError('Unable to get Reports ');

@@ -218,8 +218,11 @@ class _ApplyLeaveScreen extends State<ApplyLeaveScreen> implements onClickListen
     );
   }
 
-  validate() {
-    if (_startDateController.text == '' || _endDateController.text == '') {
+  validate() async{
+    bool isInternet = await Utility.isInternet();
+    if(!isInternet) {
+      Utility.noInternetConnection(context);
+    }else if (_startDateController.text == '' || _endDateController.text == '') {
       Utility.showMessage(context, 'Please Select the Date Range');
     } else if (_purposeController.text == '') {
       Utility.showMessage(context, 'Please Enter the purpose of leave');

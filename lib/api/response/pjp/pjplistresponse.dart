@@ -71,7 +71,7 @@ class PJPInfo {
 
   PJPInfo.fromJson(Map<String, dynamic> json) {
     try {
-      //print('at 56');
+      print('${json}');
       PJP_Id = json['PJP_Id'];
       displayName = json['DisplayName'] ?? ' NA';
       fromDate = json['FromDate'] ?? ' NA';

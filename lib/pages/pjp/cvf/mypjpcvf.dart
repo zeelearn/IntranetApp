@@ -31,6 +31,7 @@ class MyPJPCVFListScreen extends StatefulWidget {
 class _MyCVFListScreen extends State<MyPJPCVFListScreen> implements onResponse {
   int employeeId = 0;
   String appVersion='';
+  bool isNavigate=false;
 
   //FilterSelection mFilterSelection = FilterSelection(filters: [], type: FILTERStatus.MYSELF);
   final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey =
@@ -153,6 +154,7 @@ class _MyCVFListScreen extends State<MyPJPCVFListScreen> implements onResponse {
         ),
       );
     } else {
+      widget.mPjpInfo.getDetailedPJP = widget.mPjpInfo.getDetailedPJP!.reversed.toList();
       return Flexible(
           child: ListView.builder(
             reverse: true,
@@ -165,99 +167,7 @@ class _MyCVFListScreen extends State<MyPJPCVFListScreen> implements onResponse {
     }
   }
 
- /* getView(GetDetailedPJP cvfView) {
-    return GestureDetector(
-      onTap: () {
-        if (cvfView.Status == 'Check In' || cvfView.Status == 'NA') {
-          Utility.showMessage(context, 'Please Click on Check In button');
-        } else {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-                builder: (context) => QuestionListScreen(
-                      cvfView: cvfView,
-                      mCategory: 'All',
-                      PJPCVF_Id: int.parse(cvfView.PJPCVF_Id),
-                      employeeId: employeeId,
-                      mCategoryId: cvfView.purpose![0].categoryId,
-                    )),
-          );
-        }
-      },
-      child: Padding(
-        padding: EdgeInsetsDirectional.fromSTEB(16, 0, 16, 8),
-        child: Container(
-          height: 130,
-          width: double.infinity,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            boxShadow: [
-              BoxShadow(
-                blurRadius: 3,
-                color: Color(0x430F1113),
-                offset: Offset(0, 1),
-              )
-            ],
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Column(
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    flex: 1,
-                    child: Container(
-                      child: Padding(
-                        padding: EdgeInsets.all(5),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              Utility.shortDate(
-                                  Utility.convertTime(cvfView.visitDate)),
-                              style: TextStyle(
-                                fontSize: 12.0,
-                                color: Colors.black,
-                              ),
-                            ),
-                            Column(
-                              mainAxisAlignment: MainAxisAlignment.spaceAround,
-                              children: [
-                                Text(
-                                  Utility.shortTime(
-                                      Utility.convertTime(cvfView.visitTime)),
-                                  style: TextStyle(
-                                    fontSize: 16.0,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.black,
-                                  ),
-                                ),
-                                Text(
-                                  Utility.shortTimeAMPM(
-                                      Utility.convertTime(cvfView.visitTime)),
-                                  style: TextStyle(
-                                    fontSize: 11.0,
-                                    color: Colors.black,
-                                  ),
-                                ),
-                              ],
-                            )
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                  Expanded(flex: 5, child: getview(cvfView)),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-*/
+
   getView(GetDetailedPJP cvfView) {
     return GestureDetector(
       onTap: () {
@@ -775,7 +685,8 @@ class _MyCVFListScreen extends State<MyPJPCVFListScreen> implements onResponse {
               )),
     );
     print('Response Received');
-    loadPjpSummery();
+    //loadPjpSummery();
+    isNavigate = true;
     IntranetServiceHandler.loadPjpSummery(
         employeeId, int.parse(widget.mPjpInfo.PJP_Id), this);
     //Scaffold.of(context).showSnackBar(SnackBar(content: Text("$result"),duration: Duration(seconds: 3),));
@@ -810,6 +721,9 @@ class _MyCVFListScreen extends State<MyPJPCVFListScreen> implements onResponse {
         setState(() {
           //mPjpList.addAll(response.responseData);
         });
+        if(isNavigate){
+          isNavigate=false;
+        }
       } else {
         print('onResponse in if else');
       }

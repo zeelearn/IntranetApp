@@ -46,14 +46,18 @@ class QuestionListScreen extends StatefulWidget {
   State<QuestionListScreen> createState() => _QuestionListScreenState();
 }
 
-class _QuestionListScreenState extends State<QuestionListScreen> implements onUploadResponse, onResponse,onClickListener{
+class _QuestionListScreenState extends State<QuestionListScreen>
+    implements onUploadResponse, onResponse, onClickListener {
   List<QuestionMaster> mQuestionMaster = [];
   bool isLoading = true;
   final ImagePicker _picker = ImagePicker();
   XFile? _imageFileList;
   Map<String, String> userAnswerMap = Map();
+  String _Status = '';
 
   TextEditingController _textEditingController = TextEditingController();
+
+  late QuestionResponse questionResponse;
 
   @override
   void initState() {
@@ -116,60 +120,53 @@ class _QuestionListScreenState extends State<QuestionListScreen> implements onUp
         data);
   }
 
-  loadData() {
-    isLoading = true;
-    mQuestionMaster.clear();
-    DateTime time = DateTime.now();
-    QuestionsRequest request = QuestionsRequest(
-        Category_Id: widget.mCategoryId,
-        Business_id: '1',
-        PJPCVF_Id: widget.cvfView.PJPCVF_Id);
-    APIService apiService = APIService();
-    apiService.getCVFQuestions(request).then((value) {
+  loadData() async {
+    DBHelper helper = DBHelper();
+    questionResponse =
+        await helper.getQuestionsList(widget.PJPCVF_Id.toString());
+    if (questionResponse != null && questionResponse.responseData.length > 0) {
+      isLoading = true;
+      mQuestionMaster.clear();
+      mQuestionMaster.addAll(questionResponse.responseData);
       isLoading = false;
-      if (value != null) {
-        if (value == null || value.responseData == null) {
-          Utility.showMessage(context, 'data not found');
-        } else if (value is QuestionResponse) {
-          QuestionResponse response = value;
-
-          if (response != null && response.responseData != null) {
-            saveCvfQuestionsPref(
-                widget.mCategoryId, json.encode(response.toJson()));
-            mQuestionMaster.addAll(response.responseData);
-            //Utility.showMessageSingleButton(context, "Thanks for submitting Data", this);
-            /*if (widget.mCategory.isEmpty || widget.mCategory == 'All') {
-              List<Purpose> purposeList = getUniqueCategory();
-              for (int index = 0;
-                  index < response.responseData.length;
-                  index++) {
-                for (int jIndex = 0; jIndex < purposeList.length; jIndex++) {
-                  if (purposeList[jIndex].categoryName ==
-                      response.responseData[index].categoryName) {
-                    mQuestionMaster.add(response.responseData[index]);
-                  }
-                }
-              }
-            } else {
-              for (int index = 0;
-                  index < response.responseData.length;
-                  index++) {
-                if (widget.mCategory ==
-                    response.responseData[index].categoryName) {
-                  mQuestionMaster.add(response.responseData[index]);
-                }
-              }
-            }*/
-            insertQuestions();
-            setState(() {});
-          }
-        } else {
-          Utility.showMessage(context, 'data not found');
-        }
-      }
-      // Navigator.of(context).pop();
       setState(() {});
-    });
+    } else {
+      isLoading = true;
+      mQuestionMaster.clear();
+      DateTime time = DateTime.now();
+      QuestionsRequest request = QuestionsRequest(
+          Category_Id: widget.mCategoryId,
+          Business_id: '1',
+          PJPCVF_Id: widget.cvfView.PJPCVF_Id);
+      APIService apiService = APIService();
+      apiService.getCVFQuestions(request).then((value) {
+        isLoading = false;
+        if (value != null) {
+          if (value == null || value.responseData == null) {
+            Utility.showMessage(context, 'data not found');
+          } else if (value is QuestionResponse) {
+            questionResponse = value;
+
+            if (questionResponse != null &&
+                questionResponse.responseData != null) {
+              saveCvfQuestionsPref(
+                  widget.mCategoryId, json.encode(questionResponse.toJson()));
+              mQuestionMaster.addAll(questionResponse.responseData);
+              DBHelper dbHelper = DBHelper();
+              print('data saved ....');
+              dbHelper.insertCVFQuestions(widget.cvfView.PJPCVF_Id,
+                  json.encode(questionResponse.toJson()), 0);
+              insertQuestions();
+              setState(() {});
+            }
+          } else {
+            Utility.showMessage(context, 'data not found');
+          }
+        }
+        // Navigator.of(context).pop();
+        setState(() {});
+      });
+    }
   }
 
   List<Purpose> getUniqueCategory() {
@@ -231,55 +228,75 @@ class _QuestionListScreenState extends State<QuestionListScreen> implements onUp
     }
   }
 
-  saveAnswers() {
-    Utility.showLoaderDialog(context);
-    String docXml = '<root>';
-    for (int index = 0; index < mQuestionMaster.length; index++) {
-      for (int jIndex = 0;
-          jIndex < mQuestionMaster[index].allquestion.length;
-          jIndex++) {
-        if (mQuestionMaster[index].allquestion[jIndex].userAnswers.isNotEmpty) {
-          docXml =
-          '${docXml}<tblPJPCVF_Answer><SubmissionDate>${Utility
-              .convertShortDate(DateTime
-              .now())}</SubmissionDate><Question_Id>${mQuestionMaster[index]
-              .allquestion[jIndex]
-              .Question_Id}</Question_Id><AnswerId>${mQuestionMaster[index]
-              .allquestion[jIndex]
-              .userAnswers}</AnswerId><Remarks></Remarks></tblPJPCVF_Answer>';
-        }else if(userAnswerMap[mQuestionMaster[index].allquestion[jIndex].Question_Id].toString().isNotEmpty){
-          docXml =
-          '${docXml}<tblPJPCVF_Answer><SubmissionDate>${Utility
-              .convertShortDate(DateTime
-              .now())}</SubmissionDate><Question_Id>${mQuestionMaster[index]
-              .allquestion[jIndex]
-              .Question_Id}</Question_Id><Files>${mQuestionMaster[index]
-              .allquestion[jIndex].files}</Files><AnswerId>${userAnswerMap[mQuestionMaster[index].allquestion[jIndex].Question_Id].toString()}</AnswerId><Remarks></Remarks></tblPJPCVF_Answer>';
+  saveAnswers(String cvfId) async {
+    bool isInternet = await Utility.isInternet();
+    if(isInternet) {
+      Utility.showLoaderDialog(context);
+      String docXml = '<root>';
+      for (int index = 0; index < mQuestionMaster.length; index++) {
+        for (int jIndex = 0;
+        jIndex < mQuestionMaster[index].allquestion.length;
+        jIndex++) {
+          if (mQuestionMaster[index].allquestion[jIndex].userAnswers
+              .isNotEmpty) {
+            docXml =
+            '${docXml}<tblPJPCVF_Answer><SubmissionDate>${Utility
+                .convertShortDate(DateTime
+                .now())}</SubmissionDate><Question_Id>${mQuestionMaster[index]
+                .allquestion[jIndex]
+                .Question_Id}</Question_Id><AnswerId>${mQuestionMaster[index]
+                .allquestion[jIndex]
+                .userAnswers}</AnswerId><Remarks></Remarks></tblPJPCVF_Answer>';
+          } else if (userAnswerMap[
+          mQuestionMaster[index].allquestion[jIndex].Question_Id]
+              .toString()
+              .isNotEmpty) {
+            docXml =
+            '${docXml}<tblPJPCVF_Answer><SubmissionDate>${Utility
+                .convertShortDate(DateTime
+                .now())}</SubmissionDate><Question_Id>${mQuestionMaster[index]
+                .allquestion[jIndex]
+                .Question_Id}</Question_Id><Files>${mQuestionMaster[index]
+                .allquestion[jIndex]
+                .files}</Files><AnswerId>${userAnswerMap[mQuestionMaster[index]
+                .allquestion[jIndex].Question_Id]
+                .toString()}</AnswerId><Remarks></Remarks></tblPJPCVF_Answer>';
+          }
         }
       }
+      docXml = '${docXml} </root>';
+      print(docXml);
+      SaveCVFAnswers request = SaveCVFAnswers(
+          PJPCVF_Id: widget.PJPCVF_Id,
+          DocXml: docXml,
+          UserId: widget.employeeId);
+      //print(request.toJson());
+      APIService apiService = APIService();
+      apiService.saveCVFAnswers(request).then((value) {
+        //print(value.toString());
+        if (value != null) {
+          Navigator.of(context).pop();
+          if (value == null || value.responseData == null) {
+            Utility.showMessage(context, 'data not found');
+          } else if (value is CVFAnswersResponse) {
+            CVFAnswersResponse response = value;
+            if (cvfId.isNotEmpty) {
+              IntranetServiceHandler.updateCVFStatus(widget.employeeId, cvfId,
+                  Utility.getDateTime(), 'Completed', this);
+            } else {
+              if (response != null) {}
+              setState(() {});
+            }
+          } else {
+            Utility.showMessage(context, 'data not found');
+          }
+        }
+
+        setState(() {});
+      });
+    }else{
+      Utility.noInternetConnection(context);
     }
-    docXml = '${docXml} </root>';
-    print(docXml);
-    SaveCVFAnswers request = SaveCVFAnswers(
-        PJPCVF_Id: widget.PJPCVF_Id, DocXml: docXml, UserId: widget.employeeId);
-    //print(request.toJson());
-    APIService apiService = APIService();
-    apiService.saveCVFAnswers(request).then((value) {
-      //print(value.toString());
-      if (value != null) {
-        if (value == null || value.responseData == null) {
-          Utility.showMessage(context, 'data not found');
-        } else if (value is CVFAnswersResponse) {
-          CVFAnswersResponse response = value;
-          if (response != null) {}
-          setState(() {});
-        } else {
-          Utility.showMessage(context, 'data not found');
-        }
-      }
-      Navigator.of(context).pop();
-      setState(() {});
-    });
   }
 
   @override
@@ -293,7 +310,7 @@ class _QuestionListScreenState extends State<QuestionListScreen> implements onUp
               icon: const Icon(Icons.done),
               tooltip: 'Filter',
               onPressed: () {
-                saveAnswers();
+                saveAnswers('');
               },
             ),
           ],
@@ -338,7 +355,7 @@ class _QuestionListScreenState extends State<QuestionListScreen> implements onUp
       );
     } else if (mQuestionMaster.isEmpty) {
       //print('List not avaliable');
-      return Utility.emptyDataSet(context,"CVF Questions are not avaliable");
+      return Utility.emptyDataSet(context, "CVF Questions are not avaliable");
     } else {
       return Flexible(
           child: ListView.builder(
@@ -452,7 +469,7 @@ class _QuestionListScreenState extends State<QuestionListScreen> implements onUp
     );
   }
 
-  getCvfInfo(GetDetailedPJP cvfView){
+  getCvfInfo(GetDetailedPJP cvfView) {
     return ListTile(
       leading: Expanded(
         flex: 1,
@@ -463,8 +480,7 @@ class _QuestionListScreenState extends State<QuestionListScreen> implements onUp
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  Utility.shortTime(
-                      Utility.convertTime(cvfView.visitTime)),
+                  Utility.shortTime(Utility.convertTime(cvfView.visitTime)),
                   style: TextStyle(
                     fontSize: 14.0,
                     fontWeight: FontWeight.bold,
@@ -472,8 +488,7 @@ class _QuestionListScreenState extends State<QuestionListScreen> implements onUp
                   ),
                 ),
                 Text(
-                  Utility.shortTimeAMPM(
-                      Utility.convertTime(cvfView.visitTime)),
+                  Utility.shortTimeAMPM(Utility.convertTime(cvfView.visitTime)),
                   style: TextStyle(
                     fontSize: 12.0,
                     color: Colors.black,
@@ -503,34 +518,24 @@ class _QuestionListScreenState extends State<QuestionListScreen> implements onUp
               mainAxisSize: MainAxisSize.max,
               children: [
                 cvfView.purpose!.length > 0
-                    ? getTextCategory(
-                    cvfView,
-                    cvfView.purpose![0].categoryName,
-                    cvfView.purpose![0].categoryId)
+                    ? getTextCategory(cvfView, cvfView.purpose![0].categoryName,
+                        cvfView.purpose![0].categoryId)
                     : Text(''),
                 cvfView.purpose!.length > 1
-                    ? getTextCategory(
-                    cvfView,
-                    cvfView.purpose![1].categoryName,
-                    cvfView.purpose![1].categoryId)
+                    ? getTextCategory(cvfView, cvfView.purpose![1].categoryName,
+                        cvfView.purpose![1].categoryId)
                     : Text(''),
                 cvfView.purpose!.length > 2
-                    ? getTextCategory(
-                    cvfView,
-                    cvfView.purpose![2].categoryName,
-                    cvfView.purpose![2].categoryId)
+                    ? getTextCategory(cvfView, cvfView.purpose![2].categoryName,
+                        cvfView.purpose![2].categoryId)
                     : Text(''),
                 cvfView.purpose!.length > 3
-                    ? getTextCategory(
-                    cvfView,
-                    cvfView.purpose![3].categoryName,
-                    cvfView.purpose![3].categoryId)
+                    ? getTextCategory(cvfView, cvfView.purpose![3].categoryName,
+                        cvfView.purpose![3].categoryId)
                     : Text(''),
                 cvfView.purpose!.length > 4
-                    ? getTextCategory(
-                    cvfView,
-                    cvfView.purpose![4].categoryName,
-                    cvfView.purpose![4].categoryId)
+                    ? getTextCategory(cvfView, cvfView.purpose![4].categoryName,
+                        cvfView.purpose![4].categoryId)
                     : Text(''),
               ],
             ),
@@ -607,7 +612,7 @@ class _QuestionListScreenState extends State<QuestionListScreen> implements onUp
                 ),
               ),
             ),
-            Expanded(flex: 1, child: getTextRounded(cvfView, 'Fill CVF')),
+            Expanded(flex: 1, child: getTextRounded(cvfView, 'Mark Completed')),
           ],
         ),
         Padding(
@@ -655,15 +660,27 @@ class _QuestionListScreenState extends State<QuestionListScreen> implements onUp
   }
 
   getTextRounded(GetDetailedPJP cvfView, String name) {
+    if (cvfView.Status == 'FILL CVF') {
+      cvfView.Status = 'Check Out';
+    }
+    _Status = cvfView.Status;
     return GestureDetector(
       onTap: () {
-        if(isComplete()) {
-          IntranetServiceHandler.updateCVFStatus(
-              widget.employeeId, cvfView.PJPCVF_Id, Utility.getDateTime(),
-              'Completed', this);
-
-        }else{
-          Utility.showMessage(context, 'Please Fill all questions/feedback and try again');
+        if (cvfView.Status == 'Completed') {
+          Utility.showMessages(
+              context, 'CVF Already submitted and not able to update');
+        } else if (isComplete()) {
+          saveAnswers(cvfView.PJPCVF_Id);
+        } else {
+          if (pendingQuestion == '') {
+            Utility.showMessage(
+                context, 'Please Fill all questions/feedback and try again');
+          } else {
+            Utility.showMessage(
+                context,
+                'Please Fill all questions/feedback and try again \n'
+                'Incomplete Questions Numbers are ${pendingQuestion}');
+          }
         }
       },
       child: Container(
@@ -679,7 +696,7 @@ class _QuestionListScreenState extends State<QuestionListScreen> implements onUp
             ]),
         child: Padding(
           padding: EdgeInsets.only(left: 0, right: 0, top: 0, bottom: 0),
-          child: Text('${cvfView.Status} ',
+          child: Text(cvfView.Status,
               textAlign: TextAlign.center,
               style: TextStyle(
                   background: Paint()
@@ -778,31 +795,38 @@ class _QuestionListScreenState extends State<QuestionListScreen> implements onUp
         }
       }
     }
-    setState(() {
-
-    });
+    DBHelper helper = DBHelper();
+    helper.updateCVFQuestions(
+        widget.PJPCVF_Id.toString(), json.encode(questionResponse.toJson()), 0);
+    setState(() {});
   }
 
   Widget showPlayers(Allquestion player) {
     //print(player.toJson().toString());
-    return Padding(padding: EdgeInsets.only(left: 20,right: 25),
-    child: Column(
-      children: [
-        Divider(height: 1,),
-        ListTile(
-          title: Text(
-            '${player.Question_Id}. ${player.question}',
-            style: Theme.of(context).textTheme.bodyText1,
-          ),
-        ),
-        _getAnswerWidget(player)
-      ],
-    ));
+    return Padding(
+        padding: EdgeInsets.only(left: 20, right: 25),
+        child: Column(
+          children: [
+            Divider(
+              height: 1,
+            ),
+            ListTile(
+              title: player.isCompulsory=='1' ? Text(
+                '* ${player.Question_Id}. ${player.question}',
+                style: Theme.of(context).textTheme.bodyText1,
+              ) : Text(
+                '${player.Question_Id}. ${player.question}',
+                style: Theme.of(context).textTheme.bodyText1,
+              ),
+            ),
+            _getAnswerWidget(player)
+          ],
+        ));
   }
 
   _getAnswerWidget(Allquestion questions) {
     if (questions.answers[0].answerType == 'YesNo') {
-      print('${questions.Question_Id}  : SelectedAnswer ${questions.SelectedAnswer} map ${userAnswerMap[questions.Question_Id]}');
+      //print('${questions.Question_Id}  : SelectedAnswer ${questions.SelectedAnswer} map ${userAnswerMap[questions.Question_Id]}');
       return Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
@@ -816,7 +840,8 @@ class _QuestionListScreenState extends State<QuestionListScreen> implements onUp
           Expanded(
             flex: 1,
             child: CheckboxListTile(
-              value: (!userAnswerMap.containsKey(questions.Question_Id) && questions.SelectedAnswer == 'Yes') ||
+              value: (!userAnswerMap.containsKey(questions.Question_Id) &&
+                          questions.SelectedAnswer == 'Yes') ||
                       (userAnswerMap.containsKey(questions.Question_Id) &&
                           userAnswerMap[questions.Question_Id] == 'Yes')
                   ? true
@@ -827,19 +852,25 @@ class _QuestionListScreenState extends State<QuestionListScreen> implements onUp
               ),
               controlAffinity: ListTileControlAffinity.leading,
               onChanged: (checked) {
-                //ischeck[getCheckboxIndex(player.question)] = false;
-                questions.SelectedAnswer = 'Yes';
-                setState(() {
-                  updateAnswers(questions, 'Yes');
-                });
+                if (_Status == 'Completed') {
+                  Utility.showMessages(
+                      context, 'CVF Already submitted and not able to update');
+                } else {
+                  //ischeck[getCheckboxIndex(player.question)] = false;
+                  questions.SelectedAnswer = 'Yes';
+                  setState(() {
+                    updateAnswers(questions, 'Yes');
+                  });
+                }
               },
             ),
           ),
           Expanded(
             flex: 1,
             child: CheckboxListTile(
-              value: ( !userAnswerMap.containsKey(questions.Question_Id) &&  questions.SelectedAnswer == 'No') ||
-                      ( userAnswerMap.containsKey(questions.Question_Id) &&
+              value: (!userAnswerMap.containsKey(questions.Question_Id) &&
+                          questions.SelectedAnswer == 'No') ||
+                      (userAnswerMap.containsKey(questions.Question_Id) &&
                           userAnswerMap[questions.Question_Id] == 'No')
                   ? true
                   : false,
@@ -850,19 +881,31 @@ class _QuestionListScreenState extends State<QuestionListScreen> implements onUp
               ),
               controlAffinity: ListTileControlAffinity.leading,
               onChanged: (checked) {
-                questions.SelectedAnswer = 'No';
-                updateAnswers(questions, 'No');
-                setState(() {});
+                if (_Status == 'Completed') {
+                  Utility.showMessages(
+                      context, 'CVF Already submitted and not able to update');
+                } else {
+                  questions.SelectedAnswer = 'No';
+                  updateAnswers(questions, 'No');
+                  setState(() {});
+                }
               },
             ),
           ),
           GestureDetector(
             onTap: () {
-              if(questions.files.isNotEmpty){
+              if (_Status == 'Completed') {
+                Utility.showMessages(
+                    context, 'CVF Already submitted and not able to update');
+              } else if (questions.files.isNotEmpty) {
                 Navigator.push(context, MaterialPageRoute(builder: (_) {
-                  return DetailScreen(imageUrl: getImageUrl(questions.files), question: questions,listener: this,);
+                  return DetailScreen(
+                    imageUrl: getImageUrl(questions.files),
+                    question: questions,
+                    listener: this,
+                  );
                 }));
-              }else {
+              } else {
                 pickImage(questions);
               }
             },
@@ -874,11 +917,9 @@ class _QuestionListScreenState extends State<QuestionListScreen> implements onUp
                       size: 20,
                     )
                   : Image.network(getImageUrl(questions.files),
-                  // width: 300,
-                  height: 80,
-                  fit:BoxFit.fill
-
-              ),
+                      // width: 300,
+                      height: 80,
+                      fit: BoxFit.fill),
             ),
           )
         ],
@@ -901,8 +942,12 @@ class _QuestionListScreenState extends State<QuestionListScreen> implements onUp
           style: Theme.of(context).textTheme.bodyText1,
         ),*/
         title: GestureDetector(
-          onTap: (){
-            showBottomSheet(questions,questions.answers[index].answerName);
+          onTap: () {
+            if (_Status == 'Completed') {
+              Utility.showMessages(
+                  context, 'CVF Already submitted and not able to update');
+            } else
+              showBottomSheet(questions, questions.answers[index].answerName);
           },
           child: Container(
             margin: EdgeInsets.only(left: 20, right: 20, top: 10, bottom: 10),
@@ -913,18 +958,24 @@ class _QuestionListScreenState extends State<QuestionListScreen> implements onUp
               borderRadius: BorderRadius.circular(10),
               border: Border.all(color: Colors.grey),
             ),
-            child: Center(child: Text(
-                questions.SelectedAnswer.isNotEmpty
+            child: Center(
+                child: Text(questions.SelectedAnswer.isNotEmpty
                     ? questions.SelectedAnswer
                     : (userAnswerMap.containsKey(questions.Question_Id) &&
-                    userAnswerMap[questions.Question_Id].toString().isNotEmpty)
-                    ? userAnswerMap[questions.Question_Id].toString()
-                    : questions.answers[index].answerName)),
+                            userAnswerMap[questions.Question_Id]
+                                .toString()
+                                .isNotEmpty)
+                        ? userAnswerMap[questions.Question_Id].toString()
+                        : questions.answers[index].answerName)),
           ),
         ),
         trailing: GestureDetector(
           onTap: () {
-            pickImage(questions);
+            if (_Status == 'Completed') {
+              Utility.showMessages(
+                  context, 'CVF Already submitted and not able to update');
+            } else
+              pickImage(questions);
           },
           child: Padding(
             padding: EdgeInsets.all(8.0),
@@ -935,7 +986,8 @@ class _QuestionListScreenState extends State<QuestionListScreen> implements onUp
                   )
                 : Image.file(
                     File(getImageUrl(questions.files)),
-              width: 30,height: 30,
+                    width: 30,
+                    height: 30,
                   ),
           ),
         ),
@@ -944,15 +996,14 @@ class _QuestionListScreenState extends State<QuestionListScreen> implements onUp
     return _rowWidget;
   }
 
-  getImageUrl(String url){
-    String weburl= url.replaceAll('___','&');
+  getImageUrl(String url) {
+    String weburl = url.replaceAll('___', '&');
     weburl = Uri.decodeFull(weburl);
     print(weburl);
     return weburl;
   }
 
-  showBottomSheet(Allquestion question,String hint){
-
+  showBottomSheet(Allquestion question, String hint) {
     showModalBottomSheet(
       isScrollControlled: true,
       backgroundColor: Colors.white,
@@ -975,7 +1026,7 @@ class _QuestionListScreenState extends State<QuestionListScreen> implements onUp
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
-                padding: EdgeInsets.only(left: 15,right: 15,bottom: 25),
+                padding: EdgeInsets.only(left: 15, right: 15, bottom: 25),
                 child: Column(
                   children: [
                     TextFormField(
@@ -995,12 +1046,13 @@ class _QuestionListScreenState extends State<QuestionListScreen> implements onUp
                           ),
                           onPressed: () {
                             // do something
-                            if(_textEditingController.text.toString().isNotEmpty) {
+                            if (_textEditingController.text
+                                .toString()
+                                .isNotEmpty) {
                               updateAnswers(question,
                                   _textEditingController.text.toString());
                               Navigator.of(context).pop();
                             }
-
                           },
                         ),
                         enabledBorder: UnderlineInputBorder(
@@ -1121,15 +1173,58 @@ class _QuestionListScreenState extends State<QuestionListScreen> implements onUp
     return counter;
   }
 
-  isComplete(){
+  late String pendingQuestion;
+
+  isComplete() {
     bool isCompleted = true;
-    for(int index=0;index<mQuestionMaster.length;index++){
-      for(int jIndex=0;jIndex<mQuestionMaster[index].allquestion.length;jIndex++){
-        if(mQuestionMaster[index].allquestion[jIndex].isCompulsory=='1' && mQuestionMaster[index].allquestion[jIndex].SelectedAnswer.isEmpty || mQuestionMaster[index].allquestion[jIndex].SelectedAnswer=='null' ){
+    String inCompleteQuestions = '';
+    String token = '';
+    int inCompleteCounts = 0;
+    for (int index = 0; index < mQuestionMaster.length; index++) {
+      for (int jIndex = 0;
+          jIndex < mQuestionMaster[index].allquestion.length;
+          jIndex++) {
+        String userAnswer = mQuestionMaster[index]
+                .allquestion[jIndex]
+                .SelectedAnswer
+                .isNotEmpty
+            ? mQuestionMaster[index].allquestion[jIndex].SelectedAnswer
+            : (userAnswerMap.containsKey(mQuestionMaster[index]
+                        .allquestion[jIndex]
+                        .Question_Id) &&
+                    userAnswerMap[mQuestionMaster[index]
+                            .allquestion[jIndex]
+                            .Question_Id]
+                        .toString()
+                        .isNotEmpty)
+                ? userAnswerMap[
+                        mQuestionMaster[index].allquestion[jIndex].Question_Id]
+                    .toString()
+                : '';
+        if (mQuestionMaster[index].allquestion[jIndex].isCompulsory == '1' &&
+                userAnswer.isEmpty ||
+            userAnswer == 'null') {
+          print(mQuestionMaster[index].allquestion[jIndex].Question_Id +
+              '  ' +
+              mQuestionMaster[index].allquestion[jIndex].SelectedAnswer);
+          inCompleteQuestions =
+              '${inCompleteQuestions} ${token}  Q:${mQuestionMaster[index].allquestion[jIndex].Question_Id}';
+          token = ',';
+          inCompleteCounts = inCompleteCounts + 1;
           isCompleted = false;
+        } else {
+          print(mQuestionMaster[index].allquestion[jIndex].Question_Id +
+              ' NC ' +
+              mQuestionMaster[index].allquestion[jIndex].SelectedAnswer);
         }
       }
     }
+    if (inCompleteCounts < 10) {
+      pendingQuestion = inCompleteQuestions;
+    } else {
+      pendingQuestion = '';
+    }
+    print(pendingQuestion);
     return isCompleted;
   }
 
@@ -1165,16 +1260,18 @@ class _QuestionListScreenState extends State<QuestionListScreen> implements onUp
   void pickImage(Allquestion player) async {
     try {
       final XFile? pickedFileList = await _picker.pickImage(
-        source: ImageSource.camera,
-          maxHeight: 800,
-          imageQuality :100
-      );
+          source: ImageSource.camera, maxHeight: 800, imageQuality: 100);
       setState(() {
         _imageFileList = pickedFileList;
         //player.files = pickedFileList![0].path;
         updateImage(player, player.files);
-        String name = widget.employeeId.toString()+'_c'+widget.PJPCVF_Id.toString()+'_q'+player.Question_Id;
-        FirebaseStorageUtil().uploadFile(player,_imageFileList!.path, name, this);
+        String name = widget.employeeId.toString() +
+            '_c' +
+            widget.PJPCVF_Id.toString() +
+            '_q' +
+            player.Question_Id;
+        FirebaseStorageUtil()
+            .uploadFile(player, _imageFileList!.path, name, this);
       });
     } catch (e) {
       /*setState(() {
@@ -1214,13 +1311,11 @@ class _QuestionListScreenState extends State<QuestionListScreen> implements onUp
   @override
   void onUploadSuccess(value) {
     Navigator.of(context).pop();
-    if(value is Allquestion){
-      Allquestion question= value;
+    if (value is Allquestion) {
+      Allquestion question = value;
       updateImage(question, question.files);
     }
-    setState(() {
-
-    });
+    setState(() {});
   }
 
   @override
@@ -1233,17 +1328,19 @@ class _QuestionListScreenState extends State<QuestionListScreen> implements onUp
     Navigator.of(context).pop();
     if (value is UpdateCVFStatusResponse) {
       UpdateCVFStatusResponse response = value;
-      loadData();
+      Utility.showMessageSingleButton(
+          context, 'Thank you for submitting the CVF', this);
     }
   }
 
   @override
   void onClick(int action, value) {
     print('onclick called ${action}');
-    if(action == ACTION_ADD_NEW_IMAGE){
+    if (action == ACTION_ADD_NEW_IMAGE) {
       pickImage(value);
-    }else if(action == ACTION_DELETE_IMAGE){
-
+    } else if (action == ACTION_DELETE_IMAGE) {
+    } else if (action == Utility.ACTION_OK) {
+      Navigator.of(context).pop();
     }
   }
 }
@@ -1270,13 +1367,17 @@ class MyBottomSheet extends StatelessWidget {
   }
 }
 
-
 class DetailScreen extends StatelessWidget {
   late String imageUrl;
   late Allquestion question;
   late onClickListener listener;
 
-  DetailScreen({Key? key, required this.imageUrl,required this.question,required this.listener}) : super(key: key);
+  DetailScreen(
+      {Key? key,
+      required this.imageUrl,
+      required this.question,
+      required this.listener})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -1284,10 +1385,10 @@ class DetailScreen extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: kPrimaryLightColor,
         centerTitle: true,
-        title:  Text(
+        title: Text(
           'Intranet',
           style:
-          TextStyle(fontSize: 17, color: Colors.white, letterSpacing: 0.53),
+              TextStyle(fontSize: 17, color: Colors.white, letterSpacing: 0.53),
         ),
         actions: [
           InkWell(
@@ -1306,8 +1407,8 @@ class DetailScreen extends StatelessWidget {
           /*InkWell(
             onTap: () {
               listener.onClick(ACTION_DELETE_IMAGE, question);
-              *//*Navigator.push(
-                context, MaterialPageRoute(builder: (context) => UserNotification()));*//*
+              */ /*Navigator.push(
+                context, MaterialPageRoute(builder: (context) => UserNotification()));*/ /*
             },
             child: Padding(
               padding: const EdgeInsets.all(8.0),
@@ -1335,4 +1436,3 @@ class DetailScreen extends StatelessWidget {
     );
   }
 }
-

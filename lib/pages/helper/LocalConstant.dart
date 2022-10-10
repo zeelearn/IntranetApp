@@ -60,6 +60,7 @@ class LocalConstant {
 
 
   static String TABLE_NOTIFICATION ="notification_table";
+  static String TABLE_CHECKIN ="checkin";
   static String TABLE_EMPLOYEES ="emp_info";
   static String TABLE_PARENT_INFO ="parent_info";
   static String TABLE_PJP_INFO ="pjp_info";
@@ -67,7 +68,10 @@ class LocalConstant {
 
   static String TABLE_CVF_CATEGORY ="cvf_category";
   static String TABLE_PJP_PURPOSE ="pjp_purpose";
+
   static String TABLE_CVF_QUESTIONS ="cvf_questions";
+  static String TABLE_CVF_QUESTION_JSON ="cvfquestion";
+
   static String TABLE_CVF_ANSWER_MASTER ="cvf_answermaster";
   static String TABLE_CVF_USER_ANSWERAS ="cvf_user_answers";
   static String TABLE_CVF_FRANCHISEE ="cvf_centers";

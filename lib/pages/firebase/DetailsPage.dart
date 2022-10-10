@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:intranet/pages/helper/utils.dart';
 
 class DetailsPage extends StatelessWidget {
   const DetailsPage({
@@ -13,7 +14,7 @@ class DetailsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Event Reminder"),
+        title: Text("Notification"),
         centerTitle: true,
       ),
       body: Padding(
@@ -42,10 +43,10 @@ class DetailsPage extends StatelessWidget {
   }
 
   Widget _buildNotifiedReminderCard(String payload) {
-    final data = jsonDecode(payload);
-    final title = data["title"];
-    final eventDate = data["eventDate"];
-    final eventTime = data["eventTime"];
+    final data = null;//jsonDecode(payload);
+    final title = payload;// data["title"];
+    final eventDate = Utility.shortDate(DateTime.now()); //data["eventDate"];
+    final eventTime =  Utility.shortTimeFormat(DateTime.now()); //data["eventTime"];
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(24.0),
@@ -56,14 +57,14 @@ class DetailsPage extends StatelessWidget {
               size: 60.0,
             ),
             SizedBox(height: 12.0),
-            Text(
+            /*Text(
               "Your reminder for",
               style: TextStyle(
                 fontSize: 22.0,
                 fontWeight: FontWeight.w500,
                 color: Colors.black54,
               ),
-            ),
+            ),*/
             SizedBox(height: 12.0),
             Text(
               title,
