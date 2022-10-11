@@ -336,7 +336,7 @@ class _AttendanceManagerScreen extends State<AttendanceManagerScreen>
               style: ElevatedButton.styleFrom(
                   elevation: 12.0,
                   textStyle: const TextStyle(color: LightColors.kRed)),
-              child: const Text('Rejected'),
+              child: const Text('Reject'),
             ),
             ElevatedButton(
               onPressed: () {
@@ -347,7 +347,7 @@ class _AttendanceManagerScreen extends State<AttendanceManagerScreen>
               style: ElevatedButton.styleFrom(
                   elevation: 12.0,
                   textStyle: const TextStyle(color: LightColors.kLightGreen)),
-              child: const Text('Approved'),
+              child: const Text('Approve'),
             ),
           ],
         );
@@ -380,6 +380,7 @@ class _AttendanceManagerScreen extends State<AttendanceManagerScreen>
           if (response != null) {
             //Navigator.of(context).pop();
             Utility.showMessage(context, response.responseMessage);
+            this.loadAcquisition();
           }
         } else {
           Utility.showMessage(context, 'data not found');
@@ -468,7 +469,12 @@ class _AttendanceManagerScreen extends State<AttendanceManagerScreen>
                       child: SizedBox(
                         child: Center(
                             child: action == 1
-                                ? SizedBox(
+                                ? model.status=='Rejected' ? SizedBox(
+                              width: width / 5.5,
+                              child: Center(
+                                child: Image.asset('assets/icons/ic_cross.png',width: 20,),
+                              ) ,
+                            ) : SizedBox(
                               width: width / 5.5,
                               child: Center(
                                 child: Image.asset('assets/icons/ic_check_mark.png',width: 20,),

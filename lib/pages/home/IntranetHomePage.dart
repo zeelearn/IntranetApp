@@ -382,7 +382,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
 
       // set up the AlertDialog
       AlertDialog alert = AlertDialog(
-        title: Text("AlertDialog"),
+        title: Text("Alert"),
         content: Text("Would you like to Exit?"),
         actions: [
           cancelButton,

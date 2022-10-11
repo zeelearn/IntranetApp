@@ -218,7 +218,6 @@ class _MyCVFListScreen extends State<CVFListScreen> implements onResponse,onClic
 
     IntranetServiceHandler.loadPjpSummery(
         employeeId, int.parse(widget.mPjpInfo.PJP_Id), this);
-    //Scaffold.of(context).showSnackBar(SnackBar(content: Text("$result"),duration: Duration(seconds: 3),));
   }
 
   getCVFListView() {

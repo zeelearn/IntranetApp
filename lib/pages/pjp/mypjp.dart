@@ -551,10 +551,11 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse,onCli
   @override
   void onSuccess(value) {
     Navigator.of(context).pop();
+    isLoading = false;
     print('PJP List onSuccess ');
     if(value is String){
       IntranetServiceHandler.loadPjpSummery(employeeId, 0, this);
-    } if(value is UpdatePJPStatusResponse){
+    }else if(value is UpdatePJPStatusResponse){
       UpdatePJPStatusResponse val = value;
       print(val.toJson());
       if(val.responseData==0){
@@ -566,6 +567,7 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse,onCli
     }else if(value is PjpListResponse){
       print('PJP List onSuccess PjpListResponse');
       PjpListResponse response = value;
+      print(response.toString());
       String json = jsonEncode(response);
       savePJPLocally(json);
       //print('onResponse in if ${widget.mFilterSelection.type}');
@@ -629,14 +631,15 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse,onCli
           //print('========================${mPjpList.length}');
           //print(response.toJson());
           //mPjpList = mPjpList.reversed.toList();
-          setState(() {
-            //mPjpList.addAll(response.responseData);
-          });
+
         }
       }else{
         print('onResponse in if else');
       }
     }
+    setState(() {
+      //mPjpList.addAll(response.responseData);
+    });
   }
 
   void approvePjp(PJPInfo pjpInfo,int isApprove) {

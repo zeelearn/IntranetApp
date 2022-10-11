@@ -11,6 +11,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:intranet/pages/auth/login.dart';
 import 'package:intranet/pages/firebase/firebase_options.dart';
 import 'package:intranet/pages/firebase/notification_service.dart';
 import 'package:intranet/pages/helper/DatabaseHelper.dart';
@@ -132,7 +133,7 @@ Future<void> main() async {
   messaging.subscribeToTopic("intranet");
 
   // Set the background messaging handler early on, as a named top-level function
-  //FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
   FirebaseMessaging.onMessage.listen((RemoteMessage message) {
     print('Got a message whilst in the foreground! main');
     print('Message data: ${message.data}');
@@ -186,7 +187,7 @@ Future<void> main() async {
           0,
           imageUrl);
     }
-    print('Data insetted');
+    print('Data insetted123');
     if (message.notification != null) {
       print(message.notification.toString());
       helper.insertNotification(
@@ -356,7 +357,7 @@ void onStart(ServiceInstance service) async {
     ),
   );
   // bring to foreground
-  Timer.periodic(const Duration(seconds: 5), (timer) async {
+  /*Timer.periodic(const Duration(seconds: 5), (timer) async {
         /// OPTIONAL for use custom notification
         /// the notification id must be equals with AndroidConfiguration when you call configure() method.
         flutterLocalNotificationsPlugin.show(
@@ -378,7 +379,7 @@ void onStart(ServiceInstance service) async {
         //   title: "My App Service",
         //   content: "Updated at ${DateTime.now()}",
         // );
-      });
+      });*/
   /// you can see this log in logcat
   print('FLUTTER BACKGROUND SERVICE: ${DateTime.now()}');
   apicall();
@@ -471,8 +472,13 @@ Future _showNotificationWithDefaultSound(
       print('message also contained a notification: ${message}');
 
       String? imageUrl;
-      imageUrl ??= message.notification!.android?.imageUrl;
-      imageUrl ??= message.notification!.apple?.imageUrl;
+      try{
+        imageUrl ??= message.notification!.android?.imageUrl;
+        imageUrl ??= message.notification!.apple?.imageUrl;
+      }catch(e){
+
+      }
+
 
       Map<String, dynamic> notificationAdapter = {
         NOTIFICATION_CHANNEL_KEY: 'basic_channel',
@@ -535,8 +541,8 @@ class MyApp extends StatelessWidget {
         primaryColorDark: LightColor.primarydark_color,
         primaryColor: LightColor.primary_color,
       ),
-      home: const Scaffold(
-        body: SplashScreen(),
+      home:   Scaffold(
+        body:(kIsWeb) ? SplashScreen()  : LoginPage(),
       ),
     );
   }

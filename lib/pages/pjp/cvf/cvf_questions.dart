@@ -447,30 +447,35 @@ class _QuestionListScreenState extends State<QuestionListScreen>
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            Utility.shortTime(
-                                Utility.convertTime(cvfView.visitTime)),
-                            style: TextStyle(
-                              fontSize: 14.0,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black,
-                            ),
-                          ),
-                          Text(
-                            Utility.shortTimeAMPM(
-                                Utility.convertTime(cvfView.visitTime)),
-                            style: TextStyle(
-                              fontSize: 12.0,
-                              color: Colors.black,
-                            ),
-                          ),
-                          Text(
                             Utility.shortDate(
-                                Utility.convertServerDate(cvfView.visitTime)),
+                                Utility.convertServerDate(cvfView.visitDate)),
                             style: TextStyle(
                               fontSize: 12.0,
                               color: Colors.black,
                             ),
                           ),
+                          Column(
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                            children: [
+                              Text(
+                                Utility.shortTime(
+                                    Utility.convertTime(cvfView.visitTime)),
+                                style: TextStyle(
+                                  fontSize: 16.0,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black,
+                                ),
+                              ),
+                              Text(
+                                Utility.shortTimeAMPM(
+                                    Utility.convertTime(cvfView.visitTime)),
+                                style: TextStyle(
+                                  fontSize: 11.0,
+                                  color: Colors.black,
+                                ),
+                              ),
+                            ],
+                          )
                         ],
                       ),
                     ),
@@ -959,6 +964,11 @@ class _QuestionListScreenState extends State<QuestionListScreen>
   }
 
   getDescriptionWidget(Allquestion questions) {
+    String path = getImagePath(questions);
+    if(path.isNotEmpty){
+      questions.files = path;
+      updateImage(questions, path);
+    }
     //print(getImageUrl(questions.files));
     final size = MediaQuery.of(context).size;
     List<Widget> _rowWidget = [];
@@ -1006,16 +1016,20 @@ class _QuestionListScreenState extends State<QuestionListScreen>
           },
           child: Padding(
             padding: EdgeInsets.all(8.0),
-            child: true || questions.files.isEmpty
+            child: (getImagePath(questions)).isNotEmpty ?
+            Image.network(getImageUrl((getImagePath(questions) )),
+                // width: 300,
+                height: 80,
+                fit: BoxFit.fill)
+                : questions.files.isEmpty
                 ? Icon(
-                    Icons.photo,
-                    size: 20,
-                  )
-                : Image.file(
-                    File(getImageUrl(questions.files)),
-                    width: 30,
-                    height: 30,
-                  ),
+              Icons.photo,
+              size: 20,
+            )
+                : Image.network(getImageUrl(questions.files),
+                // width: 300,
+                height: 80,
+                fit: BoxFit.fill),
           ),
         ),
       ));
@@ -1229,9 +1243,9 @@ class _QuestionListScreenState extends State<QuestionListScreen>
                     .toString()
                 : '';
         if (mQuestionMaster[index].allquestion[jIndex].isCompulsory == '1' &&
-                userAnswer.isEmpty ||
-            userAnswer == 'null') {
-          print(mQuestionMaster[index].allquestion[jIndex].Question_Id +
+            (userAnswer.isEmpty || userAnswer == 'null')) {
+          print(mQuestionMaster[index].allquestion[jIndex].isCompulsory);
+          print('isComp : '+mQuestionMaster[index].allquestion[jIndex].Question_Id +
               '  ' +
               mQuestionMaster[index].allquestion[jIndex].SelectedAnswer);
           inCompleteQuestions =
@@ -1239,11 +1253,11 @@ class _QuestionListScreenState extends State<QuestionListScreen>
           token = ',';
           inCompleteCounts = inCompleteCounts + 1;
           isCompleted = false;
-        } else {
+        } /*else {
           print(mQuestionMaster[index].allquestion[jIndex].Question_Id +
               ' NC ' +
               mQuestionMaster[index].allquestion[jIndex].SelectedAnswer);
-        }
+        }*/
       }
     }
     if (inCompleteCounts < 10) {
@@ -1368,6 +1382,7 @@ class _QuestionListScreenState extends State<QuestionListScreen>
       pickImage(value);
     } else if (action == ACTION_DELETE_IMAGE) {
     } else if (action == Utility.ACTION_OK) {
+      Navigator.of(context).pop();
       Navigator.of(context).pop();
     }
   }

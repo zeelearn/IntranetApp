@@ -116,6 +116,7 @@ class _NotificationListScreenState extends State<NotificationListScreen>
         print(e.toString());
       }
     }
+
     setState(() {
 
     });
@@ -206,6 +207,7 @@ class _NotificationListScreenState extends State<NotificationListScreen>
       print('data not found');
       return Utility.emptyDataSet(context,"Notification tray is Empty");
     } else {
+      mNotificationList = mNotificationList.reversed.toList();
       return Flexible(
           child: ListView.builder(
             itemCount: mNotificationList.length,
