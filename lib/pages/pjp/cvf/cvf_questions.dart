@@ -58,6 +58,7 @@ class _QuestionListScreenState extends State<QuestionListScreen>
   TextEditingController _textEditingController = TextEditingController();
 
   late QuestionResponse questionResponse;
+  late SharedPreferences prefs;
 
   @override
   void initState() {
@@ -78,7 +79,7 @@ class _QuestionListScreenState extends State<QuestionListScreen>
   List<bool> ischeck = [];
 
   getPrefQuestions(String categoryid) async {
-    final prefs = await SharedPreferences.getInstance();
+    prefs = await SharedPreferences.getInstance();
     print('in pref questions');
     try {
       var cvfQuestions = prefs.getString(widget.PJPCVF_Id.toString() +
@@ -118,6 +119,21 @@ class _QuestionListScreenState extends State<QuestionListScreen>
             categoryid +
             LocalConstant.KEY_CVF_QUESTIONS,
         data);
+  }
+
+  updateImageOffline(Allquestion question,String path) async{
+    final prefs = await SharedPreferences.getInstance();
+    prefs.setString('img_'+
+        widget.PJPCVF_Id.toString() +
+            question.Question_Id,
+        path);
+  }
+
+  String getImagePath(Allquestion question){
+    String? path = prefs.getString('img_'+
+        widget.PJPCVF_Id.toString() +
+            question.Question_Id);
+    return path== null ? '' : path.toString();
   }
 
   loadData() async {
@@ -826,6 +842,12 @@ class _QuestionListScreenState extends State<QuestionListScreen>
 
   _getAnswerWidget(Allquestion questions) {
     if (questions.answers[0].answerType == 'YesNo') {
+      String path = getImagePath(questions);
+      if(path.isNotEmpty){
+        questions.files = path;
+        updateImage(questions, path);
+      }
+
       //print('${questions.Question_Id}  : SelectedAnswer ${questions.SelectedAnswer} map ${userAnswerMap[questions.Question_Id]}');
       return Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -911,7 +933,12 @@ class _QuestionListScreenState extends State<QuestionListScreen>
             },
             child: Padding(
               padding: EdgeInsets.all(8.0),
-              child: questions.files.isEmpty
+              child: (getImagePath(questions)).isNotEmpty ?
+                  Image.network(getImageUrl((getImagePath(questions) )),
+                  // width: 300,
+                  height: 80,
+                  fit: BoxFit.fill)
+                  : questions.files.isEmpty
                   ? Icon(
                       Icons.photo,
                       size: 20,
@@ -1288,6 +1315,7 @@ class _QuestionListScreenState extends State<QuestionListScreen>
         if (mQuestionMaster[index].allquestion[jIndex].question ==
             questions.question) {
           mQuestionMaster[index].allquestion[jIndex].files = path;
+          updateImageOffline(questions,path);
         }
       }
     }
