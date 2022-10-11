@@ -933,7 +933,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
                 MaterialPageRoute(
                     builder: (context) => MyPjpListScreen(
                           mFilterSelection: FilterSelection(
-                              filters: [], type: FILTERStatus.MYSELF),
+                              filters: [], type: FILTERStatus.NONE),
                         )));
           },
         ),),
