@@ -70,9 +70,12 @@ class _MyCVFListScreen extends State<CVFListScreen> implements onResponse,onClic
     //helper.getCheckInStatus();
     offlineStatus = await helper.getCheckInStatus();
     if(isInternet){
+      print('Internet avaliable in pjpcvf');
       this.loadAllCVF();
     }else{
+      print('Internet not avaliable in pjpcvf');
       if(!getLocalData()){
+        print('dalse data not found');
         this.loadAllCVF();
       }
     }
@@ -85,12 +88,16 @@ class _MyCVFListScreen extends State<CVFListScreen> implements onResponse,onClic
     try {
       var attendanceList = prefs.getString(getId());
       isLoading = false;
+      mCvfList.clear();
       print(attendanceList.toString());
-      GetAllCVFResponse response = GetAllCVFResponse.fromJson(
+      PjpListResponse response = PjpListResponse.fromJson(
         json.decode(attendanceList!),
       );
       if (response != null && response.responseData != null)
-        mCvfList.addAll(response.responseData);
+        for (int index = 0; index < response.responseData.length; index++) {
+          mCvfList
+              .addAll(response.responseData[index].getDetailedPJP!);
+        }
       setState(() {});
       isLoad = true;
     }catch(e){
@@ -100,6 +107,9 @@ class _MyCVFListScreen extends State<CVFListScreen> implements onResponse,onClic
   }
 
   String getId(){
+    if(widget.mPjpInfo.PJP_Id.isNotEmpty){
+      return '${employeeId.toString()}_${LocalConstant.KEY_MY_CVF}_${widget.mPjpInfo.PJP_Id}';
+    }
     return '${employeeId.toString()}_${LocalConstant.KEY_MY_CVF}';
   }
 
@@ -1023,6 +1033,8 @@ class _MyCVFListScreen extends State<CVFListScreen> implements onResponse,onClic
       isLoading=false;
       print('onResponse in if ');
       if (response.responseData != null && response.responseData.length > 0) {
+        String json = jsonEncode(response);
+        saveCVFLocally(json);
         mCvfList.clear();
         for (int index = 0; index < response.responseData.length; index++) {
           mCvfList

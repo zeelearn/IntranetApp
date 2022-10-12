@@ -542,7 +542,7 @@ class MyApp extends StatelessWidget {
         primaryColor: LightColor.primary_color,
       ),
       home:   Scaffold(
-        body:(kIsWeb) ? SplashScreen()  : LoginPage(),
+        body: SplashScreen(),
       ),
     );
   }
