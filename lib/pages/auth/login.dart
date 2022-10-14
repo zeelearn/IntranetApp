@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intranet/pages/auth/social_button.dart';
+import 'package:intranet/pages/firebase/anylatics.dart';
 import 'package:intranet/pages/widget/MyWidget.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -377,7 +378,7 @@ class _LoginPage extends State<LoginPage> {
               prefs.setString(
                   LocalConstant.KEY_LOCATION, info.employeeLocation as String);
               prefs.setString(LocalConstant.KEY_GENDER, info.gender as String);
-
+              FirebaseAnalyticsUtils.sendEvent(info.userName);
               Navigator.push(
                 context,
                 MaterialPageRoute(

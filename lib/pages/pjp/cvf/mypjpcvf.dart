@@ -184,6 +184,7 @@ class _MyCVFListScreen extends State<MyPJPCVFListScreen> implements onResponse {
                   PJPCVF_Id: int.parse(cvfView.PJPCVF_Id),
                   employeeId: employeeId,
                   mCategoryId: cvfView.purpose![0].categoryId,
+                  isViewOnly: false,
                 )),
           );
         }
@@ -469,6 +470,7 @@ class _MyCVFListScreen extends State<MyPJPCVFListScreen> implements onResponse {
                     employeeId: employeeId,
                     mCategory: categoryname,
                     mCategoryId: cvfView.purpose![0].categoryId,
+                    isViewOnly: false,
                   )),
             );
           }
@@ -575,6 +577,7 @@ class _MyCVFListScreen extends State<MyPJPCVFListScreen> implements onResponse {
                       employeeId: employeeId,
                       mCategory: 'All',
                       mCategoryId: cvfView.purpose![0].categoryId,
+                  isViewOnly: false,
                     )),
           );
         } else {

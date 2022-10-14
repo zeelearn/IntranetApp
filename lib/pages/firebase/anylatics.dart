@@ -11,4 +11,7 @@ class FirebaseAnalyticsUtils{
   enableAnytics() async{
     await analytics.setAnalyticsCollectionEnabled(true);
   }
+  static sendEvent(String userName) async{
+    await FirebaseAnalytics.instance.setUserProperty(name: 'login_user', value: userName);
+  }
 }

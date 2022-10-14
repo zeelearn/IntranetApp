@@ -387,7 +387,8 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse,onCli
                               Padding(
                                 padding:
                                     EdgeInsetsDirectional.fromSTEB(24, 0, 0, 4),
-                                child: Icon(
+                                child: pjpInfo.getDetailedPJP == null ||
+                                    pjpInfo.getDetailedPJP!.length == 0 ? null : Icon(
                                   Icons.local_activity,
                                   color: Color(0xFF4B39EF),
                                   size: 20,

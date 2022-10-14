@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:intranet/api/request/outdoor_request.dart';
@@ -26,7 +28,7 @@ class _OutdoorScreen extends State<OutdoorScreen>
   final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey =
       GlobalKey<RefreshIndicatorState>();
   int employeeId = 0;
-
+  late final prefs;
 
   List<OutdoorModel> outdoorRequisitionList = [];
   bool isLoading = true;
@@ -54,13 +56,45 @@ class _OutdoorScreen extends State<OutdoorScreen>
   }
 
   Future<void> getUserInfo() async {
-    final prefs = await SharedPreferences.getInstance();
+    prefs = await SharedPreferences.getInstance();
     employeeId =
         int.parse(prefs.getString(LocalConstant.KEY_EMPLOYEE_ID) as String);
 
-    loadOutdoorRequisition();
+    var leaveODSummery = prefs.getString('r'+getId());
+    if(leaveODSummery==null){
+      loadOutdoorRequisition();
+    }else {
+      getLeaveRequisitionData(leaveODSummery);
+    }
   }
 
+  getLeaveRequisitionData(data) {
+    bool isLoad = false;
+    try {
+      isLoading = false;
+      outdoorRequisitionList.clear();
+      Map<String,dynamic> jsonObject  = json.decode(data.toString());
+      OutdoorResponse response = OutdoorResponse.fromJson(
+        json.decode(data!),
+      );
+      if (response != null && response.responseData != null){
+        outdoorRequisitionList.addAll(response.responseData);
+        setState(() {});
+      }
+      setState(() {});
+      isLoad = true;
+    }catch(e){
+      isLoad = false;
+    }
+    return isLoad;
+  }
+
+  saveODSummery(String json) async{
+    prefs.setString(getId(), json);
+  }
+  String getId(){
+    return '${employeeId.toString()}_${LocalConstant.KEY_MY_OUTDOOR}';
+  }
 
   loadOutdoorRequisition() {
     //Utility.showLoaderDialog(context);
@@ -87,6 +121,8 @@ class _OutdoorScreen extends State<OutdoorScreen>
         } else if (value is OutdoorResponse) {
           OutdoorResponse response = value;
           if (response != null && response.responseData != null) {
+            String json = jsonEncode(response);
+            saveODSummery(json);
             outdoorRequisitionList.addAll(response.responseData);
             setState(() {});
           }

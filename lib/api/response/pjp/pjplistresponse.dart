@@ -178,7 +178,15 @@ class GetDetailedPJP {
          // print('is array ${json['Purpose']}');
           if (json['Purpose'] != null) {
             json['Purpose'].forEach((v) {
-              purpose!.add(Purpose.fromJson(v));
+              bool isExists = false;
+              if(purpose!=null)
+              for(int index=0;index<purpose!.length;index++){
+                if(v['Category_id']==purpose![index].categoryId){
+                  isExists=true;
+                }
+              }
+              if(!isExists)
+                purpose!.add(Purpose.fromJson(v));
             });
           }
         } else {

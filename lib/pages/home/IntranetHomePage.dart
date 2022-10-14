@@ -5,10 +5,12 @@ import 'dart:io';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:in_app_update/in_app_update.dart';
 import 'package:intl/intl.dart';
 import 'package:intranet/pages/helper/LocalConstant.dart';
@@ -28,8 +30,11 @@ import '../attendance/attendance_marking.dart';
 import '../attendance/manager_screen.dart';
 import '../firebase/anylatics.dart';
 import '../firebase/notification.dart';
+import '../firebase/storageutil.dart';
 import '../helper/DatabaseHelper.dart';
 import '../helper/constants.dart';
+import '../iface/onClick.dart';
+import '../iface/onUploadResponse.dart';
 import '../leave/leave_list_manager.dart';
 import '../model/filter.dart';
 import '../notification.dart';
@@ -53,7 +58,7 @@ class IntranetHomePage extends StatefulWidget {
 }
 
 class _IntranetHomePageState extends State<IntranetHomePage>
-    with WidgetsBindingObserver {
+    with WidgetsBindingObserver implements onUploadResponse,onClickListener {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   static const int MENU_HOME = 1;
@@ -67,6 +72,9 @@ class _IntranetHomePageState extends State<IntranetHomePage>
   static const int MENU_PROFILE = 8;
   static const int MENU_PJP = 9;
   static const int MENU_CVF = 11;
+
+  final ImagePicker _picker = ImagePicker();
+  XFile? _imageFileList;
 
   late final ValueNotifier<List<PJPModel>> _selectedEvents;
   CalendarFormat _calendarFormat = CalendarFormat.twoWeeks;
@@ -187,16 +195,23 @@ class _IntranetHomePageState extends State<IntranetHomePage>
     print(json);
   }
 
+  updateProfileImage() async{
+    final prefs = await SharedPreferences.getInstance();
+    prefs.setString(LocalConstant.KEY_EMPLOYEE_AVTAR, _profileImage);
+  }
   Future<void> getUserInfo() async {
     final prefs = await SharedPreferences.getInstance();
     employeeId = int.parse(prefs.getString(LocalConstant.KEY_EMPLOYEE_ID) as String);
     mDesignation = prefs.getString(LocalConstant.KEY_DESIGNATION) as String;
+    var imageUrl = prefs.getString(LocalConstant.KEY_EMPLOYEE_AVTAR) ;
     mTitle = prefs.getString(LocalConstant.KEY_FIRST_NAME).toString() +
         " " +
         prefs.getString(LocalConstant.KEY_LAST_NAME).toString();
     _profileImage = 'https://cdn-icons-png.flaticon.com/128/149/149071.png';
     String sex = prefs.getString(LocalConstant.KEY_GENDER) as String;
-    if(sex == 'Male'){
+    if(imageUrl!=null){
+      _profileImage = imageUrl;
+    }else if(sex == 'Male'){
       _profileImage = 'https://cdn-icons-png.flaticon.com/128/149/149071.png';
     }else{
       _profileImage='https://cdn-icons-png.flaticon.com/128/727/727393.png';
@@ -213,6 +228,22 @@ class _IntranetHomePageState extends State<IntranetHomePage>
     _getId(employeeId.toString());
     //decodeJsonValue();
     setState(() {});
+  }
+
+  uploadProfilePicture() async{
+    try {
+      final XFile? pickedFileList = await _picker.pickImage(
+          source: ImageSource.camera, maxHeight: 800, imageQuality: 100);
+      setState(() {
+        _imageFileList = pickedFileList;
+        FirebaseStorageUtil()
+            .uploadAvtar(_imageFileList!.path, employeeId.toString(), this);
+      });
+    } catch (e) {
+      /*setState(() {
+        _pickImageError = e;
+      });*/
+    }
   }
 
   Future<String?> _getId(String employeeId) async {
@@ -704,12 +735,24 @@ class _IntranetHomePageState extends State<IntranetHomePage>
     );
   }
 
+
+  getImageUrl(String url) {
+    String weburl = url.replaceAll('___', '&');
+    weburl = Uri.decodeFull(weburl);
+    print(weburl);
+    return weburl;
+  }
+
+
   getMenu() {
     return ListView(
       // Important: Remove any padding from the ListView.
       padding: EdgeInsets.zero,
       children: <Widget>[
         UserAccountsDrawerHeader(
+          onDetailsPressed: (){
+            uploadProfilePicture();
+          },
           accountEmail: Text(mDesignation,style: TextStyle(
             fontSize: 16.0,
             color: Colors.white,
@@ -718,10 +761,26 @@ class _IntranetHomePageState extends State<IntranetHomePage>
             fontSize: 20.0,
             color: Colors.white,
           ),),
-          currentAccountPicture: CircleAvatar(
-            radius: 50.0,
-            backgroundColor: Color(0xFF778899),
-            backgroundImage: NetworkImage(_profileImage),
+          currentAccountPicture: GestureDetector(
+            onTap: (){
+              if(_profileImage.isNotEmpty){
+                Navigator.push(context, MaterialPageRoute(builder: (_) {
+                  return DetailScreen(
+                      imageUrl: _profileImage,
+                      userName: mTitle,
+                      listener: this,
+                      isViewOnly: false
+                  );
+                }));
+              }else {
+                uploadProfilePicture();
+              }
+            },
+            child: CircleAvatar(
+              radius: 50.0,
+              backgroundColor: Color(0xFF778899),
+              backgroundImage: NetworkImage(_profileImage),
+            ),
           ),
         ),
         Ink(
@@ -1059,6 +1118,96 @@ class _IntranetHomePageState extends State<IntranetHomePage>
             ),
           ),
         ])));
+  }
+
+  @override
+  void onStart() {
+    Utility.showLoaderDialog(context);
+  }
+
+  @override
+  void onUploadError(value) {
+    Navigator.of(context).pop();
+  }
+
+  @override
+  void onUploadProgress(int value) {
+
+  }
+
+  @override
+  void onUploadSuccess(value) {
+    Navigator.of(context).pop();
+    if (value is String) {
+      _profileImage = getImageUrl(value.toString());
+      updateProfileImage();
+    }
+    setState(() {});
+  }
+
+  @override
+  void onClick(int action, value) {
+    if(action==ACTION_ADD_NEW_IMAGE){
+      uploadProfilePicture();
+    }
+  }
+}
+
+class DetailScreen extends StatelessWidget {
+  late String imageUrl;
+  late String userName;
+  late onClickListener listener;
+  bool isViewOnly;
+
+  DetailScreen(
+      {Key? key,
+        required this.imageUrl,
+        required this.userName,
+        required this.listener,
+        required this.isViewOnly})
+      : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: kPrimaryLightColor,
+        centerTitle: true,
+        title: Text(
+          'Intranet',
+          style:
+          TextStyle(fontSize: 17, color: Colors.white, letterSpacing: 0.53),
+        ),
+        actions: !isViewOnly ? [
+          InkWell(
+            onTap: () {
+              Navigator.of(context).pop();
+              listener.onClick(ACTION_ADD_NEW_IMAGE, userName);
+            },
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Icon(
+                Icons.add,
+                size: 20,
+              ),
+            ),
+          ),
+        ] : null,
+      ),
+      body: GestureDetector(
+        child: Center(
+          child: Hero(
+            tag: 'imageHero',
+            child: Image.network(
+              imageUrl,
+            ),
+          ),
+        ),
+        onTap: () {
+          Navigator.pop(context);
+        },
+      ),
+    );
   }
 }
 

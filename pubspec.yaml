@@ -84,6 +84,8 @@ dependencies:
   overlay_support: ^2.0.1
   awesome_notifications: ^0.6.21
   flutter_background_service: ^2.4.3
+  flutter_slidable: ^2.0.0
+
 
 dev_dependencies:
   flutter_test:

@@ -64,6 +64,60 @@ class FirebaseStorageUtil{
     //await imageUploadRef.getDownloadURL();
   }
 
+  uploadAvtar(String filePath,String employeeId,onUploadResponse response)async{
+    File file = File(filePath);
+    response.onStart();
+    String imagePath = "images/avtar/${employeeId}.jpg";
+// Create the file metadata
+    final metadata = SettableMetadata(contentType: "image/jpeg");
+
+// Create a reference to the Firebase Storage bucket
+    final storageRef = FirebaseStorage.instance.ref();
+
+    // Create a reference to "mountains.jpg"
+    final imageUploadRef = storageRef.child(imagePath);
+
+
+// Upload file and metadata to the path 'images/mountains.jpg'
+    final uploadTask = imageUploadRef.putFile(file, metadata);
+
+// Listen for state changes, errors, and completion of the upload.
+    uploadTask.snapshotEvents.listen((TaskSnapshot taskSnapshot) async {
+      switch (taskSnapshot.state) {
+        case TaskState.running:
+          final progress =
+              100.0 * (taskSnapshot.bytesTransferred / taskSnapshot.totalBytes);
+          print("Upload is $progress% complete.");
+          response.onUploadProgress(progress.toInt());
+          break;
+        case TaskState.paused:
+          print("Upload is paused.");
+          response.onUploadError('Upload Paused');
+          break;
+        case TaskState.canceled:
+          print("Upload was canceled");
+          response.onUploadError('Upload canceled');
+          break;
+        case TaskState.error:
+        // Handle unsuccessful uploads
+          response.onUploadError('Upload Error');
+          break;
+        case TaskState.success:
+        // Handle successful uploads on complete
+          dynamic imageUrl= await taskSnapshot.ref.getDownloadURL();
+          imageUrl = Uri.encodeFull(imageUrl as String);
+          imageUrl = imageUrl.replaceAll('&', '___');
+
+          print('-----------------------------');
+          print(imageUrl);
+          response.onUploadSuccess(imageUrl);
+          break;
+      }
+    });
+
+    //await imageUploadRef.getDownloadURL();
+  }
+
 
   Future<String> compressAndGetFile(File file, String targetPath) async {
     var result = await FlutterImageCompress.compressAndGetFile(
