@@ -368,9 +368,9 @@ class _LeaveManagerScreen extends State<LeaveManagerScreen>
       builder: (BuildContext context) {
         // return object of type Dialog
         return AlertDialog(
-          title: new Text("Attendance Marking Approval"),
+          title: new Text("Leave  Approval"),
           content: new Text(
-              'Are you sure to approve attendance request'),
+              'Are you sure to approve the Leave request'),
           actions: <Widget>[
             // usually buttons at the bottom of the dialog
             ElevatedButton(
@@ -382,7 +382,7 @@ class _LeaveManagerScreen extends State<LeaveManagerScreen>
               style: ElevatedButton.styleFrom(
                   elevation: 12.0,
                   textStyle: const TextStyle(color: LightColors.kRed)),
-              child: const Text('Rejected'),
+              child: const Text('Reject'),
             ),
             ElevatedButton(
               onPressed: () {
@@ -393,7 +393,7 @@ class _LeaveManagerScreen extends State<LeaveManagerScreen>
               style: ElevatedButton.styleFrom(
                   elevation: 12.0,
                   textStyle: const TextStyle(color: LightColors.kLightGreen)),
-              child: const Text('Approved'),
+              child: const Text('Approve'),
             ),
           ],
         );

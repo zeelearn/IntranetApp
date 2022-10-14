@@ -32,6 +32,7 @@ class QuestionListScreen extends StatefulWidget {
   String mCategoryId;
   int PJPCVF_Id = 0;
   int employeeId;
+  bool isViewOnly;
 
   QuestionListScreen(
       {Key? key,
@@ -39,7 +40,8 @@ class QuestionListScreen extends StatefulWidget {
       required this.employeeId,
       required this.cvfView,
       required this.mCategory,
-      required this.mCategoryId})
+      required this.mCategoryId,
+      required this.isViewOnly})
       : super(key: key);
 
   @override
@@ -58,6 +60,7 @@ class _QuestionListScreenState extends State<QuestionListScreen>
   TextEditingController _textEditingController = TextEditingController();
 
   late QuestionResponse questionResponse;
+  late SharedPreferences prefs;
 
   @override
   void initState() {
@@ -78,7 +81,7 @@ class _QuestionListScreenState extends State<QuestionListScreen>
   List<bool> ischeck = [];
 
   getPrefQuestions(String categoryid) async {
-    final prefs = await SharedPreferences.getInstance();
+    prefs = await SharedPreferences.getInstance();
     print('in pref questions');
     try {
       var cvfQuestions = prefs.getString(widget.PJPCVF_Id.toString() +
@@ -118,6 +121,21 @@ class _QuestionListScreenState extends State<QuestionListScreen>
             categoryid +
             LocalConstant.KEY_CVF_QUESTIONS,
         data);
+  }
+
+  updateImageOffline(Allquestion question,String path) async{
+    final prefs = await SharedPreferences.getInstance();
+    prefs.setString('img_'+
+        widget.PJPCVF_Id.toString() +
+            question.Question_Id,
+        path);
+  }
+
+  String getImagePath(Allquestion question){
+    String? path = prefs.getString('img_'+
+        widget.PJPCVF_Id.toString() +
+            question.Question_Id);
+    return path== null ? '' : path.toString();
   }
 
   loadData() async {
@@ -280,7 +298,7 @@ class _QuestionListScreenState extends State<QuestionListScreen>
             Utility.showMessage(context, 'data not found');
           } else if (value is CVFAnswersResponse) {
             CVFAnswersResponse response = value;
-            if (cvfId.isNotEmpty) {
+            if ( cvfId.isNotEmpty) {
               IntranetServiceHandler.updateCVFStatus(widget.employeeId, cvfId,
                   Utility.getDateTime(), 'Completed', this);
             } else {
@@ -305,7 +323,7 @@ class _QuestionListScreenState extends State<QuestionListScreen>
     return Scaffold(
         appBar: AppBar(
           title: const Text('Questions'),
-          actions: [
+          actions: !widget.isViewOnly ? [
             IconButton(
               icon: const Icon(Icons.done),
               tooltip: 'Filter',
@@ -313,7 +331,7 @@ class _QuestionListScreenState extends State<QuestionListScreen>
                 saveAnswers('');
               },
             ),
-          ],
+          ] : null,
         ),
         body: Stack(
           children: [
@@ -431,30 +449,35 @@ class _QuestionListScreenState extends State<QuestionListScreen>
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            Utility.shortTime(
-                                Utility.convertTime(cvfView.visitTime)),
-                            style: TextStyle(
-                              fontSize: 14.0,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black,
-                            ),
-                          ),
-                          Text(
-                            Utility.shortTimeAMPM(
-                                Utility.convertTime(cvfView.visitTime)),
-                            style: TextStyle(
-                              fontSize: 12.0,
-                              color: Colors.black,
-                            ),
-                          ),
-                          Text(
                             Utility.shortDate(
-                                Utility.convertServerDate(cvfView.visitTime)),
+                                Utility.convertServerDate(cvfView.visitDate)),
                             style: TextStyle(
                               fontSize: 12.0,
                               color: Colors.black,
                             ),
                           ),
+                          Column(
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                            children: [
+                              Text(
+                                Utility.shortTime(
+                                    Utility.convertTime(cvfView.visitTime)),
+                                style: TextStyle(
+                                  fontSize: 16.0,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black,
+                                ),
+                              ),
+                              Text(
+                                Utility.shortTimeAMPM(
+                                    Utility.convertTime(cvfView.visitTime)),
+                                style: TextStyle(
+                                  fontSize: 11.0,
+                                  color: Colors.black,
+                                ),
+                              ),
+                            ],
+                          )
                         ],
                       ),
                     ),
@@ -666,7 +689,9 @@ class _QuestionListScreenState extends State<QuestionListScreen>
     _Status = cvfView.Status;
     return GestureDetector(
       onTap: () {
-        if (cvfView.Status == 'Completed') {
+        if(widget.isViewOnly){
+
+        }else if (cvfView.Status == 'Completed') {
           Utility.showMessages(
               context, 'CVF Already submitted and not able to update');
         } else if (isComplete()) {
@@ -826,6 +851,12 @@ class _QuestionListScreenState extends State<QuestionListScreen>
 
   _getAnswerWidget(Allquestion questions) {
     if (questions.answers[0].answerType == 'YesNo') {
+      String path = getImagePath(questions);
+      if(path.isNotEmpty){
+        questions.files = path;
+        updateImage(questions, path);
+      }
+
       //print('${questions.Question_Id}  : SelectedAnswer ${questions.SelectedAnswer} map ${userAnswerMap[questions.Question_Id]}');
       return Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -852,7 +883,9 @@ class _QuestionListScreenState extends State<QuestionListScreen>
               ),
               controlAffinity: ListTileControlAffinity.leading,
               onChanged: (checked) {
-                if (_Status == 'Completed') {
+                if(widget.isViewOnly) {
+
+                }else if (_Status == 'Completed') {
                   Utility.showMessages(
                       context, 'CVF Already submitted and not able to update');
                 } else {
@@ -881,7 +914,9 @@ class _QuestionListScreenState extends State<QuestionListScreen>
               ),
               controlAffinity: ListTileControlAffinity.leading,
               onChanged: (checked) {
-                if (_Status == 'Completed') {
+                if(widget.isViewOnly) {
+
+                }else if (_Status == 'Completed') {
                   Utility.showMessages(
                       context, 'CVF Already submitted and not able to update');
                 } else {
@@ -894,7 +929,18 @@ class _QuestionListScreenState extends State<QuestionListScreen>
           ),
           GestureDetector(
             onTap: () {
-              if (_Status == 'Completed') {
+              if(widget.isViewOnly) {
+                if (questions.files.isNotEmpty) {
+                  Navigator.push(context, MaterialPageRoute(builder: (_) {
+                    return DetailScreen(
+                      imageUrl: getImageUrl(questions.files),
+                      question: questions,
+                      listener: this,
+                        isViewOnly: widget.isViewOnly
+                    );
+                  }));
+                }
+              }else if (_Status == 'Completed') {
                 Utility.showMessages(
                     context, 'CVF Already submitted and not able to update');
               } else if (questions.files.isNotEmpty) {
@@ -903,6 +949,7 @@ class _QuestionListScreenState extends State<QuestionListScreen>
                     imageUrl: getImageUrl(questions.files),
                     question: questions,
                     listener: this,
+                      isViewOnly: widget.isViewOnly
                   );
                 }));
               } else {
@@ -911,7 +958,12 @@ class _QuestionListScreenState extends State<QuestionListScreen>
             },
             child: Padding(
               padding: EdgeInsets.all(8.0),
-              child: questions.files.isEmpty
+              child: (getImagePath(questions)).isNotEmpty ?
+                  Image.network(getImageUrl((getImagePath(questions) )),
+                  // width: 300,
+                  height: 80,
+                  fit: BoxFit.fill)
+                  : questions.files.isEmpty
                   ? Icon(
                       Icons.photo,
                       size: 20,
@@ -932,6 +984,11 @@ class _QuestionListScreenState extends State<QuestionListScreen>
   }
 
   getDescriptionWidget(Allquestion questions) {
+    String path = getImagePath(questions);
+    if(path.isNotEmpty){
+      questions.files = path;
+      updateImage(questions, path);
+    }
     //print(getImageUrl(questions.files));
     final size = MediaQuery.of(context).size;
     List<Widget> _rowWidget = [];
@@ -971,24 +1028,48 @@ class _QuestionListScreenState extends State<QuestionListScreen>
         ),
         trailing: GestureDetector(
           onTap: () {
-            if (_Status == 'Completed') {
+            if(widget.isViewOnly) {
+              if (questions.files.isNotEmpty) {
+                Navigator.push(context, MaterialPageRoute(builder: (_) {
+                  return DetailScreen(
+                      imageUrl: getImageUrl(questions.files),
+                      question: questions,
+                      listener: this,
+                      isViewOnly: widget.isViewOnly
+                  );
+                }));
+              }
+            }else if (_Status == 'Completed') {
               Utility.showMessages(
                   context, 'CVF Already submitted and not able to update');
+            } else if (questions.files.isNotEmpty) {
+              Navigator.push(context, MaterialPageRoute(builder: (_) {
+                return DetailScreen(
+                  imageUrl: getImageUrl(questions.files),
+                  question: questions,
+                  listener: this,
+                  isViewOnly: widget.isViewOnly,
+                );
+              }));
             } else
               pickImage(questions);
           },
           child: Padding(
             padding: EdgeInsets.all(8.0),
-            child: true || questions.files.isEmpty
+            child: (getImagePath(questions)).isNotEmpty ?
+            Image.network(getImageUrl((getImagePath(questions) )),
+                // width: 300,
+                height: 80,
+                fit: BoxFit.fill)
+                : questions.files.isEmpty
                 ? Icon(
-                    Icons.photo,
-                    size: 20,
-                  )
-                : Image.file(
-                    File(getImageUrl(questions.files)),
-                    width: 30,
-                    height: 30,
-                  ),
+              Icons.photo,
+              size: 20,
+            )
+                : Image.network(getImageUrl(questions.files),
+                // width: 300,
+                height: 80,
+                fit: BoxFit.fill),
           ),
         ),
       ));
@@ -1083,10 +1164,11 @@ class _QuestionListScreenState extends State<QuestionListScreen>
             ),
             controlAffinity: ListTileControlAffinity.leading,
             onChanged: (checked) {
-              //ischeck[getCheckboxIndex(player.question)] = false;
-              question.userAnswers = 'Yes';
-              updateAnswers(question, 'Yes');
-              setState(() {});
+              if(!widget.isViewOnly) {
+                question.userAnswers = 'Yes';
+                updateAnswers(question, 'Yes');
+                setState(() {});
+              }
             },
           ),
         ),
@@ -1100,9 +1182,11 @@ class _QuestionListScreenState extends State<QuestionListScreen>
             ),
             controlAffinity: ListTileControlAffinity.leading,
             onChanged: (checked) {
-              question.userAnswers = 'No';
-              updateAnswers(question, 'No');
-              setState(() {});
+              if(!widget.isViewOnly) {
+                question.userAnswers = 'No';
+                updateAnswers(question, 'No');
+                setState(() {});
+              }
             },
           ),
         ),
@@ -1202,9 +1286,9 @@ class _QuestionListScreenState extends State<QuestionListScreen>
                     .toString()
                 : '';
         if (mQuestionMaster[index].allquestion[jIndex].isCompulsory == '1' &&
-                userAnswer.isEmpty ||
-            userAnswer == 'null') {
-          print(mQuestionMaster[index].allquestion[jIndex].Question_Id +
+            (userAnswer.isEmpty || userAnswer == 'null')) {
+          print(mQuestionMaster[index].allquestion[jIndex].isCompulsory);
+          print('isComp : '+mQuestionMaster[index].allquestion[jIndex].Question_Id +
               '  ' +
               mQuestionMaster[index].allquestion[jIndex].SelectedAnswer);
           inCompleteQuestions =
@@ -1212,11 +1296,11 @@ class _QuestionListScreenState extends State<QuestionListScreen>
           token = ',';
           inCompleteCounts = inCompleteCounts + 1;
           isCompleted = false;
-        } else {
+        } /*else {
           print(mQuestionMaster[index].allquestion[jIndex].Question_Id +
               ' NC ' +
               mQuestionMaster[index].allquestion[jIndex].SelectedAnswer);
-        }
+        }*/
       }
     }
     if (inCompleteCounts < 10) {
@@ -1288,6 +1372,7 @@ class _QuestionListScreenState extends State<QuestionListScreen>
         if (mQuestionMaster[index].allquestion[jIndex].question ==
             questions.question) {
           mQuestionMaster[index].allquestion[jIndex].files = path;
+          updateImageOffline(questions,path);
         }
       }
     }
@@ -1341,6 +1426,7 @@ class _QuestionListScreenState extends State<QuestionListScreen>
     } else if (action == ACTION_DELETE_IMAGE) {
     } else if (action == Utility.ACTION_OK) {
       Navigator.of(context).pop();
+      Navigator.of(context).pop();
     }
   }
 }
@@ -1371,12 +1457,14 @@ class DetailScreen extends StatelessWidget {
   late String imageUrl;
   late Allquestion question;
   late onClickListener listener;
+  bool isViewOnly;
 
   DetailScreen(
       {Key? key,
       required this.imageUrl,
       required this.question,
-      required this.listener})
+      required this.listener,
+      required this.isViewOnly})
       : super(key: key);
 
   @override
@@ -1390,7 +1478,7 @@ class DetailScreen extends StatelessWidget {
           style:
               TextStyle(fontSize: 17, color: Colors.white, letterSpacing: 0.53),
         ),
-        actions: [
+        actions: !isViewOnly ? [
           InkWell(
             onTap: () {
               Navigator.of(context).pop();
@@ -1418,7 +1506,7 @@ class DetailScreen extends StatelessWidget {
               ),
             ),
           ),*/
-        ],
+        ] : null,
       ),
       body: GestureDetector(
         child: Center(

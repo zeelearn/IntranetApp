@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intranet/pages/auth/social_button.dart';
+import 'package:intranet/pages/firebase/anylatics.dart';
 import 'package:intranet/pages/widget/MyWidget.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -77,13 +78,13 @@ class _LoginPage extends State<LoginPage> {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   //logo section
-                  logo(size.height / 8, size.height / 8),
+                  logo(50, 50),
                   SizedBox(
-                    height: size.height * 0.03,
+                    height: size.height * 0.02,
                   ),
-                  richText(24),
+                  richText(20),
                   SizedBox(
-                    height: size.height * 0.03,
+                    height: size.height * 0.02,
                   ),
 
                   //email & password section
@@ -95,7 +96,7 @@ class _LoginPage extends State<LoginPage> {
                   passwordTextField(size,_userPasswordController),
 
                   SizedBox(
-                    height: size.height * 0.03,
+                    height: size.height * 0.02,
                   ),
 
                   Row(
@@ -132,33 +133,6 @@ class _LoginPage extends State<LoginPage> {
 
                   //sign in button & sign in with text
                   signInButton(size),
-                  SizedBox(
-                    height: size.height * 0.02,
-                  ),
-                  signInWithText(),
-                  SizedBox(
-                    height: size.height * 0.02,
-                  ),
-
-                  //sign in with google & apple
-                  // signInGoogleButton(size),
-                  /*SignInOneSocialButton(
-                  iconPath: 'assets/icons/apple_logo.svg',
-                  text: 'Sign in with Apple',
-                  size: size,
-                ),
-                SizedBox(
-                  height: size.height * 0.02,
-                ),*/
-                  /*SignInOneSocialButton(
-                    iconPath: 'assets/icons/google_logo.svg',
-                    text: 'Sign in with Google',
-                    size: MediaQuery.of(context).size,
-                  ),*/
-                  // signInAppleButton(size),
-                  SizedBox(
-                    height: size.height * 0.03,
-                  ),
 
                   //sign up text here
                   Center(
@@ -404,7 +378,7 @@ class _LoginPage extends State<LoginPage> {
               prefs.setString(
                   LocalConstant.KEY_LOCATION, info.employeeLocation as String);
               prefs.setString(LocalConstant.KEY_GENDER, info.gender as String);
-
+              FirebaseAnalyticsUtils.sendEvent(info.userName);
               Navigator.push(
                 context,
                 MaterialPageRoute(

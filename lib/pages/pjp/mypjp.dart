@@ -387,7 +387,8 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse,onCli
                               Padding(
                                 padding:
                                     EdgeInsetsDirectional.fromSTEB(24, 0, 0, 4),
-                                child: Icon(
+                                child: pjpInfo.getDetailedPJP == null ||
+                                    pjpInfo.getDetailedPJP!.length == 0 ? null : Icon(
                                   Icons.local_activity,
                                   color: Color(0xFF4B39EF),
                                   size: 20,
@@ -551,9 +552,11 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse,onCli
   @override
   void onSuccess(value) {
     Navigator.of(context).pop();
+    isLoading = false;
+    print('PJP List onSuccess ');
     if(value is String){
       IntranetServiceHandler.loadPjpSummery(employeeId, 0, this);
-    } if(value is UpdatePJPStatusResponse){
+    }else if(value is UpdatePJPStatusResponse){
       UpdatePJPStatusResponse val = value;
       print(val.toJson());
       if(val.responseData==0){
@@ -563,17 +566,20 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse,onCli
         Utility.getConfirmationDialog(context, this);
       }
     }else if(value is PjpListResponse){
+      print('PJP List onSuccess PjpListResponse');
       PjpListResponse response = value;
+      print(response.toString());
       String json = jsonEncode(response);
       savePJPLocally(json);
       //print('onResponse in if ${widget.mFilterSelection.type}');
       isLoading = false;
       mPjpList.clear();
+      print('PJP List onSuccess ${response.responseData.toString()}');
       if(response.responseData!=null && response.responseData.length>0){
         if (response != null && response.responseData != null) {
           if (widget.mFilterSelection == null ||
               widget.mFilterSelection.type == FILTERStatus.MYTEAM) {
-            //print(('FOR MY TEAM'));
+            print(('FOR MY TEAM'));
             //mPjpList.addAll(response.responseData);
             for (int index = 0;
             index < response.responseData.length;
@@ -598,12 +604,12 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse,onCli
                 mPjpList.add(response.responseData[index]);
               }
             }
-          } else if (widget.mFilterSelection.type == FILTERStatus.MYSELF) {
+          } else if (widget.mFilterSelection.type == FILTERStatus.NONE) {
             print(('FOR MY CUSTOM TEAM'));
             for (int index = 0;
             index < response.responseData.length;
             index++) {
-              if (response.responseData[index].isSelfPJP == 0) {
+              if (response.responseData[index].isSelfPJP == '0') {
                 mPjpList.add(response.responseData[index]);
               }
             }
@@ -626,14 +632,15 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse,onCli
           //print('========================${mPjpList.length}');
           //print(response.toJson());
           //mPjpList = mPjpList.reversed.toList();
-          setState(() {
-            //mPjpList.addAll(response.responseData);
-          });
+
         }
       }else{
         print('onResponse in if else');
       }
     }
+    setState(() {
+      //mPjpList.addAll(response.responseData);
+    });
   }
 
   void approvePjp(PJPInfo pjpInfo,int isApprove) {

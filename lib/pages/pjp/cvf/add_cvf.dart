@@ -3,7 +3,9 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_google_places/flutter_google_places.dart';
+import 'package:google_api_headers/google_api_headers.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:google_maps_webservice/places.dart';
 import 'package:intl/intl.dart';
 import 'package:intranet/api/response/pjp/pjplistresponse.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -25,18 +27,11 @@ import '../../helper/LocalConstant.dart';
 import '../../helper/LocalStrings.dart';
 import '../../helper/constants.dart';
 import '../../helper/utils.dart';
-import '../../home/IntranetHomePage.dart';
 import '../../iface/onClick.dart';
 import '../../utils/theme/colors/light_colors.dart';
 import '../../widget/MyWidget.dart';
-import '../../widget/check/checkbox.dart';
-import '../../widget/date_time/time_picker.dart';
 import '../../widget/options/dropdown.dart';
 import '../PJPForm.dart';
-import 'package:google_api_headers/google_api_headers.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_google_places/flutter_google_places.dart';
-import 'package:google_maps_webservice/places.dart';
 
 class AddCVFScreen extends StatefulWidget {
   PJPInfo mPjpModel;
@@ -412,7 +407,7 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener{
             if (response != null) {
               //mPjpModel.pjpId=response.responseData;
             }
-            Utility.showMessageSingleButton(context, "CVF added successfully", this);
+            fetchQuestions(response.responseData);
             //Utility.showMessage(context, 'CVF Saved in server');
             setState(() {});
             //print('category list ${response.responseData.length}');
@@ -985,4 +980,52 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener{
       setState(() {});
     });
   }
+
+  saveCvfQuestionsPref(int cvfId,String categoryid, String data) async {
+    final prefs = await SharedPreferences.getInstance();
+    prefs.setString(
+        cvfId.toString() +
+            categoryid +
+            LocalConstant.KEY_CVF_QUESTIONS,
+        data);
+  }
+
+  fetchQuestions(int cvfId){
+    Utility.showLoaderDialog(context);
+    String category = getCategoryList();
+    QuestionsRequest request = QuestionsRequest(
+        Category_Id: category,
+        Business_id: '1',
+        PJPCVF_Id: cvfId.toString());
+    APIService apiService = APIService();
+    apiService.getCVFQuestions(request).then((value) {
+      if (value != null) {
+        Navigator.of(context).pop();
+        if (value == null || value.responseData == null) {
+          Utility.showMessage(context, 'data not found');
+        } else if (value is QuestionResponse) {
+          QuestionResponse questionResponse = value;
+
+          if (questionResponse != null &&
+              questionResponse.responseData != null) {
+            saveCvfQuestionsPref(cvfId,category, json.encode(questionResponse.toJson()));
+
+            //mQuestionMaster.addAll(questionResponse.responseData);
+            DBHelper dbHelper = DBHelper();
+            print('data saved ....');
+            dbHelper.insertCVFQuestions(cvfId.toString(),
+                json.encode(questionResponse.toJson()), 0);
+            //insertQuestions();
+            Utility.showMessageSingleButton(context, "CVF added successfully", this);
+          }
+        } else {
+          Utility.showMessage(context, 'data not found');
+        }
+      }
+      // Navigator.of(context).pop();
+      setState(() {});
+    });
+  }
+
+
 }

@@ -58,6 +58,7 @@ class FCM {
   sendFcm(String token,String employeeId,deviceId,userAgent) async {
     final prefs = await SharedPreferences.getInstance();
     var oldoken = prefs.getString(LocalConstant.KEY_FCM_ID);
+    print(token);
     if(oldoken==null || oldoken != token) {
       prefs.setString(LocalConstant.KEY_FCM_ID, token);
       APIService service = APIService();

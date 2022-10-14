@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:intl/intl.dart';
@@ -40,6 +42,7 @@ class _LeaveSummeryScreenState extends State<LeaveSummeryScreen>
   List<LeaveBalanceInfo> leaveBalanceList = [];
   List<LeaveRequisitionInfo> leaveRequisitionList = [];
   bool isLoading = true;
+  late final prefs;
 
   @override
   void initState() {
@@ -64,12 +67,72 @@ class _LeaveSummeryScreenState extends State<LeaveSummeryScreen>
   }
 
   Future<void> getUserInfo() async {
-    final prefs = await SharedPreferences.getInstance();
+    prefs = await SharedPreferences.getInstance();
     employeeId =
         int.parse(prefs.getString(LocalConstant.KEY_EMPLOYEE_ID) as String);
 
-    loadSummery();
-    loadLeaveRequsition();
+    var leaveBalanceSummery = prefs.getString(getId());
+    var leaveRequsitionSummery = prefs.getString('r'+getId());
+    if(leaveBalanceSummery==null){
+      loadSummery();
+    }else {
+      getLocalData(leaveBalanceSummery);
+    }
+    if(leaveRequsitionSummery==null){
+      loadLeaveRequsition();
+    }else {
+      getLeaveRequisitionData(leaveRequsitionSummery);
+    }
+  }
+
+  getLocalData(data) {
+    bool isLoad = false;
+    try {
+      isLoading = false;
+      print(data.toString());
+      Map<String,dynamic> jsonObject  = json.decode(data.toString());
+      print('json decode');
+      LeaveBalanceResponse response = LeaveBalanceResponse.fromJson(
+        json.decode(data!),
+      );
+      if (response != null && response.responseData != null){
+        LeaveBalanceInfo info = response.responseData[0];
+        widget._applied = info.leaveApplied.toInt().toString();
+        widget._taken = info.leaveTaken.toInt().toString();
+        widget._rejected = info.leaveRejected.toInt().toString();
+        widget._totalCanceled = info.leaveCancelled.toInt().toString();
+        widget._avaliableForEncash = info.leaveAvaEncash.toInt().toString();
+        widget._totalLeaveBalance = info.leaveBalance.toInt().toString();
+        setState(() {});
+      }
+      setState(() {});
+      isLoad = true;
+    }catch(e){
+      isLoad = false;
+    }
+    return isLoad;
+  }
+  getLeaveRequisitionData(data) {
+    bool isLoad = false;
+    try {
+      isLoading = false;
+      print(data.toString());
+      leaveRequisitionList.clear();
+      Map<String,dynamic> jsonObject  = json.decode(data.toString());
+      print('json decode');
+      LeaveRequisitionResponse response = LeaveRequisitionResponse.fromJson(
+        json.decode(data!),
+      );
+      if (response != null && response.responseData != null){
+        leaveRequisitionList.addAll(response.responseData);
+        setState(() {});
+      }
+      setState(() {});
+      isLoad = true;
+    }catch(e){
+      isLoad = false;
+    }
+    return isLoad;
   }
 
   loadSummery() {
@@ -96,6 +159,10 @@ class _LeaveSummeryScreenState extends State<LeaveSummeryScreen>
           if (response != null &&
               response.responseData != null &&
               response.responseData[0] != null) {
+
+            String json = jsonEncode(response);
+            saveLeaveSummery(json);
+
             LeaveBalanceInfo info = response.responseData[0];
             widget._applied = info.leaveApplied.toInt().toString();
             widget._taken = info.leaveTaken.toInt().toString();
@@ -113,6 +180,17 @@ class _LeaveSummeryScreenState extends State<LeaveSummeryScreen>
       //Navigator.of(context).pop();
       setState(() {});
     });
+  }
+
+  String getId(){
+    return '${employeeId.toString()}_${LocalConstant.KEY_MY_LEAVE}';
+  }
+
+  saveLeaveSummery(String json) async{
+    prefs.setString(getId(), json);
+  }
+  saveLeaveRequsition(String json) async{
+    prefs.setString('r'+getId(), json);
   }
 
   loadLeaveRequsition() {
@@ -144,6 +222,8 @@ class _LeaveSummeryScreenState extends State<LeaveSummeryScreen>
         } else if (value is LeaveRequisitionResponse) {
           LeaveRequisitionResponse response = value;
           if (response != null && response.responseData != null) {
+            String json = jsonEncode(response);
+            saveLeaveRequsition(json);
             leaveRequisitionList.addAll(response.responseData);
             setState(() {});
           }
@@ -174,6 +254,7 @@ class _LeaveSummeryScreenState extends State<LeaveSummeryScreen>
               // Replace this delay with the code to be executed during refresh
               // and return a Future when code finishs execution.
               loadLeaveRequsition();
+              loadSummery();
               return Future<void>.delayed(const Duration(seconds: 3));
             },
             // Pull from top to show refresh indicator.
