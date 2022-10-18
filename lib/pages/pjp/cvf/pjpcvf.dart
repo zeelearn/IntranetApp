@@ -224,6 +224,7 @@ class _MyCVFListScreen extends State<CVFListScreen> implements onResponse,onClic
       return Utility.emptyDataSet(context,"your CVF list is Empty");
     } else {
 
+
       List<GetDetailedPJP> list = [];
       list.addAll(mCvfList);
 
@@ -319,8 +320,15 @@ class _MyCVFListScreen extends State<CVFListScreen> implements onResponse,onClic
   }
 
   getCvfView(GetDetailedPJP cvfView) {
+
     if(cvfView.Status.trim()=='NA'){
       cvfView.Status = 'Check In';
+    }
+    if(offlineStatus.containsKey(cvfView.PJPCVF_Id.toString())){
+      cvfView.Status = offlineStatus[cvfView.PJPCVF_Id].toString();
+      print('Status get it from Offline ${cvfView.Status}  ${cvfView.PJPCVF_Id}');
+    }else{
+      print(' ${cvfView.PJPCVF_Id} key not found');
     }
     return GestureDetector(
       onTap: () {
