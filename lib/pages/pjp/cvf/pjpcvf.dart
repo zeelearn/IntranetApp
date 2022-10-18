@@ -319,6 +319,9 @@ class _MyCVFListScreen extends State<CVFListScreen> implements onResponse,onClic
   }
 
   getCvfView(GetDetailedPJP cvfView) {
+    if(cvfView.Status.trim()=='NA'){
+      cvfView.Status = 'Check In';
+    }
     return GestureDetector(
       onTap: () {
         print('on tap ${widget.mPjpInfo.isSelfPJP}');
