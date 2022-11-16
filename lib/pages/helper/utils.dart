@@ -291,7 +291,7 @@ class Utility{
     DateTime dt = DateTime.now();
     //2022-07-18T00:00:00
     try {
-      dt = new DateFormat('yyyy-MM-ddTmm:hh:ss').parse(value);
+      dt = new DateFormat('yyyy-MM-dd\'T\'HH:mm:ss').parse(value);
       //print('asasdi   ' + dt.day.toString());
     } catch (e) {
       e.toString();
@@ -340,7 +340,7 @@ class Utility{
     String value='';
     //2022-07-18T00:00:00
     try {
-      value = new DateFormat('yyyy-MM-ddTmm:hh:ss').format(date);
+      value = new DateFormat('yyyy-MM-dd\'T\'HH:mm:ss').format(date);
       //print('asasdi   ' + dt.day.toString());
     } catch (e) {
       e.toString();

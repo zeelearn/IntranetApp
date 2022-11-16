@@ -11,7 +11,10 @@ class AttendanceSummeryResponse {
   AttendanceSummeryResponse.fromJson(Map<String, dynamic> json){
     responseMessage = json['responseMessage'];
     statusCode = json['statusCode'];
-    responseData = List.from(json['responseData']).map((e)=>AttendanceSummeryModel.fromJson(e)).toList();
+    responseData = json['responseData'] !=null ? List.from(json['responseData']).map((e)=>AttendanceSummeryModel.fromJson(e)).toList() : [];
+    if(responseData==null){
+      responseData=[];
+    }
   }
 
   Map<String, dynamic> toJson() {

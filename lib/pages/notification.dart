@@ -130,7 +130,7 @@ class _NotificationListScreenState extends State<NotificationListScreen>
     DateTime dt = DateTime.now();
     //2022-09-27T32:12:02
     try {
-      dt = new DateFormat('yyyy-MM-ddTmm:hh:ss').parse(value);
+      dt = new DateFormat('yyyy-MM-dd\'T\'HH:mm:ss').parse(value);
       //print('asasdi   ' + dt.day.toString());
     } catch (e) {
       e.toString();

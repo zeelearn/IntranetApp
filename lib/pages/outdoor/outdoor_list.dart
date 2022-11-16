@@ -251,7 +251,7 @@ class _OutdoorScreen extends State<OutdoorScreen>
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
-                            model.noOfDays.toInt().toString(),
+                            getDate(model.date),
                             style: TextStyle(
                               fontSize: 22.0,
                               fontWeight: FontWeight.bold,
@@ -259,7 +259,7 @@ class _OutdoorScreen extends State<OutdoorScreen>
                             ),
                           ),
                           Text(
-                            'days',
+                            getMonth(model.date),
                             style: TextStyle(
                               fontSize: 16.0,
                               color: Colors.black,
@@ -365,12 +365,36 @@ class _OutdoorScreen extends State<OutdoorScreen>
     DateTime dt = DateTime.now();
     //2022-07-18T00:00:00
     try {
-      dt = new DateFormat('yyyy-MM-ddTmm:hh:ss').parse(value);
+      dt = new DateFormat('yyyy-MM-dd\'T\'HH:mm:ss').parse(value);
       print('asasdi   ' + dt.day.toString());
     } catch (e) {
       e.toString();
     }
     return dt;
+  }
+
+  String getDate(String value) {
+    DateTime dt = parseDate(value);
+    String date='';
+    try {
+      date = new DateFormat('dd').format(dt);
+      print('asasdi   ' + dt.day.toString());
+    } catch (e) {
+      e.toString();
+    }
+    return date;
+  }
+
+  String getMonth(String value) {
+    DateTime dt = parseDate(value);
+    String date='';
+    try {
+      date = new DateFormat('MMM').format(dt);
+      print('asasdi   ' + dt.day.toString());
+    } catch (e) {
+      e.toString();
+    }
+    return date;
   }
 
   String getParsedShortDate(String value) {

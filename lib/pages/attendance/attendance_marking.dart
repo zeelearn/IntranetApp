@@ -277,9 +277,10 @@ class _AttendanceMarkingScreen extends State<AttendanceMarkingScreen> implements
     APIService apiService = APIService();
     apiService.attendanceMarking(request).then((value) {
       Navigator.of(context).pop();
+      print(value);
       if (value != null) {
-        if (value == null || value.responseData == null) {
-          Utility.showMessage(context, 'Unable to Apply Leave Request');
+        if (value == null ) {
+          Utility.showMessage(context, 'Unable to Process your Request');
         } else if (value is AttendanceMarkingResponse) {
           AttendanceMarkingResponse response = value;
           Utility.showMessageSingleButton(context, response.responseMessage,this);
@@ -291,7 +292,7 @@ class _AttendanceMarkingScreen extends State<AttendanceMarkingScreen> implements
         }
       } else {
         Navigator.pop(context);
-        Utility.showMessage(context, "Unable to Apply Leave Request");
+        Utility.showMessage(context, "Unable to Apply Attendance Request");
         print("null value");
       }
     });

@@ -187,6 +187,21 @@ class _OutdoorReqManagerScreen extends State<OutdoorReqManagerScreen>
     return jsonValue;
   }
 
+  getSelection() {
+    //ApproveLeaveRequsitionRequest request = ApproveLeaveRequsitionRequest();
+    late var value = "";
+    if (_isChecked != null && _isChecked.length > 0) {
+      for (int index = 0; index < _isChecked.length; index++) {
+        if(_isChecked[index]) {
+          if(!value.contains(requisitionList[index].employeeName))
+            value = value + '\n${requisitionList[index].employeeName}';
+        }
+
+      }
+    }
+    return value;
+  }
+
   updateSelection() {
     //ApproveLeaveRequsitionRequest request = ApproveLeaveRequsitionRequest();
     late var jsonValue="[";
@@ -358,7 +373,7 @@ class _OutdoorReqManagerScreen extends State<OutdoorReqManagerScreen>
         return AlertDialog(
           title: new Text("Outdoor Marking Approval"),
           content: new Text(
-              'Are you sure to approve Outdoor request for ${model.employeeName}'),
+              'Are you sure to approve Outdoor request for - \n ${getSelection()}'),
           actions: <Widget>[
             // usually buttons at the bottom of the dialog
             ElevatedButton(
@@ -579,7 +594,7 @@ class _OutdoorReqManagerScreen extends State<OutdoorReqManagerScreen>
     DateTime dt = DateTime.now();
     //2022-07-18T00:00:00
     try {
-      dt = new DateFormat('yyyy-MM-ddTmm:hh:ss').parse(value);
+      dt = new DateFormat('yyyy-MM-dd\'T\'HH:mm:ss').parse(value);
       print('asasdi   ' + dt.day.toString());
     } catch (e) {
       e.toString();

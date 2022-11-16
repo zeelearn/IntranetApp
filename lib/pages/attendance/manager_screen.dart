@@ -545,10 +545,10 @@ class _AttendanceManagerScreen extends State<AttendanceManagerScreen>
 
   DateTime parseDate(String value) {
     DateTime dt = DateTime.now();
-    //2022-07-18T00:00:00
+
     try {
-      dt = new DateFormat('yyyy-MM-ddTmm:hh:ss').parse(value);
-      print('asasdi   ' + dt.day.toString());
+      dt = new DateFormat('yyyy-MM-dd\'T\'HH:mm:ss').parse(value);
+      //print('${value}   ' + dt.day.toString());
     } catch (e) {
       e.toString();
     }
@@ -557,6 +557,9 @@ class _AttendanceManagerScreen extends State<AttendanceManagerScreen>
 
   String getParsedShortDate(String value) {
     DateTime dateTime = parseDate(value);
-    return DateFormat("MMM-dd").format(dateTime);
+    //print(value);
+    String parsedDate =  DateFormat("MMM-dd").format(dateTime);
+    //print('Original ${value} parsed ${parsedDate}');
+    return parsedDate;
   }
 }
