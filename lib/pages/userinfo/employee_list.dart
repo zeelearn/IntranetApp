@@ -23,6 +23,8 @@ class _EmployeeListScreenState extends State<EmployeeListScreen>
   int employeeId = 0;
 
   List<EmployeeInfo> employeeList = [];
+  List<EmployeeInfo> masterEmployeeList = [];
+  String _search="";
 
   @override
   void initState() {
@@ -56,6 +58,7 @@ class _EmployeeListScreenState extends State<EmployeeListScreen>
   loadEmployeeList() {
     Utility.showLoaderDialog(context);
     employeeList.clear();
+    masterEmployeeList.clear();
     APIService apiService = APIService();
     apiService.getEmployeeList().then((value) {
       print(value.toString());
@@ -67,6 +70,7 @@ class _EmployeeListScreenState extends State<EmployeeListScreen>
           if (response != null &&
               response.responseData != null) {
             employeeList.addAll(response.responseData);
+            masterEmployeeList.addAll(response.responseData);
             setState(() {});
           }
           print('summery list ${response.responseData.length}');
@@ -79,7 +83,34 @@ class _EmployeeListScreenState extends State<EmployeeListScreen>
     });
   }
 
+  updateList(){
+    employeeList.clear();
+    if(_search.isNotEmpty && _search.length>0){
+      for(int index=0;index<masterEmployeeList.length;index++){
+        if(masterEmployeeList[index].employeeCode.contains(_search) ||
+        masterEmployeeList[index].employeeFullName.contains(_search) ||
+            masterEmployeeList[index].employeeDesignation.contains(_search) ||
+            masterEmployeeList[index].employeeEmailId.contains(_search) ||
+            masterEmployeeList[index].employeeContactNumber.contains(_search)
+        ){
+          employeeList.add(masterEmployeeList[index]);
+        }
+      }
+    }else{
+      employeeList.addAll(masterEmployeeList);
+    }
+    print('${_search}  ${employeeList.length}');
+    setState(() {
 
+    });
+  }
+  Icon customIcon = const Icon(Icons.search);
+  Widget customSearchBar = const Text('Employee Directory');
+  Widget customleading = const Icon(
+    Icons.arrow_back,
+    color: Colors.white,
+    size: 28,
+  );
   @override
   Widget build(BuildContext context) {
     double width = MediaQuery
@@ -89,7 +120,66 @@ class _EmployeeListScreenState extends State<EmployeeListScreen>
     return Scaffold(
         extendBodyBehindAppBar: true,
         backgroundColor: LightColors.kLightYellow,
-        appBar: AppBar(title: const Text('Employee Directory')),
+        appBar: AppBar(
+          title: customSearchBar,
+          automaticallyImplyLeading: false,
+          leading: customleading,
+          actions: [
+            IconButton(
+              onPressed: () {
+                setState(() {
+                  if (customIcon.icon == Icons.search) {
+                    // Perform set of instructions.
+                    customIcon = const Icon(Icons.cancel);
+
+                    customleading = const Icon(
+                      Icons.search,
+                      color: Colors.white,
+                      size: 28,
+                    );
+                    customSearchBar =  ListTile(
+                      title: TextField(
+                        onChanged: (value) {
+                          _search = value;
+                          updateList();
+                        },
+                        decoration: InputDecoration(
+                          hintText: 'search employee name here',
+                          hintStyle: TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontStyle: FontStyle.italic,
+                          ),
+                          border: InputBorder.none,
+                        ),
+                        style: TextStyle(
+                          color: Colors.white,
+                        ),
+                      ),
+                    );
+                  } else {
+                    _search = "";
+                    updateList();
+                    customleading =  InkWell(
+                      onTap: (){
+                        Navigator.of(context).pop();
+                      },
+                      child: Icon(
+                        Icons.arrow_back,
+                        color: Colors.white,
+                        size: 28,
+                      ),
+                    );
+                    customIcon = const Icon(Icons.search);
+                    customSearchBar = const Text('Employee Directory');
+                  }
+                });
+              },
+              icon: customIcon,
+            )
+          ],
+          centerTitle: true,
+        ),
         body: SafeArea(
           child: RefreshIndicator(
             key: _refreshIndicatorKey,
@@ -111,22 +201,11 @@ class _EmployeeListScreenState extends State<EmployeeListScreen>
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'Employee List',
+                        '',
                         style: TextStyle(
                             fontSize: 16, fontWeight: FontWeight.bold),
                       ),
-                      InkWell(
-                        onTap: () {
-                          //search functionality
-                        },
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Icon(
-                            Icons.search_sharp,
-                            size: 20,
-                          ),
-                        ),
-                      ),
+
                     ],
                   ),
                 ),

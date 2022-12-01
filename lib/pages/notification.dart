@@ -52,6 +52,7 @@ class _NotificationListScreenState extends State<NotificationListScreen>
 
   getNotifications() async {
     DBHelper helper=new DBHelper();
+    mNotificationList.clear();
     List<NotificationDataModel> notificationList =  await helper.getNotificationList();
     for(int index=0;index<notificationList.length;index++){
       try {

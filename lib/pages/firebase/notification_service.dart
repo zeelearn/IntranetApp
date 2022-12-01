@@ -1,3 +1,4 @@
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
@@ -27,10 +28,11 @@ class NotificationService {
   static final AndroidNotificationDetails _androidNotificationDetails =
   AndroidNotificationDetails(
     channelId,
-    "thecodexhub",
+    "Intranet",
     channelDescription:
     "This channel is responsible for all the local notifications",
     playSound: true,
+    icon: '@mipmap/ic_launcher',
     priority: Priority.high,
     importance: Importance.high,
   );
@@ -67,6 +69,8 @@ class NotificationService {
       initializationSettings,
       onSelectNotification: onSelectNotification,
     );
+
+    print(FirebaseMessaging.instance.getToken());
   }
 
   Future<void> requestIOSPermissions() async {

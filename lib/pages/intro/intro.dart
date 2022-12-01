@@ -62,6 +62,7 @@ class _IntroPageState extends State<IntroPage> {
           PageView(
             onPageChanged: (int page) {
               setState(() {
+                print('current page ${page}');
                 currentIndex = page;
               });
             },

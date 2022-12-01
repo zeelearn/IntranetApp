@@ -695,7 +695,7 @@ class APIService {
             "content-type": "application/json"
           },
           body:requestModel.getJson());
-      //print(response.body);
+      print(response.body);
       if (response.statusCode == 200 || response.statusCode == 400) {
         String data = response.body.replaceAll('null', '\"NA\"');
         return PjpListResponse.fromJson(

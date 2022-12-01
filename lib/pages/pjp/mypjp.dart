@@ -235,9 +235,9 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse,onCli
               context,
               MaterialPageRoute(
                   builder: (context) => CVFListScreen(mPjpInfo: pjpInfo)));
-        }else if(pjpInfo.ApprovalStatus=='Rejected'){
+        }else if(pjpInfo.isSelfPJP=='1' && pjpInfo.ApprovalStatus=='Rejected'){
           Utility.showMessageSingleButton(context, 'The PJP is Rejected by Manager', this);
-        }else{
+        }else if (pjpInfo.isSelfPJP=='1'){
           Utility.showMessageSingleButton(context, 'This pjp is not approved yet, Please connect with your manager', this);
         }
       },
@@ -628,6 +628,12 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse,onCli
               }
             }
           }
+
+          mPjpList.sort((a,b) {
+            var adate = a.fromDate; //before -> var adate = a.expiry;
+            var bdate = b.fromDate; //var bdate = b.expiry;
+            return -bdate.compareTo(adate);
+          });
           //mPjpList.addAll(response.responseData);
           //print('========================${mPjpList.length}');
           //print(response.toJson());

@@ -39,7 +39,7 @@ class _AttendanceMarkingScreen extends State<AttendanceMarkingScreen> implements
   TextEditingController _jobDescController = TextEditingController();
   DateTime currentDate = DateTime.now();
   DateTime minDate = DateTime(DateTime.now().year, DateTime.now().month - 3, 1);
-  DateTime maxDate = DateTime(DateTime.now().year, DateTime.now().month + 3, 1);
+  DateTime maxDate = DateTime.now();
   bool isWFH = false;
 
   @override
