@@ -787,6 +787,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
                 Navigator.push(context, MaterialPageRoute(builder: (_) {
                   return DetailScreen(
                       imageUrl: _profileImage,
+                      imageList:_profileAvtar,
                       userName: mTitle,
                       listener: this,
                       isViewOnly: false
@@ -1199,6 +1200,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
 
 class DetailScreen extends StatelessWidget {
   late String imageUrl;
+  late Uint8List? imageList;
   late String userName;
   late onClickListener listener;
   bool isViewOnly;
@@ -1206,6 +1208,7 @@ class DetailScreen extends StatelessWidget {
   DetailScreen(
       {Key? key,
         required this.imageUrl,
+        required this.imageList,
         required this.userName,
         required this.listener,
         required this.isViewOnly})
@@ -1238,19 +1241,7 @@ class DetailScreen extends StatelessWidget {
           ),
         ] : null,
       ),
-      body: GestureDetector(
-        child: Center(
-          child: Hero(
-            tag: 'imageHero',
-            child: Image.network(
-              imageUrl,
-            ),
-          ),
-        ),
-        onTap: () {
-          Navigator.pop(context);
-        },
-      ),
+      body: imageList!=null ? Image.memory(imageList!) : Image.network(imageUrl),
     );
   }
 }
