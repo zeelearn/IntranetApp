@@ -1115,7 +1115,7 @@ class _AttendanceSummeryState extends State<AttendanceSummeryScreen> {
     DateTime dt = DateTime.now();
     //2022-07-18T00:00:00
     try {
-      dt = new DateFormat('yyyy-MM-ddTmm:hh:ss').parse(value);
+      dt = new DateFormat('yyyy-MM-dd\'T\'HH:mm:ss').parse(value);
     } catch (e) {
       e.toString();
     }
@@ -1127,7 +1127,7 @@ class _AttendanceSummeryState extends State<AttendanceSummeryScreen> {
     DateTime dt = DateTime.now();
     //2022-07-18T00:00:00
     try {
-      dt = new DateFormat('yyyy-MM-ddTmm:hh:ss').parse(value);
+      dt = new DateFormat('yyyy-MM-dd\'T\'HH:mm:ss').parse(value);
       month = DateFormat("MMM").format(dt);
     } catch (e) {
       e.toString();

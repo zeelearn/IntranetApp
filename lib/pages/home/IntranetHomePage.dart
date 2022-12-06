@@ -85,11 +85,13 @@ class _IntranetHomePageState extends State<IntranetHomePage>
   DateTime? _rangeStart;
   DateTime? _rangeEnd;
 
+  late SharedPreferences prefs;
+
   Map<DateTime, List<PJPModel>> attendanceEvent = Map();
   int employeeId = 0;
   String mDesignation = '';
-  String _profileImage =
-      'https://cdn-icons-png.flaticon.com/128/149/149071.png';
+  String _profileImage = 'https://cdn-icons-png.flaticon.com/128/149/149071.png';
+  Uint8List? _profileAvtar;
   List<PJPModel> mPjpList = [];
   late String mTitle = "";
 
@@ -196,11 +198,11 @@ class _IntranetHomePageState extends State<IntranetHomePage>
   }
 
   updateProfileImage() async{
-    final prefs = await SharedPreferences.getInstance();
+    prefs = await SharedPreferences.getInstance();
     prefs.setString(LocalConstant.KEY_EMPLOYEE_AVTAR, _profileImage);
   }
   Future<void> getUserInfo() async {
-    final prefs = await SharedPreferences.getInstance();
+    prefs = await SharedPreferences.getInstance();
     employeeId = int.parse(prefs.getString(LocalConstant.KEY_EMPLOYEE_ID) as String);
     mDesignation = prefs.getString(LocalConstant.KEY_DESIGNATION) as String;
     var imageUrl = prefs.getString(LocalConstant.KEY_EMPLOYEE_AVTAR) ;
@@ -216,6 +218,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
     }else{
       _profileImage='https://cdn-icons-png.flaticon.com/128/727/727393.png';
     }
+    getProfileImage();
     PackageInfo.fromPlatform().then((PackageInfo packageInfo) {
       String appName = packageInfo.appName;
       String packageName = packageInfo.packageName;
@@ -228,6 +231,23 @@ class _IntranetHomePageState extends State<IntranetHomePage>
     _getId(employeeId.toString());
     //decodeJsonValue();
     setState(() {});
+  }
+
+  getProfileImage() async{
+    try{
+      print('Avtar getProfileImaage-----');
+      var avtar = prefs.getString(LocalConstant.KEY_EMPLOYEE_AVTAR_LIST);
+      print('Avtar ${avtar}');
+      if(avtar!=null && avtar !='') {
+        print('getProfile pic decode');
+        _profileAvtar = base64.decode(avtar);
+      }else {
+        print('getProfile pic in else');
+        FirebaseStorageUtil().getProfileImage(employeeId.toString(), this);
+      }
+    }catch(e){
+        print(e.toString());
+    }
   }
 
   uploadProfilePicture() async{
@@ -767,6 +787,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
                 Navigator.push(context, MaterialPageRoute(builder: (_) {
                   return DetailScreen(
                       imageUrl: _profileImage,
+                      imageList:_profileAvtar,
                       userName: mTitle,
                       listener: this,
                       isViewOnly: false
@@ -776,11 +797,27 @@ class _IntranetHomePageState extends State<IntranetHomePage>
                 uploadProfilePicture();
               }
             },
-            child: CircleAvatar(
+            child: Container(
+              width: 100.0,
+              height: 100.0,
+              decoration: BoxDecoration(
+                color: const Color(0xff7c94b6),
+                image: DecorationImage(
+                  image: _profileAvtar!=null ? Image.memory(_profileAvtar!).image : NetworkImage(_profileImage),
+                  fit: BoxFit.cover,
+                ),
+                borderRadius: BorderRadius.all( Radius.circular(50.0)),
+                border: Border.all(
+                  color: Colors.green,
+                  width: 1.0,
+                ),
+              ),
+            ),/*CircleAvatar(
               radius: 50.0,
+              child: _profileAvtar!=null ? Image.memory(_profileAvtar!) : Image.network(_profileImage),
               backgroundColor: Color(0xFF778899),
-              backgroundImage: NetworkImage(_profileImage),
-            ),
+              *//*backgroundImage: NetworkImage(_profileImage),*//*
+            ),*/
           ),
         ),
         Ink(
@@ -1137,10 +1174,18 @@ class _IntranetHomePageState extends State<IntranetHomePage>
 
   @override
   void onUploadSuccess(value) {
-    Navigator.of(context).pop();
+
     if (value is String) {
+      Navigator.of(context).pop();
       _profileImage = getImageUrl(value.toString());
       updateProfileImage();
+      FirebaseStorageUtil().getProfileImage(employeeId.toString(), this);
+
+    }else if(value is Uint8List){
+
+      var profileImage = base64.encode(value);
+      _profileAvtar = base64.decode(profileImage);
+      prefs.setString(LocalConstant.KEY_EMPLOYEE_AVTAR_LIST,profileImage);
     }
     setState(() {});
   }
@@ -1155,6 +1200,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
 
 class DetailScreen extends StatelessWidget {
   late String imageUrl;
+  late Uint8List? imageList;
   late String userName;
   late onClickListener listener;
   bool isViewOnly;
@@ -1162,6 +1208,7 @@ class DetailScreen extends StatelessWidget {
   DetailScreen(
       {Key? key,
         required this.imageUrl,
+        required this.imageList,
         required this.userName,
         required this.listener,
         required this.isViewOnly})
@@ -1194,19 +1241,7 @@ class DetailScreen extends StatelessWidget {
           ),
         ] : null,
       ),
-      body: GestureDetector(
-        child: Center(
-          child: Hero(
-            tag: 'imageHero',
-            child: Image.network(
-              imageUrl,
-            ),
-          ),
-        ),
-        onTap: () {
-          Navigator.pop(context);
-        },
-      ),
+      body: imageList!=null ? Image.memory(imageList!) : Image.network(imageUrl),
     );
   }
 }

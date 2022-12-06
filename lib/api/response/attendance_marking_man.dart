@@ -59,16 +59,16 @@ class AttendanceReqManModel {
   AttendanceReqManModel.fromJson(Map<String, dynamic> json) {
     requisitionId = json['requisition_Id'];
     employeeId = json['employee_Id'];
-    employeeName = json['employee_Name'];
-    superiorName = json['superior_Name'];
-    date = json['date'];
-    inTime = json['in_Time'];
-    outTime = json['out_Time'];
-    worklocation = json['worklocation'];
-    reason = json['reason'];
-    status = json['status'];
-    requisitionTypeCode = json['requisitionTypeCode'];
-    workflowTypeCode = json['workflowTypeCode'];
+    employeeName = json['employee_Name'] ?? '';
+    superiorName = json['superior_Name'] ?? '';
+    date = json['date'] ?? '';
+    inTime = json['in_Time'] ?? '';
+    outTime = json['out_Time'] ?? '';
+    worklocation = json['worklocation'] ?? '';
+    reason = json['reason'] ?? '';
+    status = json['status'] ?? '';
+    requisitionTypeCode = json['requisitionTypeCode'] ?? '';
+    workflowTypeCode = json['workflowTypeCode'] ?? '';
   }
 
   Map<String, dynamic> toJson() {
@@ -80,7 +80,7 @@ class AttendanceReqManModel {
     data['date'] = this.date;
     data['in_Time'] = this.inTime;
     data['out_Time'] = this.outTime;
-    data['worklocation'] = this.worklocation;
+    data['worklocation'] = this.worklocation ?? '';
     data['reason'] = this.reason;
     data['status'] = this.status;
     data['requisitionTypeCode'] = this.requisitionTypeCode;

@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:isolate';
+import 'dart:typed_data';
 
 import 'package:firebase_storage/firebase_storage.dart'; // For File Upload To Firestore
 import 'package:flutter/material.dart';
@@ -62,6 +63,15 @@ class FirebaseStorageUtil{
     });
 
     //await imageUploadRef.getDownloadURL();
+  }
+
+  getProfileImage(String employeeId,onUploadResponse response) async {
+    final storageRef = FirebaseStorage.instance.ref();
+    String imagePath = "images/avtar/${employeeId}.jpg";
+    final imageUploadRef = storageRef.child(imagePath);
+    imageUploadRef.getData(10000000).then((data) =>
+          response.onUploadSuccess(data)).
+    catchError((e) =>  print('error'));
   }
 
   uploadAvtar(String filePath,String employeeId,onUploadResponse response)async{

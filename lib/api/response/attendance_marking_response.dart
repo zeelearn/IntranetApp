@@ -1,7 +1,7 @@
 class AttendanceMarkingResponse {
   late int statusCode;
   late String responseMessage;
-  late int responseData;
+  late dynamic responseData;
 
   AttendanceMarkingResponse({required this.statusCode,required this.responseMessage,required this.responseData});
 

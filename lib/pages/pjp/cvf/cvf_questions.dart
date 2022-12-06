@@ -291,17 +291,20 @@ class _QuestionListScreenState extends State<QuestionListScreen>
       //print(request.toJson());
       APIService apiService = APIService();
       apiService.saveCVFAnswers(request).then((value) {
-        //print(value.toString());
+        print(value.toString());
         if (value != null) {
           Navigator.of(context).pop();
           if (value == null || value.responseData == null) {
             Utility.showMessage(context, 'data not found');
           } else if (value is CVFAnswersResponse) {
             CVFAnswersResponse response = value;
-            if ( cvfId.isNotEmpty) {
+            if (cvfId.isNotEmpty) {
               IntranetServiceHandler.updateCVFStatus(widget.employeeId, cvfId,
                   Utility.getDateTime(), 'Completed', this);
             } else {
+              if(cvfId.isEmpty) {
+                Utility.showMessage(context, 'CVF Answers saved Successfully');
+              }
               if (response != null) {}
               setState(() {});
             }

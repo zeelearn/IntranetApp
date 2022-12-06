@@ -32,6 +32,7 @@ class WebViewExampleState extends State<PrivacyPolicyScreen> {
           elevation: 0.0, //No shadow
         ),
         body: WebView(
+          javascriptMode: JavascriptMode.unrestricted,
           initialUrl: 'https://www.kidzee.com/Home/PrivacyPolicy',
         ),
       ),

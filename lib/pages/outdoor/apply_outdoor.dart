@@ -250,10 +250,16 @@ class _ApplyOutDoorScreen extends State<ApplyOutDoorScreen> implements onClickLi
         Navigator.of(context).pop();
         if (value == null || value.responseData == null) {
           Utility.showMessage(context, 'Unable to Apply Outdoor Request');
+        } else if (value == null || value.responseData == null) {
+          Utility.showMessage(context, 'Unable to Apply Outdoor Request');
         } else if (value is ApplyLeaveResponse) {
           ApplyLeaveResponse response = value;
-
-          Utility.showMessageSingleButton(context, "Outdoor Request successfully submitted",this);
+          if(response.responseMessage.isEmpty) {
+            Utility.showMessageSingleButton(
+                context, "Outdoor Request successfully submitted", this);
+          }else{
+            Utility.showMessageSingleButton(context, response.responseMessage, this);
+          }
 
         }
       } else {
