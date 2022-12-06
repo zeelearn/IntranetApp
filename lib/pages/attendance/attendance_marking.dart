@@ -159,7 +159,7 @@ class _AttendanceMarkingScreen extends State<AttendanceMarkingScreen> implements
                           ],
                         ),
                         child: Text(
-                          'Submit',
+                          'Approve/Reject',
                           style: GoogleFonts.inter(
                             fontSize: 16.0,
                             color: LightColor.black,
