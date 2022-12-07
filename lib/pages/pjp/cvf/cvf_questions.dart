@@ -82,18 +82,18 @@ class _QuestionListScreenState extends State<QuestionListScreen>
 
   getPrefQuestions(String categoryid) async {
     prefs = await SharedPreferences.getInstance();
-    print('in pref questions');
+    //print('in pref questions');
     try {
       var cvfQuestions = prefs.getString(widget.PJPCVF_Id.toString() +
           categoryid +
           LocalConstant.KEY_CVF_QUESTIONS);
-      print('in pref questions :   ${jsonDecode(cvfQuestions.toString())}');
+      //print('in pref questions :   ${jsonDecode(cvfQuestions.toString())}');
 
       if (false && cvfQuestions is QuestionResponse) {
         QuestionResponse response = cvfQuestions as QuestionResponse;
         print('data found');
       } else if (true || cvfQuestions.toString().isEmpty) {
-        print('empty');
+        //print('empty');
         loadData();
       } else {
         print('in else');
@@ -125,24 +125,21 @@ class _QuestionListScreenState extends State<QuestionListScreen>
 
   updateImageOffline(Allquestion question,String path) async{
     final prefs = await SharedPreferences.getInstance();
-    prefs.setString('img_'+
-        widget.PJPCVF_Id.toString() +
-            question.Question_Id,
+    prefs.setString('img_'+widget.PJPCVF_Id.toString() +question.Question_Id,
         path);
   }
 
   String getImagePath(Allquestion question){
-    String? path = prefs.getString('img_'+
-        widget.PJPCVF_Id.toString() +
-            question.Question_Id);
+    String? path = prefs.getString('img_'+ widget.PJPCVF_Id.toString() +question.Question_Id);
+    //print('path is ${path} ${widget.PJPCVF_Id.toString()} ${question.Question_Id}');
     return path== null ? '' : path.toString();
   }
 
   loadData() async {
     DBHelper helper = DBHelper();
-    questionResponse =
-        await helper.getQuestionsList(widget.PJPCVF_Id.toString());
-    if (questionResponse != null && questionResponse.responseData.length > 0) {
+    questionResponse = await helper.getQuestionsList(widget.PJPCVF_Id.toString());
+    bool isInternet = await Utility.isInternet();
+    if (!isInternet || questionResponse != null && questionResponse.responseData.length > 0) {
       isLoading = true;
       mQuestionMaster.clear();
       mQuestionMaster.addAll(questionResponse.responseData);
@@ -250,13 +247,14 @@ class _QuestionListScreenState extends State<QuestionListScreen>
     bool isInternet = await Utility.isInternet();
     if(isInternet) {
       Utility.showLoaderDialog(context);
+
       String docXml = '<root>';
       for (int index = 0; index < mQuestionMaster.length; index++) {
         for (int jIndex = 0;
         jIndex < mQuestionMaster[index].allquestion.length;
         jIndex++) {
-          if (mQuestionMaster[index].allquestion[jIndex].userAnswers
-              .isNotEmpty) {
+
+          if (mQuestionMaster[index].allquestion[jIndex].userAnswers.isNotEmpty) {
             docXml =
             '${docXml}<tblPJPCVF_Answer><SubmissionDate>${Utility
                 .convertShortDate(DateTime
@@ -264,7 +262,10 @@ class _QuestionListScreenState extends State<QuestionListScreen>
                 .allquestion[jIndex]
                 .Question_Id}</Question_Id><AnswerId>${mQuestionMaster[index]
                 .allquestion[jIndex]
-                .userAnswers}</AnswerId><Remarks></Remarks></tblPJPCVF_Answer>';
+                .userAnswers}</AnswerId>'
+                '<Files>${mQuestionMaster[index]
+                .allquestion[jIndex]
+                .files}</Files><Remarks></Remarks></tblPJPCVF_Answer>';
           } else if (userAnswerMap[
           mQuestionMaster[index].allquestion[jIndex].Question_Id]
               .toString()
@@ -854,6 +855,7 @@ class _QuestionListScreenState extends State<QuestionListScreen>
 
   _getAnswerWidget(Allquestion questions) {
     if (questions.answers[0].answerType == 'YesNo') {
+      print(questions.files);
       String path = getImagePath(questions);
       if(path.isNotEmpty){
         questions.files = path;
@@ -959,9 +961,11 @@ class _QuestionListScreenState extends State<QuestionListScreen>
                 pickImage(questions);
               }
             },
+
             child: Padding(
               padding: EdgeInsets.all(8.0),
-              child: (getImagePath(questions)).isNotEmpty ?
+              child: widget.isViewOnly && questions.files != null ? Image.network(getImageUrl(questions.files),height: 80,fit: BoxFit.fill)
+                  :  (getImagePath(questions)).isNotEmpty ?
                   Image.network(getImageUrl((getImagePath(questions) )),
                   // width: 300,
                   height: 80,
@@ -1083,7 +1087,7 @@ class _QuestionListScreenState extends State<QuestionListScreen>
   getImageUrl(String url) {
     String weburl = url.replaceAll('___', '&');
     weburl = Uri.decodeFull(weburl);
-    print(weburl);
+    //print(weburl);
     return weburl;
   }
 
@@ -1290,10 +1294,6 @@ class _QuestionListScreenState extends State<QuestionListScreen>
                 : '';
         if (mQuestionMaster[index].allquestion[jIndex].isCompulsory == '1' &&
             (userAnswer.isEmpty || userAnswer == 'null')) {
-          print(mQuestionMaster[index].allquestion[jIndex].isCompulsory);
-          print('isComp : '+mQuestionMaster[index].allquestion[jIndex].Question_Id +
-              '  ' +
-              mQuestionMaster[index].allquestion[jIndex].SelectedAnswer);
           inCompleteQuestions =
               '${inCompleteQuestions} ${token}  Q:${mQuestionMaster[index].allquestion[jIndex].Question_Id}';
           token = ',';
@@ -1311,7 +1311,7 @@ class _QuestionListScreenState extends State<QuestionListScreen>
     } else {
       pendingQuestion = '';
     }
-    print(pendingQuestion);
+    //print(pendingQuestion);
     return isCompleted;
   }
 
@@ -1423,7 +1423,7 @@ class _QuestionListScreenState extends State<QuestionListScreen>
 
   @override
   void onClick(int action, value) {
-    print('onclick called ${action}');
+    //print('onclick called ${action}');
     if (action == ACTION_ADD_NEW_IMAGE) {
       pickImage(value);
     } else if (action == ACTION_DELETE_IMAGE) {

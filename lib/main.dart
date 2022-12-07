@@ -43,10 +43,10 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     String body = "";
     try {
       String mData = message.data.toString();
-      mData = mData.replaceAll("{", "{\"");
+      /*mData = mData.replaceAll("{", "{\"");
       mData = mData.replaceAll("}", "\"}");
       mData = mData.replaceAll(":", "\":\"");
-      mData = mData.replaceAll(", ", "\",\"");
+      mData = mData.replaceAll(", ", "\",\"");*/
       if (!message.data.containsKey("URL")) {
         NotificationActionModel model = NotificationActionModel.fromJson(
           json.decode(mData),
@@ -102,7 +102,7 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     helper.insertNotification(
         message.messageId as String,
         message.notification!.title as String,
-        'simple',
+        message.notification!.title as String,
         message.notification!.body as String,
         '',
         0,
@@ -150,10 +150,10 @@ Future<void> main() async {
       String body = "";
       try {
         String mData = message.data.toString();
-        mData = mData.replaceAll("{", "{\"");
+        /*mData = mData.replaceAll("{", "{\"");
         mData = mData.replaceAll("}", "\"}");
         mData = mData.replaceAll(":", "\":\"");
-        mData = mData.replaceAll(", ", "\",\"");
+        mData = mData.replaceAll(", ", "\",\"");*/
         print('-========================');
         print(mData);
         if (!message.data.containsKey("URL")) {
@@ -193,7 +193,7 @@ Future<void> main() async {
       helper.insertNotification(
           message.messageId as String,
           message.notification!.title as String,
-          'simple',
+          message.notification!.title as String,
           message.notification!.body as String,
           '',
           0,
