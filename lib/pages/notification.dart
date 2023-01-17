@@ -78,16 +78,36 @@ class _NotificationListScreenState extends State<NotificationListScreen>
           message = message.replaceAll(":", "\":\"");
           message = message.replaceAll(", ", "\",\"");
           //print(message);
-          var json = jsonDecode(message);
-          String time = notificationList[index].time=='' || notificationList[index].time ==null ? 'NA' :  getParsedShortDate(notificationList[index].time);
+          try {
+            var json = jsonDecode(message);
+            String time = notificationList[index].time == '' ||
+                notificationList[index].time == null
+                ? 'NA'
+                : getParsedShortDate(notificationList[index].time);
 
-          //print('decode ${json}');
-          mNotificationList.add(NotificationDataModel(message: json['message'],
-              title: json['title'],
-              image: '',
-              URL: '',
-              type: json['type'],
-          time: time));
+            //print('decode ${json}');
+            mNotificationList.add(
+                NotificationDataModel(message: json['message'],
+                    title: json['title'],
+                    image: notificationList[index].image ?? '',
+                    URL: notificationList[index].URL ?? '',
+                    type: json['type'],
+                    time: time));
+          }catch(e){
+            String time = notificationList[index].time == '' ||
+                notificationList[index].time == null
+                ? 'NA'
+                : getParsedShortDate(notificationList[index].time);
+
+            //print('decode ${json}');
+            mNotificationList.add(
+                NotificationDataModel(message: notificationList[index].message,
+                    title: notificationList[index].title,
+                    image: notificationList[index].image ?? '',
+                    URL: notificationList[index].URL ?? '',
+                    type: notificationList[index].type,
+                    time: time));
+          }
 
           //print(json['message']);
         } else if (notificationList[index].type.trim() == 'promo' ||
@@ -124,7 +144,7 @@ class _NotificationListScreenState extends State<NotificationListScreen>
   }
 
   String getParsedShortDate(String value) {
-    return DateFormat("MMM-dd").format(parseDateTime(value));
+    return DateFormat("MMM-dd,\nhh:mm a").format(parseDateTime(value));
   }
 
   DateTime parseDateTime(String value) {
@@ -157,7 +177,7 @@ class _NotificationListScreenState extends State<NotificationListScreen>
         .width;
     return Scaffold(
         extendBodyBehindAppBar: true,
-        backgroundColor: LightColors.kLightYellow,
+        backgroundColor: Colors.white,
         appBar: AppBar(title: const Text('Notification Center')),
         body: SafeArea(
           child: RefreshIndicator(

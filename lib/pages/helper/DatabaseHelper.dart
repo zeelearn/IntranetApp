@@ -421,7 +421,7 @@ class DBHelper {
           time = map['date'];
         }
 
-        notificaitonList.add(NotificationDataModel(message: map['data'], title: map['title'], image: map['imageurl'], URL: '', type: map['type'],time:time));
+        notificaitonList.add(NotificationDataModel(message: map['data']!=null && map['data']!='' ?  map['data'] : map['notification'], title: map['title'], image: map['imageurl'], URL: '', type: map['type'],time:time));
       }
     }
     return notificaitonList;
