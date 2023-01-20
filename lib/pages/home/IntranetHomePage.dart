@@ -2,6 +2,7 @@ import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -461,7 +462,6 @@ class _IntranetHomePageState extends State<IntranetHomePage>
     FirebaseAnalyticsUtils().enableAnytics();
     FirebaseAnalyticsUtils().sendAnalyticsEvent('HomeScreen');
     analytics.logAppOpen();
-
     return WillPopScope(
       onWillPop: () async {
         onBackClickListener();
@@ -492,6 +492,8 @@ class _IntranetHomePageState extends State<IntranetHomePage>
       ),
     );
   }
+
+
 
   // Platform messages are asynchronous, so we initialize in an async method.
   Future<void> checkForUpdate() async {

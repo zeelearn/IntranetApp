@@ -45,11 +45,11 @@ dependencies:
   flutter_bloc: ^8.0.1
   flutter_easyloading: 3.0.5
   #shimmer: ^2.0.0
-  firebase_crashlytics: ^2.8.6
-  firebase_core: ^1.22.0
-  firebase_analytics: ^9.3.5
-  firebase_messaging: ^13.0.2
-  firebase_storage: ^10.3.8
+  firebase_crashlytics: ^3.0.11
+  firebase_core: ^2.4.1
+  firebase_analytics: ^10.1.0
+  firebase_messaging: ^14.2.1
+  firebase_storage: ^11.0.10
   sqflite: ^2.0.3
   path: ^1.7.0
   intl: ^0.17.0
