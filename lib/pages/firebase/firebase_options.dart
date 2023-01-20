@@ -53,16 +53,16 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyAHAsf51D0A407EklG1bs-5wA7EbyfNFg0',
-    appId: '1:448618578101:ios:0b11ed8263232715ac3efc',
-    messagingSenderId: '448618578101',
-    projectId: 'react-native-firebase-testing',
+    appId: '1:411998223312:ios:0dabf3a3a966fb4cdd97d5',
+    messagingSenderId: '411998223312',
+    projectId: 'intranet-9fda2',
     databaseURL: 'https://react-native-firebase-testing.firebaseio.com',
-    storageBucket: 'react-native-firebase-testing.appspot.com',
+    storageBucket: 'intranet-9fda2',
     androidClientId:
     '448618578101-a9p7bj5jlakabp22fo3cbkj7nsmag24e.apps.googleusercontent.com',
     iosClientId:
     '448618578101-evbjdqq9co9v29pi8jcua8bm7kr4smuu.apps.googleusercontent.com',
-    iosBundleId: 'io.flutter.plugins.firebase.messaging',
+    iosBundleId: 'com.zeelearn.intranet',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
@@ -76,6 +76,6 @@ class DefaultFirebaseOptions {
     '448618578101-a9p7bj5jlakabp22fo3cbkj7nsmag24e.apps.googleusercontent.com',
     iosClientId:
     '448618578101-evbjdqq9co9v29pi8jcua8bm7kr4smuu.apps.googleusercontent.com',
-    iosBundleId: 'io.flutter.plugins.firebase.messaging',
+    iosBundleId: 'com.zeelearn.intranet',
   );
 }

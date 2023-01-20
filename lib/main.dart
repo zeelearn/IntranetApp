@@ -206,6 +206,8 @@ Future<void> main() async {
   });
 
   if (!kIsWeb) {
+    //NotificationService.initNotification();
+
     channel = const AndroidNotificationChannel(
         'intranet', // id
         'intranet', // title
@@ -240,7 +242,7 @@ Future<void> main() async {
 }
 
 Future<void> initializeService() async {
-  final service = FlutterBackgroundService();
+  //final service = FlutterBackgroundService();
 
   /// OPTIONAL, using custom notification channel id
   const AndroidNotificationChannel channel = AndroidNotificationChannel(
@@ -267,7 +269,7 @@ Future<void> initializeService() async {
           AndroidFlutterLocalNotificationsPlugin>()
       ?.createNotificationChannel(channel);
 
-  await service.configure(
+  /*await service.configure(
     androidConfiguration: AndroidConfiguration(
       // this will be executed when app is in foreground or background in separated isolate
       onStart: onStart,
@@ -293,7 +295,7 @@ Future<void> initializeService() async {
     ),
   );
 
-  service.startService();
+  service.startService();*/
 }
 
 // to ensure this is executed
@@ -464,7 +466,9 @@ Future<void> setup() async {
 
 Future _showNotificationWithDefaultSound(
     RemoteMessage message, String title, String messageData) async {
-  if (false && Platform.isAndroid) {
+  if(Platform.isIOS){
+
+  }else if (false && Platform.isAndroid) {
     if (!AwesomeStringUtils.isNullOrEmpty(title,
             considerWhiteSpaceAsEmpty: true) ||
         !AwesomeStringUtils.isNullOrEmpty(messageData,

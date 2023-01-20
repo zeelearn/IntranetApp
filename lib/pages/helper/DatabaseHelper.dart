@@ -293,7 +293,7 @@ class DBHelper {
   Future<void> insertNotification(String id,String title,String type,String notification,String dataNotification,int isseen,String imageurl) async{
     var dbclient = await db;
     Map<String, Object> data = {
-      'notification_id': id,
+
       'title': title,
       'type': type,
       'notification': notification,
