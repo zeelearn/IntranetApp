@@ -6,7 +6,6 @@ import 'package:intranet/api/response/employee_list_response.dart';
 import 'package:intranet/pages/helper/LocalConstant.dart';
 import 'package:intranet/pages/helper/utils.dart';
 import 'package:intranet/pages/model/NotificationDataModel.dart';
-import 'package:intranet/pages/utils/theme/colors/light_colors.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../api/APIService.dart';
