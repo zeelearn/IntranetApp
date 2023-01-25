@@ -6,10 +6,10 @@ import 'package:flutter_google_places/flutter_google_places.dart';
 import 'package:google_api_headers/google_api_headers.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:google_maps_webservice/places.dart';
+import 'package:hive/hive.dart';
 import 'package:intl/intl.dart';
 import 'package:intranet/api/response/pjp/pjplistresponse.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../api/APIService.dart';
 import '../../../api/request/cvf/add_cvf_request.dart';
@@ -63,16 +63,16 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener{
   double longitude=0.0;
   String appVersion='';
   TextEditingController _timeController = TextEditingController();
-
+  var hiveBox;
   var _categoryController = TextEditingController(text: 'Select Purpose');
   var _dateController = TextEditingController(text: 'Select Date');
-  var _locationController = TextEditingController(text: 'Select Location');
   String location = "Search Location";
 
   Future<void> getUserInfo() async {
-    final prefs = await SharedPreferences.getInstance();
+    hiveBox = Hive.box(LocalConstant.KidzeeDB);
+    await Hive.openBox(LocalConstant.KidzeeDB);
     employeeId =
-        int.parse(prefs.getString(LocalConstant.KEY_EMPLOYEE_ID) as String);
+        int.parse(hiveBox.get(LocalConstant.KEY_EMPLOYEE_ID) as String);
     PackageInfo.fromPlatform().then((PackageInfo packageInfo) {
       String appName = packageInfo.appName;
       String packageName = packageInfo.packageName;
@@ -982,8 +982,7 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener{
   }
 
   saveCvfQuestionsPref(int cvfId,String categoryid, String data) async {
-    final prefs = await SharedPreferences.getInstance();
-    prefs.setString(
+    hiveBox.put(
         cvfId.toString() +
             categoryid +
             LocalConstant.KEY_CVF_QUESTIONS,

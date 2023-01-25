@@ -1,8 +1,7 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:hive/hive.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../api/APIService.dart';
 import '../../../api/ServiceHandler.dart';
@@ -15,7 +14,6 @@ import '../../helper/constants.dart';
 import '../../helper/utils.dart';
 import '../../iface/onResponse.dart';
 import '../../utils/theme/colors/light_colors.dart';
-import '../new_pjp.dart';
 import 'add_cvf.dart';
 import 'cvf_questions.dart';
 
@@ -48,9 +46,9 @@ class _MyCVFListScreen extends State<MyPJPCVFListScreen> implements onResponse {
   }
 
   Future<void> getUserInfo() async {
-    final prefs = await SharedPreferences.getInstance();
-    employeeId =
-        int.parse(prefs.getString(LocalConstant.KEY_EMPLOYEE_ID) as String);
+    var hiveBox = Hive.box(LocalConstant.KidzeeDB);
+    await Hive.openBox(LocalConstant.KidzeeDB);
+    employeeId =int.parse(hiveBox.get(LocalConstant.KEY_EMPLOYEE_ID) as String);
     IntranetServiceHandler.loadPjpSummery(
         employeeId, int.parse(widget.mPjpInfo.PJP_Id), this);
     PackageInfo.fromPlatform().then((PackageInfo packageInfo) {

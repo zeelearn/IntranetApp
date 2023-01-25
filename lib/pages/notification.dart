@@ -1,15 +1,10 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
 import 'package:intl/intl.dart';
-import 'package:intranet/api/response/employee_list_response.dart';
 import 'package:intranet/pages/helper/LocalConstant.dart';
 import 'package:intranet/pages/helper/utils.dart';
 import 'package:intranet/pages/model/NotificationDataModel.dart';
-import 'package:intranet/pages/utils/theme/colors/light_colors.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-
-import '../../api/APIService.dart';
 import 'helper/DatabaseHelper.dart';
 
 class NotificationListScreen extends StatefulWidget {
@@ -160,9 +155,10 @@ class _NotificationListScreenState extends State<NotificationListScreen>
   }
 
   Future<void> getUserInfo() async {
-    final prefs = await SharedPreferences.getInstance();
+    var hiveBox = Hive.box(LocalConstant.KidzeeDB);
+    await Hive.openBox(LocalConstant.KidzeeDB);
     employeeId =
-        int.parse(prefs.getString(LocalConstant.KEY_EMPLOYEE_ID) as String);
+        int.parse(hiveBox.get(LocalConstant.KEY_EMPLOYEE_ID) as String);
     getNotifications();
   }
 

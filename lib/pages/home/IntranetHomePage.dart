@@ -7,6 +7,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:hive/hive.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:in_app_update/in_app_update.dart';
 import 'package:intl/intl.dart';
@@ -18,7 +19,6 @@ import 'package:intranet/pages/pjp/models/PjpModel.dart';
 import 'package:intranet/pages/pjp/mypjp.dart';
 import 'package:intranet/pages/userinfo/employee_list.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 import '../attendance/attendance_list.dart';
@@ -80,7 +80,6 @@ class _IntranetHomePageState extends State<IntranetHomePage>
   DateTime? _rangeStart;
   DateTime? _rangeEnd;
 
-  late SharedPreferences prefs;
 
   Map<DateTime, List<PJPModel>> attendanceEvent = Map();
   int employeeId = 0;
@@ -95,6 +94,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
   //FirebaseAnalytics analytics = FirebaseAnalytics.instance;
   FirebaseMessaging messaging = FirebaseMessaging.instance;
   String appVersion = '';
+  var hiveBox;
 
   @override
   void initState() {
@@ -192,19 +192,19 @@ class _IntranetHomePageState extends State<IntranetHomePage>
   }
 
   updateProfileImage() async{
-    prefs = await SharedPreferences.getInstance();
-    prefs.setString(LocalConstant.KEY_EMPLOYEE_AVTAR, _profileImage);
+    hiveBox.get(LocalConstant.KEY_EMPLOYEE_AVTAR, _profileImage);
   }
   Future<void> getUserInfo() async {
-    prefs = await SharedPreferences.getInstance();
-    employeeId = int.parse(prefs.getString(LocalConstant.KEY_EMPLOYEE_ID) as String);
-    mDesignation = prefs.getString(LocalConstant.KEY_DESIGNATION) as String;
-    var imageUrl = prefs.getString(LocalConstant.KEY_EMPLOYEE_AVTAR) ;
-    mTitle = prefs.getString(LocalConstant.KEY_FIRST_NAME).toString() +
+    hiveBox = Hive.box(LocalConstant.KidzeeDB);
+    await Hive.openBox(LocalConstant.KidzeeDB);
+    employeeId = int.parse(hiveBox.get(LocalConstant.KEY_EMPLOYEE_ID) as String);
+    mDesignation = hiveBox.get(LocalConstant.KEY_DESIGNATION) as String;
+    var imageUrl = hiveBox.get(LocalConstant.KEY_EMPLOYEE_AVTAR) ;
+    mTitle = hiveBox.get(LocalConstant.KEY_FIRST_NAME).toString() +
         " " +
-        prefs.getString(LocalConstant.KEY_LAST_NAME).toString();
+        hiveBox.get(LocalConstant.KEY_LAST_NAME).toString();
     _profileImage = 'https://cdn-icons-png.flaticon.com/128/149/149071.png';
-    String sex = prefs.getString(LocalConstant.KEY_GENDER) as String;
+    String sex = hiveBox.get(LocalConstant.KEY_GENDER) as String;
     if(imageUrl!=null){
       _profileImage = imageUrl;
     }else if(sex == 'Male'){
@@ -229,14 +229,10 @@ class _IntranetHomePageState extends State<IntranetHomePage>
 
   getProfileImage() async{
     try{
-      print('Avtar getProfileImaage-----');
-      var avtar = prefs.getString(LocalConstant.KEY_EMPLOYEE_AVTAR_LIST);
-      print('Avtar ${avtar}');
+      var avtar = hiveBox.get(LocalConstant.KEY_EMPLOYEE_AVTAR_LIST);
       if(avtar!=null && avtar !='') {
-        print('getProfile pic decode');
         _profileAvtar = base64.decode(avtar);
       }else {
-        print('getProfile pic in else');
         FirebaseStorageUtil().getProfileImage(employeeId.toString(), this);
       }
     }catch(e){
@@ -1053,9 +1049,9 @@ class _IntranetHomePageState extends State<IntranetHomePage>
   }
 
   signOut() async {
-    final prefs = await SharedPreferences.getInstance();
-    prefs.clear();
-    await Future.delayed(Duration(seconds: 1));
+    var box = Hive.box(LocalConstant.KidzeeDB);
+    await Hive.openBox(LocalConstant.KidzeeDB);
+    box.clear();
     if (Platform.isAndroid) {
       Future.delayed(const Duration(milliseconds: 100), () {
         SystemChannels.platform.invokeMethod('SystemNavigator.pop');
@@ -1180,7 +1176,8 @@ class _IntranetHomePageState extends State<IntranetHomePage>
 
       var profileImage = base64.encode(value);
       _profileAvtar = base64.decode(profileImage);
-      prefs.setString(LocalConstant.KEY_EMPLOYEE_AVTAR_LIST,profileImage);
+      _profileImage = _profileImage;
+      updateProfileImage();
     }
     setState(() {});
   }

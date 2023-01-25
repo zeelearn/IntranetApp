@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
 import 'package:intl/intl.dart';
 import 'package:intranet/api/request/leavelist_request_man.dart';
 import 'package:intranet/pages/iface/onClick.dart';
 import 'package:intranet/pages/widget/MyWidget.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../api/APIService.dart';
 import '../../api/request/leave/leave_approve_request.dart';
@@ -63,8 +63,9 @@ class _OutdoorReqManagerScreen extends State<OutdoorReqManagerScreen>
   }
 
   Future<void> getUserInfo() async {
-    final prefs = await SharedPreferences.getInstance();
-    widget.employeeId = int.parse(prefs.getString(LocalConstant.KEY_EMPLOYEE_ID) as String);
+    var hiveBox = Hive.box(LocalConstant.KidzeeDB);
+    await Hive.openBox(LocalConstant.KidzeeDB);
+    widget.employeeId = int.parse(hiveBox.get(LocalConstant.KEY_EMPLOYEE_ID) as String);
 
     loadAcquisition();
   }

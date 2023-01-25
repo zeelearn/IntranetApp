@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:hive/hive.dart';
 import 'package:intl/intl.dart';
 import 'package:intranet/api/response/LeaveRequisitionResponse.dart';
 import 'package:intranet/pages/helper/LocalConstant.dart';
 import 'package:intranet/pages/helper/utils.dart';
 import 'package:intranet/pages/iface/onClick.dart';
 import 'package:intranet/pages/widget/MyWidget.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-
 import '../../api/APIService.dart';
 import '../../api/request/apply_leave_request.dart';
 import '../../api/response/apply_leave_response.dart';
@@ -49,9 +48,11 @@ class _ApplyOutDoorScreen extends State<ApplyOutDoorScreen> implements onClickLi
   }
 
   Future<void> getUserInfo() async {
-    final prefs = await SharedPreferences.getInstance();
+    var hiveBox = Hive.box(LocalConstant.KidzeeDB);
+    await Hive.openBox(LocalConstant.KidzeeDB);
     widget.employeeId =
-        int.parse(prefs.getString(LocalConstant.KEY_EMPLOYEE_ID) as String);
+        int.parse(hiveBox.get(LocalConstant.KEY_EMPLOYEE_ID) as String);
+
   }
 
   @override

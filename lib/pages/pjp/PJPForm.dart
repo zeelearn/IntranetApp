@@ -1,6 +1,6 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:hive/hive.dart';
 import 'package:intl/intl.dart';
 import 'package:intranet/api/request/cvf/add_cvf_request.dart';
 import 'package:intranet/api/request/pjp/add_pjp_request.dart';
@@ -12,7 +12,6 @@ import 'package:intranet/pages/widget/MyWidget.dart';
 import 'package:intranet/pages/widget/check/checkbox.dart';
 import 'package:intranet/pages/widget/date_time/time_picker.dart';
 import 'package:intranet/pages/widget/options/dropdown.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../api/APIService.dart';
 import '../../api/request/cvf/category_request.dart';
@@ -79,9 +78,10 @@ class _AddNewPjp extends State<AddNewPjp> {
   }
 
   Future<void> getUserInfo() async {
-    final prefs = await SharedPreferences.getInstance();
+    var hiveBox = Hive.box(LocalConstant.KidzeeDB);
+    await Hive.openBox(LocalConstant.KidzeeDB);
     employeeId =
-        int.parse(prefs.getString(LocalConstant.KEY_EMPLOYEE_ID) as String);
+        int.parse(hiveBox.get(LocalConstant.KEY_EMPLOYEE_ID) as String);
     getPjpList();
     getCategoryList();
   }

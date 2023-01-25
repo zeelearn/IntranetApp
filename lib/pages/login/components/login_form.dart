@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
 import 'package:intranet/pages/home/IntranetHomePage.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../api/APIService.dart';
 import '../../../api/request/login_request.dart';
@@ -23,7 +23,7 @@ class _LoginFormState extends State<LoginForm> implements changePasswordInterfac
   late TextEditingController _currentPasswordController;
   late TextEditingController _newPasswordController;
   late TextEditingController _repeatPasswordController;
-
+  var hiveBox;
 
   bool isChecked = false;
   bool isApiCallProcess = false;
@@ -36,6 +36,11 @@ class _LoginFormState extends State<LoginForm> implements changePasswordInterfac
     _newPasswordController = TextEditingController();
     _repeatPasswordController = TextEditingController();
     super.initState();
+  }
+
+  init() async{
+    hiveBox = Hive.box(LocalConstant.KidzeeDB);
+    await Hive.openBox(LocalConstant.KidzeeDB);
   }
 
   @override
@@ -145,7 +150,6 @@ class _LoginFormState extends State<LoginForm> implements changePasswordInterfac
   }
 
   void validate(BuildContext context) async {
-    final prefs = await SharedPreferences.getInstance();
     if(!isChecked){
       Utility.showMessage(context, "Please accept the Terms and Conditions");
     }else if (userNameController.text.toString() != "" &&
@@ -175,42 +179,41 @@ class _LoginFormState extends State<LoginForm> implements changePasswordInterfac
             } else {
               EmployeeDetails info = value.responseData.employeeDetails[0];
               // // Save an integer value to 'counter' key.
-              prefs.setString(
+              hiveBox.set(
                   LocalConstant.KEY_EMPLOYEE_ID, info.employeeId as String);
-              prefs.setString(
+              hiveBox.set(
                   LocalConstant.KEY_EMPLOYEE_CODE, info.employeeCode as String);
-              prefs.setString(
+              hiveBox.set(
                   LocalConstant.KEY_FIRST_NAME,
                   info.employeeFirstName as String);
-              prefs.setString(
+              hiveBox.set(
                   LocalConstant.KEY_LAST_NAME, info.employeeLastName as String);
-              prefs.setString(
+              hiveBox.set(
                   LocalConstant.KEY_DOJ, info.employeeDateOfJoining as String);
-              prefs.setString(LocalConstant.KEY_EMP_SUPERIOR_ID,
+              hiveBox.set(LocalConstant.KEY_EMP_SUPERIOR_ID,
                   info.employeeSuperiorId as String);
-              prefs.setString(LocalConstant.KEY_DEPARTMENT,
+              hiveBox.set(LocalConstant.KEY_DEPARTMENT,
                   info.employeeDepartmentName as String);
-              prefs.setString(LocalConstant.KEY_DESIGNATION,
+              hiveBox.set(LocalConstant.KEY_DESIGNATION,
                   info.employeeDesignation as String);
-              prefs.setString(
+              hiveBox.set(
                   LocalConstant.KEY_EMAIL, info.employeeEmailId as String);
-              prefs.setString(LocalConstant.KEY_CONTACT,
+              hiveBox.set(LocalConstant.KEY_CONTACT,
                   info.employeeContactNumber as String);
-              prefs.setBool(LocalConstant.KEY_IS_ACTIVE, info.isActive);
-              prefs.setBool(LocalConstant.KEY_ISCEO, info.isCEO);
-              prefs.setBool(
-                  LocalConstant.KEY_IS_BUSINESS_HEAD, info.isBusinessHead);
-              prefs.setString(
+              hiveBox.put(LocalConstant.KEY_IS_ACTIVE, info.isActive);
+              hiveBox.put(LocalConstant.KEY_ISCEO, info.isCEO);
+              hiveBox.put(LocalConstant.KEY_IS_BUSINESS_HEAD, info.isBusinessHead);
+              hiveBox.set(
                   LocalConstant.KEY_USER_NAME, info.userName as String);
-              prefs.setString(
+              hiveBox.set(
                   LocalConstant.KEY_USER_PASSWORD, info.userPassword as String);
-              prefs.setString(
+              hiveBox.set(
                   LocalConstant.KEY_DOB, info.employeeDateOfBirth as String);
-              prefs.setString(
+              hiveBox.set(
                   LocalConstant.KEY_GRADE, info.employeeGrade as String);
-              prefs.setString(LocalConstant.KEY_DATE_OF_MARRAGE,
+              hiveBox.set(LocalConstant.KEY_DATE_OF_MARRAGE,
                   info.employeeDateOfMarriage as String);
-              prefs.setString(
+              hiveBox.set(
                   LocalConstant.KEY_LOCATION, info.employeeLocation as String);
 
               Navigator.push(

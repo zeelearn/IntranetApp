@@ -38,7 +38,6 @@ dependencies:
   cupertino_icons: ^1.0.5
   flutter_svg: ^1.1.6
   url_launcher: ^6.1.8
-  shared_preferences: ^2.0.14
   font_awesome_flutter: ^10.3.0
   flutter_local_notifications: ^13.0.0
   #equatable: ^2.0.3
@@ -83,8 +82,7 @@ dependencies:
   flutter_launcher_icons: ^0.11.0
   package_info_plus: ^3.0.2
   equatable: ^2.0.5
-  shared_preferences_platform_interface: ^2.1.0
-  shared_preferences_foundation: ^2.1.2
+
   firebase_core_platform_interface: ^4.5.2
   hive: ^2.1.0
   hive_flutter: ^1.1.0

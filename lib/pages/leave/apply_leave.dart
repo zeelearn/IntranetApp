@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:hive/hive.dart';
 import 'package:intl/intl.dart';
 import 'package:intranet/api/request/apply_leave_request.dart';
 import 'package:intranet/api/response/LeaveRequisitionResponse.dart';
@@ -8,7 +9,6 @@ import 'package:intranet/pages/helper/LocalConstant.dart';
 import 'package:intranet/pages/helper/utils.dart';
 import 'package:intranet/pages/widget/MyWidget.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../../api/APIService.dart';
 import '../helper/LightColor.dart';
 import '../iface/onClick.dart';
@@ -60,10 +60,11 @@ class _ApplyLeaveScreen extends State<ApplyLeaveScreen> implements onClickListen
   }
 
   Future<void> getUserInfo() async {
-    final prefs = await SharedPreferences.getInstance();
+    var hiveBox = Hive.box(LocalConstant.KidzeeDB);
+    await Hive.openBox(LocalConstant.KidzeeDB);
     widget.employeeId =
-        int.parse(prefs.getString(LocalConstant.KEY_EMPLOYEE_ID) as String);
-    widget.gender = prefs.getString(LocalConstant.KEY_GENDER) as String;
+        int.parse(hiveBox.get(LocalConstant.KEY_EMPLOYEE_ID) as String);
+    widget.gender = hiveBox.get(LocalConstant.KEY_GENDER) as String;
 
     PackageInfo.fromPlatform().then((PackageInfo packageInfo) {
       String appName = packageInfo.appName;

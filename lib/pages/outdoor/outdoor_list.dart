@@ -1,12 +1,12 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
 import 'package:intl/intl.dart';
 import 'package:intranet/api/request/outdoor_request.dart';
 import 'package:intranet/api/response/outdoor_response.dart';
 import 'package:intranet/pages/helper/LocalConstant.dart';
 import 'package:intranet/pages/helper/utils.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../api/APIService.dart';
 import '../utils/theme/colors/light_colors.dart';
@@ -14,7 +14,6 @@ import 'apply_outdoor.dart';
 
 class OutdoorScreen extends StatefulWidget {
   String displayName;
-
 
 
   OutdoorScreen({Key? key, required this.displayName}) : super(key: key);
@@ -28,7 +27,7 @@ class _OutdoorScreen extends State<OutdoorScreen>
   final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey =
       GlobalKey<RefreshIndicatorState>();
   int employeeId = 0;
-  late final prefs;
+  var hiveBox;
 
   List<OutdoorModel> outdoorRequisitionList = [];
   bool isLoading = true;
@@ -56,11 +55,12 @@ class _OutdoorScreen extends State<OutdoorScreen>
   }
 
   Future<void> getUserInfo() async {
-    prefs = await SharedPreferences.getInstance();
+    hiveBox = Hive.box(LocalConstant.KidzeeDB);
+    await Hive.openBox(LocalConstant.KidzeeDB);
     employeeId =
-        int.parse(prefs.getString(LocalConstant.KEY_EMPLOYEE_ID) as String);
+        int.parse(hiveBox.get(LocalConstant.KEY_EMPLOYEE_ID) as String);
 
-    var leaveODSummery = prefs.getString('r'+getId());
+    var leaveODSummery = hiveBox.get('r'+getId());
     if(leaveODSummery==null){
       loadOutdoorRequisition();
     }else {
@@ -90,7 +90,7 @@ class _OutdoorScreen extends State<OutdoorScreen>
   }
 
   saveODSummery(String json) async{
-    prefs.setString(getId(), json);
+    hiveBox.put(getId(), json);
   }
   String getId(){
     return '${employeeId.toString()}_${LocalConstant.KEY_MY_OUTDOOR}';
