@@ -1,14 +1,13 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:hive/hive.dart';
 
 import '../auth/login.dart';
 import '../helper/LocalConstant.dart';
 import '../home/IntranetHomePage.dart';
 import '../login/login_screen.dart';
 import 'intro.dart';
-
 
 
 class SplashScreen extends StatefulWidget {
@@ -39,15 +38,17 @@ class _SplashScreenState extends State<SplashScreen> {
 
   void navigate() async{
     print("-------init---=-=-=-=-=-=-");
-    SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    var box = Hive.box(LocalConstant.KidzeeDB);
+    await Hive.openBox(LocalConstant.KidzeeDB);
     String displayName = '';
     String userName = '';
     String mobileNumber = '';
     print('navigate');
-    if(prefs.getString(LocalConstant.KEY_FIRST_NAME)!=null) {
-      displayName = prefs.getString(LocalConstant.KEY_FIRST_NAME) as String;
-      userName = prefs.getString(LocalConstant.KEY_FIRST_NAME) as String;
-      mobileNumber = prefs.getString(LocalConstant.KEY_CONTACT) as String;
+    if(box.get(LocalConstant.KEY_FIRST_NAME)!=null) {
+      displayName = box.get(LocalConstant.KEY_FIRST_NAME) as String;
+      userName = box.get(LocalConstant.KEY_FIRST_NAME) as String;
+      mobileNumber = box.get(LocalConstant.KEY_CONTACT) as String;
     }
     print(userName);
       if(displayName != '') {

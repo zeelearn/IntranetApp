@@ -1,11 +1,12 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:hive/hive.dart';
 import 'package:intranet/pages/auth/social_button.dart';
 import 'package:intranet/pages/firebase/anylatics.dart';
 import 'package:intranet/pages/widget/MyWidget.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+
 import 'package:url_launcher/url_launcher.dart';
 import '../../api/APIService.dart';
 import '../../api/request/login_request.dart';
@@ -311,7 +312,7 @@ class _LoginPage extends State<LoginPage> {
   }
 
   void validate(BuildContext context) async {
-    final prefs = await SharedPreferences.getInstance();
+    //final prefs = await SharedPreferences.getInstance();
     if(!isChecked){
       Utility.showMessage(context, "Please accept the Terms and Conditions");
     }else if (_userNameController.text.toString() != "" &&
@@ -341,43 +342,45 @@ class _LoginPage extends State<LoginPage> {
               Utility.showMessage(context, 'Invalid UserName/Password');
             } else {
               EmployeeDetails info = value.responseData.employeeDetails[0];
+              var hive = Hive.box(LocalConstant.KidzeeDB);
               // // Save an integer value to 'counter' key.
-              prefs.setString(
+              hive.put(
                   LocalConstant.KEY_EMPLOYEE_ID, info.employeeId.toInt().toString());
-              prefs.setString(
+              hive.put(
                   LocalConstant.KEY_EMPLOYEE_CODE, info.employeeCode as String);
-              prefs.setString(
+              hive.put(
                   LocalConstant.KEY_FIRST_NAME,
                   info.employeeFirstName as String);
-              prefs.setString(LocalConstant.KEY_LAST_NAME, info.employeeLastName as String);
-              prefs.setString(LocalConstant.KEY_DOJ, info.employeeDateOfJoining as String);
-              prefs.setString(LocalConstant.KEY_EMP_SUPERIOR_ID,
+              hive.put(LocalConstant.KEY_LAST_NAME, info.employeeLastName as String);
+              hive.put(LocalConstant.KEY_DOJ, info.employeeDateOfJoining as String);
+              hive.put(LocalConstant.KEY_EMP_SUPERIOR_ID,
                   info.employeeSuperiorId.toInt().toString());
-              prefs.setString(LocalConstant.KEY_DEPARTMENT,
+              hive.put(LocalConstant.KEY_DEPARTMENT,
                   info.employeeDepartmentName as String);
-              prefs.setString(LocalConstant.KEY_DESIGNATION,
+              hive.put(LocalConstant.KEY_DESIGNATION,
                   info.employeeDesignation as String);
-              prefs.setString(
+              hive.put(
                   LocalConstant.KEY_EMAIL, info.employeeEmailId as String);
-              prefs.setString(LocalConstant.KEY_CONTACT,
+              hive.put(LocalConstant.KEY_CONTACT,
                   info.employeeContactNumber as String);
-              prefs.setBool(LocalConstant.KEY_IS_ACTIVE, info.isActive);
-              prefs.setBool(LocalConstant.KEY_ISCEO, info.isCEO);
-              prefs.setBool(
+              hive.put(LocalConstant.KEY_IS_ACTIVE, info.isActive);
+              hive.put(LocalConstant.KEY_ISCEO, info.isCEO);
+              hive.put(
                   LocalConstant.KEY_IS_BUSINESS_HEAD, info.isBusinessHead);
-              prefs.setString(
+              hive.put(
                   LocalConstant.KEY_USER_NAME, info.userName as String);
-              prefs.setString(
+              hive.put(
                   LocalConstant.KEY_USER_PASSWORD, info.userPassword as String);
-              prefs.setString(
+              hive.put(
                   LocalConstant.KEY_DOB, info.employeeDateOfBirth as String);
-              prefs.setString(
+              hive.put(
                   LocalConstant.KEY_GRADE, info.employeeGrade as String);
-              prefs.setString(LocalConstant.KEY_DATE_OF_MARRAGE,
+              hive.put(LocalConstant.KEY_DATE_OF_MARRAGE,
                   info.employeeDateOfMarriage as String);
-              prefs.setString(
+              hive.put(
                   LocalConstant.KEY_LOCATION, info.employeeLocation as String);
-              prefs.setString(LocalConstant.KEY_GENDER, info.gender as String);
+              hive.put(LocalConstant.KEY_GENDER, info.gender as String);
+
               FirebaseAnalyticsUtils.sendEvent(info.userName);
               Navigator.push(
                 context,

@@ -9,11 +9,12 @@ class TaskCategoryEntity {
 class TaskCategoryItemEntity  {
   final int? id;
   final String title;
+
   final LinearGradient gradient;
   final dynamic action;
 
   TaskCategoryItemEntity(
-      {this.id, required this.title, required this.gradient,required this.action});
+      {this.id, required this.title,required this.gradient,required this.action});
 
   TaskCategoryItemEntity copyWith({
     int? id,

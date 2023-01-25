@@ -2,15 +2,11 @@ import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:device_info_plus/device_info_plus.dart';
-import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:in_app_update/in_app_update.dart';
 import 'package:intl/intl.dart';
@@ -18,7 +14,6 @@ import 'package:intranet/pages/helper/LocalConstant.dart';
 import 'package:intranet/pages/helper/utils.dart';
 import 'package:intranet/pages/leave/leave_list.dart';
 import 'package:intranet/pages/outdoor/outdoor_list.dart';
-import 'package:intranet/pages/pjp/PJPForm.dart';
 import 'package:intranet/pages/pjp/models/PjpModel.dart';
 import 'package:intranet/pages/pjp/mypjp.dart';
 import 'package:intranet/pages/userinfo/employee_list.dart';
@@ -39,7 +34,6 @@ import '../iface/onUploadResponse.dart';
 import '../leave/leave_list_manager.dart';
 import '../model/filter.dart';
 import '../notification.dart';
-import '../outdoor/outdoor_list_manager.dart';
 import '../outdoor/outdoor_requisition_manager.dart';
 import '../pjp/IntranetEvents.dart';
 import '../pjp/cvf/mycvf.dart';
@@ -96,10 +90,9 @@ class _IntranetHomePageState extends State<IntranetHomePage>
   List<PJPModel> mPjpList = [];
   late String mTitle = "";
 
-  bool _flexibleUpdateAvailable = false;
   AppUpdateInfo? _updateInfo;
 
-  FirebaseAnalytics analytics = FirebaseAnalytics.instance;
+  //FirebaseAnalytics analytics = FirebaseAnalytics.instance;
   FirebaseMessaging messaging = FirebaseMessaging.instance;
   String appVersion = '';
 
@@ -461,7 +454,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
     EasyLoading.init();
     FirebaseAnalyticsUtils().enableAnytics();
     FirebaseAnalyticsUtils().sendAnalyticsEvent('HomeScreen');
-    analytics.logAppOpen();
+    //analytics.logAppOpen();
     return WillPopScope(
       onWillPop: () async {
         onBackClickListener();

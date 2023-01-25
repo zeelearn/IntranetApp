@@ -1,33 +1,49 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io' show Platform;
-import 'dart:math';
+import 'dart:io' show Directory, Platform;
 import 'dart:ui';
 
-import 'package:awesome_notifications/awesome_notifications.dart';
-import 'package:device_info_plus/device_info_plus.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:intranet/pages/auth/login.dart';
+import 'package:hive/hive.dart';
+import 'package:hive_flutter/adapters.dart';
 import 'package:intranet/pages/firebase/firebase_options.dart';
 import 'package:intranet/pages/firebase/notification_service.dart';
 import 'package:intranet/pages/helper/DatabaseHelper.dart';
 import 'package:intranet/pages/helper/LightColor.dart';
+import 'package:intranet/pages/helper/LocalConstant.dart';
 import 'package:intranet/pages/iface/onResponse.dart';
 import 'package:intranet/pages/intro/splash.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter/foundation.dart';
 import 'package:intranet/pages/model/NotificationDataModel.dart';
-import 'package:intranet/pages/pjp/cvf/CheckInModel.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
-import 'api/APIService.dart';
-import 'api/ServiceHandler.dart';
-import 'api/request/cvf/update_cvf_status_request.dart';
-import 'api/response/cvf/update_status_response.dart';
+import 'package:path_provider/path_provider.dart';
+
+import 'package:hive/hive.dart';
+
+part 'main.g.dart';
+
+@HiveType(typeId: 1)
+class Person {
+  Person({required this.name, required this.age, required this.friends});
+
+  @HiveField(0)
+  String name;
+
+  @HiveField(1)
+  int age;
+
+  @HiveField(2)
+  List<String> friends;
+
+  @override
+  String toString() {
+    return '$name: $age';
+  }
+}
 
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   try{
@@ -119,18 +135,142 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
 AndroidNotificationChannel? channel;
 
-late ServiceInstance mService;
-
 FlutterLocalNotificationsPlugin? flutterLocalNotificationsPlugin;
 late FirebaseMessaging messaging;
 
+
+@HiveType(typeId: 1)
+class UserInfo {
+  UserInfo({required this.displayName,
+    required this.firstName, required this.employeeId,
+  required this.employeeCode,
+  required this.lastName,
+  required this.doj,
+  required this.subid,
+  required this.roleId,
+  required this.roleName,
+  required this.departname,
+  required this.emailid,
+  required this.mobileno,
+  required this.gender,
+  required this.workLocation,
+  required this.marritialStatus,
+  required this.dob,
+  });
+
+  @HiveField(0)
+  String displayName;
+
+  @HiveField(1)
+  double employeeId;
+
+  @HiveField(2)
+  String employeeCode;
+
+  @HiveField(3)
+  String firstName;
+
+  @HiveField(4)
+  String lastName;
+
+  @HiveField(5)
+  String doj;
+
+  @HiveField(6)
+  double subid;
+
+  @HiveField(7)
+  double roleId;
+
+  @HiveField(8)
+  String roleName;
+
+  @HiveField(9)
+  String departname;
+
+  @HiveField(10)
+  String emailid;
+
+  @HiveField(11)
+  String mobileno;
+
+  @HiveField(12)
+  String gender;
+
+  @HiveField(13)
+  String workLocation;
+
+  @HiveField(14)
+  String marritialStatus;
+
+  @HiveField(15)
+  String dob;
+
+  @override
+  String toString() {
+    return '$employeeId: $firstName';
+  }
+}
+/*
+class PersonAdapter extends TypeAdapter<UserInfo> {
+  @override
+  final int typeId = 1;
+
+  @override
+  UserInfo read(BinaryReader reader) {
+    final numOfFields = reader.readByte();
+    final fields = <int, dynamic>{
+      for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
+    };
+    return UserInfo(
+      displayName: fields[0] as String,
+      employeeId: fields[1] as double,
+      employeeCode: fields[2] as String,
+      firstName: fields[3] as String,
+      lastName: fields[4] as String,
+    );
+  }
+
+  @override
+  void write(BinaryWriter writer, Person obj) {
+    writer
+      ..writeByte(3)
+      ..writeByte(0)
+      ..write(obj.name)
+      ..writeByte(1)
+      ..write(obj.age)
+      ..writeByte(2)
+      ..write(obj.friends);
+  }
+
+  @override
+  int get hashCode => typeId.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+          other is PersonAdapter &&
+              runtimeType == other.runtimeType &&
+              typeId == other.typeId;
+}*/
+Future<Box> _openBox() async {
+  final directory = await getApplicationDocumentsDirectory();
+  Hive.init(directory.path);
+  return await Hive.box('myBox');
+}
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-      name: "Intranet", options: DefaultFirebaseOptions.currentPlatform);
+  await Firebase.initializeApp(name: "Intranet", options: DefaultFirebaseOptions.currentPlatform);
 
   messaging = FirebaseMessaging.instance;
   messaging.subscribeToTopic("intranet");
+  Directory root = await getTemporaryDirectory();
+  var path = root.path + '/hive';;
+  Hive
+    ..init(path)
+    ..registerAdapter(PersonAdapter());
+
+  var box = await Hive.openBox('kidzeepref');
 
   // Set the background messaging handler early on, as a named top-level function
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
@@ -237,220 +377,13 @@ Future<void> main() async {
   }
   await FirebaseMessaging.instance.setAutoInitEnabled(true);
 
-  await initializeService();
   runApp(const MyApp());
-}
-
-Future<void> initializeService() async {
-  //final service = FlutterBackgroundService();
-
-  /// OPTIONAL, using custom notification channel id
-  const AndroidNotificationChannel channel = AndroidNotificationChannel(
-    'my_foreground', // id
-    'INTRANET FOREGROUND SERVICE', // title
-    description:
-        'This channel is used for sync Data with Server.', // description
-    importance: Importance.low, // importance must be at low or higher level
-  );
-
-  final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-      FlutterLocalNotificationsPlugin();
-
-  if (Platform.isIOS) {
-    await flutterLocalNotificationsPlugin.initialize(
-      const InitializationSettings(
-        iOS: IOSInitializationSettings(),
-      ),
-    );
-  }
-
-  await flutterLocalNotificationsPlugin
-      .resolvePlatformSpecificImplementation<
-          AndroidFlutterLocalNotificationsPlugin>()
-      ?.createNotificationChannel(channel);
-
-  /*await service.configure(
-    androidConfiguration: AndroidConfiguration(
-      // this will be executed when app is in foreground or background in separated isolate
-      onStart: onStart,
-
-      // auto start service
-      autoStart: true,
-      isForegroundMode: true,
-
-      notificationChannelId: 'my_foreground',
-      initialNotificationTitle: 'AWESOME SERVICE',
-      initialNotificationContent: 'Initializing',
-      foregroundServiceNotificationId: 888,
-    ),
-    iosConfiguration: IosConfiguration(
-      // auto start service
-      autoStart: true,
-
-      // this will be executed when app is in foreground in separated isolate
-      onForeground: onStart,
-
-      // you have to enable background fetch capability on xcode project
-      onBackground: onIosBackground,
-    ),
-  );
-
-  service.startService();*/
-}
-
-// to ensure this is executed
-// run app from xcode, then from xcode menu, select Simulate Background Fetch
-
-@pragma('vm:entry-point')
-Future<bool> onIosBackground(ServiceInstance service) async {
-  WidgetsFlutterBinding.ensureInitialized();
-  DartPluginRegistrant.ensureInitialized();
-  SharedPreferences preferences = await SharedPreferences.getInstance();
-  await preferences.reload();
-  final log = preferences.getStringList('log') ?? <String>[];
-  log.add(DateTime.now().toIso8601String());
-  await preferences.setStringList('log', log);
-
-  return true;
-}
-
-@pragma('vm:entry-point')
-void onStart(ServiceInstance service) async {
-  // Only available for flutter 3.0.0 and later
-  DartPluginRegistrant.ensureInitialized();
-  mService = service;
-  // For flutter prior to version 3.0.0
-  // We have to register the plugin manually
-
-  SharedPreferences preferences = await SharedPreferences.getInstance();
-  await preferences.setString("hello", "world");
-
-  /// OPTIONAL when use custom notification
-  final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-      FlutterLocalNotificationsPlugin();
-
-  /*if (service is AndroidServiceInstance) {
-    service.on('setAsForeground').listen((event) {
-      service.setAsForegroundService();
-    });
-
-    service.on('setAsBackground').listen((event) {
-      service.setAsBackgroundService();
-    });
-  }*/
-
-
-
-  service.on('stopService').listen((event) {
-    service.stopSelf();
-  });
-
-  flutterLocalNotificationsPlugin.show(
-    888,
-    'Intranet App is Running',
-    'Sync Data with Server process started',
-    const NotificationDetails(
-      android: AndroidNotificationDetails(
-        'my_foreground',
-        'Intranet FOREGROUND SERVICE',
-        icon: 'ic_bg_service_small',
-        ongoing: true,
-      ),
-    ),
-  );
-  // bring to foreground
-  /*Timer.periodic(const Duration(seconds: 5), (timer) async {
-        /// OPTIONAL for use custom notification
-        /// the notification id must be equals with AndroidConfiguration when you call configure() method.
-        flutterLocalNotificationsPlugin.show(
-          888,
-          'Intranet App is Running',
-          '${DateTime.now()}',
-          const NotificationDetails(
-            android: AndroidNotificationDetails(
-              'my_foreground',
-              'Intranet FOREGROUND SERVICE',
-              icon: 'ic_bg_service_small',
-              ongoing: true,
-            ),
-          ),
-        );
-
-        // if you don't using custom notification, uncomment this
-        // service.setForegroundNotificationInfo(
-        //   title: "My App Service",
-        //   content: "Updated at ${DateTime.now()}",
-        // );
-      });*/
-  /// you can see this log in logcat
-  print('FLUTTER BACKGROUND SERVICE: ${DateTime.now()}');
-  apicall();
-  // test using external plugin
-  final deviceInfo = DeviceInfoPlugin();
-  String? device;
-  if (Platform.isAndroid) {
-    final androidInfo = await deviceInfo.androidInfo;
-    device = androidInfo.model;
-  }
-
-  if (Platform.isIOS) {
-    final iosInfo = await deviceInfo.iosInfo;
-    device = iosInfo.model;
-  }
-
-  service.invoke(
-    'update',
-    {
-      "current_date": DateTime.now().toIso8601String(),
-      "device": device,
-    },
-  );
-}
-
-apicall() async {
-  print('api calling...');
-  List<CheckInModel> list = await DBHelper().getOfflineCheckInStatus();
-  print('Offline Data found ${list.length}');
-  if (list.length > 0) {
-    print('Offline Data found ${list.length}');
-    print(list[0].body);
-    UpdateCVFStatusRequest request = UpdateCVFStatusRequest.fromJson(
-      json.decode(list[0].body),
-    );
-    print('json decode ');
-    print(request.toString());
-    APIService apiService = APIService();
-    apiService.updateCVFStatus(request).then((value) {
-      print('response received...');
-      print(value.toString());
-      if (value != null) {
-        if (value == null || value.responseData == null) {
-          //onResponse.onError('Unable to update the status');
-        } else if (value is UpdateCVFStatusResponse) {
-          UpdateCVFStatusResponse response = value;
-          print(response.toString());
-          //onResponse.onSuccess(response);
-          DBHelper helper=DBHelper();
-          helper.updateCheckInStatus(list[0].id, 1);
-          apicall();
-        } else {
-          //onResponse.onError('Unable to update the status ');
-        }
-      } else {
-        //onResponse.onError('Unable to update the status');
-      }
-    });
-  } else {
-    print('Offline Data not found service stopping');
-    if(mService!=null)
-      mService.stopSelf();
-  }
 }
 
 Future<void> setup() async {
   // #1
   const androidSetting = AndroidInitializationSettings('@mipmap/ic_launcher');
-  const iosSetting = IOSInitializationSettings();
+  const iosSetting = DarwinInitializationSettings();
 
   // #2
   const initSettings =
@@ -468,45 +401,7 @@ Future _showNotificationWithDefaultSound(
     RemoteMessage message, String title, String messageData) async {
   if(Platform.isIOS){
 
-  }else if (false && Platform.isAndroid) {
-    if (!AwesomeStringUtils.isNullOrEmpty(title,
-            considerWhiteSpaceAsEmpty: true) ||
-        !AwesomeStringUtils.isNullOrEmpty(messageData,
-            considerWhiteSpaceAsEmpty: true)) {
-      print('message also contained a notification: ${message}');
-
-      String? imageUrl;
-      try{
-        imageUrl ??= message.notification!.android?.imageUrl;
-        imageUrl ??= message.notification!.apple?.imageUrl;
-      }catch(e){
-
-      }
-
-
-      Map<String, dynamic> notificationAdapter = {
-        NOTIFICATION_CHANNEL_KEY: 'basic_channel',
-        NOTIFICATION_ID: message.data[NOTIFICATION_CONTENT]?[NOTIFICATION_ID] ??
-            message.messageId ??
-            Random().nextInt(2147483647),
-        NOTIFICATION_TITLE: message.data[NOTIFICATION_CONTENT]
-                ?[NOTIFICATION_TITLE] ??
-            message.notification?.title,
-        NOTIFICATION_BODY: message.data[NOTIFICATION_CONTENT]
-                ?[NOTIFICATION_BODY] ??
-            message.notification?.body,
-        NOTIFICATION_LAYOUT: AwesomeStringUtils.isNullOrEmpty(imageUrl)
-            ? 'Default'
-            : 'BigPicture',
-        NOTIFICATION_BIG_PICTURE: imageUrl
-      };
-
-      AwesomeNotifications()
-          .createNotificationFromJsonData(notificationAdapter);
-    } else {
-      AwesomeNotifications().createNotificationFromJsonData(message.data);
-    }
-  } else {
+  }else {
     NotificationService notificationService = NotificationService();
     notificationService.showNotification(12, title, messageData, messageData);
   }
