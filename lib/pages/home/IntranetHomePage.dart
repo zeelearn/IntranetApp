@@ -192,6 +192,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
   }
 
   updateProfileImage() async{
+    if(_profileImage.isNotEmpty)
     hiveBox.get(LocalConstant.KEY_EMPLOYEE_AVTAR, _profileImage);
   }
   Future<void> getUserInfo() async {

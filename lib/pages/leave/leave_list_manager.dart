@@ -403,7 +403,7 @@ class _LeaveManagerScreen extends State<LeaveManagerScreen>
     //Utility.showLoaderDialog(context);
     DBHelper dbHelper = DBHelper();
     for(int index=0;index<_isChecked.length;index++) {
-      print('Data isnerting ${index}');
+      //print('Data isnerting ${index}');
       var list = getSelectedModels(status, (index * 50));
       if(list!=null && list.toString().trim().isNotEmpty && list.toString()!='[]') {
         String xml = "{'root': {'subroot': ${list}}";

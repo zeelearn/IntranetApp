@@ -264,19 +264,18 @@ class PersonAdapter extends TypeAdapter<UserInfo> {
               typeId == other.typeId;
 }*/
 Future<Box> _openBox() async {
-  final directory = await getApplicationDocumentsDirectory();
-  Hive.init(directory.path);
-  return await Hive.box('myBox');
+  if (!kIsWeb && !Hive.isBoxOpen(LocalConstant.KidzeeDB))
+    Hive.init((await getApplicationDocumentsDirectory()).path);
+  return await Hive.openBox(LocalConstant.KidzeeDB);
 }
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  _openBox();
   await Firebase.initializeApp(name: "Intranet", options: DefaultFirebaseOptions.currentPlatform);
 
   messaging = FirebaseMessaging.instance;
   messaging.subscribeToTopic("intranet");
-  _openBox();
 
-  var box = await Hive.openBox('kidzeepref');
 
   // Set the background messaging handler early on, as a named top-level function
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
@@ -508,7 +507,7 @@ Future<void> leaveService(int action) async {
 Future<bool> onIosBackground(ServiceInstance service) async {
   WidgetsFlutterBinding.ensureInitialized();
   DartPluginRegistrant.ensureInitialized();
-
+  print('IOS Background service started....');
 
   return true;
 }
@@ -568,9 +567,9 @@ checkPendingLeaveApprovals(int action) async {
   print('checkPendingLeaveApprovals ..................');
   bool isInternet = await Utility.isInternet();
   if(isInternet) {
-    var box = await Hive.openBox(LocalConstant.KidzeeDB);
+    var box = await _openBox();
     //SharedPreferences preferences = await SharedPreferences.getInstance();
-    String userId = box.get(LocalConstant.KEY_EMPLOYEE_ID) as String;
+    String userId = await box.get(LocalConstant.KEY_EMPLOYEE_ID) ;
     DBHelper _helper = DBHelper();
     List<ApproveLeaveRequestManager> list = await _helper.getUnSyncData(userId);
     List<CheckInModel> checkInList = await DBHelper().getOfflineCheckInStatus();
