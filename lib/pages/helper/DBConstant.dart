@@ -1,5 +1,6 @@
 class DBConstant{
 
+  static String USER_ID ='userid';
   static String FRANCHISEE_ID ='frid';
   static String STUDENT_PROGRAM_ID ='student_program_id';
   static String STUDENT_ID ='student_id';
@@ -66,6 +67,9 @@ class DBConstant{
   static String ANSWER_NAME ='answername';
   static String ANSWER_TYPE ='answer_type';
   static String USER_ANSWER ='useranswer';
+
+  static String JSON_MODEL ='jsonmodel';
+  static String ACTION_TYPE ='actiontype';
 
   static String FRANCHISEE_NAME ='franchise_name';
   static String FRANCHISEE_CODE ='franchise_code';

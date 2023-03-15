@@ -216,6 +216,7 @@ class _AttendanceSummeryState extends State<AttendanceSummeryScreen> {
                                       MaterialPageRoute(
                                           builder: (context) =>
                                               AttendanceMarkingScreen(
+                                                isManager: false,
                                                   employeeId: employeeId,
                                                   displayName: '')),
                                     );
@@ -463,8 +464,8 @@ class _AttendanceSummeryState extends State<AttendanceSummeryScreen> {
                   // Set border width
                   borderRadius: BorderRadius.all(Radius.circular(10.0)),
                 ),
-                child: const Text(
-                  "Full Day",
+                child:  Text(
+                  model.status,
                   style: TextStyle(color: Colors.black),
                 ),
               ),

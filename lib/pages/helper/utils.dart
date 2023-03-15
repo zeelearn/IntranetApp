@@ -293,7 +293,6 @@ class Utility{
     //2022-07-18T00:00:00
     try {
       dt = new DateFormat('yyyy-MM-dd\'T\'HH:mm:ss').parse(value);
-      //print('asasdi   ' + dt.day.toString());
     } catch (e) {
       e.toString();
     }
@@ -304,7 +303,6 @@ class Utility{
     //2022-07-18T00:00:00
     try {
       dt = new DateFormat('yyyy-MM-dd').parse(value);
-      //print('asasdi   ' + dt.day.toString());
     } catch (e) {
       e.toString();
     }
@@ -315,7 +313,6 @@ class Utility{
     //2022-07-18T00:00:00
     try {
       dt = new DateFormat('HH:mm:ss').parse(value);
-      //print('asasdi   ' + dt.day.toString());
     } catch (e) {
       e.toString();
     }
@@ -329,7 +326,6 @@ class Utility{
     //2022-07-18T00:00:00
     try {
       value = new DateFormat('yyyy-MM-dd').format(date);
-      //print('asasdi   ' + dt.day.toString());
     } catch (e) {
       e.toString();
     }
@@ -342,7 +338,6 @@ class Utility{
     //2022-07-18T00:00:00
     try {
       value = new DateFormat('yyyy-MM-dd\'T\'HH:mm:ss').format(date);
-      //print('asasdi   ' + dt.day.toString());
     } catch (e) {
       e.toString();
     }
@@ -353,7 +348,6 @@ class Utility{
     //2022-07-18T00:00:00
     try {
       value = new DateFormat('d-MMM').format(date);
-      //print('asasdi   ' + dt.day.toString());
     } catch (e) {
       e.toString();
     }
@@ -365,7 +359,6 @@ class Utility{
     //2022-07-18T00:00:00
     try {
       value = new DateFormat('hh:mm').format(date);
-      //print('asasdi   ' + dt.day.toString());
     } catch (e) {
       e.toString();
     }
@@ -375,7 +368,6 @@ class Utility{
     String value='';
     try {
       value = new DateFormat('hh-mm a').format(date);
-      //print('asasdi   ' + dt.day.toString());
     } catch (e) {
       e.toString();
     }
@@ -386,7 +378,6 @@ class Utility{
     //2022-07-18T00:00:00
     try {
       value = new DateFormat('a').format(date);
-      //print('asasdi   ' + dt.day.toString());
     } catch (e) {
       e.toString();
     }

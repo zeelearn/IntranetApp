@@ -7,6 +7,7 @@ import 'package:path/path.dart' as path;
 import 'package:sqflite/sqflite.dart' as sql;
 import 'package:sqflite/sqflite.dart';
 
+import '../../api/request/leave/leave_approve_request.dart';
 import '../../api/response/cvf/QuestionResponse.dart';
 import '../../api/response/cvf/centers_respinse.dart';
 import '../../api/response/pjp/pjplistresponse.dart';
@@ -169,6 +170,14 @@ class DBHelper {
       '${DBConstant.STATE} TEXT, '
       '${DBConstant.CITY} TEXT)';
 
+  static String CREATE_TABLE_BACKGROUND_SYNC = 'CREATE TABLE IF NOT EXISTS  ${LocalConstant.TABLE_DATA_SYNC}'
+      '(${DBConstant.ID} INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, '
+      '${DBConstant.JSON_MODEL} INT, '
+      '${DBConstant.ACTION_TYPE} TEXT, '
+      '${DBConstant.IS_SYNC} int, '
+      '${DBConstant.USER_ID} TEXT, '
+      '${DBConstant.DATE} TEXT)';
+
   Future<sql.Database> get db async {
     if (_db != null) return _db;
     _db = await initDb();
@@ -194,6 +203,7 @@ class DBHelper {
           db.execute(CREATE_TABLE_CVF_FRANCHISEE);
           db.execute(CREATE_TABLE_QUESTIONS_JSON);
           db.execute(CREATE_TABLE_CHECKIN);
+          db.execute(CREATE_TABLE_BACKGROUND_SYNC);
         },
         onUpgrade: (db,old,newversion){
             print('Database Upgrade-------------------');
@@ -204,8 +214,10 @@ class DBHelper {
             }
             if(old==5){
               db.execute(CREATE_TABLE_CHECKIN);
+            }else if(old<=6){
+              db.execute(CREATE_TABLE_BACKGROUND_SYNC);
             }
-        }, version: 6);
+        }, version: 7);
   }
 
   /// insert data to db
@@ -231,7 +243,7 @@ class DBHelper {
   /// @param id: product id to be deleted
   Future<void> delete(String table, String id) async {
     final dbClient = await db;
-    dbClient.delete(table, where: 'product_id = ?', whereArgs: [id]);
+    dbClient.delete(table, where: '${DBConstant.ID} = ?', whereArgs: [id]);
   }
 
   /// delete data to db
@@ -239,7 +251,7 @@ class DBHelper {
   /// @param id: product id to be deleted
   Future<void> deleteData(String table) async {
     final dbClient = await db;
-    dbClient.delete(table, where: '', whereArgs: []);
+    dbClient.delete(table, where: null, whereArgs: []);
   }
 
   /// update data in db
@@ -321,6 +333,18 @@ class DBHelper {
     await dbclient.insert(LocalConstant.TABLE_CHECKIN, data);
   }
 
+  Future<void> insertSyncData(String json,String action,int userid) async{
+    var dbclient = await db;
+    Map<String, Object> data = {
+      '${DBConstant.JSON_MODEL}': json,
+      '${DBConstant.ACTION_TYPE}': action,
+      DBConstant.IS_SYNC: 0,
+      DBConstant.USER_ID: userid,
+      DBConstant.DATE: Utility.parseDate(DateTime.now()),
+    };
+    await dbclient.insert(LocalConstant.TABLE_DATA_SYNC, data);
+  }
+
 
   Future<void> insertCVFQuestions(String cvfid,String json,int isSync) async{
     var dbclient = await db;
@@ -369,6 +393,25 @@ class DBHelper {
       print('getQuestionsList list is null');
     }
     return response;
+  }
+
+  Future<List<ApproveLeaveRequestManager>> getUnSyncData(String userId) async {
+    QuestionResponse response = QuestionResponse(responseMessage: '', statusCode: 200, responseData: []);
+    List<ApproveLeaveRequestManager> unSyncList =[];
+    List<Map<String, dynamic>> list = await  DBHelper().getData(LocalConstant.TABLE_DATA_SYNC);
+    if(list !=null){
+      print('getQuestionsList list is not empty ${list.length}');
+      for(int index=0;index<list.length;index++) {
+        Map<String, dynamic> map = list[index];
+        if(map[DBConstant.IS_SYNC]==0) {
+          unSyncList.add(ApproveLeaveRequestManager(
+            xml: map[DBConstant.JSON_MODEL], userId: userId, index: map[DBConstant.ID],actionType: map[DBConstant.ACTION_TYPE]));
+        }
+      }
+    }else{
+      print('getQuestionsList list is null');
+    }
+    return unSyncList;
   }
 
   Future<Map<String,String>> getCheckInStatus() async {

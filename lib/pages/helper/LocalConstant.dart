@@ -46,6 +46,9 @@ class LocalConstant {
 
   static const String KEY_AUTH_TOKEN = "authtoken";
 
+
+  static const int ACTION_BACK = 999;
+
   static const kPrimaryColor = Color(0xFFE57373);
   static const kBackgroundColor = Color(0xFFFFCDD2);
   static const kTopBackgroundColor = Color(0XFFFCE4EC);
@@ -79,6 +82,7 @@ class LocalConstant {
   static String TABLE_CVF_ANSWER_MASTER ="cvf_answermaster";
   static String TABLE_CVF_USER_ANSWERAS ="cvf_user_answers";
   static String TABLE_CVF_FRANCHISEE ="cvf_centers";
+  static String TABLE_DATA_SYNC ="data_sync";
 
 
 

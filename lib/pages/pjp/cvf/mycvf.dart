@@ -123,6 +123,12 @@ class _MyCVFListScreen extends State<MyCVFListScreen> implements onResponse,onCl
             String json = jsonEncode(response);
             saveCVFLocally(json);
             mCvfList.addAll(response.responseData);
+            //mCvfList.sort((a,b) => a.compareTo(b));
+            //mCvfList = mCvfList.sort((a, b)=> a['expiry'].compareTo(b['expiry']));
+            //mCvfList.sort();
+            mCvfList.sort((a, b){ //sorting in descending order
+              return DateTime.parse(a.visitDate).compareTo(DateTime.parse(b.visitDate));
+            });
           }
           print('pjp list ${response.responseData.length}');
         } else {

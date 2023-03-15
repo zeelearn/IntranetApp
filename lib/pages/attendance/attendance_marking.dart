@@ -10,6 +10,7 @@ import 'package:intranet/pages/iface/onClick.dart';
 import 'package:intranet/pages/widget/MyWidget.dart';
 import '../../api/APIService.dart';
 import '../../api/response/attendance_marking_response.dart';
+import '../../main.dart';
 import '../helper/LightColor.dart';
 import '../utils/theme/colors/light_colors.dart';
 
@@ -17,11 +18,13 @@ class AttendanceMarkingScreen extends StatefulWidget {
   String displayName;
 
   int employeeId = 0;
+  bool isManager;
 
   AttendanceMarkingScreen(
       {Key? key,
         required this.employeeId,
         required this.displayName,
+        required this.isManager,
        })
       : super(key: key);
 
@@ -46,6 +49,7 @@ class _AttendanceMarkingScreen extends State<AttendanceMarkingScreen> implements
     // TODO: implement initState
     super.initState();
     getUserInfo();
+    initializeService();
   }
 
   Future<void> getUserInfo() async {
@@ -150,10 +154,10 @@ class _AttendanceMarkingScreen extends State<AttendanceMarkingScreen> implements
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(50.0),
                           color: LightColor.primary_color,
-                          boxShadow: [
+                          boxShadow: const [
                             BoxShadow(
                               color: LightColor.seeBlue,
-                              offset: const Offset(0, 5.0),
+                              offset: Offset(0, 5.0),
                               blurRadius: 10.0,
                             ),
                           ],
@@ -181,10 +185,10 @@ class _AttendanceMarkingScreen extends State<AttendanceMarkingScreen> implements
   getTime(BuildContext context,String label, TextEditingController controller,
       DateTime minDate,DateTime maxDate) {
     return TextField(
-        style: TextStyle(color: LightColor.titleTextColor),
+        style: const TextStyle(color: LightColor.titleTextColor),
         controller: controller, //editing controller of this TextField
         decoration: InputDecoration(
-            border: OutlineInputBorder(
+            border: const OutlineInputBorder(
                 borderRadius: BorderRadius.all(Radius.circular(5.0)),
                 borderSide: BorderSide(color: LightColors.kLavender)),
             icon: Icon(Icons.timer), //icon of text field
@@ -273,11 +277,11 @@ class _AttendanceMarkingScreen extends State<AttendanceMarkingScreen> implements
         FromDT: DateFormat('yyyy-MM-ddTHH:mm:ss').format(parseDateTime('${_startDateController.text} ${_fromTimeController.text}')),
         ToDT: DateFormat('yyyy-MM-ddTHH:mm:ss').format(parseDateTime('${_startDateController.text} ${_toTimeController.text}')));
 
-  //print(request.getJson());
+  print(request.getJson());
     APIService apiService = APIService();
     apiService.attendanceMarking(request).then((value) {
       Navigator.of(context).pop();
-      //print(value);
+      print(value);
       if (value != null) {
         if (value == null ) {
           Utility.showMessage(context, 'Unable to Process your Request');
@@ -293,7 +297,7 @@ class _AttendanceMarkingScreen extends State<AttendanceMarkingScreen> implements
       } else {
         Navigator.pop(context);
         Utility.showMessage(context, "Unable to Apply Attendance Request");
-        //print("null value");
+        print("null value");
       }
     });
   }
@@ -304,7 +308,7 @@ class _AttendanceMarkingScreen extends State<AttendanceMarkingScreen> implements
     //2022-07-18T00:00:00
     try {
       dt = new DateFormat('yyyy-MM-dd').parse(value);
-      ////print('asasdi   ' + dt.day.toString());
+      //print('asasdi   ' + dt.day.toString());
     } catch (e) {
       e.toString();
     }
@@ -315,7 +319,7 @@ class _AttendanceMarkingScreen extends State<AttendanceMarkingScreen> implements
     //2022-07-18T00:00:00
     try {
       dt = new DateFormat('dd-MMM-yyyy hh:mm a').parse(value);
-      ////print('asasdi   ' + dt.day.toString());
+      //print('asasdi   ' + dt.day.toString());
     } catch (e) {
       e.toString();
     }

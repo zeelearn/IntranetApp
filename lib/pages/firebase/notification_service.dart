@@ -37,8 +37,8 @@ class NotificationService {
     importance: Importance.high,
   );
 
-  static final DarwinNotificationDetails _iOSNotificationDetails =
-  DarwinNotificationDetails();
+  static const IOSNotificationDetails _iOSNotificationDetails =
+  IOSNotificationDetails();
 
   final NotificationDetails notificationDetails = NotificationDetails(
     android: _androidNotificationDetails,
@@ -49,8 +49,8 @@ class NotificationService {
     final AndroidInitializationSettings androidInitializationSettings =
     AndroidInitializationSettings("ic_launcher");
 
-    final DarwinInitializationSettings iOSInitializationSettings =
-    DarwinInitializationSettings(
+    final IOSInitializationSettings iOSInitializationSettings =
+    IOSInitializationSettings(
       defaultPresentAlert: false,
       defaultPresentBadge: false,
       defaultPresentSound: false,
@@ -67,6 +67,7 @@ class NotificationService {
 
     await flutterLocalNotificationsPlugin.initialize(
       initializationSettings,
+      onSelectNotification: onSelectNotification,
     );
 
     print(FirebaseMessaging.instance.getToken());

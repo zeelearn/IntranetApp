@@ -317,7 +317,7 @@ class APIService {
           },
           body:body);
       print(response.body);
-      if (response.statusCode == 200 || response.statusCode == 400) {
+      if (response.statusCode == 200) {
         if(response.body is ApplyLeaveResponse){
           return ApplyLeaveResponse.fromJson(
             json.decode(response.body),
@@ -385,8 +385,7 @@ class APIService {
 
   Future<dynamic> attendanceMarking(AttendanceMarkingRequest requestModel) async {
     try {
-      print(requestModel.toJson());
-
+      print(requestModel.getJson());
       print(Uri.parse(url + LocalStrings.GET_ATTENDANCE_MARKING));
       final response = await http.post(Uri.parse(url + LocalStrings.GET_ATTENDANCE_MARKING),
           headers: {
@@ -395,6 +394,7 @@ class APIService {
           },
           body:requestModel.getJson());
       print(response.body);
+      print(requestModel.getJson());
       if (response.statusCode == 200 || response.statusCode == 400) {
         if(response.body is AttendanceSummeryResponse){
           return AttendanceMarkingResponse.fromJson(
@@ -492,7 +492,8 @@ class APIService {
           },
           body:body);
       print(response.body);
-      if (response.statusCode == 200 || response.statusCode == 400) {
+      print(response.statusCode);
+      if (response.statusCode == 200) {
         if(response.body is AttendanceSummeryResponse){
           return ApproveAttendanceResponse.fromJson(
             json.decode(response.body),
@@ -503,6 +504,7 @@ class APIService {
           );
         }
       } else {
+        print('NULL Response....');
         return null; //LoginResponseModel(token:"",Status:"Invalid/Wrong Login Details");
       }
     } catch (e) {

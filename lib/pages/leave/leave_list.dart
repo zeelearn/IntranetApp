@@ -401,8 +401,8 @@ class _LeaveSummeryScreenState extends State<LeaveSummeryScreen>
                         borderRadius: BorderRadius.all(Radius.circular(10.0)),
                       ),
                       child: Text(
-                        model.status,
-                        style: TextStyle(color: Colors.black),
+                        model.status=='Manager Approved' ? 'Manager\nApproved' : model.status,
+                        style: TextStyle(color: Colors.black,fontSize: 12),
                       ),
                     ),
                     Text(''),

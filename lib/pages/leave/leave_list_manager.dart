@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
 import 'package:intl/intl.dart';
 import 'package:intranet/api/request/leavelist_request_man.dart';
+import 'package:intranet/main.dart';
 import 'package:intranet/pages/iface/onClick.dart';
 import 'package:intranet/pages/widget/MyWidget.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../api/APIService.dart';
-import '../../api/request/leave/leave_approve_request.dart';
-import '../../api/response/apply_leave_response.dart';
 import '../../api/response/leave_list_manager.dart';
+import '../firebase/notification_service.dart';
+import '../helper/DatabaseHelper.dart';
 import '../helper/LocalConstant.dart';
 import '../helper/utils.dart';
 import '../utils/theme/colors/light_colors.dart';
@@ -29,7 +30,6 @@ class _LeaveManagerScreen extends State<LeaveManagerScreen>
   List<bool> _isChecked = [];
   bool _isSelectAll = false;
   final _selectedColor = LightColors.kLavender;
-  final _unselectedColor = Color(0xff5f6368);
   final _tabs = [Tab(text: 'Pending Approvals'), Tab(text: 'All Approvals')];
 
   final _iconTabs = [
@@ -63,9 +63,8 @@ class _LeaveManagerScreen extends State<LeaveManagerScreen>
   }
 
   Future<void> getUserInfo() async {
-    var hiveBox = Hive.box(LocalConstant.KidzeeDB);
-    await Hive.openBox(LocalConstant.KidzeeDB);
-    widget.employeeId = int.parse(hiveBox.get(LocalConstant.KEY_EMPLOYEE_ID) as String);
+    final prefs = await SharedPreferences.getInstance();
+    widget.employeeId = int.parse(prefs.getString(LocalConstant.KEY_EMPLOYEE_ID) as String);
 
     loadAcquisition();
   }
@@ -158,13 +157,13 @@ class _LeaveManagerScreen extends State<LeaveManagerScreen>
     }
   }
 
-  getSelectedModels(String status) {
+  getSelectedModels(String status,int start) {
     //ApproveLeaveRequsitionRequest request = ApproveLeaveRequsitionRequest();
     late var jsonValue="[";
     if (_isChecked != null && _isChecked.length > 0) {
       String token="";
       print(status);
-      for (int index = 0; index < _isChecked.length; index++) {
+      for (int index = start; index < _isChecked.length; index++) {
         if(_isChecked[index]) {
           String data = "{'Requisition_Id': ${requisitionList[index]
               .requisitionId.toInt()
@@ -340,7 +339,7 @@ class _LeaveManagerScreen extends State<LeaveManagerScreen>
               if(_tabController.index==0){
                 //pending
                 if(response.responseData[index].status=='Pending'){
-                  requisitionList.add(response.responseData[index]);
+                    requisitionList.add(response.responseData[index]);
                 }
               }else{
                 //approve
@@ -401,13 +400,28 @@ class _LeaveManagerScreen extends State<LeaveManagerScreen>
   }
 
   approveAcquisition(LeaveInfoMan model, String status) {
-    Utility.showLoaderDialog(context);
-    var list = getSelectedModels(status);
+    //Utility.showLoaderDialog(context);
+    DBHelper dbHelper = DBHelper();
+    for(int index=0;index<_isChecked.length;index++) {
+      print('Data isnerting ${index}');
+      var list = getSelectedModels(status, (index * 50));
+      if(list!=null && list.toString().trim().isNotEmpty && list.toString()!='[]') {
+        String xml = "{'root': {'subroot': ${list}}";
+        dbHelper.insertSyncData(xml, 'LEAVEMAN', widget.employeeId);
+      }
+    }
+    //Navigator.of(context).pop();
+    Utility.showMessageSingleButton(context, 'Thanks you, We receive your request, we will process it in background, once complete the service we wll update you',this);
+    NotificationService notificationService = NotificationService();
+    notificationService.showNotification(12, 'LEAVE REQUEST Received', 'We are processing your service', 'We are processing your service');
+    initializeService();
+
+    //var list = getSelectedModels(status);
     //String xml ="{'root': {'subroot': [{'Requisition_Id': 1102411,'WorkflowTypeCode': 'LV1','RequisitionTypeCode': 'LVREQ','Requistion_Status_Code': '','Is_Approved': 1,'Workflow_UserType': 'MAN','Workflow_Remark': 'approved'}]}}";
     //print(xml);
-    String xml ="{'root': {'subroot': ${list}}";
-    ApproveLeaveRequestManager request = ApproveLeaveRequestManager(xml: xml, userId: widget.employeeId.toString(),);
-    print('request'+request.toJson().toString());
+
+    //String xml ="{'root': {'subroot': ${list}}";
+    /*ApproveLeaveRequestManager request = ApproveLeaveRequestManager(xml: xml, userId: widget.employeeId.toString(),);
     APIService apiService = APIService();
     apiService.approveLeaveManager(request).then((value) {
       print(value.toString());
@@ -427,7 +441,7 @@ class _LeaveManagerScreen extends State<LeaveManagerScreen>
       }
 
       setState(() {});
-    });
+    });*/
   }
 
   generateRow(int position, LeaveInfoMan model, int action) {
@@ -605,6 +619,7 @@ class _LeaveManagerScreen extends State<LeaveManagerScreen>
 
   @override
   void onClick(int action, value) {
-    this.loadAcquisition();
+    //this.loadAcquisition();
+    //Navigator.of(context).pop();
   }
 }

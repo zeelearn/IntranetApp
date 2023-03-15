@@ -1,3 +1,4 @@
+/*
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:intl/intl.dart';
@@ -161,9 +162,10 @@ class _OutdoorManagerScreen extends State<OutdoorManagerScreen>
     //String xml ="{'root': {'subroot': [{'Requisition_Id': 1102411,'WorkflowTypeCode': 'LV1','RequisitionTypeCode': 'LVREQ','Requistion_Status_Code': '','Is_Approved': 1,'Workflow_UserType': 'MAN','Workflow_Remark': 'approved'}]}}";
     //print(xml);
     String xml ="{'root': {'subroot': ${list}}";
-    ApproveLeaveRequestManager request = ApproveLeaveRequestManager(xml: xml, userId: widget.employeeId.toString(),);
+    ApproveLeaveRequestManager request = ApproveLeaveRequestManager(xml: xml, userId: widget.employeeId.toString(), index: 0, actionType: '',);
     print('request'+request.toJson().toString());
-    /*APIService apiService = APIService();
+    */
+/*APIService apiService = APIService();
     apiService.approveLeaveManager(request).then((value) {
       print(value.toString());
       Navigator.of(context).pop();
@@ -182,7 +184,8 @@ class _OutdoorManagerScreen extends State<OutdoorManagerScreen>
       }
 
       setState(() {});
-    });*/
+    });*//*
+
   }
 
   approveAcquisitinoSingle() {
@@ -223,7 +226,8 @@ class _OutdoorManagerScreen extends State<OutdoorManagerScreen>
               style: TextStyle(fontSize: 12),
             ),
           ),
-          /*Row(
+          */
+/*Row(
                 children: [
                   Checkbox(
                     checkColor: Colors.black,
@@ -241,7 +245,8 @@ class _OutdoorManagerScreen extends State<OutdoorManagerScreen>
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                 ],
-              ),*/
+              ),*//*
+
           Padding(
             padding: EdgeInsets.only(right: 20),
             child: Container(
@@ -382,6 +387,7 @@ class _OutdoorManagerScreen extends State<OutdoorManagerScreen>
   }
 
 
+*/
 /*
   approveAcquisition(LeaveInfoMan model, String status) {
     Utility.showLoaderDialog(context);
@@ -414,7 +420,8 @@ class _OutdoorManagerScreen extends State<OutdoorManagerScreen>
       Navigator.of(context).pop();
       setState(() {});
     });
-  }*/
+  }*//*
+
 
   generateRow(int position, LeaveInfoMan model, int action) {
     double width = MediaQuery.of(context).size.width;
@@ -426,7 +433,9 @@ class _OutdoorManagerScreen extends State<OutdoorManagerScreen>
               margin:
               const EdgeInsets.only(left: 5, right: 5, bottom: 0, top: 0),
               padding: const EdgeInsets.all(0.0),
-              /*decoration: BoxDecoration(border: Border.all(color: LightColors.kBlue)),*/
+              */
+/*decoration: BoxDecoration(border: Border.all(color: LightColors.kBlue)),*//*
+
               child: IntrinsicHeight(
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -487,10 +496,12 @@ class _OutdoorManagerScreen extends State<OutdoorManagerScreen>
                       margin: const EdgeInsets.all(5),
                       padding: const EdgeInsets.all(1),
                       alignment: Alignment.center,
-                      /*decoration:  BoxDecoration(
+                      */
+/*decoration:  BoxDecoration(
                         color: model.status=='Pending' ? LightColors.kLightOrange : LightColors.kLightBlue, // Set border width
                         borderRadius: BorderRadius.all(Radius.circular(10.0)),
-                      ),*/
+                      ),*//*
+
                       child: SizedBox(
                         child: Center(
                             child: action == 1
@@ -580,3 +591,4 @@ class _OutdoorManagerScreen extends State<OutdoorManagerScreen>
     return DateFormat("MMM-dd").format(dateTime);
   }
 }
+*/

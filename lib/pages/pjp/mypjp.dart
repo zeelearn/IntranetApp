@@ -85,8 +85,12 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse,onCli
       PjpListResponse response = PjpListResponse.fromJson(
         json.decode(attendanceList!),
       );
-      if (response != null && response.responseData != null)
+      if (response != null && response.responseData != null) {
         mPjpList.addAll(response.responseData);
+        mPjpList.sort((a, b){ //sorting in descending order
+          return DateTime.parse(a.fromDate).compareTo(DateTime.parse(b.fromDate));
+        });
+      }
       setState(() {});
       isLoad = true;
     }catch(e){
