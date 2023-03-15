@@ -124,6 +124,7 @@ class _AttendanceSummeryState extends State<AttendanceSummeryManagerScreen> {
                                   MaterialPageRoute(
                                       builder: (context) =>
                                           AttendanceMarkingScreen(
+                                            isManager: true,
                                               employeeId: employeeId,
                                               displayName: '')),
                                 );
@@ -748,7 +749,7 @@ class _AttendanceSummeryState extends State<AttendanceSummeryManagerScreen> {
     //2022-07-18T00:00:00
     try {
       dt = new DateFormat('yyyy-MM-dd\'T\'HH:mm:ss').parse(value);
-      print('asasdi   ' + dt.day.toString());
+
     } catch (e) {
       e.toString();
     }

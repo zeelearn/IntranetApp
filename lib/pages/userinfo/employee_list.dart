@@ -3,6 +3,7 @@ import 'package:intranet/api/response/employee_list_response.dart';
 import 'package:intranet/pages/helper/LocalConstant.dart';
 import 'package:intranet/pages/helper/utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart' as UrlLauncher;
 
 import '../../api/APIService.dart';
 import '../utils/theme/colors/light_colors.dart';
@@ -123,7 +124,10 @@ class _EmployeeListScreenState extends State<EmployeeListScreen>
         appBar: AppBar(
           title: customSearchBar,
           automaticallyImplyLeading: false,
-          leading: customleading,
+          leading: IconButton(
+            icon: customleading,
+            onPressed: () => Navigator.of(context).pop(),
+          ),
           actions: [
             IconButton(
               onPressed: () {
@@ -210,14 +214,14 @@ class _EmployeeListScreenState extends State<EmployeeListScreen>
                   ),
                 ),
 
-                getLeaveListView(),
+                getListView(),
               ],
             ),
           ),
         ));
   }
 
-  getLeaveListView() {
+  getListView() {
     if (employeeList == null || employeeList.length <= 0) {
       print('data not found');
       return Utility.emptyDataSet(context,"Employee List are not avaliable, Please try again later");
@@ -236,18 +240,19 @@ class _EmployeeListScreenState extends State<EmployeeListScreen>
   getRow(EmployeeInfo info) {
 
     return ListTile(
-      leading: CircleAvatar(
-        backgroundColor: Colors.white,
-        backgroundImage: AssetImage('assets/icons/ic_user.png'),
-      ),
-      title: Text(
-        '${info.employeeFullName}\n${info.employeeDesignation}',
-      ),
-      subtitle: Text(info.employeeEmailId),
-      trailing: Icon(Icons.call),
-      onTap: () {
-        Text('Another data');
-      },
+        leading: CircleAvatar(
+          backgroundColor: Colors.white,
+          backgroundImage: AssetImage('assets/icons/ic_user.png'),
+        ),
+        title: Text(
+          '${info.employeeFullName}\n${info.employeeDesignation}',
+        ),
+        subtitle: Text(info.employeeEmailId),
+        trailing: Icon(Icons.call),
+        onTap: () {
+          UrlLauncher.launchUrl(Uri.parse("tel://${info.employeeContactNumber}"));
+          print('Another data');
+        },
     );
   }
 

@@ -11,6 +11,7 @@ import 'package:intranet/pages/widget/MyWidget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../api/APIService.dart';
 import '../../api/response/attendance_marking_response.dart';
+import '../../main.dart';
 import '../helper/LightColor.dart';
 import '../utils/theme/colors/light_colors.dart';
 
@@ -18,11 +19,13 @@ class AttendanceMarkingScreen extends StatefulWidget {
   String displayName;
 
   int employeeId = 0;
+  bool isManager;
 
   AttendanceMarkingScreen(
       {Key? key,
         required this.employeeId,
         required this.displayName,
+        required this.isManager,
        })
       : super(key: key);
 
@@ -47,6 +50,7 @@ class _AttendanceMarkingScreen extends State<AttendanceMarkingScreen> implements
     // TODO: implement initState
     super.initState();
     getUserInfo();
+    initializeService();
   }
 
   Future<void> getUserInfo() async {
@@ -150,16 +154,16 @@ class _AttendanceMarkingScreen extends State<AttendanceMarkingScreen> implements
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(50.0),
                           color: LightColor.primary_color,
-                          boxShadow: [
+                          boxShadow: const [
                             BoxShadow(
                               color: LightColor.seeBlue,
-                              offset: const Offset(0, 5.0),
+                              offset: Offset(0, 5.0),
                               blurRadius: 10.0,
                             ),
                           ],
                         ),
                         child: Text(
-                          'Approve/Reject',
+                          widget.isManager ? 'Approve/Reject' : 'Submit',
                           style: GoogleFonts.inter(
                             fontSize: 16.0,
                             color: LightColor.black,
@@ -181,10 +185,10 @@ class _AttendanceMarkingScreen extends State<AttendanceMarkingScreen> implements
   getTime(BuildContext context,String label, TextEditingController controller,
       DateTime minDate,DateTime maxDate) {
     return TextField(
-        style: TextStyle(color: LightColor.titleTextColor),
+        style: const TextStyle(color: LightColor.titleTextColor),
         controller: controller, //editing controller of this TextField
         decoration: InputDecoration(
-            border: OutlineInputBorder(
+            border: const OutlineInputBorder(
                 borderRadius: BorderRadius.all(Radius.circular(5.0)),
                 borderSide: BorderSide(color: LightColors.kLavender)),
             icon: Icon(Icons.timer), //icon of text field

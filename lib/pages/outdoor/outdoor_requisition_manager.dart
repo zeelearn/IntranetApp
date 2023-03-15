@@ -9,6 +9,9 @@ import '../../api/APIService.dart';
 import '../../api/request/leave/leave_approve_request.dart';
 import '../../api/response/apply_leave_response.dart';
 import '../../api/response/leave_list_manager.dart';
+import '../../main.dart';
+import '../firebase/notification_service.dart';
+import '../helper/DatabaseHelper.dart';
 import '../helper/LocalConstant.dart';
 import '../helper/utils.dart';
 import '../utils/theme/colors/light_colors.dart';
@@ -29,13 +32,7 @@ class _OutdoorReqManagerScreen extends State<OutdoorReqManagerScreen>
   List<bool> _isChecked = [];
   bool _isSelectAll = false;
   final _selectedColor = LightColors.kLavender;
-  final _unselectedColor = Color(0xff5f6368);
   final _tabs = [Tab(text: 'Pending Approvals'), Tab(text: 'All Approvals')];
-
-  final _iconTabs = [
-    Tab(icon: Icon(Icons.line_style)),
-    Tab(icon: Icon(Icons.approval)),
-  ];
 
   List<LeaveInfoMan> requisitionList = [];
   bool isLoading = true;
@@ -55,7 +52,6 @@ class _OutdoorReqManagerScreen extends State<OutdoorReqManagerScreen>
     super.initState();
     getUserInfo();
     _tabController.addListener(() {
-      print('my index is' + _tabController.index.toString());
       setState(() {
         loadAcquisition();
       });
@@ -65,7 +61,6 @@ class _OutdoorReqManagerScreen extends State<OutdoorReqManagerScreen>
   Future<void> getUserInfo() async {
     final prefs = await SharedPreferences.getInstance();
     widget.employeeId = int.parse(prefs.getString(LocalConstant.KEY_EMPLOYEE_ID) as String);
-
     loadAcquisition();
   }
 
@@ -80,25 +75,11 @@ class _OutdoorReqManagerScreen extends State<OutdoorReqManagerScreen>
     return Scaffold(
       body: Stack(
         children: [
-          /*Container(
-            color: LightColors.kLightBlue,
-            padding: EdgeInsets.only(left: 10, right: 10),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Leave Management - Approval',
-                  style: TextStyle(
-                      fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-              ],
-            ),
-          ),*/
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: ListView(
               children: [
-                Text(
+                const Text(
                   'Outdoor Approval',
                   style: TextStyle(
                       fontSize: 16, fontWeight: FontWeight.bold),
@@ -157,13 +138,13 @@ class _OutdoorReqManagerScreen extends State<OutdoorReqManagerScreen>
     }
   }
 
-  getSelectedModels(String status) {
+  getSelectedModels(String status,int start) {
     //ApproveLeaveRequsitionRequest request = ApproveLeaveRequsitionRequest();
     late var jsonValue="[";
     if (_isChecked != null && _isChecked.length > 0) {
       String token="";
       print(status);
-      for (int index = 0; index < _isChecked.length; index++) {
+      for (int index = start; index < _isChecked.length; index++) {
         if(_isChecked[index]) {
           String data = "{'Requisition_Id': ${requisitionList[index]
               .requisitionId.toInt()
@@ -344,7 +325,7 @@ class _OutdoorReqManagerScreen extends State<OutdoorReqManagerScreen>
               if(_tabController.index==0){
                 //pending
                 if(response.responseData[index].status=='Pending'){
-                  requisitionList.add(response.responseData[index]);
+                    requisitionList.add(response.responseData[index]);
                 }
               }else{
                 //approve
@@ -405,12 +386,29 @@ class _OutdoorReqManagerScreen extends State<OutdoorReqManagerScreen>
   }
 
   approveAcquisition(LeaveInfoMan model, String status) {
+
+    DBHelper dbHelper = DBHelper();
+    for(int index=0;index<_isChecked.length;index++) {
+      print('Data inserting  ${index}');
+      var list = getSelectedModels(status, (index * 50));
+      if(list!=null && list.toString().trim().isNotEmpty && list.toString()!='[]') {
+        String xml = "{'root': {'subroot': ${list}}";
+        dbHelper.insertSyncData(xml, 'OUTDOOR_MAN', widget.employeeId);
+      }
+    }
+
+    Utility.showMessageSingleButton(context, 'Thanks you, We receive your request, we will process it in background, once complete the service we wll update you',this);
+    NotificationService notificationService = NotificationService();
+    notificationService.showNotification(12, 'Outdoor Request Received', 'We are processing your service', 'We are processing your service');
+    initializeService();
+
+    /*
     Utility.showLoaderDialog(context);
     var list = getSelectedModels(status);
     //String xml ="{'root': {'subroot': [{'Requisition_Id': 1102411,'WorkflowTypeCode': 'LV1','RequisitionTypeCode': 'LVREQ','Requistion_Status_Code': '','Is_Approved': 1,'Workflow_UserType': 'MAN','Workflow_Remark': 'approved'}]}}";
     //print(xml);
     String xml ="{'root': {'subroot': ${list}}";
-    ApproveLeaveRequestManager request = ApproveLeaveRequestManager(xml: xml, userId: widget.employeeId.toString(),);
+    ApproveLeaveRequestManager request = ApproveLeaveRequestManager(xml: xml, userId: widget.employeeId.toString(), index: 0,);
     print('request'+request.toJson().toString());
     APIService apiService = APIService();
     apiService.approveLeaveManager(request).then((value) {
@@ -431,7 +429,7 @@ class _OutdoorReqManagerScreen extends State<OutdoorReqManagerScreen>
       }
 
       setState(() {});
-    });
+    });*/
   }
 
   generateRow(int position, LeaveInfoMan model, int action) {

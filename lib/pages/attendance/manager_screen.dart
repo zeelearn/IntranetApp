@@ -1,24 +1,25 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
-import 'package:intranet/api/request/ApproveAttendanceMarking.dart';
 import 'package:intranet/api/request/attendance_marking_man_request.dart';
 import 'package:intranet/pages/widget/MyWidget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../api/APIService.dart';
-import '../../api/request/leave/leave_approve_request.dart';
-import '../../api/response/approve_attendance_response.dart';
 import '../../api/response/attendance_marking_man.dart';
-import '../helper/LightColor.dart';
+import '../../main.dart';
+import '../firebase/notification_service.dart';
+import '../helper/DatabaseHelper.dart';
 import '../helper/LocalConstant.dart';
 import '../helper/utils.dart';
+import '../iface/onClick.dart';
 import '../utils/theme/colors/light_colors.dart';
 
 class AttendanceManagerScreen extends StatefulWidget {
   int employeeId;
+  onClickListener listener;
 
-  AttendanceManagerScreen({Key? key, required this.employeeId})
+  AttendanceManagerScreen({Key? key, required this.employeeId,
+  required this.listener})
       : super(key: key);
 
   @override
@@ -26,7 +27,7 @@ class AttendanceManagerScreen extends StatefulWidget {
 }
 
 class _AttendanceManagerScreen extends State<AttendanceManagerScreen>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin implements onClickListener {
   late TabController _tabController;
   List<bool> _isChecked = [];
   bool _isSelectAll = false;
@@ -35,11 +36,6 @@ class _AttendanceManagerScreen extends State<AttendanceManagerScreen>
   final _tabs = [Tab(text: 'Pending Approvals'), Tab(text: 'All Approvals')];
 
   bool isLoading=true;
-
-  final _iconTabs = [
-    Tab(icon: Icon(Icons.line_style)),
-    Tab(icon: Icon(Icons.approval)),
-  ];
 
   List<AttendanceReqManModel> requisitionList = [];
 
@@ -164,31 +160,28 @@ class _AttendanceManagerScreen extends State<AttendanceManagerScreen>
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Padding(
-            padding: EdgeInsets.only(left: 20),
-            child: Text(
-              'Select and approve the acquisition',
-              style: TextStyle(fontSize: 12),
+            padding: EdgeInsets.only(left: 10),
+            child: Row(
+              children: [
+                Checkbox(
+                  checkColor: Colors.black,
+                  activeColor: LightColors.kLavender,
+                  value: _isSelectAll,
+                  onChanged: (bool? value) {
+                    setState(() {
+                      _isSelectAll = value!;
+                      updateSelection();
+                    });
+                  },
+                ),
+                Text(
+                  'Select All',
+                  style: TextStyle(fontSize: 12),
+                ),
+              ],
+
             ),
           ),
-          /*Row(
-                children: [
-                  Checkbox(
-                    checkColor: Colors.black,
-                    activeColor: LightColors.kLavender,
-                    value: _isSelectAll,
-                    onChanged: (bool? value) {
-                      setState(() {
-                        _isSelectAll = value!;
-                        updateListView();
-                      });
-                    },
-                  ),
-                  Text(
-                    'Select All',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                ],
-              ),*/
           Padding(
             padding: EdgeInsets.only(right: 20),
             child: Container(
@@ -216,7 +209,19 @@ class _AttendanceManagerScreen extends State<AttendanceManagerScreen>
     }
   }
 
+  updateSelection() {
+    //ApproveLeaveRequsitionRequest request = ApproveLeaveRequsitionRequest();
+    late var jsonValue="[";
+    if (_isChecked != null && _isChecked.length > 0) {
+
+      for (int index = 0; index < _isChecked.length; index++) {
+        _isChecked[index] = _isSelectAll;
+      }
+    }
+  }
+
   getAttendanceListView() {
+    print('getAttenadnceView');
     if(isLoading){
       return Center(child: Image.asset(
         "assets/images/loading.gif",
@@ -245,6 +250,7 @@ class _AttendanceManagerScreen extends State<AttendanceManagerScreen>
   }
 
   loadAcquisition() {
+    print('loadAcquisition');
     isLoading =true;
     //Utility.showLoaderDialog(context);
     DateTime selectedDate = DateTime.now();
@@ -264,6 +270,7 @@ class _AttendanceManagerScreen extends State<AttendanceManagerScreen>
     apiService.getAttendanceRequisitionMan(request).then((value) {
       isLoading=false;
       if (value != null) {
+        requisitionList.clear();
         if (value == null || value.responseData == null) {
           Utility.showMessage(context, 'data not found');
         } else if (value is AttendanceMarkingManResponse) {
@@ -293,13 +300,13 @@ class _AttendanceManagerScreen extends State<AttendanceManagerScreen>
     });
   }
 
-  getSelectedModels(int isApprove) {
+  getSelectedModels(int isApprove,int start) {
     //ApproveLeaveRequsitionRequest request = ApproveLeaveRequsitionRequest();
     late var jsonValue="[";
     if (_isChecked != null && _isChecked.length > 0) {
       String token="";
       print(isApprove);
-      for (int index = 0; index < _isChecked.length; index++) {
+      for (int index = start; index < _isChecked.length; index++) {
         if(_isChecked[index]) {
           String data = "{'Requisition_Id': ${requisitionList[index]
               .requisitionId.toInt()
@@ -322,8 +329,8 @@ class _AttendanceManagerScreen extends State<AttendanceManagerScreen>
       builder: (BuildContext context) {
         // return object of type Dialog
         return AlertDialog(
-          title: new Text("Attendance Marking Approval"),
-          content: new Text(
+          title: const Text("Attendance Marking Approval"),
+          content: const Text(
               'Are you sure to approve attendance request'),
           actions: <Widget>[
             // usually buttons at the bottom of the dialog
@@ -357,17 +364,33 @@ class _AttendanceManagerScreen extends State<AttendanceManagerScreen>
 
   approveAcquisition(int reqid, int isApprove) {
 
+    DBHelper dbHelper = DBHelper();
+    for(int index=0;index<_isChecked.length;index++) {
+      print('Data isnerting ${index}');
+      var list = getSelectedModels(isApprove, (index * 50));
+      if(list!=null && list.toString().trim().isNotEmpty && list.toString()!='[]') {
+        String xml = "{'root': {'subroot': ${list}}";
+        dbHelper.insertSyncData(xml, 'ATTENDANCE_MAN', widget.employeeId);
+      }
+    }
+
+    Utility.showMessageSingleButton(context, 'Thanks you, We receive your request, we will process it in background, once complete the service we wll update you',this);
+    NotificationService notificationService = NotificationService();
+    notificationService.showNotification(12, 'Attandance Request Received', 'We are processing your service', 'We are processing your service');
+    initializeService();
+
+    /*
     Utility.showLoaderDialog(context);
     var list = getSelectedModels(isApprove);
 
     String xml ="{'root': {'subroot': ${list}}";
-    ApproveLeaveRequestManager request = ApproveLeaveRequestManager(xml: xml, userId: widget.employeeId.toString(),);
+    ApproveLeaveRequestManager request = ApproveLeaveRequestManager(xml: xml, userId: widget.employeeId.toString(), index: 0, actionType: 'ATTAN_MAN',);
     print('request'+request.toJson().toString());
 
-    /*ApproveAttendanceMarking request = new ApproveAttendanceMarking(
+    *//*ApproveAttendanceMarking request = new ApproveAttendanceMarking(
         Requisition_Id: reqid.toString(),
         Modified_By: widget.employeeId.toString(),
-        Is_Approved: isApprove.toString());*/
+        Is_Approved: isApprove.toString());*//*
     APIService apiService = APIService();
     apiService.approveAttendance(request).then((value) {
       print(value.toString());
@@ -388,7 +411,7 @@ class _AttendanceManagerScreen extends State<AttendanceManagerScreen>
       }
 
       setState(() {});
-    });
+    });*/
   }
 
   generateRow(int position, AttendanceReqManModel model, int action) {
@@ -561,5 +584,11 @@ class _AttendanceManagerScreen extends State<AttendanceManagerScreen>
     String parsedDate =  DateFormat("MMM-dd").format(dateTime);
     //print('Original ${value} parsed ${parsedDate}');
     return parsedDate;
+  }
+
+  @override
+  void onClick(int action, value) {
+    //Navigator.of(context).pop();
+    widget.listener.onClick(LocalConstant.ACTION_BACK, 'back');
   }
 }

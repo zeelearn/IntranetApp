@@ -590,6 +590,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
         break;
       case MENU_ATTENDANCE_MARKING:
         return AttendanceMarkingScreen(
+          isManager: false,
             employeeId: employeeId, displayName: '--');
         break;
       case MENU_OUTDOOR:
@@ -603,7 +604,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
         );
         break;
       case MENU_ATTENDANCE_MARKING_APPROVAL:
-        return AttendanceManagerScreen(employeeId: employeeId);
+        return AttendanceManagerScreen(employeeId: employeeId, listener: this,);
         break;
       case MENU_LEAVE_APPROVAL:
         return LeaveManagerScreen(
@@ -1194,7 +1195,9 @@ class _IntranetHomePageState extends State<IntranetHomePage>
 
   @override
   void onClick(int action, value) {
-    if(action==ACTION_ADD_NEW_IMAGE){
+    if(action==LocalConstant.ACTION_BACK){
+      onBackClickListener();
+    }else if(action==ACTION_ADD_NEW_IMAGE){
       uploadProfilePicture();
     }
   }

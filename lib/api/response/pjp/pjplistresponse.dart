@@ -117,7 +117,7 @@ class PJPInfo {
   }
 }
 
-class GetDetailedPJP {
+class GetDetailedPJP implements Comparable<GetDetailedPJP>{
   late String PJPCVF_Id;
 
   late String visitDate;
@@ -158,6 +158,15 @@ class GetDetailedPJP {
     required this.isSync,
     required this.isCompleted,
   });
+
+  @override
+  int compareTo(GetDetailedPJP other) {
+    if (int.parse(PJPCVF_Id) < int.parse(other.PJPCVF_Id)) {
+      return -1;
+    } else {
+      return 0;
+    }
+  }
 
   GetDetailedPJP.fromJson(Map<String, dynamic> json) {
     try {

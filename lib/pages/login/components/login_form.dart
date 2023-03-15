@@ -175,8 +175,7 @@ class _LoginFormState extends State<LoginForm> implements changePasswordInterfac
             } else {
               EmployeeDetails info = value.responseData.employeeDetails[0];
               // // Save an integer value to 'counter' key.
-              prefs.setString(
-                  LocalConstant.KEY_EMPLOYEE_ID, info.employeeId as String);
+              prefs.setString(LocalConstant.KEY_EMPLOYEE_ID, info.employeeId as String);
               prefs.setString(
                   LocalConstant.KEY_EMPLOYEE_CODE, info.employeeCode as String);
               prefs.setString(

@@ -11,12 +11,12 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:intranet/pages/auth/login.dart';
 import 'package:intranet/pages/firebase/firebase_options.dart';
 import 'package:intranet/pages/firebase/notification_service.dart';
 import 'package:intranet/pages/helper/DatabaseHelper.dart';
 import 'package:intranet/pages/helper/LightColor.dart';
-import 'package:intranet/pages/iface/onResponse.dart';
+import 'package:intranet/pages/helper/LocalConstant.dart';
+import 'package:intranet/pages/helper/utils.dart';
 import 'package:intranet/pages/intro/splash.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter/foundation.dart';
@@ -27,94 +27,82 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'api/APIService.dart';
 import 'api/ServiceHandler.dart';
 import 'api/request/cvf/update_cvf_status_request.dart';
+import 'api/request/leave/leave_approve_request.dart';
+import 'api/response/apply_leave_response.dart';
+import 'api/response/approve_attendance_response.dart';
 import 'api/response/cvf/update_status_response.dart';
 
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  try{
-  await Firebase.initializeApp(
-      name: "Intranet", options: DefaultFirebaseOptions.currentPlatform);
-  print('Handling a background message');
-  DBHelper helper = new DBHelper();
-  if (message.data != null) {
-    print(message.data.toString());
-    String type = "";
-    String title = "";
-    String imageUrl = "";
-    String body = "";
-    try {
-      String mData = message.data.toString();
-      /*mData = mData.replaceAll("{", "{\"");
+  try {
+    await Firebase.initializeApp(
+        name: "Intranet", options: DefaultFirebaseOptions.currentPlatform);
+    print('Handling a background message');
+    DBHelper helper = new DBHelper();
+    if (message.data != null) {
+      print(message.data.toString());
+      String type = "";
+      String title = "";
+      String imageUrl = "";
+      String body = "";
+      try {
+        String mData = message.data.toString();
+        /*mData = mData.replaceAll("{", "{\"");
       mData = mData.replaceAll("}", "\"}");
       mData = mData.replaceAll(":", "\":\"");
       mData = mData.replaceAll(", ", "\",\"");*/
-      if (!message.data.containsKey("URL")) {
-        NotificationActionModel model = NotificationActionModel.fromJson(
-          json.decode(mData),
-        );
-        type = model.type;
-        title = model.title;
-        imageUrl = '';
-        body = model.message;
-      } else if (message.data.containsKey('Status')) {
-        mData = mData.replaceAll('Purpose:', 'Purpose');
-        mData = mData.replaceAll('Status:', 'Status');
-        NotificationDataModel model = NotificationDataModel.fromJson(
-          json.decode(mData),
-        );
-        type = model.type;
-        title = model.title;
-        imageUrl = model.image;
-        body = model.message;
-        helper.insertNotification(
-            message.messageId as String,
+        if (!message.data.containsKey("URL")) {
+          NotificationActionModel model = NotificationActionModel.fromJson(
             json.decode(mData),
-            type,
-            '',
+          );
+          type = model.type;
+          title = model.title;
+          imageUrl = '';
+          body = model.message;
+        } else if (message.data.containsKey('Status')) {
+          mData = mData.replaceAll('Purpose:', 'Purpose');
+          mData = mData.replaceAll('Status:', 'Status');
+          NotificationDataModel model = NotificationDataModel.fromJson(
             json.decode(mData),
-            0,
-            imageUrl);
-      } else {
-        print('in else data ${mData}');
-        NotificationDataModel model = NotificationDataModel.fromJson(
-          json.decode(mData),
-        );
-        type = model.type;
-        title = model.title;
-        imageUrl = model.image;
-        body = model.message;
-        helper.insertNotification(
-            message.messageId as String,
+          );
+          type = model.type;
+          title = model.title;
+          imageUrl = model.image;
+          body = model.message;
+          helper.insertNotification(message.messageId as String,
+              json.decode(mData), type, '', json.decode(mData), 0, imageUrl);
+        } else {
+          print('in else data ${mData}');
+          NotificationDataModel model = NotificationDataModel.fromJson(
             json.decode(mData),
-            type,
-            '',
-            json.decode(mData),
-            0,
-            imageUrl);
+          );
+          type = model.type;
+          title = model.title;
+          imageUrl = model.image;
+          body = model.message;
+          helper.insertNotification(message.messageId as String,
+              json.decode(mData), type, '', json.decode(mData), 0, imageUrl);
+        }
+        _showNotificationWithDefaultSound(message, title, body);
+      } catch (e) {
+        print(e);
       }
-      _showNotificationWithDefaultSound(message, title, body);
-    } catch (e) {
-      print(e);
     }
-  }
-  print('Data insetted');
-  if (message.notification != null) {
-    print(message.notification.toString());
-    helper.insertNotification(
-        message.messageId as String,
-        message.notification!.title as String,
-        message.notification!.title as String,
-        message.notification!.body as String,
-        '',
-        0,
-        '');
-    _showNotificationWithDefaultSound(
-        message,
-        message.notification!.title as String,
-        message.notification!.body as String);
-  }
-}catch(e){
-
-  }
+    if (message.notification != null) {
+      print(message.notification.toString());
+      helper.insertNotification(
+          message.messageId as String,
+          message.notification!.title as String,
+          message.notification!.title as String,
+          message.notification!.body as String,
+          '',
+          0,
+          '');
+      _showNotificationWithDefaultSound(
+          message,
+          message.notification!.title as String,
+          message.notification!.body as String);
+    }
+  } catch (e) {}
 }
 
 AndroidNotificationChannel? channel;
@@ -150,11 +138,6 @@ Future<void> main() async {
       String body = "";
       try {
         String mData = message.data.toString();
-        /*mData = mData.replaceAll("{", "{\"");
-        mData = mData.replaceAll("}", "\"}");
-        mData = mData.replaceAll(":", "\":\"");
-        mData = mData.replaceAll(", ", "\",\"");*/
-        print('-========================');
         print(mData);
         if (!message.data.containsKey("URL")) {
           NotificationActionModel model = NotificationActionModel.fromJson(
@@ -187,7 +170,6 @@ Future<void> main() async {
           0,
           imageUrl);
     }
-    print('Data insetted123');
     if (message.notification != null) {
       print(message.notification.toString());
       helper.insertNotification(
@@ -237,12 +219,12 @@ Future<void> main() async {
   }
   await FirebaseMessaging.instance.setAutoInitEnabled(true);
 
-  await initializeService();
+  //await initializeService();
   runApp(const MyApp());
 }
 
 Future<void> initializeService() async {
-  //final service = FlutterBackgroundService();
+  final service = FlutterBackgroundService();
 
   /// OPTIONAL, using custom notification channel id
   const AndroidNotificationChannel channel = AndroidNotificationChannel(
@@ -269,7 +251,7 @@ Future<void> initializeService() async {
           AndroidFlutterLocalNotificationsPlugin>()
       ?.createNotificationChannel(channel);
 
-  /*await service.configure(
+  await service.configure(
     androidConfiguration: AndroidConfiguration(
       // this will be executed when app is in foreground or background in separated isolate
       onStart: onStart,
@@ -279,7 +261,7 @@ Future<void> initializeService() async {
       isForegroundMode: true,
 
       notificationChannelId: 'my_foreground',
-      initialNotificationTitle: 'AWESOME SERVICE',
+      initialNotificationTitle: 'Intranet Application is Running',
       initialNotificationContent: 'Initializing',
       foregroundServiceNotificationId: 888,
     ),
@@ -295,8 +277,65 @@ Future<void> initializeService() async {
     ),
   );
 
-  service.startService();*/
+  service.startService();
 }
+/*
+Future<void> leaveService(int action) async {
+  final leaveService = FlutterBackgroundService();
+
+  /// OPTIONAL, using custom notification channel id
+  const AndroidNotificationChannel channel = AndroidNotificationChannel(
+    'my_foreground', // id
+    'INTRANET FOREGROUND SERVICE', // title
+    description:
+        'This channel is used for sync Data with Server.', // description
+    importance: Importance.low, // importance must be at low or higher level
+  );
+
+  final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+      FlutterLocalNotificationsPlugin();
+
+  if (Platform.isIOS) {
+    await flutterLocalNotificationsPlugin.initialize(
+      const InitializationSettings(
+        iOS: IOSInitializationSettings(),
+      ),
+    );
+  }
+
+  await flutterLocalNotificationsPlugin
+      .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin>()
+      ?.createNotificationChannel(channel);
+
+  await leaveService.configure(
+    androidConfiguration: AndroidConfiguration(
+      // this will be executed when app is in foreground or background in separated isolate
+      onStart: onStart,
+
+      // auto start service
+      autoStart: true,
+      isForegroundMode: true,
+
+      notificationChannelId: 'my_foreground',
+      initialNotificationTitle: 'Intranet Application is Running',
+      initialNotificationContent: 'Initializing',
+      foregroundServiceNotificationId: 888,
+    ),
+    iosConfiguration: IosConfiguration(
+      // auto start service
+      autoStart: true,
+
+      // this will be executed when app is in foreground in separated isolate
+      onForeground: onStart,
+
+      // you have to enable background fetch capability on xcode project
+      onBackground: onIosBackground,
+    ),
+  );
+
+  //leaveService.startService();
+}*/
 
 // to ensure this is executed
 // run app from xcode, then from xcode menu, select Simulate Background Fetch
@@ -317,36 +356,19 @@ Future<bool> onIosBackground(ServiceInstance service) async {
 @pragma('vm:entry-point')
 void onStart(ServiceInstance service) async {
   // Only available for flutter 3.0.0 and later
+  print('onStart Service');
   DartPluginRegistrant.ensureInitialized();
   mService = service;
   // For flutter prior to version 3.0.0
-  // We have to register the plugin manually
-
-  SharedPreferences preferences = await SharedPreferences.getInstance();
-  await preferences.setString("hello", "world");
-
-  /// OPTIONAL when use custom notification
   final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
-
-  /*if (service is AndroidServiceInstance) {
-    service.on('setAsForeground').listen((event) {
-      service.setAsForegroundService();
-    });
-
-    service.on('setAsBackground').listen((event) {
-      service.setAsBackgroundService();
-    });
-  }*/
-
-
-
   service.on('stopService').listen((event) {
+    print('onStart Service onStop');
     service.stopSelf();
   });
 
   flutterLocalNotificationsPlugin.show(
-    888,
+    0,
     'Intranet App is Running',
     'Sync Data with Server process started',
     const NotificationDetails(
@@ -358,34 +380,9 @@ void onStart(ServiceInstance service) async {
       ),
     ),
   );
-  // bring to foreground
-  /*Timer.periodic(const Duration(seconds: 5), (timer) async {
-        /// OPTIONAL for use custom notification
-        /// the notification id must be equals with AndroidConfiguration when you call configure() method.
-        flutterLocalNotificationsPlugin.show(
-          888,
-          'Intranet App is Running',
-          '${DateTime.now()}',
-          const NotificationDetails(
-            android: AndroidNotificationDetails(
-              'my_foreground',
-              'Intranet FOREGROUND SERVICE',
-              icon: 'ic_bg_service_small',
-              ongoing: true,
-            ),
-          ),
-        );
+  checkPendingLeaveApprovals(0);
 
-        // if you don't using custom notification, uncomment this
-        // service.setForegroundNotificationInfo(
-        //   title: "My App Service",
-        //   content: "Updated at ${DateTime.now()}",
-        // );
-      });*/
-  /// you can see this log in logcat
-  print('FLUTTER BACKGROUND SERVICE: ${DateTime.now()}');
-  apicall();
-  // test using external plugin
+  /*// test using external plugin
   final deviceInfo = DeviceInfoPlugin();
   String? device;
   if (Platform.isAndroid) {
@@ -404,12 +401,160 @@ void onStart(ServiceInstance service) async {
       "current_date": DateTime.now().toIso8601String(),
       "device": device,
     },
-  );
+  );*/
 }
 
-apicall() async {
+checkPendingLeaveApprovals(int action) async {
+  print('checkPendingLeaveApprovals ..................');
+  bool isInternet = await Utility.isInternet();
+  if(isInternet) {
+    SharedPreferences preferences = await SharedPreferences.getInstance();
+    String userId = preferences.getString(LocalConstant.KEY_EMPLOYEE_ID) as String;
+    DBHelper _helper = DBHelper();
+    List<ApproveLeaveRequestManager> list = await _helper.getUnSyncData(userId);
+    List<CheckInModel> checkInList = await DBHelper().getOfflineCheckInStatus();
+    if ((checkInList == null || checkInList.length == 0) &&
+        (list == null || list.length == 0)) {
+      print('checkPendingLeaveApprovals action ${action}');
+      if (action == 2) {
+        NotificationService notificationService = NotificationService();
+        notificationService.showNotification(
+            12,
+            'LEAVE REQUEST Completed',
+            'Leave Approval request has been successfully completed.',
+            'Leave Approval request has been successfully completed.');
+      }
+      print('setvice stopping ..................');
+      if (mService != null) {
+        print('setvice stopped ..................');
+        stopService(mService);
+        
+      }else{
+        print('null mService ${mService}');
+      }
+    } else {
+      print('checkPendingLeaveApprovals else 437');
+      if (checkInList.length > 0)
+        apicall(checkInList);
+      else if (list.length > 0) syncLeaveApproval(list[0]);
+    }
+  }else{
+    print('setvice stopping ..................');
+    stopService(mService);
+  }
+}
+
+stopService(ServiceInstance mService){
+  Timer.periodic(const Duration(seconds: 3), (timer) async {
+    if (mService!=null) {
+      print('setvice stopping ..FINAL................');
+      mService.stopSelf();
+    }else{
+      print('setvice stopping ..FINAL..ELSE..............');
+    }
+  });
+}
+
+syncLeaveApproval(ApproveLeaveRequestManager model) {
+  print(model.xml);
+  ApproveLeaveRequestManager request = ApproveLeaveRequestManager(
+    xml: model.xml,
+    userId: model.userId.toString(),
+    index: model.index,
+    actionType: model.actionType,
+  );
+  if(request.xml.contains('[]')){
+    if (model.index != null) {
+      DBHelper helper = DBHelper();
+      print('DELTE ID ${model.index!.toString()}');
+      helper.delete(LocalConstant.TABLE_DATA_SYNC, model.index!.toString());
+    }
+    checkPendingLeaveApprovals(2);
+  }else if (model.actionType.isNotEmpty && model.actionType == 'ATTENDANCE_MAN') {
+    print('ATTENDANCE_MAN request');
+    APIService apiService = APIService();
+    apiService.approveAttendance(request).then((value) {
+      print('approveAttendance response ${value}');
+      if (value != null) {
+        if (value == null || value.responseData == null) {
+          print('Serviceclosed NULL....................');
+          if (mService != null) mService.stopSelf();
+        } else if (value is ApproveAttendanceResponse) {
+          ApproveAttendanceResponse response = value;
+          if (response != null) {
+            if(response.statusCode==200){
+              if (model.index != null) {
+                DBHelper helper = DBHelper();
+                print('DELTE ID ${model.index!.toString()}');
+                helper.delete(LocalConstant.TABLE_DATA_SYNC, model.index!.toString());
+              }
+            }else{
+              if (model.index != null) {
+                DBHelper helper = DBHelper();
+                print('DELTE ID ${model.index!.toString()}');
+                helper.delete(LocalConstant.TABLE_DATA_SYNC, model.index!.toString());
+              }
+            }
+            checkPendingLeaveApprovals(2);
+          }else{
+            if (model.index != null) {
+              DBHelper helper = DBHelper();
+              print('DELTE ID ${model.index!.toString()}');
+              helper.delete(LocalConstant.TABLE_DATA_SYNC, model.index!.toString());
+            }
+            checkPendingLeaveApprovals(2);
+          }
+        }else if(value.toString().contains('Failed host lookup')){
+          print('Serviceclosed....................');
+          if (mService != null) mService.stopSelf();
+        }else{
+          print('Serviceclosed NULL.ELSE...................');
+          if (mService != null) mService.stopSelf();
+        }
+      }
+
+    });
+  } else {
+    print('approveLeaveManager request');
+    APIService apiService = APIService();
+    apiService.approveLeaveManager(request).then((value) {
+      if (value != null) {
+        if (value == null || value.responseData == null) {
+          if (mService != null) mService.stopSelf();
+        } else if (value is ApplyLeaveResponse) {
+          ApplyLeaveResponse response = value;
+          print(response.responseMessage);
+          if (response != null) {
+            print('Serviceclosed NULL....523...........');
+            print(response.responseMessage);
+              if (model.index != null) {
+                DBHelper helper = DBHelper();
+                print('DELTE ID ${model.index!.toString()}');
+                helper.delete(LocalConstant.TABLE_DATA_SYNC, model.index!.toString());
+              }
+          }else if(value.toString().contains('Failed host lookup')){
+            if (model.index != null) {
+              DBHelper helper = DBHelper();
+              print('DELTE ID ${model.index!.toString()}');
+              helper.delete(LocalConstant.TABLE_DATA_SYNC, model.index!.toString());
+            }
+            if (mService != null) mService.stopSelf();
+          }else{
+            if (mService != null) mService.stopSelf();
+          }
+          checkPendingLeaveApprovals(2);
+        } else {
+          print('in else 549');
+        }
+
+      }
+    });
+  }
+}
+
+apicall(List<CheckInModel> list) async {
   print('api calling...');
-  List<CheckInModel> list = await DBHelper().getOfflineCheckInStatus();
+
   print('Offline Data found ${list.length}');
   if (list.length > 0) {
     print('Offline Data found ${list.length}');
@@ -430,9 +575,9 @@ apicall() async {
           UpdateCVFStatusResponse response = value;
           print(response.toString());
           //onResponse.onSuccess(response);
-          DBHelper helper=DBHelper();
+          DBHelper helper = DBHelper();
           helper.updateCheckInStatus(list[0].id, 1);
-          apicall();
+          checkPendingLeaveApprovals(3);
         } else {
           //onResponse.onError('Unable to update the status ');
         }
@@ -440,10 +585,6 @@ apicall() async {
         //onResponse.onError('Unable to update the status');
       }
     });
-  } else {
-    print('Offline Data not found service stopping');
-    if(mService!=null)
-      mService.stopSelf();
   }
 }
 
@@ -466,9 +607,8 @@ Future<void> setup() async {
 
 Future _showNotificationWithDefaultSound(
     RemoteMessage message, String title, String messageData) async {
-  if(Platform.isIOS){
-
-  }else if (false && Platform.isAndroid) {
+  if (Platform.isIOS) {
+  } else if (false && Platform.isAndroid) {
     if (!AwesomeStringUtils.isNullOrEmpty(title,
             considerWhiteSpaceAsEmpty: true) ||
         !AwesomeStringUtils.isNullOrEmpty(messageData,
@@ -476,13 +616,10 @@ Future _showNotificationWithDefaultSound(
       print('message also contained a notification: ${message}');
 
       String? imageUrl;
-      try{
+      try {
         imageUrl ??= message.notification!.android?.imageUrl;
         imageUrl ??= message.notification!.apple?.imageUrl;
-      }catch(e){
-
-      }
-
+      } catch (e) {}
 
       Map<String, dynamic> notificationAdapter = {
         NOTIFICATION_CHANNEL_KEY: 'basic_channel',
@@ -545,7 +682,7 @@ class MyApp extends StatelessWidget {
         primaryColorDark: LightColor.primarydark_color,
         primaryColor: LightColor.primary_color,
       ),
-      home:   Scaffold(
+      home: Scaffold(
         body: SplashScreen(),
       ),
     );

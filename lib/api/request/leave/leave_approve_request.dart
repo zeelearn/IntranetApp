@@ -1,8 +1,10 @@
 class ApproveLeaveRequestManager {
   late String xml;
   late String userId;
+  late String actionType;
+  int? index;
 
-  ApproveLeaveRequestManager({required this.xml,required this.userId});
+  ApproveLeaveRequestManager({required this.xml,required this.userId,required this.actionType, required this.index});
 
   ApproveLeaveRequestManager.fromJson(Map<String, dynamic> json) {
     xml = json['xml'];

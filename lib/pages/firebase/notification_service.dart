@@ -37,7 +37,7 @@ class NotificationService {
     importance: Importance.high,
   );
 
-  static final IOSNotificationDetails _iOSNotificationDetails =
+  static const IOSNotificationDetails _iOSNotificationDetails =
   IOSNotificationDetails();
 
   final NotificationDetails notificationDetails = NotificationDetails(
