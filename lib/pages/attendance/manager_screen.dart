@@ -16,7 +16,7 @@ import '../utils/theme/colors/light_colors.dart';
 
 class AttendanceManagerScreen extends StatefulWidget {
   int employeeId;
-
+  onClickListener listener;
   AttendanceManagerScreen({Key? key, required this.employeeId,
   required this.listener})
       : super(key: key);
