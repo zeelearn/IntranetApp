@@ -1050,8 +1050,8 @@ class _IntranetHomePageState extends State<IntranetHomePage>
 
   signOut() async {
     var box = Hive.box(LocalConstant.KidzeeDB);
-    await Hive.openBox(LocalConstant.KidzeeDB);
-    box.clear();
+    await box.clear();
+    print('sign out from app');
     if (Platform.isAndroid) {
       Future.delayed(const Duration(milliseconds: 100), () {
         SystemChannels.platform.invokeMethod('SystemNavigator.pop');
@@ -1097,7 +1097,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
               // Weekend dates color (Sat & Sun Column)
               weekendTextStyle: TextStyle(color: Colors.red),
               // highlighted color for today
-              todayDecoration: BoxDecoration(
+              todayDecoration: const BoxDecoration(
                 color: Colors.blueAccent,
                 shape: BoxShape.rectangle,
               ),
@@ -1124,8 +1124,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
             },
           ),
           const SizedBox(height: 8.0),
-          Expanded(
-            child: ValueListenableBuilder<List<PJPModel>>(
+          ValueListenableBuilder<List<PJPModel>>(
               valueListenable: _selectedEvents,
               builder: (context, value, _) {
                 return ListView.builder(
@@ -1144,7 +1143,6 @@ class _IntranetHomePageState extends State<IntranetHomePage>
                 );
               },
             ),
-          ),
         ])));
   }
 

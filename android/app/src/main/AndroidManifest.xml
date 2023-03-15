@@ -8,7 +8,7 @@
    <application
         android:label="intranet"
         android:name="${applicationName}"
-        android:icon="@drawable/app_launcher">
+        android:icon="@mipmap/ic_launcher">
         <activity
             android:showWhenLocked="true"
             android:turnScreenOn="true"

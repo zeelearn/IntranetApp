@@ -102,8 +102,7 @@ class HomePageMenu extends StatelessWidget {
                                       filters: [],
                                       type: FILTERStatus.MYSELF),)));
                   },
-                  child: Expanded(
-                    child: Padding(
+                  child:  Padding(
                       padding: EdgeInsetsDirectional.fromSTEB(8, 8, 8, 8),
                       child: Container(
                         width: MediaQuery
@@ -153,7 +152,6 @@ class HomePageMenu extends StatelessWidget {
                         ),
                       ),
                     ),
-                  ),
                 ),
                 GestureDetector(
                   onTap: () {
@@ -162,8 +160,7 @@ class HomePageMenu extends StatelessWidget {
                         MaterialPageRoute(
                             builder: (context) => MyCVFListScreen()));
                   },
-                  child: Expanded(
-                    child: Padding(
+                  child: Padding(
                       padding: EdgeInsetsDirectional.fromSTEB(8, 8, 8, 8),
                       child: Container(
                         width: MediaQuery
@@ -213,7 +210,6 @@ class HomePageMenu extends StatelessWidget {
                         ),
                       ),
                     ),
-                  ),
                 ),
               ],
             ),
@@ -243,8 +239,7 @@ class HomePageMenu extends StatelessWidget {
             MaterialPageRoute(
                 builder: (context) => action));
       },
-      child: Expanded(
-        child: Padding(
+      child: Padding(
           padding: EdgeInsetsDirectional.fromSTEB(8, 8, 8, 8),
           child: Container(
             width: MediaQuery
@@ -291,7 +286,6 @@ class HomePageMenu extends StatelessWidget {
               ],
             ),
           ),
-        ),
       ),
     );
   }

@@ -568,7 +568,7 @@ class _OutdoorManagerScreen extends State<OutdoorManagerScreen>
     //2022-07-18T00:00:00
     try {
       dt = new DateFormat('yyyy-MM-dd\'T\'HH:mm:ss').parse(value);
-      print('asasdi   ' + dt.day.toString());
+      //print('asasdi   ' + dt.day.toString());
     } catch (e) {
       e.toString();
     }

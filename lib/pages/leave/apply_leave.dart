@@ -290,7 +290,7 @@ class _ApplyLeaveScreen extends State<ApplyLeaveScreen> implements onClickListen
     //2022-07-18T00:00:00
     try {
       dt = new DateFormat('yyyy-MM-dd').parse(value);
-      print('asasdi   ' + dt.day.toString());
+      //print('asasdi   ' + dt.day.toString());
     } catch (e) {
       e.toString();
     }

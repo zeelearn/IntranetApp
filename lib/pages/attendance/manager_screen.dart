@@ -55,7 +55,7 @@ class _AttendanceManagerScreen extends State<AttendanceManagerScreen>
     super.initState();
     getUserInfo();
     _tabController.addListener(() {
-      print('my index is' + _tabController.index.toString());
+      //print('my index is' + _tabController.index.toString());
       setState(() {
         loadAcquisition();
       });
@@ -220,7 +220,7 @@ class _AttendanceManagerScreen extends State<AttendanceManagerScreen>
         "assets/images/loading.gif",
       ),);
     }else if (requisitionList == null || requisitionList.length <= 0) {
-      print('data not found');
+      //print('data not found');
       return Utility.emptyDataSet(context,"Attendance Requisition request are not available");
     } else {
       return Column(
@@ -243,6 +243,7 @@ class _AttendanceManagerScreen extends State<AttendanceManagerScreen>
   }
 
   loadAcquisition() {
+    //print('manager screen loadAcq');
     isLoading =true;
     //Utility.showLoaderDialog(context);
     DateTime selectedDate = DateTime.now();
@@ -261,6 +262,8 @@ class _AttendanceManagerScreen extends State<AttendanceManagerScreen>
     APIService apiService = APIService();
     apiService.getAttendanceRequisitionMan(request).then((value) {
       isLoading=false;
+      requisitionList.clear();
+      //print('clear all data');
       if (value != null) {
         if (value == null || value.responseData == null) {
           Utility.showMessage(context, 'data not found');
@@ -296,7 +299,7 @@ class _AttendanceManagerScreen extends State<AttendanceManagerScreen>
     late var jsonValue="[";
     if (_isChecked != null && _isChecked.length > 0) {
       String token="";
-      print(isApprove);
+      //print(isApprove);
       for (int index = 0; index < _isChecked.length; index++) {
         if(_isChecked[index]) {
           String data = "{'Requisition_Id': ${requisitionList[index]
@@ -360,7 +363,7 @@ class _AttendanceManagerScreen extends State<AttendanceManagerScreen>
 
     String xml ="{'root': {'subroot': ${list}}";
     ApproveLeaveRequestManager request = ApproveLeaveRequestManager(xml: xml, userId: widget.employeeId.toString(),);
-    print('request'+request.toJson().toString());
+    //print('request'+request.toJson().toString());
 
     /*ApproveAttendanceMarking request = new ApproveAttendanceMarking(
         Requisition_Id: reqid.toString(),
@@ -368,7 +371,7 @@ class _AttendanceManagerScreen extends State<AttendanceManagerScreen>
         Is_Approved: isApprove.toString());*/
     APIService apiService = APIService();
     apiService.approveAttendance(request).then((value) {
-      print(value.toString());
+      //print(value.toString());
       Navigator.of(context).pop();
       if (value != null) {
         if (value == null || value.responseData == null) {
@@ -546,7 +549,7 @@ class _AttendanceManagerScreen extends State<AttendanceManagerScreen>
 
     try {
       dt = new DateFormat('yyyy-MM-dd\'T\'HH:mm:ss').parse(value);
-      //print('${value}   ' + dt.day.toString());
+      ////print('${value}   ' + dt.day.toString());
     } catch (e) {
       e.toString();
     }
@@ -555,9 +558,9 @@ class _AttendanceManagerScreen extends State<AttendanceManagerScreen>
 
   String getParsedShortDate(String value) {
     DateTime dateTime = parseDate(value);
-    //print(value);
+    ////print(value);
     String parsedDate =  DateFormat("MMM-dd").format(dateTime);
-    //print('Original ${value} parsed ${parsedDate}');
+    ////print('Original ${value} parsed ${parsedDate}');
     return parsedDate;
   }
 }

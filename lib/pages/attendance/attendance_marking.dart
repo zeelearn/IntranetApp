@@ -159,7 +159,7 @@ class _AttendanceMarkingScreen extends State<AttendanceMarkingScreen> implements
                           ],
                         ),
                         child: Text(
-                          'Approve/Reject',
+                          'Mark Attendance',
                           style: GoogleFonts.inter(
                             fontSize: 16.0,
                             color: LightColor.black,
@@ -273,11 +273,11 @@ class _AttendanceMarkingScreen extends State<AttendanceMarkingScreen> implements
         FromDT: DateFormat('yyyy-MM-ddTHH:mm:ss').format(parseDateTime('${_startDateController.text} ${_fromTimeController.text}')),
         ToDT: DateFormat('yyyy-MM-ddTHH:mm:ss').format(parseDateTime('${_startDateController.text} ${_toTimeController.text}')));
 
-  print(request.getJson());
+  //print(request.getJson());
     APIService apiService = APIService();
     apiService.attendanceMarking(request).then((value) {
       Navigator.of(context).pop();
-      print(value);
+      //print(value);
       if (value != null) {
         if (value == null ) {
           Utility.showMessage(context, 'Unable to Process your Request');
@@ -293,7 +293,7 @@ class _AttendanceMarkingScreen extends State<AttendanceMarkingScreen> implements
       } else {
         Navigator.pop(context);
         Utility.showMessage(context, "Unable to Apply Attendance Request");
-        print("null value");
+        //print("null value");
       }
     });
   }
@@ -304,7 +304,7 @@ class _AttendanceMarkingScreen extends State<AttendanceMarkingScreen> implements
     //2022-07-18T00:00:00
     try {
       dt = new DateFormat('yyyy-MM-dd').parse(value);
-      //print('asasdi   ' + dt.day.toString());
+      ////print('asasdi   ' + dt.day.toString());
     } catch (e) {
       e.toString();
     }
@@ -315,7 +315,7 @@ class _AttendanceMarkingScreen extends State<AttendanceMarkingScreen> implements
     //2022-07-18T00:00:00
     try {
       dt = new DateFormat('dd-MMM-yyyy hh:mm a').parse(value);
-      //print('asasdi   ' + dt.day.toString());
+      ////print('asasdi   ' + dt.day.toString());
     } catch (e) {
       e.toString();
     }
