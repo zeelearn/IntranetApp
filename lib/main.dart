@@ -1,39 +1,62 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io' show Platform;
-import 'dart:math';
+import 'dart:io' show Directory, Platform;
 import 'dart:ui';
 
-import 'package:awesome_notifications/awesome_notifications.dart';
-import 'package:device_info_plus/device_info_plus.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:hive/hive.dart';
+import 'package:hive_flutter/adapters.dart';
 import 'package:intranet/pages/firebase/firebase_options.dart';
 import 'package:intranet/pages/firebase/notification_service.dart';
 import 'package:intranet/pages/helper/DatabaseHelper.dart';
 import 'package:intranet/pages/helper/LightColor.dart';
 import 'package:intranet/pages/helper/LocalConstant.dart';
 import 'package:intranet/pages/helper/utils.dart';
+import 'package:intranet/pages/iface/onResponse.dart';
 import 'package:intranet/pages/intro/splash.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter/foundation.dart';
 import 'package:intranet/pages/model/NotificationDataModel.dart';
 import 'package:intranet/pages/pjp/cvf/CheckInModel.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+
+import 'package:path_provider/path_provider.dart';
+
+import 'package:hive/hive.dart';
 
 import 'api/APIService.dart';
-import 'api/ServiceHandler.dart';
 import 'api/request/cvf/update_cvf_status_request.dart';
 import 'api/request/leave/leave_approve_request.dart';
 import 'api/response/apply_leave_response.dart';
 import 'api/response/approve_attendance_response.dart';
 import 'api/response/cvf/update_status_response.dart';
 
+part 'main.g.dart';
+
+@HiveType(typeId: 1)
+class Person {
+  Person({required this.name, required this.age, required this.friends});
+
+  @HiveField(0)
+  String name;
+
+  @HiveField(1)
+  int age;
+
+  @HiveField(2)
+  List<String> friends;
+
+  @override
+  String toString() {
+    return '$name: $age';
+  }
+}
+
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  try {
+  try{
     await Firebase.initializeApp(
         name: "Intranet", options: DefaultFirebaseOptions.currentPlatform);
     print('Handling a background message');
@@ -68,8 +91,14 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
           title = model.title;
           imageUrl = model.image;
           body = model.message;
-          helper.insertNotification(message.messageId as String,
-              json.decode(mData), type, '', json.decode(mData), 0, imageUrl);
+          helper.insertNotification(
+              message.messageId as String,
+              json.decode(mData),
+              type,
+              '',
+              json.decode(mData),
+              0,
+              imageUrl);
         } else {
           print('in else data ${mData}');
           NotificationDataModel model = NotificationDataModel.fromJson(
@@ -79,14 +108,21 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
           title = model.title;
           imageUrl = model.image;
           body = model.message;
-          helper.insertNotification(message.messageId as String,
-              json.decode(mData), type, '', json.decode(mData), 0, imageUrl);
+          helper.insertNotification(
+              message.messageId as String,
+              json.decode(mData),
+              type,
+              '',
+              json.decode(mData),
+              0,
+              imageUrl);
         }
         _showNotificationWithDefaultSound(message, title, body);
       } catch (e) {
         print(e);
       }
     }
+    print('Data insetted');
     if (message.notification != null) {
       print(message.notification.toString());
       helper.insertNotification(
@@ -102,23 +138,145 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
           message.notification!.title as String,
           message.notification!.body as String);
     }
-  } catch (e) {}
+  }catch(e){
+
+  }
 }
 
 AndroidNotificationChannel? channel;
-
 late ServiceInstance mService;
-
 FlutterLocalNotificationsPlugin? flutterLocalNotificationsPlugin;
 late FirebaseMessaging messaging;
 
+
+@HiveType(typeId: 1)
+class UserInfo {
+  UserInfo({required this.displayName,
+    required this.firstName, required this.employeeId,
+    required this.employeeCode,
+    required this.lastName,
+    required this.doj,
+    required this.subid,
+    required this.roleId,
+    required this.roleName,
+    required this.departname,
+    required this.emailid,
+    required this.mobileno,
+    required this.gender,
+    required this.workLocation,
+    required this.marritialStatus,
+    required this.dob,
+  });
+
+  @HiveField(0)
+  String displayName;
+
+  @HiveField(1)
+  double employeeId;
+
+  @HiveField(2)
+  String employeeCode;
+
+  @HiveField(3)
+  String firstName;
+
+  @HiveField(4)
+  String lastName;
+
+  @HiveField(5)
+  String doj;
+
+  @HiveField(6)
+  double subid;
+
+  @HiveField(7)
+  double roleId;
+
+  @HiveField(8)
+  String roleName;
+
+  @HiveField(9)
+  String departname;
+
+  @HiveField(10)
+  String emailid;
+
+  @HiveField(11)
+  String mobileno;
+
+  @HiveField(12)
+  String gender;
+
+  @HiveField(13)
+  String workLocation;
+
+  @HiveField(14)
+  String marritialStatus;
+
+  @HiveField(15)
+  String dob;
+
+  @override
+  String toString() {
+    return '$employeeId: $firstName';
+  }
+}
+/*
+class PersonAdapter extends TypeAdapter<UserInfo> {
+  @override
+  final int typeId = 1;
+
+  @override
+  UserInfo read(BinaryReader reader) {
+    final numOfFields = reader.readByte();
+    final fields = <int, dynamic>{
+      for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
+    };
+    return UserInfo(
+      displayName: fields[0] as String,
+      employeeId: fields[1] as double,
+      employeeCode: fields[2] as String,
+      firstName: fields[3] as String,
+      lastName: fields[4] as String,
+    );
+  }
+
+  @override
+  void write(BinaryWriter writer, Person obj) {
+    writer
+      ..writeByte(3)
+      ..writeByte(0)
+      ..write(obj.name)
+      ..writeByte(1)
+      ..write(obj.age)
+      ..writeByte(2)
+      ..write(obj.friends);
+  }
+
+  @override
+  int get hashCode => typeId.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+          other is PersonAdapter &&
+              runtimeType == other.runtimeType &&
+              typeId == other.typeId;
+}*/
+Future<Box> _openBox() async {
+  final directory = await getApplicationDocumentsDirectory();
+  Hive.init(directory.path);
+  return await Hive.box('myBox');
+}
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-      name: "Intranet", options: DefaultFirebaseOptions.currentPlatform);
+  await Firebase.initializeApp(name: "Intranet", options: DefaultFirebaseOptions.currentPlatform);
 
   messaging = FirebaseMessaging.instance;
   messaging.subscribeToTopic("intranet");
+  _openBox();
+
+  var box = await Hive.openBox('kidzeepref');
 
   // Set the background messaging handler early on, as a named top-level function
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
@@ -138,6 +296,11 @@ Future<void> main() async {
       String body = "";
       try {
         String mData = message.data.toString();
+        /*mData = mData.replaceAll("{", "{\"");
+        mData = mData.replaceAll("}", "\"}");
+        mData = mData.replaceAll(":", "\":\"");
+        mData = mData.replaceAll(", ", "\",\"");*/
+        print('-========================');
         print(mData);
         if (!message.data.containsKey("URL")) {
           NotificationActionModel model = NotificationActionModel.fromJson(
@@ -170,6 +333,7 @@ Future<void> main() async {
           0,
           imageUrl);
     }
+    print('Data insetted123');
     if (message.notification != null) {
       print(message.notification.toString());
       helper.insertNotification(
@@ -219,7 +383,7 @@ Future<void> main() async {
   }
   await FirebaseMessaging.instance.setAutoInitEnabled(true);
 
-  //await initializeService();
+  await initializeService();
   runApp(const MyApp());
 }
 
@@ -241,7 +405,7 @@ Future<void> initializeService() async {
   if (Platform.isIOS) {
     await flutterLocalNotificationsPlugin.initialize(
       const InitializationSettings(
-        iOS: IOSInitializationSettings(),
+        iOS: DarwinInitializationSettings(),
       ),
     );
   }
@@ -344,11 +508,7 @@ Future<void> leaveService(int action) async {
 Future<bool> onIosBackground(ServiceInstance service) async {
   WidgetsFlutterBinding.ensureInitialized();
   DartPluginRegistrant.ensureInitialized();
-  SharedPreferences preferences = await SharedPreferences.getInstance();
-  await preferences.reload();
-  final log = preferences.getStringList('log') ?? <String>[];
-  log.add(DateTime.now().toIso8601String());
-  await preferences.setStringList('log', log);
+
 
   return true;
 }
@@ -408,8 +568,9 @@ checkPendingLeaveApprovals(int action) async {
   print('checkPendingLeaveApprovals ..................');
   bool isInternet = await Utility.isInternet();
   if(isInternet) {
-    SharedPreferences preferences = await SharedPreferences.getInstance();
-    String userId = preferences.getString(LocalConstant.KEY_EMPLOYEE_ID) as String;
+    var box = await Hive.openBox(LocalConstant.KidzeeDB);
+    //SharedPreferences preferences = await SharedPreferences.getInstance();
+    String userId = box.get(LocalConstant.KEY_EMPLOYEE_ID) as String;
     DBHelper _helper = DBHelper();
     List<ApproveLeaveRequestManager> list = await _helper.getUnSyncData(userId);
     List<CheckInModel> checkInList = await DBHelper().getOfflineCheckInStatus();
@@ -428,7 +589,7 @@ checkPendingLeaveApprovals(int action) async {
       if (mService != null) {
         print('setvice stopped ..................');
         stopService(mService);
-        
+
       }else{
         print('null mService ${mService}');
       }
@@ -591,11 +752,11 @@ apicall(List<CheckInModel> list) async {
 Future<void> setup() async {
   // #1
   const androidSetting = AndroidInitializationSettings('@mipmap/ic_launcher');
-  const iosSetting = IOSInitializationSettings();
+  const iosSetting = DarwinInitializationSettings();
 
   // #2
   const initSettings =
-      InitializationSettings(android: androidSetting, iOS: iosSetting);
+  InitializationSettings(android: androidSetting, iOS: iosSetting);
 
   // #3
   await flutterLocalNotificationsPlugin?.initialize(initSettings).then((_) {
@@ -607,43 +768,9 @@ Future<void> setup() async {
 
 Future _showNotificationWithDefaultSound(
     RemoteMessage message, String title, String messageData) async {
-  if (Platform.isIOS) {
-  } else if (false && Platform.isAndroid) {
-    if (!AwesomeStringUtils.isNullOrEmpty(title,
-            considerWhiteSpaceAsEmpty: true) ||
-        !AwesomeStringUtils.isNullOrEmpty(messageData,
-            considerWhiteSpaceAsEmpty: true)) {
-      print('message also contained a notification: ${message}');
+  if(Platform.isIOS){
 
-      String? imageUrl;
-      try {
-        imageUrl ??= message.notification!.android?.imageUrl;
-        imageUrl ??= message.notification!.apple?.imageUrl;
-      } catch (e) {}
-
-      Map<String, dynamic> notificationAdapter = {
-        NOTIFICATION_CHANNEL_KEY: 'basic_channel',
-        NOTIFICATION_ID: message.data[NOTIFICATION_CONTENT]?[NOTIFICATION_ID] ??
-            message.messageId ??
-            Random().nextInt(2147483647),
-        NOTIFICATION_TITLE: message.data[NOTIFICATION_CONTENT]
-                ?[NOTIFICATION_TITLE] ??
-            message.notification?.title,
-        NOTIFICATION_BODY: message.data[NOTIFICATION_CONTENT]
-                ?[NOTIFICATION_BODY] ??
-            message.notification?.body,
-        NOTIFICATION_LAYOUT: AwesomeStringUtils.isNullOrEmpty(imageUrl)
-            ? 'Default'
-            : 'BigPicture',
-        NOTIFICATION_BIG_PICTURE: imageUrl
-      };
-
-      AwesomeNotifications()
-          .createNotificationFromJsonData(notificationAdapter);
-    } else {
-      AwesomeNotifications().createNotificationFromJsonData(message.data);
-    }
-  } else {
+  }else {
     NotificationService notificationService = NotificationService();
     notificationService.showNotification(12, title, messageData, messageData);
   }
@@ -682,7 +809,7 @@ class MyApp extends StatelessWidget {
         primaryColorDark: LightColor.primarydark_color,
         primaryColor: LightColor.primary_color,
       ),
-      home: Scaffold(
+      home:   Scaffold(
         body: SplashScreen(),
       ),
     );
