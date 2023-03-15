@@ -1,20 +1,16 @@
 import 'dart:convert';
 import 'dart:async';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:intranet/api/request/cvf/get_cvf_request.dart';
+import 'package:hive/hive.dart';
 import 'package:intranet/pages/helper/DatabaseHelper.dart';
 import 'package:intranet/pages/helper/LightColor.dart';
 import 'package:intranet/pages/pjp/cvf/cvf_questions.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../../api/APIService.dart';
 import '../../../api/ServiceHandler.dart';
 import '../../../api/request/cvf/update_cvf_status_request.dart';
-import '../../../api/response/cvf/get_all_cvf.dart';
 import '../../../api/response/cvf/update_status_response.dart';
 import '../../../api/response/pjp/pjplistresponse.dart';
 import '../../firebase/anylatics.dart';
@@ -24,7 +20,6 @@ import '../../helper/utils.dart';
 import '../../iface/onClick.dart';
 import '../../iface/onResponse.dart';
 import '../../utils/theme/colors/light_colors.dart';
-import 'CheckInModel.dart';
 import 'add_cvf.dart';
 
 class CVFListScreen extends StatefulWidget {
@@ -42,7 +37,6 @@ class _MyCVFListScreen extends State<CVFListScreen> implements onResponse,onClic
   List<GetDetailedPJP> mCvfList = [];
   bool isLoading = true;
   bool isInternet=true;
-  late final prefs;
   Map<String,String> offlineStatus=Map();
 
   final int FILTER_ALL =0;
@@ -51,6 +45,7 @@ class _MyCVFListScreen extends State<CVFListScreen> implements onResponse,onClic
   final int FILTER_FILL =3;
 
   int mFilterSelection=0;
+  var hiveBox;
 
   //FilterSelection mFilterSelection = FilterSelection(filters: [], type: FILTERStatus.MYSELF);
   final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey =
@@ -70,9 +65,10 @@ class _MyCVFListScreen extends State<CVFListScreen> implements onResponse,onClic
 
 
   Future<void> getUserInfo() async {
-    prefs = await SharedPreferences.getInstance();
+    hiveBox = Hive.box(LocalConstant.KidzeeDB);
+    await Hive.openBox(LocalConstant.KidzeeDB);
     employeeId =
-        int.parse(prefs.getString(LocalConstant.KEY_EMPLOYEE_ID) as String);
+        int.parse(hiveBox.get(LocalConstant.KEY_EMPLOYEE_ID) as String);
     isInternet = await Utility.isInternet();
     DBHelper helper=DBHelper();
     //helper.getCheckInStatus();
@@ -94,7 +90,7 @@ class _MyCVFListScreen extends State<CVFListScreen> implements onResponse,onClic
   getLocalData() {
     bool isLoad = false;
     try {
-      var attendanceList = prefs.getString(getId());
+      var attendanceList = hiveBox.get(getId());
       isLoading = false;
       mCvfList.clear();
       print(attendanceList.toString());
@@ -123,7 +119,7 @@ class _MyCVFListScreen extends State<CVFListScreen> implements onResponse,onClic
 
   saveCVFLocally(String json) async{
 
-    prefs.setString(getId(), json);
+    hiveBox.put(getId(), json);
   }
 
   loadAllCVF() {

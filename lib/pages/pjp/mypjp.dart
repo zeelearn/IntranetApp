@@ -1,11 +1,10 @@
 import 'dart:convert';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:hive/hive.dart';
 import 'package:intranet/api/ServiceHandler.dart';
 import 'package:intranet/api/request/pjp/update_pjpstatus_request.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../api/response/pjp/pjplistresponse.dart';
 import '../../api/response/pjp/update_pjpstatus_response.dart';
@@ -18,8 +17,6 @@ import '../iface/onResponse.dart';
 import '../model/filter.dart';
 import '../utils/theme/colors/light_colors.dart';
 import 'add_new_pjp.dart';
-import 'cvf/mycvf.dart';
-import 'cvf/mypjpcvf.dart';
 import 'cvf/pjpcvf.dart';
 import 'filters.dart';
 
@@ -35,9 +32,8 @@ class MyPjpListScreen extends StatefulWidget {
 class _MyPjpListState extends State<MyPjpListScreen> implements onResponse,onClickListener{
   List<PJPInfo> mPjpList = [];
   int employeeId = 0;
-
+  var hiveBox;
   bool isLoading=true;
-  late final prefs;
   //FilterSelection mFilterSelection = FilterSelection(filters: [], type: FILTERStatus.MYSELF);
   final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey =
       GlobalKey<RefreshIndicatorState>();
@@ -55,16 +51,17 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse,onCli
   }
 
   Future<void> getUserInfo() async {
-    prefs = await SharedPreferences.getInstance();
+    var hiveBox = Hive.box(LocalConstant.KidzeeDB);
+    await Hive.openBox(LocalConstant.KidzeeDB);
     employeeId =
-        int.parse(prefs.getString(LocalConstant.KEY_EMPLOYEE_ID) as String);
+        int.parse(hiveBox.get(LocalConstant.KEY_EMPLOYEE_ID) as String);
 
 
     isInternet = await Utility.isInternet();
     if(isInternet){
       IntranetServiceHandler.loadPjpSummery(employeeId, 0, this);
     }else{
-      var pjpList = prefs.getString(getId());
+      var pjpList = hiveBox.get(getId());
       try {
         isLoading = false;
         PjpListResponse response = PjpListResponse.fromJson(
@@ -82,7 +79,7 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse,onCli
   getLocalData() {
     bool isLoad = false;
     try {
-      var attendanceList = prefs.getString(getId());
+      var attendanceList = hiveBox.get(getId());
       isLoading = false;
       print(attendanceList.toString());
       PjpListResponse response = PjpListResponse.fromJson(
@@ -550,7 +547,7 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse,onCli
   }
 
   savePJPLocally(String json) async{
-    prefs.setString(getId(), json);
+    hiveBox.put(getId(), json);
   }
 
   @override

@@ -1,8 +1,8 @@
 import 'dart:collection';
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intranet/api/request/cvf/questions_request.dart';
 import 'package:intranet/api/request/cvf/save_cvfquestions_request.dart';
@@ -10,7 +10,6 @@ import 'package:intranet/pages/firebase/storageutil.dart';
 import 'package:intranet/pages/helper/DatabaseHelper.dart';
 import 'package:intranet/pages/helper/LocalConstant.dart';
 import 'package:intranet/pages/iface/onResponse.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../api/APIService.dart';
 import '../../../api/ServiceHandler.dart';
@@ -60,12 +59,14 @@ class _QuestionListScreenState extends State<QuestionListScreen>
   TextEditingController _textEditingController = TextEditingController();
 
   late QuestionResponse questionResponse;
-  late SharedPreferences prefs;
+
+  var hiveBox;
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
+
     WidgetsBinding.instance.addPostFrameCallback((_) async {
 // your code goes here
       getPrefQuestions(widget.mCategoryId);
@@ -81,10 +82,11 @@ class _QuestionListScreenState extends State<QuestionListScreen>
   List<bool> ischeck = [];
 
   getPrefQuestions(String categoryid) async {
-    prefs = await SharedPreferences.getInstance();
+    hiveBox = Hive.box(LocalConstant.KidzeeDB);
+    await Hive.openBox(LocalConstant.KidzeeDB);
     //print('in pref questions');
     try {
-      var cvfQuestions = prefs.getString(widget.PJPCVF_Id.toString() +
+      var cvfQuestions = hiveBox.get(widget.PJPCVF_Id.toString() +
           categoryid +
           LocalConstant.KEY_CVF_QUESTIONS);
       //print('in pref questions :   ${jsonDecode(cvfQuestions.toString())}');
@@ -115,8 +117,8 @@ class _QuestionListScreenState extends State<QuestionListScreen>
   }
 
   saveCvfQuestionsPref(String categoryid, String data) async {
-    final prefs = await SharedPreferences.getInstance();
-    prefs.setString(
+
+    hiveBox.put(
         widget.PJPCVF_Id.toString() +
             categoryid +
             LocalConstant.KEY_CVF_QUESTIONS,
@@ -124,13 +126,13 @@ class _QuestionListScreenState extends State<QuestionListScreen>
   }
 
   updateImageOffline(Allquestion question,String path) async{
-    final prefs = await SharedPreferences.getInstance();
-    prefs.setString('img_'+widget.PJPCVF_Id.toString() +question.Question_Id,
+
+    hiveBox.put('img_'+widget.PJPCVF_Id.toString() +question.Question_Id,
         path);
   }
 
   String getImagePath(Allquestion question){
-    String? path = prefs.getString('img_'+ widget.PJPCVF_Id.toString() +question.Question_Id);
+    String? path = hiveBox.get('img_'+ widget.PJPCVF_Id.toString() +question.Question_Id);
     //print('path is ${path} ${widget.PJPCVF_Id.toString()} ${question.Question_Id}');
     return path== null ? '' : path.toString();
   }

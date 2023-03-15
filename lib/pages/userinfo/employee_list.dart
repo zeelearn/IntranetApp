@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
 import 'package:intranet/api/response/employee_list_response.dart';
 import 'package:intranet/pages/helper/LocalConstant.dart';
 import 'package:intranet/pages/helper/utils.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:url_launcher/url_launcher.dart' as UrlLauncher;
 
 import '../../api/APIService.dart';
 import '../utils/theme/colors/light_colors.dart';
@@ -50,9 +49,10 @@ class _EmployeeListScreenState extends State<EmployeeListScreen>
   }
 
   Future<void> getUserInfo() async {
-    final prefs = await SharedPreferences.getInstance();
+    var hiveBox = Hive.box(LocalConstant.KidzeeDB);
+    await Hive.openBox(LocalConstant.KidzeeDB);
     employeeId =
-        int.parse(prefs.getString(LocalConstant.KEY_EMPLOYEE_ID) as String);
+        int.parse(hiveBox.get(LocalConstant.KEY_EMPLOYEE_ID) as String);
     loadEmployeeList();
   }
 
@@ -124,10 +124,7 @@ class _EmployeeListScreenState extends State<EmployeeListScreen>
         appBar: AppBar(
           title: customSearchBar,
           automaticallyImplyLeading: false,
-          leading: IconButton(
-            icon: customleading,
-            onPressed: () => Navigator.of(context).pop(),
-          ),
+          leading: customleading,
           actions: [
             IconButton(
               onPressed: () {
@@ -214,14 +211,14 @@ class _EmployeeListScreenState extends State<EmployeeListScreen>
                   ),
                 ),
 
-                getListView(),
+                getLeaveListView(),
               ],
             ),
           ),
         ));
   }
 
-  getListView() {
+  getLeaveListView() {
     if (employeeList == null || employeeList.length <= 0) {
       print('data not found');
       return Utility.emptyDataSet(context,"Employee List are not avaliable, Please try again later");
@@ -240,19 +237,18 @@ class _EmployeeListScreenState extends State<EmployeeListScreen>
   getRow(EmployeeInfo info) {
 
     return ListTile(
-        leading: CircleAvatar(
-          backgroundColor: Colors.white,
-          backgroundImage: AssetImage('assets/icons/ic_user.png'),
-        ),
-        title: Text(
-          '${info.employeeFullName}\n${info.employeeDesignation}',
-        ),
-        subtitle: Text(info.employeeEmailId),
-        trailing: Icon(Icons.call),
-        onTap: () {
-          UrlLauncher.launchUrl(Uri.parse("tel://${info.employeeContactNumber}"));
-          print('Another data');
-        },
+      leading: CircleAvatar(
+        backgroundColor: Colors.white,
+        backgroundImage: AssetImage('assets/icons/ic_user.png'),
+      ),
+      title: Text(
+        '${info.employeeFullName}\n${info.employeeDesignation}',
+      ),
+      subtitle: Text(info.employeeEmailId),
+      trailing: Icon(Icons.call),
+      onTap: () {
+        Text('Another data');
+      },
     );
   }
 

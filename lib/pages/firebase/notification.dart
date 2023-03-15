@@ -2,9 +2,8 @@ import 'dart:async';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:hive/hive.dart';
 import 'package:intranet/api/APIService.dart';
-import 'package:package_info_plus/package_info_plus.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../api/request/fcm_request.dart';
 import '../helper/LocalConstant.dart';
@@ -45,9 +44,6 @@ class FCM {
           // Handle notification message
           streamCtlr.sink.add(message.data['notification']);
         }
-        // Or do other work.
-        //titleCtlr.sink.add(message.notification!.title!);
-        //bodyCtlr.sink.add(message.notification!.body!);
       },
     );
     // With this token you can test it easily on your phone
@@ -56,11 +52,12 @@ class FCM {
 
   }
   sendFcm(String token,String employeeId,deviceId,userAgent) async {
-    final prefs = await SharedPreferences.getInstance();
-    var oldoken = prefs.getString(LocalConstant.KEY_FCM_ID);
+    var hiveBox = Hive.box(LocalConstant.KidzeeDB);
+    await Hive.openBox(LocalConstant.KidzeeDB);
+    var oldoken = hiveBox.get(LocalConstant.KEY_FCM_ID);
     print(token);
     if(oldoken==null || oldoken != token) {
-      prefs.setString(LocalConstant.KEY_FCM_ID, token);
+      hiveBox.put(LocalConstant.KEY_FCM_ID, token);
       APIService service = APIService();
 
       FcmRequestModel model = FcmRequestModel(FCM_Reg_ID: token,

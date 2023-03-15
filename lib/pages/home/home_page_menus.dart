@@ -1,9 +1,8 @@
-import 'package:auto_size_text/auto_size_text.dart';
+import 'dart:math';
+
 import 'package:flutter/material.dart';
-import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:intranet/pages/home/task_category_entity.dart';
 import 'package:intranet/pages/pjp/cvf/mycvf.dart';
-import 'package:intranet/pages/utils/extensions.dart';
 
 import '../model/filter.dart';
 import '../pjp/mypjp.dart';
@@ -24,150 +23,60 @@ class HomePageMenu extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: LightColors.kLightYellow,
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              SizedBox(height: 10,),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-
-                  Text(
-                    'Home Page',
-                    style: AppTheme.headline3,
-                    textAlign: TextAlign.start,
-                  ),
-                 /* TextButton(
-                    onPressed: () {},
-                    child: Text(
-                      'See all',
-                      style: AppTheme.text1,
-                    ),
-                  ),*/
-                ],
-              ),
-              SizedBox(height: 20),
-              taskCategoryGridView(),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget taskCategoryGridView() {
+  Widget build123(BuildContext context) {
     List<TaskCategoryItemEntity> dataList =[];
     dataList.add(TaskCategoryItemEntity(
-      title: "My PJP",
-      gradient: AppTheme.purpleGradient,
-      action: MyPjpListScreen(
-        mFilterSelection: FilterSelection(
-            filters: [],
-            type: FILTERStatus.MYSELF),)
+        title: "My PJP",
+        gradient: AppTheme.purpleGradient,
+        action: MyPjpListScreen(
+          mFilterSelection: FilterSelection(
+              filters: [],
+              type: FILTERStatus.MYSELF),)
     ));dataList.add(TaskCategoryItemEntity(
-      title: "My CVF",
-      gradient: AppTheme.greenGradient,
-       action: MyCVFListScreen()
+        title: "My CVF",
+        gradient: AppTheme.greenGradient,
+        action: MyCVFListScreen()
     ));dataList.add(TaskCategoryItemEntity(
-      title: "Reports",
-      gradient: AppTheme.brownGradient,
-      action: MyReportsScreen()
-    ));/*dataList.add(TaskCategoryItemEntity(
-      title: "Attendance",
-      gradient: AppTheme.donkerGradient,
-    ));dataList.add(TaskCategoryItemEntity(
-      title: "Leave",
-      gradient: AppTheme.pinkGradient,
-    ));*/
-    return StaggeredGridView.countBuilder(
-      crossAxisCount: 4,
-      shrinkWrap: true,
-      physics: NeverScrollableScrollPhysics(),
-      itemCount: dataList.length,
-      itemBuilder: (BuildContext context, int index) {
-        final taskItem = dataList[index];
-        return taskCategoryItemWidget(context,
-            taskItem, 1, index,taskItem.action);
-      },
-      staggeredTileBuilder: (int index) =>
-          StaggeredTile.count(2, index.isEven ? 2.2 : 2.2),
-      mainAxisSpacing: 10,
-      crossAxisSpacing: 10,
-    );
-  }
-
-  Widget taskCategoryItemWidget(BuildContext context,
-      TaskCategoryItemEntity categoryItem, int totalTasks, int index,action) {
-    return Container(
-      decoration: BoxDecoration(
-        gradient: categoryItem.gradient.withDiagonalGradient,
-        borderRadius: BorderRadius.circular(32),
-        boxShadow: AppTheme.getShadow(categoryItem.gradient.colors[1]),
-      ),
-      child: Padding(
-        padding: EdgeInsets.all(16),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            /*Flexible(
-              child: CircleAvatar(
-                radius: 25,
-                backgroundColor: Colors.white,
-                child: AutoSizeText(
-                  (index + 1).toString(),
-                  style: AppTheme.headline2,
-                  minFontSize: 14,
+        title: "Reports",
+        gradient: AppTheme.brownGradient,
+        action: MyReportsScreen()
+    ));
+    return GridView.extent(
+      childAspectRatio: (2 / 2),
+      crossAxisSpacing: 4,
+      mainAxisSpacing: 4,
+      padding: EdgeInsets.all(10.0),
+      maxCrossAxisExtent: 200.0,
+      children: List.generate(50, (index) {
+        return GestureDetector(
+            onTap: () {
+              Navigator.push(
+                  context,
+                  dataList[index].action);
+            },
+            child: Container(
+              padding: EdgeInsets.all(20.0),
+              color: RandomColorModel().getColor(),
+              margin: EdgeInsets.all(1.0),
+              child: Center(
+                child: GridTile(
+                  child: Text(
+                    'Item $index',
+                    textAlign: TextAlign.center,
+                    style:const TextStyle(color:Colors.white,fontSize:15,fontWeight:FontWeight.bold),
+                  ),
+                  /*child: Icon(Icons.access_alarm,
+                      size: 40.0, color: Colors.white),*/
                 ),
               ),
-            ),*/
-            SizedBox(height: 12),
-            Flexible(
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Hero(
-                      tag: Keys.heroTitleCategory + index.toString(),
-                      child: Text(
-                        categoryItem.title,
-                        style: AppTheme.headline3.withWhite,
-                        maxLines: index.isEven ? 3 : 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ),
-                  /*Icon(Icons.arrow_right, color: Colors.white),*/
-                ],
-              ),
-            ),
-            SizedBox(height: 16),
-            /*Text(
-              '$totalTasks Task',
-              style: AppTheme.text1.withWhite,
-            ),*/
-          ],
-        ),
-      ).addRipple(onTap: () {
-        Navigator.push(
-            context,
-            MaterialPageRoute(
-                builder: (context) =>
-                action));
+            )
+        );
       }),
     );
   }
 
   @override
-  Widget build1(BuildContext context) {
+  Widget build(BuildContext context) {
     double width = MediaQuery
         .of(context)
         .size
@@ -385,5 +294,12 @@ class HomePageMenu extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+class RandomColorModel {
+  Random random = Random();
+  Color getColor() {
+    return Color.fromARGB(random.nextInt(300), random.nextInt(300),
+        random.nextInt(300), random.nextInt(300));
   }
 }

@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:hive/hive.dart';
 import 'package:intl/intl.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 import '../../api/APIService.dart';
@@ -27,7 +26,6 @@ import '../widget/check/checkbox.dart';
 import '../widget/date_time/time_picker.dart';
 import '../widget/options/dropdown.dart';
 import 'PJPForm.dart';
-import 'cvf/cvf_questions.dart';
 import 'models/PJPCenterDetails.dart';
 import 'models/PjpModel.dart';
 
@@ -62,10 +60,13 @@ class _PjpState extends State<NewPJP> {
   bool isAddCVF = false;
   int employeeId = 0;
   String appVersion='';
+  var hiveBox;
+
   Future<void> getUserInfo() async {
-    final prefs = await SharedPreferences.getInstance();
+    hiveBox = Hive.box(LocalConstant.KidzeeDB);
+    await Hive.openBox(LocalConstant.KidzeeDB);
     employeeId =
-        int.parse(prefs.getString(LocalConstant.KEY_EMPLOYEE_ID) as String);
+        int.parse(hiveBox.get(LocalConstant.KEY_EMPLOYEE_ID) as String);
     getCvfList();
     fetchCategory();
     getFrichinseeList();

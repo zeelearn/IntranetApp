@@ -3,17 +3,16 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:hive/hive.dart';
 import 'package:intl/intl.dart';
 import 'package:intranet/api/request/attendance_summery_request.dart';
 import 'package:intranet/pages/helper/LocalConstant.dart';
 import 'package:intranet/pages/helper/utils.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../api/APIService.dart';
 import '../../api/response/attendance_response.dart';
 import '../firebase/anylatics.dart';
 import '../utils/theme/colors/light_colors.dart';
-import '../utils/widgets/top_container.dart';
 import '../widget/TimeBoard.dart';
 import '../widget/month_picker_dialog.dart';
 import 'attendance_marking.dart';
@@ -37,8 +36,7 @@ class _AttendanceSummeryState extends State<AttendanceSummeryScreen> {
 
   List<AttendanceSummeryModel> summeryModleList = [];
   bool isLoading = true;
-
-  late final prefs;
+  var hiveBox;
   bool isInternet=true;
 
   @override
@@ -57,13 +55,14 @@ class _AttendanceSummeryState extends State<AttendanceSummeryScreen> {
   }
 
   Future<void> getUserInfo() async {
-    prefs = await SharedPreferences.getInstance();
+    hiveBox = Hive.box(LocalConstant.KidzeeDB);
+    await Hive.openBox(LocalConstant.KidzeeDB);
     employeeId =
-        int.parse(prefs.getString(LocalConstant.KEY_EMPLOYEE_ID) as String);
+        int.parse(hiveBox.get(LocalConstant.KEY_EMPLOYEE_ID) as String);
 
     isInternet = await Utility.isInternet();
 
-    var attendanceList = prefs.getString(getId());
+    var attendanceList = hiveBox.get(getId());
     if(attendanceList==null){
       loadSummery(false);
     }else{
@@ -87,7 +86,7 @@ class _AttendanceSummeryState extends State<AttendanceSummeryScreen> {
   getLocalData() {
     bool isLoad = false;
     try {
-      var attendanceList = prefs.getString(getId());
+      var attendanceList = hiveBox.get(getId());
       isLoading = false;
       print(attendanceList.toString());
       Map<String,dynamic> jsonObject  = json.decode(attendanceList.toString());
@@ -112,7 +111,7 @@ class _AttendanceSummeryState extends State<AttendanceSummeryScreen> {
 
   saveAttendanceLocally(String json) async{
 
-    prefs.setString(getId(), json);
+    hiveBox.put(getId(), json);
   }
 
   loadSummery(bool isLocalCheck)async {

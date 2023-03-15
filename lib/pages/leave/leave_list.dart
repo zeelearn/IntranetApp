@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
+import 'package:hive/hive.dart';
 import 'package:intl/intl.dart';
 import 'package:intranet/api/request/leave_balance_req.dart';
 import 'package:intranet/api/request/leave_request.dart';
@@ -10,11 +10,9 @@ import 'package:intranet/api/response/leave_response.dart';
 import 'package:intranet/pages/helper/LocalConstant.dart';
 import 'package:intranet/pages/helper/utils.dart';
 import 'package:intranet/pages/leave/apply_leave.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../api/APIService.dart';
 import '../firebase/anylatics.dart';
-import '../helper/helpers.dart';
 import '../utils/theme/colors/light_colors.dart';
 
 class LeaveSummeryScreen extends StatefulWidget {
@@ -42,7 +40,7 @@ class _LeaveSummeryScreenState extends State<LeaveSummeryScreen>
   List<LeaveBalanceInfo> leaveBalanceList = [];
   List<LeaveRequisitionInfo> leaveRequisitionList = [];
   bool isLoading = true;
-  late final prefs;
+  var hiveBox;
 
   @override
   void initState() {
@@ -67,12 +65,12 @@ class _LeaveSummeryScreenState extends State<LeaveSummeryScreen>
   }
 
   Future<void> getUserInfo() async {
-    prefs = await SharedPreferences.getInstance();
+    hiveBox = Hive.box(LocalConstant.KidzeeDB);
+    await Hive.openBox(LocalConstant.KidzeeDB);
     employeeId =
-        int.parse(prefs.getString(LocalConstant.KEY_EMPLOYEE_ID) as String);
-
-    var leaveBalanceSummery = prefs.getString(getId());
-    var leaveRequsitionSummery = prefs.getString('r'+getId());
+        int.parse(hiveBox.get(LocalConstant.KEY_EMPLOYEE_ID) as String);
+    var leaveBalanceSummery = hiveBox.get(getId());
+    var leaveRequsitionSummery = hiveBox.get('r'+getId());
     if(leaveBalanceSummery==null){
       loadSummery();
     }else {
@@ -187,10 +185,10 @@ class _LeaveSummeryScreenState extends State<LeaveSummeryScreen>
   }
 
   saveLeaveSummery(String json) async{
-    prefs.setString(getId(), json);
+    hiveBox.put(getId(), json);
   }
   saveLeaveRequsition(String json) async{
-    prefs.setString('r'+getId(), json);
+    hiveBox.put('r'+getId(), json);
   }
 
   loadLeaveRequsition() {

@@ -1,14 +1,13 @@
 import 'dart:convert';
 import 'dart:async';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:hive/hive.dart';
 import 'package:intranet/api/request/cvf/get_cvf_request.dart';
 import 'package:intranet/pages/helper/DatabaseHelper.dart';
 import 'package:intranet/pages/pjp/cvf/cvf_questions.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../api/APIService.dart';
 import '../../../api/ServiceHandler.dart';
@@ -24,7 +23,6 @@ import '../../helper/utils.dart';
 import '../../iface/onClick.dart';
 import '../../iface/onResponse.dart';
 import '../../utils/theme/colors/light_colors.dart';
-import 'CheckInModel.dart';
 
 class MyCVFListScreen extends StatefulWidget {
 
@@ -39,10 +37,9 @@ class _MyCVFListScreen extends State<MyCVFListScreen> implements onResponse,onCl
   List<GetDetailedPJP> mCvfList = [];
   bool isLoading = true;
   bool isInternet=true;
-  late final prefs;
   Map<String,String> offlineStatus=Map();
   late GetDetailedPJP McvfView;
-
+  var hiveBox;
   //FilterSelection mFilterSelection = FilterSelection(filters: [], type: FILTERStatus.MYSELF);
   final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey =
       GlobalKey<RefreshIndicatorState>();
@@ -61,9 +58,10 @@ class _MyCVFListScreen extends State<MyCVFListScreen> implements onResponse,onCl
 
 
   Future<void> getUserInfo() async {
-    prefs = await SharedPreferences.getInstance();
+    hiveBox = Hive.box(LocalConstant.KidzeeDB);
+    await Hive.openBox(LocalConstant.KidzeeDB);
     employeeId =
-        int.parse(prefs.getString(LocalConstant.KEY_EMPLOYEE_ID) as String);
+        int.parse(hiveBox.get(LocalConstant.KEY_EMPLOYEE_ID) as String);
       loadData();
   }
 
@@ -83,7 +81,7 @@ class _MyCVFListScreen extends State<MyCVFListScreen> implements onResponse,onCl
   getLocalData() {
     bool isLoad = false;
     try {
-      var attendanceList = prefs.getString(getId());
+      var attendanceList = hiveBox.get(getId());
       isLoading = false;
       print(attendanceList.toString());
       GetAllCVFResponse response = GetAllCVFResponse.fromJson(
@@ -105,7 +103,7 @@ class _MyCVFListScreen extends State<MyCVFListScreen> implements onResponse,onCl
 
   saveCVFLocally(String json) async{
 
-    prefs.setString(getId(), json);
+    hiveBox.put(getId(), json);
   }
 
   loadAllCVF() {
