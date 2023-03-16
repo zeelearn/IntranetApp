@@ -5,7 +5,6 @@ part of 'main.dart';
 // **************************************************************************
 // TypeAdapterGenerator
 // **************************************************************************
-
 class PersonAdapter extends TypeAdapter<Person> {
   @override
   final int typeId = 1;
