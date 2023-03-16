@@ -162,7 +162,7 @@ class _AttendanceMarkingScreen extends State<AttendanceMarkingScreen> implements
                           ],
                         ),
                         child: Text(
-                          widget.isManager ? 'Approve/Reject' : 'Submit',
+                          'Mark Attendance',
                           style: GoogleFonts.inter(
                             fontSize: 16.0,
                             color: LightColor.black,

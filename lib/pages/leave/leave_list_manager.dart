@@ -283,6 +283,7 @@ class _LeaveManagerScreen extends State<LeaveManagerScreen>
   }
 
   getAttendanceListView() {
+    print('getAttendanceListView');
     if(isLoading){
       return Center(child: Image.asset(
         "assets/images/loading.gif",
@@ -316,8 +317,9 @@ class _LeaveManagerScreen extends State<LeaveManagerScreen>
     setState(() {
 
     });
+    print('loadAcquisition leave man');
     DateTime selectedDate = DateTime.now();
-    DateTime _from = DateTime(selectedDate.year, selectedDate.month - 1, selectedDate.day);
+    DateTime _from = DateTime(selectedDate.year, selectedDate.month - 3, selectedDate.day);
     DateTime _to = DateTime(selectedDate.year, selectedDate.month + 1, selectedDate.day);
     requisitionList.clear();
     ApplyLeaveManRequest request = ApplyLeaveManRequest(device: 0,
@@ -325,6 +327,7 @@ class _LeaveManagerScreen extends State<LeaveManagerScreen>
         Role: 'Man',
         FromDate: DateFormat("yyyy-MM-dd'T'hh:mm:ss").format(_from),
         ToDate: DateFormat("yyyy-MM-dd'T'hh:mm:ss").format(_to));
+    print('request ${request.toString()}');
     APIService apiService = APIService();
     apiService.leaveRequisitionManager(request).then((value) {
       isLoading=false;
@@ -402,7 +405,7 @@ class _LeaveManagerScreen extends State<LeaveManagerScreen>
     //Utility.showLoaderDialog(context);
     DBHelper dbHelper = DBHelper();
     for(int index=0;index<_isChecked.length;index++) {
-      print('Data isnerting ${index}');
+      //print('Data isnerting ${index}');
       var list = getSelectedModels(status, (index * 50));
       if(list!=null && list.toString().trim().isNotEmpty && list.toString()!='[]') {
         String xml = "{'root': {'subroot': ${list}}";

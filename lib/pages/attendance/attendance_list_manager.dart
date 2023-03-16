@@ -615,7 +615,7 @@ class _AttendanceSummeryState extends State<AttendanceSummeryManagerScreen> {
           Text(
             model.status,
             textAlign: TextAlign.center,
-            style: TextStyle(
+            style: const TextStyle(
               fontFamily: 'Open Sans',
               fontSize: 10,
               fontWeight: FontWeight.w400,
