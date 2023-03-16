@@ -2,11 +2,15 @@ import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:device_info_plus/device_info_plus.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:hive/hive.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:in_app_update/in_app_update.dart';
@@ -79,8 +83,6 @@ class _IntranetHomePageState extends State<IntranetHomePage>
   DateTime? _selectedDay;
   DateTime? _rangeStart;
   DateTime? _rangeEnd;
-
-
   Map<DateTime, List<PJPModel>> attendanceEvent = Map();
   int employeeId = 0;
   String mDesignation = '';
@@ -89,12 +91,12 @@ class _IntranetHomePageState extends State<IntranetHomePage>
   List<PJPModel> mPjpList = [];
   late String mTitle = "";
 
+  bool _flexibleUpdateAvailable = false;
   AppUpdateInfo? _updateInfo;
 
-  //FirebaseAnalytics analytics = FirebaseAnalytics.instance;
+  FirebaseAnalytics analytics = FirebaseAnalytics.instance;
   FirebaseMessaging messaging = FirebaseMessaging.instance;
   String appVersion = '';
-  var hiveBox;
 
   @override
   void initState() {
@@ -192,10 +194,13 @@ class _IntranetHomePageState extends State<IntranetHomePage>
   }
 
   updateProfileImage() async{
-    hiveBox.get(LocalConstant.KEY_EMPLOYEE_AVTAR, _profileImage);
+    var hiveBox = await Utility.openBox();
+    await Hive.openBox(LocalConstant.KidzeeDB);
+    if(_profileImage.isNotEmpty)
+      hiveBox.put(LocalConstant.KEY_EMPLOYEE_AVTAR, _profileImage);
   }
   Future<void> getUserInfo() async {
-    hiveBox = Hive.box(LocalConstant.KidzeeDB);
+    var hiveBox = await Utility.openBox();
     await Hive.openBox(LocalConstant.KidzeeDB);
     employeeId = int.parse(hiveBox.get(LocalConstant.KEY_EMPLOYEE_ID) as String);
     mDesignation = hiveBox.get(LocalConstant.KEY_DESIGNATION) as String;
@@ -229,10 +234,16 @@ class _IntranetHomePageState extends State<IntranetHomePage>
 
   getProfileImage() async{
     try{
+      var hiveBox = await Utility.openBox();
+      await Hive.openBox(LocalConstant.KidzeeDB);
+      print('Avtar getProfileImaage-----');
       var avtar = hiveBox.get(LocalConstant.KEY_EMPLOYEE_AVTAR_LIST);
+      print('Avtar ${avtar}');
       if(avtar!=null && avtar !='') {
+        print('getProfile pic decode');
         _profileAvtar = base64.decode(avtar);
       }else {
+        print('getProfile pic in else');
         FirebaseStorageUtil().getProfileImage(employeeId.toString(), this);
       }
     }catch(e){
@@ -450,7 +461,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
     EasyLoading.init();
     FirebaseAnalyticsUtils().enableAnytics();
     FirebaseAnalyticsUtils().sendAnalyticsEvent('HomeScreen');
-    //analytics.logAppOpen();
+    analytics.logAppOpen();
     return WillPopScope(
       onWillPop: () async {
         onBackClickListener();
@@ -627,8 +638,8 @@ class _IntranetHomePageState extends State<IntranetHomePage>
             children: [
               GestureDetector(
                 onTap: () => selectDestination(MENU_PJP),
-                child: Expanded(
-                  child: Padding(
+                child: /*Expanded(
+                  child:*/ Padding(
                     padding: EdgeInsetsDirectional.fromSTEB(8, 8, 8, 8),
                     child: Container(
                       width: MediaQuery.of(context).size.width * 0.4,
@@ -674,7 +685,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
                       ),
                     ),
                   ),
-                ),
+                /*),*/
               ),
               GestureDetector(
                 onTap: () {
@@ -684,8 +695,8 @@ class _IntranetHomePageState extends State<IntranetHomePage>
                       MaterialPageRoute(
                           builder: (context) => MyCVFListScreen()));
                 },
-                child: Expanded(
-                  child: Padding(
+                child: /*Expanded(
+                  child:*/ Padding(
                     padding: EdgeInsetsDirectional.fromSTEB(8, 8, 8, 8),
                     child: Container(
                       width: MediaQuery.of(context).size.width * 0.4,
@@ -730,7 +741,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
                         ],
                       ),
                     ),
-                  ),
+                 /* ),*/
                 ),
               ),
             ],
@@ -1050,9 +1061,11 @@ class _IntranetHomePageState extends State<IntranetHomePage>
   }
 
   signOut() async {
-    var box = Hive.box(LocalConstant.KidzeeDB);
+    var hiveBox = await Utility.openBox();
     await Hive.openBox(LocalConstant.KidzeeDB);
-    box.clear();
+    hiveBox.clear();
+    hiveBox.close();
+    await Future.delayed(Duration(seconds: 1));
     if (Platform.isAndroid) {
       Future.delayed(const Duration(milliseconds: 100), () {
         SystemChannels.platform.invokeMethod('SystemNavigator.pop');
@@ -1125,8 +1138,8 @@ class _IntranetHomePageState extends State<IntranetHomePage>
             },
           ),
           const SizedBox(height: 8.0),
-          Expanded(
-            child: ValueListenableBuilder<List<PJPModel>>(
+          /*Expanded(
+            child:*/ ValueListenableBuilder<List<PJPModel>>(
               valueListenable: _selectedEvents,
               builder: (context, value, _) {
                 return ListView.builder(
@@ -1145,7 +1158,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
                 );
               },
             ),
-          ),
+          //),
         ])));
   }
 
@@ -1165,7 +1178,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
   }
 
   @override
-  void onUploadSuccess(value) {
+  void onUploadSuccess(value) async {
 
     if (value is String) {
       Navigator.of(context).pop();
@@ -1174,11 +1187,11 @@ class _IntranetHomePageState extends State<IntranetHomePage>
       FirebaseStorageUtil().getProfileImage(employeeId.toString(), this);
 
     }else if(value is Uint8List){
-
+      var hiveBox = await Utility.openBox();
+      await Hive.openBox(LocalConstant.KidzeeDB);
       var profileImage = base64.encode(value);
       _profileAvtar = base64.decode(profileImage);
-      _profileImage = _profileImage;
-      updateProfileImage();
+        hiveBox.put(LocalConstant.KEY_EMPLOYEE_AVTAR_LIST,profileImage);
     }
     setState(() {});
   }

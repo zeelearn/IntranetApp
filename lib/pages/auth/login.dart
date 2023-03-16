@@ -312,7 +312,6 @@ class _LoginPage extends State<LoginPage> {
   }
 
   void validate(BuildContext context) async {
-    //final prefs = await SharedPreferences.getInstance();
     if(!isChecked){
       Utility.showMessage(context, "Please accept the Terms and Conditions");
     }else if (_userNameController.text.toString() != "" &&

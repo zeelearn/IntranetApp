@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
 import 'package:intl/intl.dart';
 import 'package:intranet/api/request/leavelist_request_man.dart';
 import 'package:intranet/main.dart';
@@ -63,8 +64,9 @@ class _LeaveManagerScreen extends State<LeaveManagerScreen>
   }
 
   Future<void> getUserInfo() async {
-    final prefs = await SharedPreferences.getInstance();
-    widget.employeeId = int.parse(prefs.getString(LocalConstant.KEY_EMPLOYEE_ID) as String);
+    var hiveBox = await Utility.openBox();
+    await Hive.openBox(LocalConstant.KidzeeDB);
+    widget.employeeId = int.parse(hiveBox.get(LocalConstant.KEY_EMPLOYEE_ID) as String);
 
     loadAcquisition();
   }
@@ -602,7 +604,7 @@ class _LeaveManagerScreen extends State<LeaveManagerScreen>
     //2022-07-18T00:00:00
     try {
       dt = new DateFormat('yyyy-MM-dd\'T\'HH:mm:ss').parse(value);
-      print('asasdi   ' + dt.day.toString());
+      //print('asasdi   ' + dt.day.toString());
     } catch (e) {
       e.toString();
     }

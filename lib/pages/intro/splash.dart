@@ -1,14 +1,15 @@
 import 'dart:async';
-import 'package:flutter/material.dart';
+
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 
 import '../auth/login.dart';
 import '../helper/LocalConstant.dart';
+import '../helper/utils.dart';
 import '../home/IntranetHomePage.dart';
-import '../login/login_screen.dart';
 import 'intro.dart';
-
+import 'package:path_provider/path_provider.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({Key? key}) : super(key: key);
@@ -25,10 +26,6 @@ class _SplashScreenState extends State<SplashScreen> {
     return new Timer(_duration, navigationPage);
   }
 
-  // checkLoginStatus() async {
-  //   SharedPreferences pref = await SharedPreferences.getInstance();
-  //   if(pref.getString(key))
-  // }
 
   @override
   void initState() {
@@ -38,9 +35,8 @@ class _SplashScreenState extends State<SplashScreen> {
 
   void navigate() async{
     print("-------init---=-=-=-=-=-=-");
+    var box = await Utility.openBox();
 
-    var box = Hive.box(LocalConstant.KidzeeDB);
-    await Hive.openBox(LocalConstant.KidzeeDB);
     String displayName = '';
     String userName = '';
     String mobileNumber = '';

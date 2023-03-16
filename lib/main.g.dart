@@ -18,8 +18,6 @@ class PersonAdapter extends TypeAdapter<Person> {
     };
     return Person(
       name: fields[0] as String,
-      age: fields[1] as int,
-      friends: (fields[2] as List).cast<String>(),
     );
   }
 
@@ -30,9 +28,7 @@ class PersonAdapter extends TypeAdapter<Person> {
       ..writeByte(0)
       ..write(obj.name)
       ..writeByte(1)
-      ..write(obj.age)
-      ..writeByte(2)
-      ..write(obj.friends);
+      ..writeByte(2);
   }
 
   @override

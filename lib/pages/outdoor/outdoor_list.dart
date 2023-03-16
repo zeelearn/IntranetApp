@@ -366,7 +366,7 @@ class _OutdoorScreen extends State<OutdoorScreen>
     //2022-07-18T00:00:00
     try {
       dt = new DateFormat('yyyy-MM-dd\'T\'HH:mm:ss').parse(value);
-      print('asasdi   ' + dt.day.toString());
+      //print('asasdi   ' + dt.day.toString());
     } catch (e) {
       e.toString();
     }
@@ -378,7 +378,7 @@ class _OutdoorScreen extends State<OutdoorScreen>
     String date='';
     try {
       date = new DateFormat('dd').format(dt);
-      print('asasdi   ' + dt.day.toString());
+      //print('asasdi   ' + dt.day.toString());
     } catch (e) {
       e.toString();
     }
@@ -390,7 +390,7 @@ class _OutdoorScreen extends State<OutdoorScreen>
     String date='';
     try {
       date = new DateFormat('MMM').format(dt);
-      print('asasdi   ' + dt.day.toString());
+      //print('asasdi   ' + dt.day.toString());
     } catch (e) {
       e.toString();
     }

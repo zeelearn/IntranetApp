@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:hive/hive.dart';
 import 'package:intl/intl.dart';
 import 'package:intranet/api/request/leave_balance_req.dart';
@@ -13,6 +14,7 @@ import 'package:intranet/pages/leave/apply_leave.dart';
 
 import '../../api/APIService.dart';
 import '../firebase/anylatics.dart';
+import '../helper/helpers.dart';
 import '../utils/theme/colors/light_colors.dart';
 
 class LeaveSummeryScreen extends StatefulWidget {
@@ -41,7 +43,6 @@ class _LeaveSummeryScreenState extends State<LeaveSummeryScreen>
   List<LeaveRequisitionInfo> leaveRequisitionList = [];
   bool isLoading = true;
   var hiveBox;
-
   @override
   void initState() {
     // TODO: implement initState
@@ -65,10 +66,10 @@ class _LeaveSummeryScreenState extends State<LeaveSummeryScreen>
   }
 
   Future<void> getUserInfo() async {
-    hiveBox = Hive.box(LocalConstant.KidzeeDB);
+    hiveBox = await Utility.openBox();
     await Hive.openBox(LocalConstant.KidzeeDB);
-    employeeId =
-        int.parse(hiveBox.get(LocalConstant.KEY_EMPLOYEE_ID) as String);
+    employeeId = int.parse(hiveBox.get(LocalConstant.KEY_EMPLOYEE_ID) as String);
+
     var leaveBalanceSummery = hiveBox.get(getId());
     var leaveRequsitionSummery = hiveBox.get('r'+getId());
     if(leaveBalanceSummery==null){
@@ -451,7 +452,7 @@ class _LeaveSummeryScreenState extends State<LeaveSummeryScreen>
     //2022-07-18T00:00:00
     try {
       dt = new DateFormat('yyyy-MM-dd\'T\'HH:mm:ss').parse(value);
-      print('asasdi   ' + dt.day.toString());
+      //print('asasdi   ' + dt.day.toString());
     } catch (e) {
       e.toString();
     }

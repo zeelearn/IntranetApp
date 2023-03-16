@@ -1,11 +1,9 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io' show Platform;
+import 'dart:io' show Directory, Platform;
 import 'dart:math';
 import 'dart:ui';
-
 import 'package:awesome_notifications/awesome_notifications.dart';
-import 'package:device_info_plus/device_info_plus.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
@@ -22,8 +20,6 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter/foundation.dart';
 import 'package:intranet/pages/model/NotificationDataModel.dart';
 import 'package:intranet/pages/pjp/cvf/CheckInModel.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-
 import 'api/APIService.dart';
 import 'api/ServiceHandler.dart';
 import 'api/request/cvf/update_cvf_status_request.dart';
@@ -31,6 +27,11 @@ import 'api/request/leave/leave_approve_request.dart';
 import 'api/response/apply_leave_response.dart';
 import 'api/response/approve_attendance_response.dart';
 import 'api/response/cvf/update_status_response.dart';
+
+import 'package:hive/hive.dart';
+import 'package:path_provider/path_provider.dart';
+
+part 'main.g.dart';
 
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   try {
@@ -112,8 +113,15 @@ late ServiceInstance mService;
 FlutterLocalNotificationsPlugin? flutterLocalNotificationsPlugin;
 late FirebaseMessaging messaging;
 
+Future<Box> _openBox() async {
+  if (!kIsWeb && !Hive.isBoxOpen(LocalConstant.KidzeeDB))
+    Hive.init((await getApplicationDocumentsDirectory()).path);
+  return await Hive.openBox(LocalConstant.KidzeeDB);
+}
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  _openBox();
   await Firebase.initializeApp(
       name: "Intranet", options: DefaultFirebaseOptions.currentPlatform);
 
@@ -230,8 +238,7 @@ Future<void> initializeService() async {
   const AndroidNotificationChannel channel = AndroidNotificationChannel(
     'my_foreground', // id
     'INTRANET FOREGROUND SERVICE', // title
-    description:
-        'This channel is used for sync Data with Server.', // description
+    description:'This channel is used for sync Data with Server.', // description
     importance: Importance.low, // importance must be at low or higher level
   );
 
@@ -241,7 +248,7 @@ Future<void> initializeService() async {
   if (Platform.isIOS) {
     await flutterLocalNotificationsPlugin.initialize(
       const InitializationSettings(
-        iOS: IOSInitializationSettings(),
+        iOS: DarwinInitializationSettings(),
       ),
     );
   }
@@ -344,11 +351,7 @@ Future<void> leaveService(int action) async {
 Future<bool> onIosBackground(ServiceInstance service) async {
   WidgetsFlutterBinding.ensureInitialized();
   DartPluginRegistrant.ensureInitialized();
-  SharedPreferences preferences = await SharedPreferences.getInstance();
-  await preferences.reload();
-  final log = preferences.getStringList('log') ?? <String>[];
-  log.add(DateTime.now().toIso8601String());
-  await preferences.setStringList('log', log);
+
 
   return true;
 }
@@ -368,7 +371,7 @@ void onStart(ServiceInstance service) async {
   });
 
   flutterLocalNotificationsPlugin.show(
-    0,
+    888,
     'Intranet App is Running',
     'Sync Data with Server process started',
     const NotificationDetails(
@@ -395,68 +398,56 @@ void onStart(ServiceInstance service) async {
     device = iosInfo.model;
   }
 
-  service.invoke(
-    'update',
-    {
-      "current_date": DateTime.now().toIso8601String(),
-      "device": device,
-    },
-  );*/
+  */
 }
 
 checkPendingLeaveApprovals(int action) async {
-  print('checkPendingLeaveApprovals ..................');
   bool isInternet = await Utility.isInternet();
   if(isInternet) {
-    SharedPreferences preferences = await SharedPreferences.getInstance();
-    String userId = preferences.getString(LocalConstant.KEY_EMPLOYEE_ID) as String;
+    var hiveBox = await Utility.openBox();
+    await Hive.openBox(LocalConstant.KidzeeDB);
+    String userId = hiveBox.get(LocalConstant.KEY_EMPLOYEE_ID) as String;
     DBHelper _helper = DBHelper();
     List<ApproveLeaveRequestManager> list = await _helper.getUnSyncData(userId);
     List<CheckInModel> checkInList = await DBHelper().getOfflineCheckInStatus();
     if ((checkInList == null || checkInList.length == 0) &&
         (list == null || list.length == 0)) {
-      print('checkPendingLeaveApprovals action ${action}');
       if (action == 2) {
         NotificationService notificationService = NotificationService();
         notificationService.showNotification(
             12,
-            'LEAVE REQUEST Completed',
-            'Leave Approval request has been successfully completed.',
-            'Leave Approval request has been successfully completed.');
+            'LEAVE/OUTDOOR REQUEST Completed',
+            'Leave/OUTDOOR Approval request has been successfully completed.',
+            'Leave/OUTDOOR Approval request has been successfully completed.');
       }
-      print('setvice stopping ..................');
       if (mService != null) {
-        print('setvice stopped ..................');
         stopService(mService);
-        
-      }else{
-        print('null mService ${mService}');
       }
     } else {
-      print('checkPendingLeaveApprovals else 437');
       if (checkInList.length > 0)
         apicall(checkInList);
       else if (list.length > 0) syncLeaveApproval(list[0]);
     }
   }else{
-    print('setvice stopping ..................');
     stopService(mService);
   }
+}
+
+cancelNotification() async {
+  NotificationService notificationService = NotificationService();
+  notificationService.cancelNotification(888);
 }
 
 stopService(ServiceInstance mService){
   Timer.periodic(const Duration(seconds: 3), (timer) async {
     if (mService!=null) {
-      print('setvice stopping ..FINAL................');
       mService.stopSelf();
-    }else{
-      print('setvice stopping ..FINAL..ELSE..............');
+      cancelNotification();
     }
   });
 }
 
 syncLeaveApproval(ApproveLeaveRequestManager model) {
-  print(model.xml);
   ApproveLeaveRequestManager request = ApproveLeaveRequestManager(
     xml: model.xml,
     userId: model.userId.toString(),
@@ -466,18 +457,18 @@ syncLeaveApproval(ApproveLeaveRequestManager model) {
   if(request.xml.contains('[]')){
     if (model.index != null) {
       DBHelper helper = DBHelper();
-      print('DELTE ID ${model.index!.toString()}');
+      //print('DELTE ID ${model.index!.toString()}');
       helper.delete(LocalConstant.TABLE_DATA_SYNC, model.index!.toString());
     }
     checkPendingLeaveApprovals(2);
   }else if (model.actionType.isNotEmpty && model.actionType == 'ATTENDANCE_MAN') {
-    print('ATTENDANCE_MAN request');
+    //print('ATTENDANCE_MAN request');
     APIService apiService = APIService();
     apiService.approveAttendance(request).then((value) {
-      print('approveAttendance response ${value}');
+      //print('approveAttendance response ${value}');
       if (value != null) {
         if (value == null || value.responseData == null) {
-          print('Serviceclosed NULL....................');
+          //print('Serviceclosed NULL....................');
           if (mService != null) mService.stopSelf();
         } else if (value is ApproveAttendanceResponse) {
           ApproveAttendanceResponse response = value;
@@ -485,13 +476,13 @@ syncLeaveApproval(ApproveLeaveRequestManager model) {
             if(response.statusCode==200){
               if (model.index != null) {
                 DBHelper helper = DBHelper();
-                print('DELTE ID ${model.index!.toString()}');
+                //print('DELTE ID ${model.index!.toString()}');
                 helper.delete(LocalConstant.TABLE_DATA_SYNC, model.index!.toString());
               }
             }else{
               if (model.index != null) {
                 DBHelper helper = DBHelper();
-                print('DELTE ID ${model.index!.toString()}');
+                //print('DELTE ID ${model.index!.toString()}');
                 helper.delete(LocalConstant.TABLE_DATA_SYNC, model.index!.toString());
               }
             }
@@ -499,23 +490,23 @@ syncLeaveApproval(ApproveLeaveRequestManager model) {
           }else{
             if (model.index != null) {
               DBHelper helper = DBHelper();
-              print('DELTE ID ${model.index!.toString()}');
+              //print('DELTE ID ${model.index!.toString()}');
               helper.delete(LocalConstant.TABLE_DATA_SYNC, model.index!.toString());
             }
             checkPendingLeaveApprovals(2);
           }
         }else if(value.toString().contains('Failed host lookup')){
-          print('Serviceclosed....................');
+          //print('Serviceclosed....................');
           if (mService != null) mService.stopSelf();
         }else{
-          print('Serviceclosed NULL.ELSE...................');
+          //print('Serviceclosed NULL.ELSE...................');
           if (mService != null) mService.stopSelf();
         }
       }
 
     });
   } else {
-    print('approveLeaveManager request');
+    //print('approveLeaveManager request');
     APIService apiService = APIService();
     apiService.approveLeaveManager(request).then((value) {
       if (value != null) {
@@ -523,19 +514,19 @@ syncLeaveApproval(ApproveLeaveRequestManager model) {
           if (mService != null) mService.stopSelf();
         } else if (value is ApplyLeaveResponse) {
           ApplyLeaveResponse response = value;
-          print(response.responseMessage);
+          //print(response.responseMessage);
           if (response != null) {
-            print('Serviceclosed NULL....523...........');
+            //print('Serviceclosed NULL....523...........');
             print(response.responseMessage);
               if (model.index != null) {
                 DBHelper helper = DBHelper();
-                print('DELTE ID ${model.index!.toString()}');
+                //print('DELTE ID ${model.index!.toString()}');
                 helper.delete(LocalConstant.TABLE_DATA_SYNC, model.index!.toString());
               }
           }else if(value.toString().contains('Failed host lookup')){
             if (model.index != null) {
               DBHelper helper = DBHelper();
-              print('DELTE ID ${model.index!.toString()}');
+              //print('DELTE ID ${model.index!.toString()}');
               helper.delete(LocalConstant.TABLE_DATA_SYNC, model.index!.toString());
             }
             if (mService != null) mService.stopSelf();
@@ -543,8 +534,6 @@ syncLeaveApproval(ApproveLeaveRequestManager model) {
             if (mService != null) mService.stopSelf();
           }
           checkPendingLeaveApprovals(2);
-        } else {
-          print('in else 549');
         }
 
       }
@@ -553,27 +542,27 @@ syncLeaveApproval(ApproveLeaveRequestManager model) {
 }
 
 apicall(List<CheckInModel> list) async {
-  print('api calling...');
+  //print('api calling...');
 
-  print('Offline Data found ${list.length}');
+  //print('Offline Data found ${list.length}');
   if (list.length > 0) {
     print('Offline Data found ${list.length}');
     print(list[0].body);
     UpdateCVFStatusRequest request = UpdateCVFStatusRequest.fromJson(
       json.decode(list[0].body),
     );
-    print('json decode ');
-    print(request.toString());
+    //print('json decode ');
+    //print(request.toString());
     APIService apiService = APIService();
     apiService.updateCVFStatus(request).then((value) {
-      print('response received...');
-      print(value.toString());
+      //print('response received...');
+      //print(value.toString());
       if (value != null) {
         if (value == null || value.responseData == null) {
           //onResponse.onError('Unable to update the status');
         } else if (value is UpdateCVFStatusResponse) {
           UpdateCVFStatusResponse response = value;
-          print(response.toString());
+          //print(response.toString());
           //onResponse.onSuccess(response);
           DBHelper helper = DBHelper();
           helper.updateCheckInStatus(list[0].id, 1);
@@ -591,7 +580,7 @@ apicall(List<CheckInModel> list) async {
 Future<void> setup() async {
   // #1
   const androidSetting = AndroidInitializationSettings('@mipmap/ic_launcher');
-  const iosSetting = IOSInitializationSettings();
+  const iosSetting = DarwinInitializationSettings();
 
   // #2
   const initSettings =

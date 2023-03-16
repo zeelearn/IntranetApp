@@ -120,7 +120,7 @@ class _MyCVFListScreen extends State<MyPJPCVFListScreen> implements onResponse {
   }
 
   getCVFListView() {
-    print(widget.mPjpInfo.toJson());
+    //print(widget.mPjpInfo.toJson());
     if (widget.mPjpInfo.getDetailedPJP!.isEmpty) {
       return GestureDetector(
         onTap: () {
@@ -169,7 +169,7 @@ class _MyCVFListScreen extends State<MyPJPCVFListScreen> implements onResponse {
   getView(GetDetailedPJP cvfView) {
     return GestureDetector(
       onTap: () {
-        print('status clicked ${cvfView.Status}');
+        //print('status clicked ${cvfView.Status}');
         if (cvfView.Status == 'Check In' || cvfView.Status == ' Check In' || cvfView.Status == 'NA') {
           Utility.showMessage(context, 'Please Click on Check In button');
         } else {
@@ -286,7 +286,7 @@ class _MyCVFListScreen extends State<MyPJPCVFListScreen> implements onResponse {
   }
 
   getview(final GetDetailedPJP cvfView) {
-    print(cvfView.Status);
+    //print(cvfView.Status);
     return Column(
       mainAxisSize: MainAxisSize.max,
       children: [
@@ -511,7 +511,7 @@ class _MyCVFListScreen extends State<MyPJPCVFListScreen> implements onResponse {
             TextButton(
               child: Text('Confirm'),
               onPressed: () {
-                print('Confirmed');
+                //print('Confirmed');
 
                 Navigator.of(context).pop();
 
@@ -647,9 +647,9 @@ class _MyCVFListScreen extends State<MyPJPCVFListScreen> implements onResponse {
     PJPListRequest request = PJPListRequest(
         Employee_id: employeeId, PJP_id: int.parse(widget.mPjpInfo.PJP_Id));
     APIService apiService = APIService();
-    print(request.toJson());
+    //print(request.toJson());
     apiService.getPJPList(request).then((value) {
-      print(value.toString());
+      //print(value.toString());
       if (value != null) {
         if (value == null || value.responseData == null) {
           Utility.showMessage(context, 'data not found');

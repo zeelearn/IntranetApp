@@ -51,10 +51,9 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse,onCli
   }
 
   Future<void> getUserInfo() async {
-    var hiveBox = Hive.box(LocalConstant.KidzeeDB);
+    hiveBox = await Utility.openBox();
     await Hive.openBox(LocalConstant.KidzeeDB);
-    employeeId =
-        int.parse(hiveBox.get(LocalConstant.KEY_EMPLOYEE_ID) as String);
+    employeeId = int.parse(hiveBox.get(LocalConstant.KEY_EMPLOYEE_ID) as String);
 
 
     isInternet = await Utility.isInternet();
@@ -81,7 +80,7 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse,onCli
     try {
       var attendanceList = hiveBox.get(getId());
       isLoading = false;
-      print(attendanceList.toString());
+      //print(attendanceList.toString());
       PjpListResponse response = PjpListResponse.fromJson(
         json.decode(attendanceList!),
       );
@@ -171,7 +170,7 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse,onCli
       MaterialPageRoute(
           builder: (context) => AddNewPJPScreen(employeeId: employeeId,)),
     );
-    print('Response Received');
+    //print('Response Received');
 
     IntranetServiceHandler.loadPjpSummery(employeeId, 0, this);
   }
@@ -195,10 +194,10 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse,onCli
         for(int index=0;index<filter.filters.length;index++){
           if(filter.filters[index].isSelected){
             widget.mFilterSelection.filters.add(filter.filters[index]);
-            print('--${filter.filters[index].name}');
+            //print('--${filter.filters[index].name}');
           }
         }
-        print(filter.filters.toList());
+        //print(filter.filters.toList());
         IntranetServiceHandler.loadPjpSummery(employeeId, 0, this);
       }
     //Scaffold.of(context).showSnackBar(SnackBar(content: Text("$result"),duration: Duration(seconds: 3),));
@@ -210,7 +209,7 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse,onCli
         "assets/images/loading.gif",
       ),);
     }else  if (mPjpList.isEmpty) {
-      print('PJP List not avaliable');
+      //print('PJP List not avaliable');
       return Utility.emptyDataSet(context,"your PJP list is Empty, Please plan your journey");
     }else  if (mPjpList.isEmpty && isInternet) {
 
@@ -517,13 +516,13 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse,onCli
       for(int index=0;index<filter.filters.length;index++){
         if(filter.filters[index].isSelected){
           widget.mFilterSelection.filters.add(filter.filters[index]);
-          print(filter.filters[index].name);
+          //print(filter.filters[index].name);
         }
       }
-      print(filter.filters.toList());
+      //print(filter.filters.toList());
       IntranetServiceHandler.loadPjpSummery(employeeId, 0, this);
     } else {
-      print('Object not found ${result}');
+      //print('Object not found ${result}');
     }
   }
 
@@ -547,6 +546,9 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse,onCli
   }
 
   savePJPLocally(String json) async{
+    if(hiveBox==null){
+      hiveBox = await Hive.openBox(LocalConstant.KidzeeDB);
+    }
     hiveBox.put(getId(), json);
   }
 
@@ -554,12 +556,12 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse,onCli
   void onSuccess(value) {
     Navigator.of(context).pop();
     isLoading = false;
-    print('PJP List onSuccess ');
+    //print('PJP List onSuccess ');
     if(value is String){
       IntranetServiceHandler.loadPjpSummery(employeeId, 0, this);
     }else if(value is UpdatePJPStatusResponse){
       UpdatePJPStatusResponse val = value;
-      print(val.toJson());
+      //print(val.toJson());
       if(val.responseData==0){
         //rejected
         Utility.getRejectionDialog(context, 'Rejected', 'The Pjp is rejected by you..', this);
@@ -567,20 +569,20 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse,onCli
         Utility.getConfirmationDialog(context, this);
       }
     }else if(value is PjpListResponse){
-      print('PJP List onSuccess PjpListResponse');
+      //print('PJP List onSuccess PjpListResponse');
       PjpListResponse response = value;
-      print(response.toString());
+      //print(response.toString());
       String json = jsonEncode(response);
       savePJPLocally(json);
       //print('onResponse in if ${widget.mFilterSelection.type}');
       isLoading = false;
       mPjpList.clear();
-      print('PJP List onSuccess ${response.responseData.toString()}');
+      //print('PJP List onSuccess ${response.responseData.toString()}');
       if(response.responseData!=null && response.responseData.length>0){
         if (response != null && response.responseData != null) {
           if (widget.mFilterSelection == null ||
               widget.mFilterSelection.type == FILTERStatus.MYTEAM) {
-            print(('FOR MY TEAM'));
+            //print(('FOR MY TEAM'));
             //mPjpList.addAll(response.responseData);
             for (int index = 0;
             index < response.responseData.length;
@@ -591,13 +593,13 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse,onCli
                 for(int jIndex=0;jIndex<widget.mFilterSelection.filters.length;jIndex++){
                   if(widget.mFilterSelection.filters[jIndex].isSelected && response.responseData[index].displayName==widget.mFilterSelection.filters[jIndex].name){
                     mPjpList.add(response.responseData[index]);
-                    print(('FOR MY TEAM ${widget.mFilterSelection.filters[jIndex].isSelected}  ${response.responseData[index].displayName}'));
+                    //print(('FOR MY TEAM ${widget.mFilterSelection.filters[jIndex].isSelected}  ${response.responseData[index].displayName}'));
                   }
                 }
               }
             }
           } else if (widget.mFilterSelection.type == FILTERStatus.MYSELF) {
-            print(('FOR MY SELF'));
+            //print(('FOR MY SELF'));
             for (int index = 0;
             index < response.responseData.length;
             index++) {
@@ -606,7 +608,7 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse,onCli
               }
             }
           } else if (widget.mFilterSelection.type == FILTERStatus.NONE) {
-            print(('FOR MY CUSTOM TEAM'));
+            //print(('FOR MY CUSTOM TEAM'));
             for (int index = 0;
             index < response.responseData.length;
             index++) {
@@ -615,7 +617,7 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse,onCli
               }
             }
           } else {
-            print('In else');
+            //print('In else');
             for (int index = 0;
             index < response.responseData.length;
             index++) {
@@ -642,7 +644,7 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse,onCli
 
         }
       }else{
-        print('onResponse in if else');
+        //print('onResponse in if else');
       }
     }
     setState(() {
@@ -658,7 +660,7 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse,onCli
 
   @override
   void onClick(int action, value) {
-    print('onClick called ${value}');
+    //print('onClick called ${value}');
     if(value is PJPInfo){
       PJPInfo pjpInfo = value;
       if(action==Utility.ACTION_OK){

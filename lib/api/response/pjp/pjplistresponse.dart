@@ -18,13 +18,13 @@ class PjpListResponse {
       statusCode = json['statusCode'];
       responseData = <PJPInfo>[];
       if (json['responseData'] is List) {
-        print('at line 21');
+        //print('at line 21');
         json['responseData'].forEach((v) {
           try {
             responseData.add(new PJPInfo.fromJson(v));
           } catch (e) {
-            print('at line 21 ${v.toString()}');
-            print(e.toString());
+            //print('at line 21 ${v.toString()}');
+            //print(e.toString());
           }
         });
       }else{

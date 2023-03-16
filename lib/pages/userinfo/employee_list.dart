@@ -3,6 +3,7 @@ import 'package:hive/hive.dart';
 import 'package:intranet/api/response/employee_list_response.dart';
 import 'package:intranet/pages/helper/LocalConstant.dart';
 import 'package:intranet/pages/helper/utils.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../api/APIService.dart';
 import '../utils/theme/colors/light_colors.dart';
@@ -49,10 +50,9 @@ class _EmployeeListScreenState extends State<EmployeeListScreen>
   }
 
   Future<void> getUserInfo() async {
-    var hiveBox = Hive.box(LocalConstant.KidzeeDB);
+    var hiveBox = await Utility.openBox();
     await Hive.openBox(LocalConstant.KidzeeDB);
-    employeeId =
-        int.parse(hiveBox.get(LocalConstant.KEY_EMPLOYEE_ID) as String);
+    employeeId = int.parse(hiveBox.get(LocalConstant.KEY_EMPLOYEE_ID) as String);
     loadEmployeeList();
   }
 
@@ -124,7 +124,10 @@ class _EmployeeListScreenState extends State<EmployeeListScreen>
         appBar: AppBar(
           title: customSearchBar,
           automaticallyImplyLeading: false,
-          leading: customleading,
+          leading: IconButton(
+            icon: customleading,
+            onPressed: () => Navigator.of(context).pop(),
+          ),
           actions: [
             IconButton(
               onPressed: () {
@@ -245,11 +248,21 @@ class _EmployeeListScreenState extends State<EmployeeListScreen>
         '${info.employeeFullName}\n${info.employeeDesignation}',
       ),
       subtitle: Text(info.employeeEmailId),
-      trailing: Icon(Icons.call),
+      trailing: InkWell(
+        onTap: () => makecall(info.employeeContactNumber),
+        child: const Icon(Icons.call),
+      ),
       onTap: () {
         Text('Another data');
       },
     );
+  }
+  makecall(String phone){
+    if(phone.isNotEmpty) {
+      launchUrl(Uri.parse("tel:${phone}"));
+    }else{
+      Utility.showMessages(context, 'Mobile number not avaliable');
+    }
   }
 
 

@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hive/hive.dart';
 import 'package:intl/intl.dart';
@@ -13,6 +12,7 @@ import '../../api/APIService.dart';
 import '../../api/response/attendance_response.dart';
 import '../firebase/anylatics.dart';
 import '../utils/theme/colors/light_colors.dart';
+import '../utils/widgets/top_container.dart';
 import '../widget/TimeBoard.dart';
 import '../widget/month_picker_dialog.dart';
 import 'attendance_marking.dart';
@@ -36,9 +36,9 @@ class _AttendanceSummeryState extends State<AttendanceSummeryScreen> {
 
   List<AttendanceSummeryModel> summeryModleList = [];
   bool isLoading = true;
-  var hiveBox;
-  bool isInternet=true;
 
+  bool isInternet=true;
+  var hiveBox;
   @override
   void initState() {
     // TODO: implement initState
@@ -55,10 +55,9 @@ class _AttendanceSummeryState extends State<AttendanceSummeryScreen> {
   }
 
   Future<void> getUserInfo() async {
-    hiveBox = Hive.box(LocalConstant.KidzeeDB);
+    hiveBox = await Utility.openBox();
     await Hive.openBox(LocalConstant.KidzeeDB);
-    employeeId =
-        int.parse(hiveBox.get(LocalConstant.KEY_EMPLOYEE_ID) as String);
+    employeeId = int.parse(hiveBox.get(LocalConstant.KEY_EMPLOYEE_ID) as String);
 
     isInternet = await Utility.isInternet();
 

@@ -689,15 +689,15 @@ class APIService {
 
   Future<dynamic> getPJPList(PJPListRequest requestModel) async {
     try {
-      print('in getPJP list ');
-      print(Uri.parse(url + LocalStrings.GET_PJP_LIST));
+      //print('in getPJP list ');
+      //print(Uri.parse(url + LocalStrings.GET_PJP_LIST));
       final response = await http.post(Uri.parse(url + LocalStrings.GET_PJP_LIST),
           headers: {
             "Accept": "application/json",
             "content-type": "application/json"
           },
           body:requestModel.getJson());
-      print(response.body);
+      //print(response.body);
       if (response.statusCode == 200 || response.statusCode == 400) {
         String data = response.body.replaceAll('null', '\"NA\"');
         return PjpListResponse.fromJson(

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
 import 'package:intl/intl.dart';
 import 'package:intranet/api/request/attendance_marking_man_request.dart';
 import 'package:intranet/pages/widget/MyWidget.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../api/APIService.dart';
 import '../../api/response/attendance_marking_man.dart';
@@ -62,9 +62,9 @@ class _AttendanceManagerScreen extends State<AttendanceManagerScreen>
   }
 
   Future<void> getUserInfo() async {
-    final prefs = await SharedPreferences.getInstance();
-    widget.employeeId =
-        int.parse(prefs.getString(LocalConstant.KEY_EMPLOYEE_ID) as String);
+    var hiveBox = await Utility.openBox();
+    await Hive.openBox(LocalConstant.KidzeeDB);
+    widget.employeeId = int.parse(hiveBox.get(LocalConstant.KEY_EMPLOYEE_ID) as String);
 
     loadAcquisition();
   }

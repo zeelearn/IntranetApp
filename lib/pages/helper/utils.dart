@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:hive/hive.dart';
 import 'package:intl/intl.dart';
 import 'package:intranet/pages/iface/onClick.dart';
 import 'package:intranet/pages/iface/onResponse.dart';
@@ -11,6 +12,8 @@ import 'package:material_dialogs/widgets/buttons/icon_button.dart';
 
 import '../utils/theme/colors/light_colors.dart';
 import 'LightColor.dart';
+import 'LocalConstant.dart';
+import 'package:path_provider/path_provider.dart';
 
 enum TaskPageStatus {
   all,
@@ -604,6 +607,12 @@ class Utility{
         ),
       ],
     );
+  }
+
+  static Future<Box> openBox() async {
+    if (!kIsWeb && !Hive.isBoxOpen(LocalConstant.KidzeeDB))
+      Hive.init((await getApplicationDocumentsDirectory()).path);
+    return await Hive.openBox(LocalConstant.KidzeeDB);
   }
 
 }

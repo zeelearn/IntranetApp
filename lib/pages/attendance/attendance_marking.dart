@@ -53,10 +53,9 @@ class _AttendanceMarkingScreen extends State<AttendanceMarkingScreen> implements
   }
 
   Future<void> getUserInfo() async {
-    var hiveBox = Hive.box(LocalConstant.KidzeeDB);
+    var hiveBox = await Utility.openBox();
     await Hive.openBox(LocalConstant.KidzeeDB);
-    widget.employeeId =
-        int.parse(hiveBox.get(LocalConstant.KEY_EMPLOYEE_ID) as String);
+    widget.employeeId = int.parse(hiveBox.get(LocalConstant.KEY_EMPLOYEE_ID) as String);
   }
 
   @override
