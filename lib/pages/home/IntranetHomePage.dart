@@ -627,11 +627,8 @@ class _IntranetHomePageState extends State<IntranetHomePage>
   }
 
   Widget getHomeScreen() {
-    return Scaffold(
-      backgroundColor: LightColors.kLightYellow,
-      body: SafeArea(
-        child: Padding(
-          padding: EdgeInsetsDirectional.fromSTEB(0, 20, 0, 12),
+    return Container(
+          padding: const EdgeInsetsDirectional.fromSTEB(0, 20, 0, 12),
           child: Row(
             mainAxisSize: MainAxisSize.max,
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -640,13 +637,13 @@ class _IntranetHomePageState extends State<IntranetHomePage>
                 onTap: () => selectDestination(MENU_PJP),
                 child: /*Expanded(
                   child:*/ Padding(
-                    padding: EdgeInsetsDirectional.fromSTEB(8, 8, 8, 8),
+                    padding: const EdgeInsetsDirectional.fromSTEB(8, 8, 8, 8),
                     child: Container(
                       width: MediaQuery.of(context).size.width * 0.4,
                       height: 150,
                       decoration: BoxDecoration(
-                        color: Color(0xFF4B39EF),
-                        boxShadow: [
+                        color: const Color(0xFF4B39EF),
+                        boxShadow: const [
                           BoxShadow(
                             blurRadius: 3,
                             color: Color(0x39000000),
@@ -746,9 +743,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
               ),
             ],
           ),
-        ),
-      ),
-    );
+        );
   }
 
   Widget getNavigationalDrawar() {
