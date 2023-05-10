@@ -810,8 +810,8 @@ class _QuestionListScreenState extends State<QuestionListScreen>
       for (int jIndex = 0;
           jIndex < mQuestionMaster[index].allquestion.length;
           jIndex++) {
-        if (mQuestionMaster[index].allquestion[jIndex].question ==
-            questions.question) {
+        if (mQuestionMaster[index].allquestion[jIndex].Question_Id ==
+            questions.Question_Id) {
           mQuestionMaster[index].allquestion[jIndex].SelectedAnswer = answers;
           mQuestionMaster[index].allquestion[jIndex].userAnswers = answers;
           DBHelper helper = DBHelper();
@@ -1094,6 +1094,7 @@ class _QuestionListScreenState extends State<QuestionListScreen>
   }
 
   showBottomSheet(Allquestion question, String hint) {
+    _textEditingController.text = question.userAnswers.isNotEmpty ? question.userAnswers : '';
     showModalBottomSheet(
       isScrollControlled: true,
       backgroundColor: Colors.white,
@@ -1122,7 +1123,9 @@ class _QuestionListScreenState extends State<QuestionListScreen>
                     TextFormField(
                       controller: _textEditingController,
                       cursorColor: Theme.of(context).primaryColor,
-                      maxLength: 60,
+                      minLines: 3,
+                      maxLines: 7,
+                      maxLength: 600,
                       decoration: InputDecoration(
                         icon: Icon(Icons.description),
                         labelText: hint,
