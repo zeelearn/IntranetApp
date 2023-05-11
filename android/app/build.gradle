@@ -61,7 +61,7 @@ android {
 
     signingConfigs {
         release {
-            storeFile file('D:\\Sudhir\\zeelearn_android.jks')
+            storeFile file('..\\zeelearn_android.jks')
             storePassword 'zils@1234'
             keyAlias 'zeel'
             keyPassword 'zils@1234'

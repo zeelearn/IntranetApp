@@ -10,6 +10,7 @@ import 'package:intranet/pages/firebase/storageutil.dart';
 import 'package:intranet/pages/helper/DatabaseHelper.dart';
 import 'package:intranet/pages/helper/LocalConstant.dart';
 import 'package:intranet/pages/iface/onResponse.dart';
+import 'package:pinch_zoom/pinch_zoom.dart';
 
 import '../../../api/APIService.dart';
 import '../../../api/ServiceHandler.dart';
@@ -781,7 +782,9 @@ class _QuestionListScreenState extends State<QuestionListScreen>
     );
   }
 
+  int mQuestionId=0;
   Widget showQuestions(QuestionMaster questionMaster) {
+    mQuestionId = 1;
     return ExpansionTile(
       key: PageStorageKey<QuestionMaster>(questionMaster),
       title: Padding(
@@ -793,12 +796,13 @@ class _QuestionListScreenState extends State<QuestionListScreen>
         ),
       ),
       children: questionMaster.allquestion
-          .map<Widget>((player) => showPlayers(player))
+          .map<Widget>((player) => showPlayers(player,mQuestionId++))
           .toList(),
     );
   }
 
   updateAnswers(Allquestion questions, String answers) {
+    print('updateAnswers ${questions.Question_Id} ${answers}');
     if (userAnswerMap.containsKey(questions.Question_Id.toString())) {
       userAnswerMap.update(
           questions.Question_Id.toString(), (value) => answers);
@@ -812,6 +816,8 @@ class _QuestionListScreenState extends State<QuestionListScreen>
           jIndex++) {
         if (mQuestionMaster[index].allquestion[jIndex].Question_Id ==
             questions.Question_Id) {
+          print(questions.Question_Id);
+          print(mQuestionMaster[index].allquestion[jIndex].Question_Id);
           mQuestionMaster[index].allquestion[jIndex].SelectedAnswer = answers;
           mQuestionMaster[index].allquestion[jIndex].userAnswers = answers;
           DBHelper helper = DBHelper();
@@ -832,7 +838,7 @@ class _QuestionListScreenState extends State<QuestionListScreen>
     setState(() {});
   }
 
-  Widget showPlayers(Allquestion player) {
+  Widget showPlayers(Allquestion player,int index) {
     //print(player.toJson().toString());
     return Padding(
         padding: EdgeInsets.only(left: 20, right: 25),
@@ -843,10 +849,10 @@ class _QuestionListScreenState extends State<QuestionListScreen>
             ),
             ListTile(
               title: player.isCompulsory=='1' ? Text(
-                '* ${player.Question_Id}. ${player.question}',
+                '* ${index}. ${player.question}',
                 style: Theme.of(context).textTheme.bodyText1,
               ) : Text(
-                '${player.Question_Id}. ${player.question}',
+                '${index}. ${player.question}',
                 style: Theme.of(context).textTheme.bodyText1,
               ),
             ),
@@ -1214,20 +1220,6 @@ class _QuestionListScreenState extends State<QuestionListScreen>
     );
   }
 
-  _buildYesNoAnswers(Allquestion question) {
-    List<Widget> _rowWidget =
-        []; // this will hold Rows according to available lines
-    for (int index = 0; index < question.answers.length; index++) {
-      bool answers =
-          (question.userAnswers == question.answers[index].answerName ||
-                  question.SelectedAnswer == question.answers[index].answerName)
-              ? true
-              : false;
-      _rowWidget.add(_generateYesNoAnswers(
-          question, question.answers[index].answerName, answers));
-    }
-    return Row(children: _rowWidget);
-  }
 
   _generateYesNoAnswers(Allquestion question, String Answer_Name, bool value) {
     return Expanded(
@@ -1377,8 +1369,8 @@ class _QuestionListScreenState extends State<QuestionListScreen>
       for (int jIndex = 0;
           jIndex < mQuestionMaster[index].allquestion.length;
           jIndex++) {
-        if (mQuestionMaster[index].allquestion[jIndex].question ==
-            questions.question) {
+        if (mQuestionMaster[index].allquestion[jIndex].Question_Id ==
+            questions.Question_Id) {
           mQuestionMaster[index].allquestion[jIndex].files = path;
           updateImageOffline(questions,path);
         }
@@ -1517,14 +1509,21 @@ class DetailScreen extends StatelessWidget {
         ] : null,
       ),
       body: GestureDetector(
-        child: Center(
+        child:  PinchZoom(
+          child: Image.network(imageUrl),
+          resetDuration: const Duration(milliseconds: 100),
+          maxScale: 2.5,
+          onZoomStart: (){print('Start zooming');},
+          onZoomEnd: (){print('Stop zooming');},
+        ),
+        /*Center(
           child: Hero(
             tag: 'imageHero',
             child: Image.network(
               imageUrl,
             ),
           ),
-        ),
+        ),*/
         onTap: () {
           Navigator.pop(context);
         },

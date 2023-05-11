@@ -85,7 +85,7 @@ class Allquestion {
     categoryName = json['Category_Name'];
     isCompulsory = json['isCompulsory'] ?? '';
     SelectedAnswer = json['SelectedAnswer'] ?? '';
-    files = json['files'] ?? '';
+    files = '';//json['files'] ?? '';
     /*if (json['answers'] != null) {
       answers = <Answers>[];
       *//*if(json['answers'].toString().contains('[')) {

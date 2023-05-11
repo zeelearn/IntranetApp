@@ -360,7 +360,14 @@ class DBHelper {
 
   Future<void> updateCVFQuestions(String cvfId,String json,int isSync) async{
     var dbclient = await db;
-    await dbclient.rawUpdate('update ${LocalConstant.TABLE_CVF_QUESTION_JSON} set issync = \'${json}\' ,${DBConstant.IS_SYNC} = \'${isSync}\' ,${DBConstant.MODIFIED_DATE} = \'${Utility.parseDate(DateTime.now())}\'   where ${DBConstant.CVF_ID}=${cvfId}');
+    try {
+      await dbclient.rawUpdate('update ${LocalConstant
+          .TABLE_CVF_QUESTION_JSON} set issync = \'${json}\' ,${DBConstant
+          .IS_SYNC} = \'${isSync}\' ,${DBConstant.MODIFIED_DATE} = \'${Utility
+          .parseDate(DateTime.now())}\'   where ${DBConstant.CVF_ID}=${cvfId}');
+    }catch(e){
+      print(e.toString());
+    }
   }
 
   Future<void> updateCheckInStatus(int id,int isSync) async{
