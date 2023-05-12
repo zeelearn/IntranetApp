@@ -73,9 +73,10 @@ class Allquestion {
   late String categoryName;
   late List<Answers> answers;
   late String userAnswers='';
+  late String Remarks='';
 
   Allquestion(
-      {required this.Question_Id, required this.question,required this.businessId,required this.isCompulsory,required this.SelectedAnswer,required this.files, required this.categoryName,required this.answers});
+      {required this.Question_Id, required this.question,required this.businessId,required this.isCompulsory,required this.SelectedAnswer,required this.files, required this.categoryName,required this.answers, required this.Remarks});
 
   Allquestion.fromJson(Map<String, dynamic> json) {
     Question_Id = json['Question_Id'];
@@ -85,6 +86,7 @@ class Allquestion {
     isCompulsory = json['isCompulsory'] ?? '';
     SelectedAnswer = json['SelectedAnswer'] ?? '';
     files = json['files'] ?? '';
+    Remarks = json['Remarks'] ?? '';
     /*if (json['answers'] != null) {
       answers = <Answers>[];
       *//*if(json['answers'].toString().contains('[')) {
@@ -121,6 +123,7 @@ class Allquestion {
     data['isCompulsory'] = this.isCompulsory;
     data['SelectedAnswer'] = this.SelectedAnswer;
     data['files'] = this.files;
+    data['Remarks'] = this.Remarks;
     if (this.answers != null) {
       data['answers'] = this.answers.map((v) => v.toJson()).toList();
     }

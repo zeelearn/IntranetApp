@@ -259,6 +259,9 @@ class _QuestionListScreenState extends State<QuestionListScreen>
         jIndex++) {
 
           if (mQuestionMaster[index].allquestion[jIndex].userAnswers.isNotEmpty) {
+            print('in if');
+            print(mQuestionMaster[index].allquestion[jIndex].answers[0].answerType);
+            print(mQuestionMaster[index].allquestion[jIndex].answers[0].answerType == 'YesNo' ? 'blanks' : mQuestionMaster[index].allquestion[jIndex].userAnswers);
             docXml =
             '${docXml}<tblPJPCVF_Answer><SubmissionDate>${Utility
                 .convertShortDate(DateTime
@@ -270,7 +273,7 @@ class _QuestionListScreenState extends State<QuestionListScreen>
                   }</AnswerId>'
                 '<Files>${mQuestionMaster[index]
                 .allquestion[jIndex]
-                .files}</Files><Remarks>${mQuestionMaster[index].allquestion[jIndex].answers[0].answerType == 'YesNo' ? '' : mQuestionMaster[index].allquestion[jIndex].userAnswers  }</Remarks></tblPJPCVF_Answer>';
+                .files}</Files><Remarks>${mQuestionMaster[index].allquestion[jIndex].answers[0].answerType == 'YesNo' ? '' : mQuestionMaster[index].allquestion[jIndex].userAnswers.isNotEmpty ? mQuestionMaster[index].allquestion[jIndex].userAnswers : ''  }</Remarks></tblPJPCVF_Answer>';
           } else if (userAnswerMap[
           mQuestionMaster[index].allquestion[jIndex].Question_Id]
               .toString()
@@ -1005,6 +1008,7 @@ class _QuestionListScreenState extends State<QuestionListScreen>
   }
 
   getDescriptionWidget(Allquestion questions) {
+
     String path = getImagePath(questions);
     if(path.isNotEmpty){
       questions.files = path;
@@ -1014,6 +1018,7 @@ class _QuestionListScreenState extends State<QuestionListScreen>
     final size = MediaQuery.of(context).size;
     List<Widget> _rowWidget = [];
     for (int index = 0; index < questions.answers.length; index++) {
+      print('user answer ${questions.SelectedAnswer}  myAns ${questions.answers[index].answerName}');
       _rowWidget.add(ListTile(
         /*title: Text(
           '${questions.Question_Id}. ${questions.question}',
@@ -1044,7 +1049,7 @@ class _QuestionListScreenState extends State<QuestionListScreen>
                                 .toString()
                                 .isNotEmpty)
                         ? userAnswerMap[questions.Question_Id].toString()
-                        : questions.answers[index].answerName)),
+                        : questions.Remarks)),
           ),
         ),
         trailing: GestureDetector(

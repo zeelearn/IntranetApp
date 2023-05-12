@@ -128,9 +128,9 @@ class EmployeeDetails {
 
   EmployeeDetails.fromJson(Map<String, dynamic> json){
     employeeId = json['employee_Id'];
-    employeeCode = json['employee_Code'];
-    employeeFirstName = json['employee_FirstName'];
-    employeeLastName = json['employee_LastName'];
+    employeeCode = json['employee_Code'] ?? '';
+    employeeFirstName = json['employee_FirstName'] ?? '';
+    employeeLastName = json['employee_LastName'] ?? '';
     employeeDateOfJoining = json['employee_DateOfJoining'] ?? "";
     employeeSuperiorId = json['employee_SuperiorId'] ?? "";
     employeeRoleId = json['employee_RoleId'] ?? "";
@@ -155,15 +155,18 @@ class EmployeeDetails {
     employeeGrade = json['employee_Grade'] ?? "";
     zone = json['zone'] ?? "";
     employeeDepartmentID1 = json['employee_DepartmentID1'] ?? "";
-    companyId = json['companyId'];
+    companyId = json['companyId'] ?? 0.0;
     employeeDateOfMarriage = json['employee_DateOfMarriage'] ?? "";
     gender = json['gender'] ?? "";
+    print('gender');
     employeeMiddleName = json['employeeMiddleName'] ?? "";
     employeeDateOfBirthActual = json['employeeDateOfBirthActual'] ?? "";
     employeeWorkRoleId = json['employee_WorkRoleId'] ?? "";
     employeeLocation = json['employee_Location'] ?? "";
+    print('location');
     employeeQualification = json['employeeQualification'] ?? "";
-    employeeMaritalStatus = json['employee_MaritalStatus'];
+    employeeMaritalStatus = json['employee_MaritalStatus'] ?? '';
+    print('marritial status');
     landingPage = json['landingPage'] ?? "";
     companyName = json['companyName'] ?? "";
   }
