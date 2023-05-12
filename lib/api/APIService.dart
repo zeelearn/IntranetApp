@@ -667,7 +667,7 @@ class APIService {
           },
           body:requestModel.getJson());
       print(requestModel.toJson());
-      //print(response.body);
+      print(response.body);
       if (response.statusCode == 200 || response.statusCode == 400) {
         if(response.body is QuestionResponse){
           return QuestionResponse.fromJson(
@@ -790,6 +790,7 @@ class APIService {
             "content-type": "application/json"
           },
           body:requestModel.getJson());
+      print(requestModel.getJson());
       print(response.body);
       if (response.statusCode == 200 || response.statusCode == 400) {
         if(response.body is CVFAnswersResponse){

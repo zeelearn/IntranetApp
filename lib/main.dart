@@ -132,66 +132,83 @@ Future<void> main() async {
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
   FirebaseMessaging.onMessage.listen((RemoteMessage message) {
     print('Got a message whilst in the foreground! main');
-    print('Message data: ${message.data}');
-
-    if (message.notification != null) {
-      print('Message also contained a notification: ${message.notification}');
-    }
-    DBHelper helper = new DBHelper();
-    if (message.data != null) {
-      print(message.data.toString());
-      String type = "";
-      String title = "";
-      String imageUrl = "";
-      String body = "";
-      try {
-        String mData = message.data.toString();
-        print(mData);
-        if (!message.data.containsKey("URL")) {
-          NotificationActionModel model = NotificationActionModel.fromJson(
-            json.decode(mData),
-          );
-          type = model.type;
-          title = model.title;
-          imageUrl = '';
-          body = model.message;
-        } else {
-          print(mData);
-          NotificationDataModel model = NotificationDataModel.fromJson(
-            json.decode(mData),
-          );
-          type = model.type;
-          title = model.title;
-          imageUrl = model.image;
-          body = model.message;
-        }
-        _showNotificationWithDefaultSound(message, title, body);
-      } catch (e) {
-        print(e);
+    print('Message data 12: ${message.data}');
+    try {
+      if (message.notification != null) {
+        print('Message also contained a notification: ${message.notification}');
+      } else {
+        print('data ${message.data}');
       }
-      helper.insertNotification(
-          message.messageId as String,
-          message.data.toString(),
-          type,
-          '',
-          message.data.toString(),
-          0,
-          imageUrl);
-    }
-    if (message.notification != null) {
-      print(message.notification.toString());
-      helper.insertNotification(
-          message.messageId as String,
-          message.notification!.title as String,
-          message.notification!.title as String,
-          message.notification!.body as String,
-          '',
-          0,
-          '');
-      _showNotificationWithDefaultSound(
-          message,
-          message.notification!.title as String,
-          message.notification!.body as String);
+      DBHelper helper = new DBHelper();
+      if (message.data != null) {
+        print(message.data.toString());
+        String type = "";
+        String title = "";
+        String imageUrl = "";
+        String body = "";
+        try {
+          String mData = message.data.toString();
+          print('in 149' + mData);
+          if (!message.data.containsKey("URL")) {
+            print('json decode--');
+            String jsonencodeValue = '';
+            try{
+              jsonencodeValue = json.decode(mData);
+            }catch(e){
+              jsonencodeValue = mData;
+              jsonencodeValue = jsonencodeValue.replaceAll("{", "{\"");
+              jsonencodeValue = jsonencodeValue.replaceAll(":", "\":\"");
+              jsonencodeValue = jsonencodeValue.replaceAll(",", "\",\"");
+              jsonencodeValue = jsonencodeValue.replaceAll("}", "\"}");
+              print('in catch....4 $jsonencodeValue');
+            }
+            NotificationActionModel model = NotificationActionModel.fromJson(
+              json.decode(jsonencodeValue),
+            );
+            type = model.type;
+            title = model.title;
+            imageUrl = '';
+            body = model.message;
+          } else {
+            print('in else ');
+            NotificationDataModel model = NotificationDataModel.fromJson(
+              json.decode(mData),
+            );
+            type = model.type;
+            title = model.title;
+            imageUrl = model.image;
+            body = model.message;
+          }
+          _showNotificationWithDefaultSound(message, title, body);
+        } catch (e) {
+          print(e);
+        }
+        helper.insertNotification(
+            message.messageId as String,
+            message.data.toString(),
+            type,
+            '',
+            message.data.toString(),
+            0,
+            imageUrl);
+      }
+      if (message.notification != null) {
+        print('in notification '+message.notification.toString());
+        helper.insertNotification(
+            message.messageId as String,
+            message.notification!.title as String,
+            message.notification!.title as String,
+            message.notification!.body as String,
+            '',
+            0,
+            '');
+        _showNotificationWithDefaultSound(
+            message,
+            message.notification!.title as String,
+            message.notification!.body as String);
+      }
+    }catch(e){
+      print(e.toString());
     }
   });
 

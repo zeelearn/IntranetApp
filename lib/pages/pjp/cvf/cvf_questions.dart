@@ -149,6 +149,7 @@ class _QuestionListScreenState extends State<QuestionListScreen>
       isLoading = false;
       setState(() {});
     } else {
+      print('in else');
       isLoading = true;
       mQuestionMaster.clear();
       DateTime time = DateTime.now();
@@ -263,12 +264,13 @@ class _QuestionListScreenState extends State<QuestionListScreen>
                 .convertShortDate(DateTime
                 .now())}</SubmissionDate><Question_Id>${mQuestionMaster[index]
                 .allquestion[jIndex]
-                .Question_Id}</Question_Id><AnswerId>${mQuestionMaster[index]
-                .allquestion[jIndex]
-                .userAnswers}</AnswerId>'
+                .Question_Id}</Question_Id><AnswerId>${
+                    mQuestionMaster[index].allquestion[jIndex].answers[0].answerType == 'YesNo' ?
+                  mQuestionMaster[index].allquestion[jIndex].userAnswers : ''
+                  }</AnswerId>'
                 '<Files>${mQuestionMaster[index]
                 .allquestion[jIndex]
-                .files}</Files><Remarks></Remarks></tblPJPCVF_Answer>';
+                .files}</Files><Remarks>${mQuestionMaster[index].allquestion[jIndex].answers[0].answerType == 'YesNo' ? '' : mQuestionMaster[index].allquestion[jIndex].userAnswers  }</Remarks></tblPJPCVF_Answer>';
           } else if (userAnswerMap[
           mQuestionMaster[index].allquestion[jIndex].Question_Id]
               .toString()
@@ -280,9 +282,13 @@ class _QuestionListScreenState extends State<QuestionListScreen>
                 .allquestion[jIndex]
                 .Question_Id}</Question_Id><Files>${mQuestionMaster[index]
                 .allquestion[jIndex]
-                .files}</Files><AnswerId>${userAnswerMap[mQuestionMaster[index]
+                .files}</Files><AnswerId>${mQuestionMaster[index]
+                .allquestion[jIndex].answers[0].answerType == 'YesNo' ? userAnswerMap[mQuestionMaster[index]
+                .allquestion[jIndex].Question_Id].toString() : ''}</AnswerId>'
+                '<Remarks>${mQuestionMaster[index]
+                .allquestion[jIndex].answers[0].answerType== 'YesNo' ? '' : userAnswerMap[mQuestionMaster[index]
                 .allquestion[jIndex].Question_Id]
-                .toString()}</AnswerId><Remarks></Remarks></tblPJPCVF_Answer>';
+                .toString()} </Remarks></tblPJPCVF_Answer>';
           }
         }
       }
@@ -710,8 +716,8 @@ class _QuestionListScreenState extends State<QuestionListScreen>
           } else {
             Utility.showMessage(
                 context,
-                'Please Fill all questions/feedback and try again \n'
-                'Incomplete Questions Numbers are ${pendingQuestion}');
+                'Please Fill all questions / feedback \n\n'
+                'Incomplete Questions Categoty are - \n ${pendingQuestion}');
           }
         }
       },
@@ -1261,13 +1267,14 @@ class _QuestionListScreenState extends State<QuestionListScreen>
     return counter;
   }
 
-  late String pendingQuestion;
+  late String pendingQuestion='';
 
   isComplete() {
     bool isCompleted = true;
     String inCompleteQuestions = '';
     String token = '';
     int inCompleteCounts = 0;
+    pendingQuestion='';
     for (int index = 0; index < mQuestionMaster.length; index++) {
       for (int jIndex = 0;
           jIndex < mQuestionMaster[index].allquestion.length;
@@ -1291,11 +1298,17 @@ class _QuestionListScreenState extends State<QuestionListScreen>
                 : '';
         if (mQuestionMaster[index].allquestion[jIndex].isCompulsory == '1' &&
             (userAnswer.isEmpty || userAnswer == 'null')) {
-          inCompleteQuestions =
-              '${inCompleteQuestions} ${token}  Q:${mQuestionMaster[index].allquestion[jIndex].Question_Id}';
+          inCompleteQuestions = 'Please complete all Required answers, Questions in Category ${mQuestionMaster[index].allquestion[jIndex].categoryName} is pending';
+          if(pendingQuestion.isEmpty) {
+            pendingQuestion = ' - '+mQuestionMaster[index].allquestion[jIndex].categoryName;
+          }else{
+            pendingQuestion = pendingQuestion +' \n - '+ mQuestionMaster[index].allquestion[jIndex].categoryName;
+          }
+          print(pendingQuestion);
           token = ',';
           inCompleteCounts = inCompleteCounts + 1;
           isCompleted = false;
+          break;
         } /*else {
           print(mQuestionMaster[index].allquestion[jIndex].Question_Id +
               ' NC ' +
@@ -1304,9 +1317,9 @@ class _QuestionListScreenState extends State<QuestionListScreen>
       }
     }
     if (inCompleteCounts < 10) {
-      pendingQuestion = inCompleteQuestions;
+      //pendingQuestion = inCompleteQuestions;
     } else {
-      pendingQuestion = '';
+      //pendingQuestion = '';
     }
     //print(pendingQuestion);
     return isCompleted;

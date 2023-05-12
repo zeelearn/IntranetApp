@@ -246,6 +246,17 @@ class DBHelper {
     dbClient.delete(table, where: '${DBConstant.ID} = ?', whereArgs: [id]);
   }
 
+  Future<void> deleteAllData() async {
+    final dbClient = await db;
+    dbClient.delete(LocalConstant.TABLE_CVF_QUESTION_JSON, where: null, whereArgs: []);
+    dbClient.delete(LocalConstant.TABLE_CVF_ANSWER_MASTER, where: null, whereArgs: []);
+    dbClient.delete(LocalConstant.TABLE_CVF_FRANCHISEE, where: null, whereArgs: []);
+    dbClient.delete(LocalConstant.TABLE_CVF_QUESTION_JSON, where: null, whereArgs: []);
+    dbClient.delete(LocalConstant.TABLE_CVF_QUESTIONS, where: null, whereArgs: []);
+    dbClient.delete(LocalConstant.TABLE_CVF_CATEGORY, where: null, whereArgs: []);
+
+  }
+
   /// delete data to db
   /// @param table: the name of the table to delete from
   /// @param id: product id to be deleted

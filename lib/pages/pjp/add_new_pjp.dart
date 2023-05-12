@@ -117,7 +117,7 @@ class _AddNewPJPState extends State<AddNewPJPScreen> implements onResponse,onCli
                   child: Column(
                     children: [
                       selectedDates(),
-                      getInput('Enter Remark'),
+                      getInput('Enter Purpose of Visit'),
                       /*BookingPropertyFeatures(),*/
                       SizedBox(
                         height: 10.0,

@@ -10,7 +10,6 @@ class QuestionResponse {
     statusCode = json['statusCode'];
     responseData = <QuestionMaster>[];
     if (json['responseData'] is List) {
-      print('inni');
       json['responseData'].forEach((v) {
         responseData.add(new QuestionMaster.fromJson(v));
       });
@@ -85,7 +84,7 @@ class Allquestion {
     categoryName = json['Category_Name'];
     isCompulsory = json['isCompulsory'] ?? '';
     SelectedAnswer = json['SelectedAnswer'] ?? '';
-    files = '';//json['files'] ?? '';
+    files = json['files'] ?? '';
     /*if (json['answers'] != null) {
       answers = <Answers>[];
       *//*if(json['answers'].toString().contains('[')) {

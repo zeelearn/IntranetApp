@@ -1060,6 +1060,8 @@ class _IntranetHomePageState extends State<IntranetHomePage>
     await Hive.openBox(LocalConstant.KidzeeDB);
     hiveBox.clear();
     hiveBox.close();
+    DBHelper helper=DBHelper();
+    helper.deleteAllData();
     await Future.delayed(Duration(seconds: 1));
     if (Platform.isAndroid) {
       Future.delayed(const Duration(milliseconds: 100), () {
