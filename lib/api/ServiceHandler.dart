@@ -48,35 +48,52 @@ class IntranetServiceHandler{
 
   static updateCVFStatus(int employeeId,String cvfId,String date,String status,onResponse onResponse) async{
 
-    if (await Permission.location.request().isGranted) {
-      // Either the permission was already granted before or the user just granted it.
-      Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.medium);
+    double latitude=0.0;
+    double longitude=0.0;
 
-      onResponse.onStart();
-      UpdateCVFStatusRequest request = UpdateCVFStatusRequest(PJPCVF_id: cvfId, DateTime: date, Status: status, Employee_id: employeeId,
-          Latitude: position.latitude,Longitude: position.longitude);
-      APIService apiService = APIService();
-      apiService.updateCVFStatus(request).then((value) {
-        print(value.toString());
-        if (value != null) {
-          if (value == null || value.responseData == null) {
-            onResponse.onError('Unable to update the status');
-          } else if (value is UpdateCVFStatusResponse) {
-            UpdateCVFStatusResponse response = value;
-            onResponse.onSuccess(response);
-          } else {
-            onResponse.onError('Unable to update the status ');
-          }
-        }else{
-          onResponse.onError('Unable to update the status');
-        }
-      });
+
+    if (await Permission.location.request().isGranted) {
+
+      Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.medium);
+      longitude = position.latitude;
+      latitude = position.latitude;
+
     }else{
       Map<Permission, PermissionStatus> statuses = await [
         Permission.location,
       ].request();
       print(statuses[Permission.location]);
+
+      if (await Permission.location.isPermanentlyDenied) {
+        print('permission is perm den');
+        openAppSettings();
+        // The user opted to never again see the permission request dialog for this
+        // app. The only way to change the permission's status now is to let the
+        // user manually enable it in the system settings.
+
+      }
     }
+      // Either the permission was already granted before or the user just granted it.
+    onResponse.onStart();
+    UpdateCVFStatusRequest request = UpdateCVFStatusRequest(PJPCVF_id: cvfId, DateTime: date, Status: status, Employee_id: employeeId,
+        Latitude: latitude,Longitude: longitude);
+    print(request.toJson());
+    APIService apiService = APIService();
+    apiService.updateCVFStatus(request).then((value) {
+      print(value.toString());
+      if (value != null) {
+        if (value == null || value.responseData == null) {
+          onResponse.onError('Unable to update the status');
+        } else if (value is UpdateCVFStatusResponse) {
+          UpdateCVFStatusResponse response = value;
+          onResponse.onSuccess(response);
+        } else {
+          onResponse.onError('Unable to update the status ');
+        }
+      }else{
+        onResponse.onError('Unable to update the status');
+      }
+    });
 
   }
 

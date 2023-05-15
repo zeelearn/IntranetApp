@@ -1230,17 +1230,27 @@ class _MyCVFListScreen extends State<CVFListScreen> implements onResponse,onClic
   }
 
   saveDataOffline(GetDetailedPJP cvfView) async {
+    double latitude=0.0;
+    double longitude=0.0;
     if (await Permission.location.request().isGranted) {
-      print('Status is ${cvfView.Status}');
       Position position = await Geolocator.getCurrentPosition(
           desiredAccuracy: LocationAccuracy.medium);
+      latitude= position.latitude;
+      longitude= position.longitude;
+    }else{
+      Map<Permission, PermissionStatus> statuses = await [
+      Permission.location,
+      ].request();
+      print(statuses[Permission.location]);
+    }
+
       UpdateCVFStatusRequest request = UpdateCVFStatusRequest(
           PJPCVF_id: cvfView.PJPCVF_Id,
           DateTime: Utility.getDateTime(),
           Status: cvfView.Status,
           Employee_id: employeeId,
-          Latitude: position.latitude,
-          Longitude: position.longitude);
+          Latitude: latitude,
+          Longitude: longitude);
       print('Data saved locally....');
       print(request.toJson());
       DBHelper helper = DBHelper();
@@ -1256,12 +1266,7 @@ class _MyCVFListScreen extends State<CVFListScreen> implements onResponse,onClic
 
       });
       Utility.onSuccessMessage(context,'Status Updated','Thanks for updating the CVF status', this);
-    }else{
-      Map<Permission, PermissionStatus> statuses = await [
-        Permission.location,
-      ].request();
-      print(statuses[Permission.location]);
-    }
+
   }
 
   Future<void> _showMyDialog(GetDetailedPJP cvfView) async {

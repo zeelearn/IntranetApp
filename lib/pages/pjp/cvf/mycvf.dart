@@ -48,7 +48,7 @@ class _MyCVFListScreen extends State<MyCVFListScreen> implements onResponse,onCl
   void initState() {
     // TODO: implement initState
     super.initState();
-    print('int init state');
+    print('int init state My CVF');
     Future.delayed(Duration.zero, () {
       this.getUserInfo();
 
@@ -861,7 +861,7 @@ class _MyCVFListScreen extends State<MyCVFListScreen> implements onResponse,onCl
     isInternet = await Utility.isInternet();
     if(isInternet){
       //online
-      print('internet avaliabnle');
+      print('internet avaliabnle asdasd');
       IntranetServiceHandler.updateCVFStatus(
           employeeId,
           cvfView.PJPCVF_Id,
@@ -914,17 +914,24 @@ class _MyCVFListScreen extends State<MyCVFListScreen> implements onResponse,onCl
   }
 
   saveDataOffline(GetDetailedPJP cvfView) async {
+    double latitude=0.0;
+    double longitude=0.0;
     if (await Permission.location.request().isGranted) {
-      print('Status is ${cvfView.Status}');
       Position position = await Geolocator.getCurrentPosition(
           desiredAccuracy: LocationAccuracy.medium);
+      latitude= position.latitude;
+      longitude= position.longitude;
+    }
+
+      print('Status is ${cvfView.Status}');
+
       UpdateCVFStatusRequest request = UpdateCVFStatusRequest(
           PJPCVF_id: cvfView.PJPCVF_Id,
           DateTime: Utility.getDateTime(),
           Status: cvfView.Status,
           Employee_id: employeeId,
-          Latitude: position.latitude,
-          Longitude: position.longitude);
+          Latitude: latitude,
+          Longitude: longitude);
       print('Data saved locally....');
       print(request.toJson());
       DBHelper helper = DBHelper();
@@ -940,12 +947,7 @@ class _MyCVFListScreen extends State<MyCVFListScreen> implements onResponse,onCl
 
       });
       Utility.onSuccessMessage(context,'Status Updated','Thanks for updating the CVF status', this);
-    }else{
-      Map<Permission, PermissionStatus> statuses = await [
-        Permission.location,
-      ].request();
-      print(statuses[Permission.location]);
-    }
+
   }
 
   Future<void> _showMyDialog(GetDetailedPJP cvfView) async {
@@ -1056,6 +1058,7 @@ class _MyCVFListScreen extends State<MyCVFListScreen> implements onResponse,onCl
 
   @override
   void onClick(int action, value) {
+    print('click functions not implemented......');
     if(value is GetDetailedPJP) {
       Navigator.of(context).pop();
       GetDetailedPJP cvfView = value;
@@ -1064,6 +1067,8 @@ class _MyCVFListScreen extends State<MyCVFListScreen> implements onResponse,onCl
       } else if (action == Utility.ACTION_CCNCEL) {
 
       }
+    }else{
+      print('click functions not implemented......');
     }
   }
 
