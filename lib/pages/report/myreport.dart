@@ -6,7 +6,11 @@ import 'package:intranet/pages/iface/onResponse.dart';
 import 'package:intranet/pages/reports.dart';
 
 import '../../api/response/report/my_report.dart';
+import '../helper/constants.dart';
 import '../helper/utils.dart';
+import '../model/filter.dart';
+import '../pjp/mypjp.dart';
+import '../pjp/pjp_report.dart';
 import '../utils/theme/colors/light_colors.dart';
 
 class MyReportsScreen extends StatefulWidget {
@@ -35,7 +39,7 @@ class _MyReportScreenState extends State<MyReportsScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       extendBodyBehindAppBar: true,
-      backgroundColor: LightColors.kLightYellow,
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: Text('My Reports'),
         // You can add title here
@@ -83,17 +87,50 @@ class _MyReportScreenState extends State<MyReportsScreen>
         itemBuilder: (context, index) {
           return GestureDetector(
             onTap: () {
-              Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => MyReportScreen(
-                          title: mReportList[index].title,
-                          url: mReportList[index].webViewURL)));
+              if(index==0){
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) =>
+                            MyPjpReportScreen(
+                              mFilterSelection: FilterSelection(
+                                  filters: [],
+                                  type: FILTERStatus.MYTEAM),)));
+              }else {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) =>
+                            MyReportScreen(
+                                title: mReportList[index].title,
+                                url: mReportList[index].webViewURL)));
+              }
             },
-            child: Container(
-              height: 50,
-              color: Colors.white,
-              child: Center(child: Text(mReportList[index].title)),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(height: 10,),
+                Container(
+                  height: 50,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    boxShadow: [
+                      BoxShadow(
+                        blurRadius: 3,
+                        color: Color(0x430F1113),
+                        offset: Offset(0, 1),
+                      )
+                    ],
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: ListTile(
+                    title: Text(mReportList[index].title),
+                    trailing: Icon(Icons.navigate_next),
+                  ),
+                ),
+              ],
             ),
           );
         },
@@ -118,6 +155,7 @@ class _MyReportScreenState extends State<MyReportsScreen>
       MyReportResponse response = value;
       if (response != null && response.responseData != null) {
         mReportList.clear();
+        mReportList.add(ReportInfo(title: 'PJP CVF Report', webViewURL: '') );
         mReportList.addAll(response.responseData);
         setState(() {});
       }

@@ -38,6 +38,7 @@ class LocalStrings {
   static const String SAVE_CVF_PJP = '/api/PJP/ins_pjpcvf';
   static const String GET_CVF_QUESTIONS = '/api/PJP/GetPJPQuestion';
   static const String GET_PJP_LIST = '/api/PJP/GetAllVisitDetails';
+  static const String GET_PJP_REPORT = '/api/PJP/RptMyTeamPJPCVF';
   static const String GET_PJP_EMPLOYEELIST = '/api/PJP/GetEmployeesBySuperiorID';
   static const String GET_ALL_CVF = '/api/PJP/GetAllCVFDetails';
   static const String GET_SAVE_CVF_ANSWERS = '/api/PJP/Ins_PJPCVF_Answers';

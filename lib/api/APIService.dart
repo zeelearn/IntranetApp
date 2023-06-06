@@ -25,6 +25,7 @@ import 'package:intranet/api/request/outdoor_request.dart';
 import 'package:intranet/api/request/pjp/add_pjp_request.dart';
 import 'package:intranet/api/request/pjp/employee_request.dart';
 import 'package:intranet/api/request/pjp/get_pjp_list_request.dart';
+import 'package:intranet/api/request/pjp/get_pjp_report_request.dart';
 import 'package:intranet/api/request/pjp/update_pjpstatus_request.dart';
 import 'package:intranet/api/request/report/myreport_request.dart';
 import 'package:intranet/api/response/LeaveRequisitionResponse.dart';
@@ -698,6 +699,41 @@ class APIService {
           },
           body:requestModel.getJson());
       //print(response.body);
+      if (response.statusCode == 200 || response.statusCode == 400) {
+        String data = response.body.replaceAll('null', '\"NA\"');
+        return PjpListResponse.fromJson(
+          json.decode(data),
+        );
+        /*if(response.body is PjpListResponse){
+
+          return PjpListResponse.fromJson(
+            json.decode(data),
+          );
+        }else {
+          return PjpListResponse.fromJson(
+            json.decode(data),
+          );
+        }*/
+      } else {
+        return null; //LoginResponseModel(token:"",Status:"Invalid/Wrong Login Details");
+      }
+    } catch (e) {
+      print(e.toString());
+      e.toString();
+    }
+  }
+
+  Future<dynamic> getPJPReport(PJPReportRequest requestModel) async {
+    try {
+      //print('in getPJP list ');
+      print(Uri.parse(url + LocalStrings.GET_PJP_REPORT));
+      final response = await http.post(Uri.parse(url + LocalStrings.GET_PJP_REPORT),
+          headers: {
+            "Accept": "application/json",
+            "content-type": "application/json"
+          },
+          body:requestModel.getJson());
+      print(response.body);
       if (response.statusCode == 200 || response.statusCode == 400) {
         String data = response.body.replaceAll('null', '\"NA\"');
         return PjpListResponse.fromJson(

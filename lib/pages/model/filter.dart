@@ -1,4 +1,4 @@
-enum FILTERStatus { MYSELF, MYTEAM,NONE }
+enum FILTERStatus { MYSELF, MYTEAM,NONE,CUSTOM }
 class FilterSelection{
   List<FilterModel> filters=[];
   FILTERStatus type;

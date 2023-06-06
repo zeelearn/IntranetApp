@@ -854,9 +854,15 @@ class _QuestionListScreenState extends State<QuestionListScreen>
         child: Column(
           children: [
             Divider(
-              height: 1,
+              height: 2,
             ),
-            ListTile(
+            SizedBox(height: 10,),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Expanded(child: Text(player.isCompulsory=='1' ? '* ${index}. ${player.question}' : '${index}. ${player.question}', style: Theme.of(context).textTheme.bodyText1,)),
+            ),
+            SizedBox(height: 2,),
+            /*ListTile(
               title: player.isCompulsory=='1' ? Text(
                 '* ${index}. ${player.question}',
                 style: Theme.of(context).textTheme.bodyText1,
@@ -864,7 +870,7 @@ class _QuestionListScreenState extends State<QuestionListScreen>
                 '${index}. ${player.question}',
                 style: Theme.of(context).textTheme.bodyText1,
               ),
-            ),
+            ),*/
             _getAnswerWidget(player)
           ],
         ));
@@ -878,7 +884,6 @@ class _QuestionListScreenState extends State<QuestionListScreen>
         questions.files = path;
         updateImage(questions, path);
       }
-
       //print('${questions.Question_Id}  : SelectedAnswer ${questions.SelectedAnswer} map ${userAnswerMap[questions.Question_Id]}');
       return Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -899,10 +904,10 @@ class _QuestionListScreenState extends State<QuestionListScreen>
                           userAnswerMap[questions.Question_Id] == 'Yes')
                   ? true
                   : false,
-              title: const Text(
+              title: Expanded(child:  const Text(
                 'Yes',
                 style: TextStyle(fontSize: 12),
-              ),
+              ),),
               controlAffinity: ListTileControlAffinity.leading,
               onChanged: (checked) {
                 if(widget.isViewOnly) {
@@ -981,7 +986,7 @@ class _QuestionListScreenState extends State<QuestionListScreen>
 
             child: Padding(
               padding: EdgeInsets.all(8.0),
-              child: widget.isViewOnly && questions.files != null ? Image.network(getImageUrl(questions.files),height: 80,fit: BoxFit.fill)
+              child: widget.isViewOnly && questions.files.isNotEmpty && questions.files != null ? Image.network(getImageUrl(questions.files),height: 80,fit: BoxFit.fill)
                   :  (getImagePath(questions)).isNotEmpty ?
                   Image.network(getImageUrl((getImagePath(questions) )),
                   // width: 300,
@@ -1033,8 +1038,8 @@ class _QuestionListScreenState extends State<QuestionListScreen>
               showBottomSheet(questions, questions.answers[index].answerName);
           },
           child: Container(
-            margin: EdgeInsets.only(left: 20, right: 20, top: 10, bottom: 10),
-            height: 50,
+            margin: EdgeInsets.only(left: 0, right: 0, top: 0, bottom: 0),
+            height: 45,
             width: size.width / 1.3,
             decoration: BoxDecoration(
               color: Colors.white,

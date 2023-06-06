@@ -203,6 +203,7 @@ class _FiltersScreenState extends State<FiltersScreen> {
   }
 
   void itemChange(bool val, int index) {
+    print('INDEX ${index}');
     setState(() {
       if(index==-1){
         _selection.type = FILTERStatus.MYSELF;
@@ -222,7 +223,8 @@ class _FiltersScreenState extends State<FiltersScreen> {
             _selection.filters[index].isSelected = val;
           }
       }else {
-        _selection.type = FILTERStatus.MYTEAM;
+        print('in else');
+        _selection.type = FILTERStatus.CUSTOM;
         _selection.filters[index].isSelected = val;
       }
     });
