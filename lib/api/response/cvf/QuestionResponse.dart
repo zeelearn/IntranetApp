@@ -134,18 +134,21 @@ class Allquestion {
 class Answers {
   late String answerName;
   late String answerType;
+  late String answerId;
 
   Answers({required this.answerName,required  this.answerType});
 
   Answers.fromJson(Map<String, dynamic> json) {
     answerName = json['Answer_Name'];
     answerType = json['Answer_Type'];
+    answerId = json['Answer_Id'];
   }
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = new Map<String, dynamic>();
     data['Answer_Name'] = this.answerName;
     data['Answer_Type'] = this.answerType;
+    data['Answer_Id'] = this.answerId;
     return data;
   }
 }

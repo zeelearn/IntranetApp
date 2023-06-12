@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_google_places/flutter_google_places.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:google_api_headers/google_api_headers.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:google_maps_webservice/places.dart';
@@ -10,6 +11,7 @@ import 'package:hive/hive.dart';
 import 'package:intl/intl.dart';
 import 'package:intranet/api/response/pjp/pjplistresponse.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 import '../../../api/APIService.dart';
 import '../../../api/request/cvf/add_cvf_request.dart';
@@ -378,17 +380,22 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener{
     return true;
   }
 
-  addNewCVF() {
+  addNewCVF() async {
     if(validate()) {
       Utility.showLoaderDialog(context);
       print('categoty');
       /*String xml =
         '<root><tblPJPCVF><Employee_Id>${employeeId}</Employee_Id><Franchisee_Id>${getFrichanseeId()}</Franchisee_Id><Visit_Date>${Utility.convertShortDate(cvfDate)}</Visit_Date><Visit_Time>${vistitDateTime?.hour}:${vistitDateTime?.minute}</Visit_Time><Category_Id>${getCategoryId()}</Category_Id></tblPJPCVF></root>';
     */
+      if (await Permission.location.request().isGranted) {
+        Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.medium);
+        latitude=position.latitude;
+        longitude=position.longitude;
+      }
       String xml = '<root><tblPJPCVF><Employee_Id>${employeeId}</Employee_Id><Franchisee_Id>${getFrichanseeId()}</Franchisee_Id><Visit_Date>${Utility
           .convertShortDate(cvfDate)}</Visit_Date><Visit_Time>${vistitDateTime
           ?.hour}:${vistitDateTime
-          ?.minute}</Visit_Time><Category_Id>${getCategoryList()}</Category_Id><Latitude>${longitude}</Latitude><Longitude>${latitude}</Longitude><ActivityTitle>${_activityNameController.text.toString()}</ActivityTitle><Address>${location}</Address></tblPJPCVF></root>';
+          ?.minute}</Visit_Time><Category_Id>${getCategoryList()}</Category_Id><Latitude>${longitude}</Latitude><Longitude>${latitude}</Longitude><ActivityTitle>${_activityNameController.text.toString()}</ActivityTitle><Address>${location=='Search Location' ? 'NA' :location}</Address></tblPJPCVF></root>';
       AddCVFRequest request = AddCVFRequest(
           PJP_Id: int.parse(widget.mPjpModel.PJP_Id),
           DocXml: xml,
@@ -396,7 +403,6 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener{
       print(request.toJson());
       APIService apiService = APIService();
       apiService.saveCVF(request).then((value) {
-        //print(value.toString());
         Navigator.of(context).pop();
         if (value != null) {
           if (value == null || value.responseData == null) {
@@ -407,7 +413,10 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener{
             if (response != null) {
               //mPjpModel.pjpId=response.responseData;
             }
-            fetchQuestions(response.responseData);
+            try {
+              //fetchQuestions(response.responseData);
+            }catch(e){}
+            Navigator.of(context).pop();
             //Utility.showMessage(context, 'CVF Saved in server');
             setState(() {});
             //print('category list ${response.responseData.length}');
@@ -919,12 +928,17 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener{
   getCategoryList() {
     String id = '';
     String token = '';
+    print('controller is ${_categoryController.text.toString()}');
     print(_categoryController.text.toString());
+    var category = _categoryController.text.toString().split(',');
     for (int index = 0; index < mCategoryList.length; index++) {
-      print(mCategoryList[index].categoryName);
-      if (_categoryController.text.toString() == mCategoryList[index].categoryName) {
-        id = id +token+ mCategoryList[index].categoryId.toString();
-        token=',';
+      for(int jIndex=0;jIndex<category.length;jIndex++) {
+        print('jIndex ${category[jIndex].toString().trim()}');
+        if (category[jIndex].toString().trim() == mCategoryList[index].categoryName.trim()) {
+          print(mCategoryList[index].categoryName);
+          id = id + token + mCategoryList[index].categoryId.toString();
+          token = ',';
+        }
       }
     }
     print('Category is ${id}');

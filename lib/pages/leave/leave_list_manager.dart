@@ -413,7 +413,7 @@ class _LeaveManagerScreen extends State<LeaveManagerScreen>
       }
     }
     //Navigator.of(context).pop();
-    Utility.showMessageSingleButton(context, 'Thanks you, We receive your request, we will process it in background, once complete the service we wll update you',this);
+    Utility.showMessageSingleButton(context, 'Thank You. We received your request. We will process it in background. Once  it is completed, we will update you.',this);
     NotificationService notificationService = NotificationService();
     notificationService.showNotification(12, 'LEAVE REQUEST Received', 'We are processing your service', 'We are processing your service');
     initializeService();

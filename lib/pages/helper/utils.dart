@@ -14,6 +14,7 @@ import '../utils/theme/colors/light_colors.dart';
 import 'LightColor.dart';
 import 'LocalConstant.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
 
 enum TaskPageStatus {
   all,
@@ -27,6 +28,70 @@ class Utility{
   static int ACTION_OK=100012;
   static int ACTION_REJECT=100014;
   static int ACTION_CCNCEL=100013;
+
+  static showLoader(){
+    return Lottie.asset('assets/json/loading.json');
+  }
+
+  static shareFile(String filename) async{
+    print('shareFile ${filename}');
+    String dir = (await getTemporaryDirectory()).path;
+    String path = '${dir}/${filename}';
+    //Share.shareXFiles([XFile(path)], text: model.ContentDescription);
+    Share.shareFiles([path], text: filename);
+  }
+
+  static isFileExists(String fileName) async{
+    bool isFileExists=false;
+    String dir = (await getTemporaryDirectory()).path;
+    String path = '${dir}/${fileName}';
+    if(await File(path).exists()){
+      print('exists');
+      isFileExists=true;
+    }else{
+      print('NOT exists');
+      isFileExists=false;
+    }
+    return isFileExists;
+  }
+
+  static Future<dynamic> downloadFile(String url, String filename) async {
+    var httpClient = new HttpClient();
+    String dir = (await getTemporaryDirectory()).path;
+    print(dir.toString());
+    File file = new File('$dir/$filename');
+    print(file.path.toString());
+    try {
+      print('in Download file ${Uri.parse(url)} ${filename}');
+      var request = await httpClient.getUrl(Uri.parse(url));
+      var response = await request.close();
+      var bytes = await consolidateHttpClientResponseBytes(response);
+      await file.writeAsBytes(bytes);
+      print('in Download file completed...');
+      return file;
+    }catch(e){
+      print(e.toString());
+    }
+    print('in Download file completed...');
+  }
+
+  static Future<dynamic> downloadContent(String url, String filename) async {
+    //String dir = (await getTemporaryDirectory()).path;
+    var httpClient = new HttpClient();
+    File file = new File(filename);
+    print(filename);
+    try {
+      var request = await httpClient.getUrl(Uri.parse(url));
+      var response = await request.close();
+      var bytes = await consolidateHttpClientResponseBytes(response);
+      await file.writeAsBytes(bytes);
+      return file;
+    }catch(e){
+      print('error ');
+      print(e.toString());
+    }
+    print('in Download file completed...');
+  }
 
   static Future<bool> isInternet() async{
     bool isConnected = true;

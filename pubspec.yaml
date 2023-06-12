@@ -52,16 +52,15 @@ dependencies:
   firebase_storage: ^11.2.2
   sqflite: 2.2.8+4
   path: ^1.8.3
-  intl: ^0.18.1
   table_calendar: ^3.0.9
   month_picker_dialog: ^2.0.2
   #month_year_picker: ^0.2.0+1
-  flutter_datetime_picker: ^1.5.1
+  #flutter_datetime_picker: ^1.5.1
   #carousel_slider: ^4.1.1
   styled_widget: ^0.4.1
   device_info_plus: ^9.0.2
-  webviewx: ^0.2.2
-  google_fonts: ^3.0.1
+  #webviewx: ^0.2.2
+  google_fonts: ^5.0.0
   get: ^4.6.5
   square_percent_indicater: ^0.1.0
   flutter_screenutil: ^5.8.4
@@ -80,7 +79,7 @@ dependencies:
   in_app_update: ^4.0.1
 
   flutter_launcher_icons: ^0.13.1
-  package_info_plus: ^3.0.2
+  package_info_plus: ^4.0.2
   equatable: ^2.0.5
 
   firebase_core_platform_interface: ^4.8.0
@@ -91,14 +90,22 @@ dependencies:
   pinch_zoom: ^1.0.0
   timeline_tile: ^2.0.0
   custom_date_range_picker: ^1.0.10
+  file_picker: ^5.3.2
+  flutter_webview_pro: ^3.0.1+4
+  syncfusion_flutter_pdfviewer: ^21.2.8
   #overlay_support: ^2.0.1
 
   #flutter_background_service: ^2.4.3
   #flutter_slidable: ^2.0.0
 
-
-flutter_google_places:
+dependency_overrides:
+  intl: ^0.17.0
   http: ^1.0.0
+  device_info_plus: ^8.1.0
+  share_plus: ^7.0.2
+  package_info_plus: ^4.0.0
+  win32: ^5.0.2
+
 
 dev_dependencies:
   flutter_test:
