@@ -541,9 +541,11 @@ class Utility{
       actions: [
         IconsButton(
           onPressed: () {
-            Future.delayed(Duration(milliseconds: 50)).then((_) {
-              response.onClick(ACTION_OK, action);
-            });
+            print('click functions listener......');
+            response.onClick(ACTION_OK, action);
+            /*Future.delayed(Duration(milliseconds: 50)).then((_) {
+
+            });*/
           },
           text: actionOk,
           iconData: Icons.check,

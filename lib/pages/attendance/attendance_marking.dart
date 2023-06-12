@@ -49,7 +49,8 @@ class _AttendanceMarkingScreen extends State<AttendanceMarkingScreen> implements
     // TODO: implement initState
     super.initState();
     getUserInfo();
-    initializeService();
+    //initializeService();
+    //initializeService();
   }
 
   Future<void> getUserInfo() async {
