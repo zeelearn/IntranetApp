@@ -387,10 +387,11 @@ class _QuestionListScreenState extends State<QuestionListScreen>
   }
 
   decodeFile(String url){
-    return url.replaceAll('&', '&amp;');
+    String link = url.replaceAll('&', '&amp;');
+    return link.replaceAll('___', '&');
   }
   encodeFile(String url){
-    return Uri.decodeFull(url.replaceAll('&amp;', '&'));
+    return url.replaceAll('&amp;', '&');
   }
 
   @override
@@ -872,7 +873,7 @@ class _QuestionListScreenState extends State<QuestionListScreen>
   }
 
   updateAnswers(Allquestion questions, String answers) {
-    print('updateAnswers ${questions.Question_Id} ${answers}');
+    //print('updateAnswers ${questions.Question_Id} ${answers}');
     if (userAnswerMap.containsKey(questions.Question_Id.toString())) {
       userAnswerMap.update(
           questions.Question_Id.toString(), (value) => answers);
@@ -1084,7 +1085,7 @@ class _QuestionListScreenState extends State<QuestionListScreen>
   }
 
   getIcon(String file) {
-    print('file is ${file}');
+    //print('file is ${file}');
     if (file.contains('.xls') || file.contains('.xlsx')) {
       return Image.asset('assets/icons/sheets.png', width: 24,);
     } else if (file.contains('.pdf')) {
@@ -1179,7 +1180,7 @@ class _QuestionListScreenState extends State<QuestionListScreen>
             padding: EdgeInsets.all(8.0),
             child: questions.files.isNotEmpty ?
             !isImage(questions.files) ? getIcon(questions.files) : Image
-                .network(getImageUrl((getImagePath(questions))),
+                .network(getImageUrl(decodeFile(questions.files)),
                 // width: 300,
                 height: 80,
                 fit: BoxFit.fill)
@@ -1200,9 +1201,11 @@ class _QuestionListScreenState extends State<QuestionListScreen>
   }
 
   getImageUrl(String url) {
-    String weburl = url.replaceAll('___', '&');
-    weburl = Uri.decodeFull(weburl);
-    //print(weburl);
+    String weburl = url/*.replaceAll('___', '&')*/;
+    weburl = weburl;
+    if(weburl.contains('%'))
+      weburl = weburl;
+    print('ImageUrl '+weburl);
     return weburl;
   }
 
@@ -1549,9 +1552,8 @@ class _QuestionListScreenState extends State<QuestionListScreen>
         ),
       );
     } else {
-      //print(Uri.decodeFull(question.files));
-      File file = File(Uri.decodeFull(question.files));
-      var filePath =Uri.decodeFull(file.path).split('?');
+      File file = File(question.files);
+      var filePath =file.path.split('?');
       //print('FilePath : ${filePath[0]}');
       var fileExt = filePath[0].split('/');
       String fileName = fileExt[fileExt.length-1].toString();
@@ -1561,7 +1563,7 @@ class _QuestionListScreenState extends State<QuestionListScreen>
       setState(() {
         isLoading = true;
       });
-      Utility.downloadFile(Uri.decodeFull(question.files), fileName).then((
+      Utility.downloadFile(question.files, fileName).then((
           value) {
         isLoading = false;
         setState(() {
