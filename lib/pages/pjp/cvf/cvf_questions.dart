@@ -401,12 +401,13 @@ class _QuestionListScreenState extends State<QuestionListScreen>
             ),
           ] : null,
         ),
-        body: Stack(
+        body: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             getView(widget.cvfView),
             Container(
               margin:
-              const EdgeInsets.only(top: 100, left: 0, right: 0, bottom: 0),
+              const EdgeInsets.only(top: 0, left: 0, right: 0, bottom: 0),
               /*child: getWidget(),*/
               child: SingleChildScrollView(
                 child: getWidget(),
@@ -911,12 +912,12 @@ class _QuestionListScreenState extends State<QuestionListScreen>
             child:
             Align(
               alignment: Alignment.centerLeft,
-              child: Expanded(child: Text(player.isCompulsory == '1'
+              child: Text(player.isCompulsory == '1'
                   ? '* ${index}. ${player.question}'
                   : '${index}. ${player.question}', style: Theme
                   .of(context)
                   .textTheme
-                  .bodyMedium,)),
+                  .bodyMedium,),
             ),),
             _getAnswerWidget(player)
           ],
@@ -934,13 +935,6 @@ class _QuestionListScreenState extends State<QuestionListScreen>
       return Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          /*Padding(
-            padding: const EdgeInsets.only(left: 10, right: 10),
-            child: Expanded(
-            child: Text(questions.question,
-                style: const TextStyle(color: Colors.black, fontSize: 14)),
-            ),
-          ),*/
           Expanded(
             flex: 1,
             child: CheckboxListTile(
@@ -950,10 +944,10 @@ class _QuestionListScreenState extends State<QuestionListScreen>
                       userAnswerMap[questions.Question_Id] == 'Yes')
                   ? true
                   : false,
-              title: Expanded(child: const Text(
+              title: const Text(
                 'Yes',
                 style: TextStyle(fontSize: 12),
-              ),),
+              ),
               controlAffinity: ListTileControlAffinity.leading,
               onChanged: (checked) {
                 if (widget.isViewOnly) {
