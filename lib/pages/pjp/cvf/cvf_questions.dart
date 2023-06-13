@@ -1514,24 +1514,9 @@ class _QuestionListScreenState extends State<QuestionListScreen>
     print('image action ${action}');
     if (action != 3) {
       if (action == 0) {
-        var status = await Permission.photos.status;
-        if (status.isDenied) {
-          // Here you can open app settings so that the user can give permission
-          Map<Permission, PermissionStatus> statuses = await [
-            Permission.photos,
-            Permission.camera,
-            //add more permission to request here.
-          ].request();
-        }else
           pickImage(question, ImageSource.gallery);
       } else if (action == 1) {
-        var status = await Permission.photos.status;
-        if (status.isDenied) {
-          // Here you can open app settings so that the user can give permission
-          openAppSettings();
-        }else{
           pickImage(question, ImageSource.camera);
-        }
       } else if (action == 2) {
         pickFile(question);
       }
