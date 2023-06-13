@@ -1118,6 +1118,10 @@ class _QuestionListScreenState extends State<QuestionListScreen>
       print('user answer ${questions.SelectedAnswer}  myAns ${questions
           .answers[index].answerName}');
       _rowWidget.add(ListTile(
+        /*title: Text(
+          '${questions.Question_Id}. ${questions.question}',
+          style: Theme.of(context).textTheme.bodyText1,
+        ),*/
         title: GestureDetector(
           onTap: () {
             if (_Status == 'Completed') {
