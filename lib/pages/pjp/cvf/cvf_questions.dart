@@ -13,6 +13,7 @@ import 'package:intranet/pages/helper/DatabaseHelper.dart';
 import 'package:intranet/pages/helper/LightColor.dart';
 import 'package:intranet/pages/helper/LocalConstant.dart';
 import 'package:intranet/pages/iface/onResponse.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:pinch_zoom/pinch_zoom.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -1044,7 +1045,7 @@ class _QuestionListScreenState extends State<QuestionListScreen>
 
             child: Padding(
               padding: EdgeInsets.all(8.0),
-              child: widget.isViewOnly && questions.files.isNotEmpty &&
+              child:  questions.files.isNotEmpty &&
                   questions.files != null ? isImage(questions.files) ? getIcon(
                   questions.files) : getIcon(questions.files)
                   : (getImagePath(questions)).isNotEmpty ?
@@ -1083,8 +1084,9 @@ class _QuestionListScreenState extends State<QuestionListScreen>
   }
 
   getIcon(String file) {
+    print('file is ${file}');
     if (file.contains('.xls') || file.contains('.xlsx')) {
-      return Image.asset('assets/icons/sheet.png', width: 24,);
+      return Image.asset('assets/icons/sheets.png', width: 24,);
     } else if (file.contains('.pdf')) {
       return Image.asset('assets/icons/pdf.png', width: 24,);
     }
@@ -1153,10 +1155,10 @@ class _QuestionListScreenState extends State<QuestionListScreen>
                   openFile(questions);
                 }
               }
-            } else if (_Status == 'Completed') {
+            } /*else if (_Status == 'Completed') {
               Utility.showMessages(
                   context, 'CVF Already submitted and not able to update');
-            } else if (questions.files.isNotEmpty) {
+            } */else if (questions.files.isNotEmpty) {
               if (questions.files.contains('.jpg') ||
                   questions.files.contains('png')) {
                 Navigator.push(context, MaterialPageRoute(builder: (_) {
@@ -1164,10 +1166,10 @@ class _QuestionListScreenState extends State<QuestionListScreen>
                     imageUrl: getImageUrl(questions.files),
                     question: questions,
                     listener: this,
-                    isViewOnly: widget.isViewOnly,
+                    isViewOnly: _Status == 'Completed' ? true : widget.isViewOnly,
                   );
                 }));
-              } else {
+              } else if (_Status != 'Completed') {
                 openFile(questions);
               }
             } else
@@ -1175,7 +1177,7 @@ class _QuestionListScreenState extends State<QuestionListScreen>
           },
           child: Padding(
             padding: EdgeInsets.all(8.0),
-            child: (getImagePath(questions)).isNotEmpty ?
+            child: questions.files.isNotEmpty ?
             !isImage(questions.files) ? getIcon(questions.files) : Image
                 .network(getImageUrl((getImagePath(questions))),
                 // width: 300,
@@ -1512,9 +1514,24 @@ class _QuestionListScreenState extends State<QuestionListScreen>
     print('image action ${action}');
     if (action != 3) {
       if (action == 0) {
-        pickImage(question, ImageSource.gallery);
+        var status = await Permission.photos.status;
+        if (status.isDenied) {
+          // Here you can open app settings so that the user can give permission
+          Map<Permission, PermissionStatus> statuses = await [
+            Permission.photos,
+            Permission.camera,
+            //add more permission to request here.
+          ].request();
+        }else
+          pickImage(question, ImageSource.gallery);
       } else if (action == 1) {
-        pickImage(question, ImageSource.camera);
+        var status = await Permission.photos.status;
+        if (status.isDenied) {
+          // Here you can open app settings so that the user can give permission
+          openAppSettings();
+        }else{
+          pickImage(question, ImageSource.camera);
+        }
       } else if (action == 2) {
         pickFile(question);
       }
@@ -1580,6 +1597,7 @@ class _QuestionListScreenState extends State<QuestionListScreen>
       try {
         final XFile? pickedFileList = await _picker.pickImage(
             source: source, maxHeight: 800, imageQuality: 100);
+        print('File upload gallery');
         setState(() {
           _imageFileList = pickedFileList;
           print(_imageFileList!.path);
@@ -1594,9 +1612,7 @@ class _QuestionListScreenState extends State<QuestionListScreen>
               .uploadFile(player, _imageFileList!.path, name, this);
         });
       } catch (e) {
-        /*setState(() {
-        _pickImageError = e;
-      });*/
+        print(e);
       }
     }
 
