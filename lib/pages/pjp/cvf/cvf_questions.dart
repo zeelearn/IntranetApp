@@ -945,9 +945,9 @@ class _QuestionListScreenState extends State<QuestionListScreen>
             flex: 1,
             child: CheckboxListTile(
               value: (!userAnswerMap.containsKey(questions.Question_Id) &&
-                  questions.SelectedAnswer == 'Yes') ||
+                  questions.SelectedAnswer == '1') ||
                   (userAnswerMap.containsKey(questions.Question_Id) &&
-                      userAnswerMap[questions.Question_Id] == 'Yes')
+                      userAnswerMap[questions.Question_Id] == '1')
                   ? true
                   : false,
               title: const Text(
@@ -975,9 +975,9 @@ class _QuestionListScreenState extends State<QuestionListScreen>
             flex: 1,
             child: CheckboxListTile(
               value: (!userAnswerMap.containsKey(questions.Question_Id) &&
-                  questions.SelectedAnswer == 'No') ||
+                  questions.SelectedAnswer == '2') ||
                   (userAnswerMap.containsKey(questions.Question_Id) &&
-                      userAnswerMap[questions.Question_Id] == 'No')
+                      userAnswerMap[questions.Question_Id] == '2')
                   ? true
                   : false,
               title: const Text(
@@ -1125,8 +1125,8 @@ class _QuestionListScreenState extends State<QuestionListScreen>
               border: Border.all(color: Colors.grey),
             ),
             child: Center(
-                child: Text(questions.SelectedAnswer.isNotEmpty
-                    ? questions.SelectedAnswer
+                child: Text(questions.Remarks.isNotEmpty
+                    ? questions.Remarks
                     : (userAnswerMap.containsKey(questions.Question_Id) &&
                     userAnswerMap[questions.Question_Id]
                         .toString()
