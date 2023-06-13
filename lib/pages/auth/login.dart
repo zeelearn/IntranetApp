@@ -38,11 +38,12 @@ class _LoginPage extends State<LoginPage> {
   bool isApiCallProcess = false;
 
   String appVersion='';
-
+  bool passwordVisible = false;
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
+    passwordVisible=true;
     Future.delayed(Duration.zero, () {
       this.getDeviceInfo();
       setState(() {
@@ -249,7 +250,6 @@ class _LoginPage extends State<LoginPage> {
     return Container(
       alignment: Alignment.center,
       height: size.height / 14,
-      padding: MyWidget().getTextPadding(),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(8.0),
         border: Border.all(
@@ -258,22 +258,40 @@ class _LoginPage extends State<LoginPage> {
         ),
       ),
       child: TextField(
+        obscureText: passwordVisible,
         controller: _controller,
         style: GoogleFonts.inter(
-          fontSize: 18.0,
+          fontSize: 20.0,
           color: LightColor.primarydark_color,
         ),
         maxLines: 1,
-        obscureText: true,
+
         keyboardType: TextInputType.visiblePassword,
         cursorColor: const Color(0xFF15224F),
         decoration: InputDecoration(
+            prefixIcon: Icon(Icons.password),
+            suffixIcon: IconButton(
+              icon: Icon(passwordVisible
+                  ? Icons.visibility
+                  : Icons.visibility_off),
+              onPressed: () {
+                setState(
+                      () {
+                        print('password visibility ${passwordVisible}');
+                    passwordVisible = !passwordVisible;
+                  },
+                );
+              },
+            ),
+            alignLabelWithHint: false,
+            filled: true,
             labelText: 'Password',
             labelStyle: GoogleFonts.inter(
               fontSize: 12.0,
               color: LightColor.black,
             ),
             border: InputBorder.none),
+
       ),
     );
   }

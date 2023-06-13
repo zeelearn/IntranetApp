@@ -85,7 +85,6 @@ class MyWidget{
     return Container(
       alignment: Alignment.center,
       height: MediaQuery.of(context).size.height / 14,
-      padding: getTextPadding(),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(8.0),
         border: Border.all(
@@ -97,12 +96,14 @@ class MyWidget{
         controller: _controller,
         style: GoogleFonts.robotoMono(
           fontStyle: FontStyle.normal,
-          fontSize: 18.0,
+          fontSize: 20.0,
           color: LightColor.primarydark_color,
         ),
         maxLines: 1,
         cursorColor: const Color(0xFF15224F),
         decoration: InputDecoration(
+            prefixIcon: Icon(Icons.perm_identity),
+            filled: true,
             labelText: label,
             labelStyle: GoogleFonts.inter(
               fontSize: 12.0,

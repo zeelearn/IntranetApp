@@ -37,7 +37,7 @@ class NotificationService {
     importance: Importance.high,
   );
 
-  static const DarwinNotificationDetails _iOSNotificationDetails =
+  static final DarwinNotificationDetails _iOSNotificationDetails =
   DarwinNotificationDetails();
 
   final NotificationDetails notificationDetails = NotificationDetails(
