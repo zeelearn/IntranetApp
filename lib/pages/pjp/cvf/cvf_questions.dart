@@ -402,7 +402,6 @@ class _QuestionListScreenState extends State<QuestionListScreen>
           ] : null,
         ),
         body: Stack(
-
           children: [
             getView(widget.cvfView),
             Container(
@@ -1098,16 +1097,15 @@ class _QuestionListScreenState extends State<QuestionListScreen>
     List<Widget> _rowWidget = [];
     for (int index = 0; index < questions.answers.length; index++) {
       _rowWidget.add(ListTile(
-        /*title: Text(
-          '${questions.Question_Id}. ${questions.question}',
-          style: Theme.of(context).textTheme.bodyText1,
-        ),*/
         title: GestureDetector(
           onTap: () {
             if (_Status == 'Completed') {
               Utility.showMessages(
                   context, 'CVF Already submitted and not able to update');
-            } else
+            } else if(widget.isViewOnly){
+              Utility.showMessages(
+                  context, 'Manager cannot update the CVF answers');
+            }else
               showBottomSheet(questions, questions.answers[index].answerName);
           },
           child: Container(

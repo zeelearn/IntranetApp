@@ -156,12 +156,26 @@ class _MyPjpReportListState extends State<MyPjpReportScreen> implements onRespon
   }
 
 
-  openDateRange(){
-    showCustomDateRangePicker(
+  openDateRange() async{
+    final picked = await showDateRangePicker(
+      context: context,
+      lastDate: DateTime.now(),
+      firstDate: DateTime.now().subtract(const Duration(days: 180)),
+    );
+    if (picked != null && picked != null) {
+      print(picked);
+      setState(() {
+        fromDate = picked.start;
+        toDate = picked.end;
+//below have methods that runs once a date range is picked
+        loadPjpReport();
+      });
+    }
+    /*showCustomDateRangePicker(
       context,
       dismissible: true,
-      minimumDate: DateTime.now().subtract(const Duration(days: 30)),
-      maximumDate: DateTime.now().add(const Duration(days: 30)),
+      minimumDate: DateTime.now().subtract(const Duration(days: 180)),
+      maximumDate: DateTime.now(),
       endDate: toDate,
       startDate: fromDate,
       backgroundColor: Colors.white,
@@ -182,7 +196,7 @@ class _MyPjpReportListState extends State<MyPjpReportScreen> implements onRespon
           //startDate = null;
         });
       },
-    );
+    );*/
   }
 
   @override
@@ -204,13 +218,13 @@ class _MyPjpReportListState extends State<MyPjpReportScreen> implements onRespon
                   openDateRange();
                 },
               ),
-              IconButton(
+              /*IconButton(
                 icon: const Icon(Icons.add_box),
                 tooltip: 'Filter',
                 onPressed: () {
                   openNewPjp();
                 },
-              ),
+              ),*/
               IconButton(
                 icon: const Icon(Icons.filter_list),
                 tooltip: 'Filter',
