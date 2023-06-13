@@ -1153,10 +1153,10 @@ class _QuestionListScreenState extends State<QuestionListScreen>
                   openFile(questions);
                 }
               }
-            } else if (_Status == 'Completed') {
+            } /*else if (_Status == 'Completed') {
               Utility.showMessages(
                   context, 'CVF Already submitted and not able to update');
-            } else if (questions.files.isNotEmpty) {
+            } */else if (questions.files.isNotEmpty) {
               if (questions.files.contains('.jpg') ||
                   questions.files.contains('png')) {
                 Navigator.push(context, MaterialPageRoute(builder: (_) {
@@ -1164,10 +1164,10 @@ class _QuestionListScreenState extends State<QuestionListScreen>
                     imageUrl: getImageUrl(questions.files),
                     question: questions,
                     listener: this,
-                    isViewOnly: widget.isViewOnly,
+                    isViewOnly: _Status == 'Completed' ? true : widget.isViewOnly,
                   );
                 }));
-              } else {
+              } else if (_Status != 'Completed') {
                 openFile(questions);
               }
             } else
