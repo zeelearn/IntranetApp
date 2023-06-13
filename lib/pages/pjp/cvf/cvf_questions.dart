@@ -963,9 +963,9 @@ class _QuestionListScreenState extends State<QuestionListScreen>
                       context, 'CVF Already submitted and not able to update');
                 } else {
                   //ischeck[getCheckboxIndex(player.question)] = false;
-                  questions.SelectedAnswer = 'Yes';
+                  questions.SelectedAnswer = '1';
                   setState(() {
-                    updateAnswers(questions, 'Yes');
+                    updateAnswers(questions, '1');
                   });
                 }
               },
@@ -993,8 +993,8 @@ class _QuestionListScreenState extends State<QuestionListScreen>
                   Utility.showMessages(
                       context, 'CVF Already submitted and not able to update');
                 } else {
-                  questions.SelectedAnswer = 'No';
-                  updateAnswers(questions, 'No');
+                  questions.SelectedAnswer = '2';
+                  updateAnswers(questions, '2');
                   setState(() {});
                 }
               },
