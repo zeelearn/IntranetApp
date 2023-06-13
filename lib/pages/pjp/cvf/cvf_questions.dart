@@ -1102,7 +1102,10 @@ class _QuestionListScreenState extends State<QuestionListScreen>
             if (_Status == 'Completed') {
               Utility.showMessages(
                   context, 'CVF Already submitted and not able to update');
-            } else
+            } else if(widget.isViewOnly){
+              Utility.showMessages(
+                  context, 'Manager cannot update the CVF answers');
+            }else
               showBottomSheet(questions, questions.answers[index].answerName);
           },
           child: Container(
