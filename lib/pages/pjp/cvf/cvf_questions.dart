@@ -401,13 +401,12 @@ class _QuestionListScreenState extends State<QuestionListScreen>
             ),
           ] : null,
         ),
-        body: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        body: Stack(
           children: [
             getView(widget.cvfView),
             Container(
               margin:
-              const EdgeInsets.only(top: 0, left: 0, right: 0, bottom: 0),
+              const EdgeInsets.only(top: 100, left: 0, right: 0, bottom: 0),
               /*child: getWidget(),*/
               child: SingleChildScrollView(
                 child: getWidget(),
