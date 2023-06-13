@@ -387,20 +387,18 @@ class DBHelper {
   }
 
   Future<QuestionResponse> getQuestionsList(String cvfId) async {
-    print('getQuestionsList');
     QuestionResponse response = QuestionResponse(responseMessage: '', statusCode: 200, responseData: []);
     List<Map<String, dynamic>> list = await  DBHelper().getData(LocalConstant.TABLE_CVF_QUESTION_JSON);
     if(list !=null){
-      print('getQuestionsList list is not empty ${list.length}');
       for(int index=0;index<list.length;index++) {
         Map<String, dynamic> map = list[index];
-        print('match ${cvfId} and  ${map[DBConstant.CVF_ID]}');
         if(cvfId==map[DBConstant.CVF_ID].toString().trim()){
-          print('trying to decode');
+          //print('trying to decode');
           response = QuestionResponse.fromJson(
             json.decode(map[DBConstant.QUESTION]),
           );
-          print('decode ${response.toJson()}');
+
+          //print('decode ${response.toJson()}');
           //notificaitonList.add(NotificationDataModel(message: map['data'], title: map['title'], image: map['imageurl'], URL: '', type: map['type'],time:time));
         }else{
           print('not match');

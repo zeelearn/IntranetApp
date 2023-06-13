@@ -10,6 +10,7 @@ import 'package:intranet/api/request/cvf/questions_request.dart';
 import 'package:intranet/api/request/cvf/save_cvfquestions_request.dart';
 import 'package:intranet/pages/firebase/storageutil.dart';
 import 'package:intranet/pages/helper/DatabaseHelper.dart';
+import 'package:intranet/pages/helper/LightColor.dart';
 import 'package:intranet/pages/helper/LocalConstant.dart';
 import 'package:intranet/pages/iface/onResponse.dart';
 import 'package:pinch_zoom/pinch_zoom.dart';
@@ -74,6 +75,8 @@ class _QuestionListScreenState extends State<QuestionListScreen>
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
 // your code goes here
+    print('mCategory Id ${widget.mCategoryId}');
+    print('mCategory Id ${widget.mCategory}');
       getPrefQuestions(widget.mCategoryId);
       getUsersAnswers();
     });
@@ -94,11 +97,8 @@ class _QuestionListScreenState extends State<QuestionListScreen>
       var cvfQuestions = hiveBox.get(widget.PJPCVF_Id.toString() +
           categoryid +
           LocalConstant.KEY_CVF_QUESTIONS);
-      //print('in pref questions :   ${jsonDecode(cvfQuestions.toString())}');
-
       if (false && cvfQuestions is QuestionResponse) {
         QuestionResponse response = cvfQuestions as QuestionResponse;
-        print('data found');
       } else if (true || cvfQuestions
           .toString()
           .isEmpty) {
@@ -137,26 +137,24 @@ class _QuestionListScreenState extends State<QuestionListScreen>
   }
 
   String getImagePath(Allquestion question) {
-    String? path = hiveBox.get(
-        'img_' + widget.PJPCVF_Id.toString() + question.Question_Id);
-    //print('path is ${path} ${widget.PJPCVF_Id.toString()} ${question.Question_Id}');
+    String? path = hiveBox.get('img_' + widget.PJPCVF_Id.toString() + question.Question_Id);
     return path == null ? '' : path.toString();
   }
 
   loadData() async {
     DBHelper helper = DBHelper();
-    questionResponse =
-    await helper.getQuestionsList(widget.PJPCVF_Id.toString());
+    questionResponse = await helper.getQuestionsList(widget.PJPCVF_Id.toString());
     bool isInternet = await Utility.isInternet();
-    if (!isInternet ||
-        questionResponse != null && questionResponse.responseData.length > 0) {
+    if (!isInternet && (questionResponse != null && questionResponse.responseData.length > 0)) {
       isLoading = true;
       mQuestionMaster.clear();
-      mQuestionMaster.addAll(questionResponse.responseData);
+      for(int index=0;index<questionResponse.responseData.length;index++) {
+        if(questionResponse.responseData[index].categoryId == widget.mCategoryId)
+          mQuestionMaster.add(questionResponse.responseData[index]);
+      }
       isLoading = false;
       setState(() {});
     } else {
-      print('in else');
       isLoading = true;
       mQuestionMaster.clear();
       DateTime time = DateTime.now();
@@ -179,7 +177,6 @@ class _QuestionListScreenState extends State<QuestionListScreen>
                   widget.mCategoryId, json.encode(questionResponse.toJson()));
               mQuestionMaster.addAll(questionResponse.responseData);
               DBHelper dbHelper = DBHelper();
-              print('data saved ....');
               dbHelper.insertCVFQuestions(widget.cvfView.PJPCVF_Id,
                   json.encode(questionResponse.toJson()), 0);
               insertQuestions();
@@ -796,7 +793,7 @@ class _QuestionListScreenState extends State<QuestionListScreen>
               textAlign: TextAlign.center,
               style: TextStyle(
                   background: Paint()
-                    ..color = LightColors.kAbsent
+                    ..color = LightColors.kLightBlue
                     ..strokeWidth = 15
                     ..strokeJoin = StrokeJoin.round
                     ..strokeCap = StrokeCap.round
@@ -910,7 +907,8 @@ class _QuestionListScreenState extends State<QuestionListScreen>
             Divider(
               height: 2,
             ),
-            SizedBox(height: 10,),
+            Padding(padding: EdgeInsets.only(left: 10,right: 10,top: 3,bottom: 3),
+            child:
             Align(
               alignment: Alignment.centerLeft,
               child: Expanded(child: Text(player.isCompulsory == '1'
@@ -918,18 +916,8 @@ class _QuestionListScreenState extends State<QuestionListScreen>
                   : '${index}. ${player.question}', style: Theme
                   .of(context)
                   .textTheme
-                  .bodyText1,)),
-            ),
-            SizedBox(height: 2,),
-            /*ListTile(
-              title: player.isCompulsory=='1' ? Text(
-                '* ${index}. ${player.question}',
-                style: Theme.of(context).textTheme.bodyText1,
-              ) : Text(
-                '${index}. ${player.question}',
-                style: Theme.of(context).textTheme.bodyText1,
-              ),
-            ),*/
+                  .bodyMedium,)),
+            ),),
             _getAnswerWidget(player)
           ],
         ));
@@ -1115,8 +1103,6 @@ class _QuestionListScreenState extends State<QuestionListScreen>
         .size;
     List<Widget> _rowWidget = [];
     for (int index = 0; index < questions.answers.length; index++) {
-      print('user answer ${questions.SelectedAnswer}  myAns ${questions
-          .answers[index].answerName}');
       _rowWidget.add(ListTile(
         /*title: Text(
           '${questions.Question_Id}. ${questions.question}',
@@ -1751,7 +1737,6 @@ class _QuestionListScreenState extends State<QuestionListScreen>
 
   @override
   Widget build(BuildContext context) {
-  print('IMP_PATH '+this.imageUrl);
   return Scaffold(
   appBar: AppBar(
   backgroundColor: kPrimaryLightColor,

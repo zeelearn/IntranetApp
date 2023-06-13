@@ -315,6 +315,68 @@ class _MyCVFListScreen extends State<CVFListScreen> implements onResponse,onClic
         });
   }
 
+  getList(GetDetailedPJP cvfView){
+    List<Widget> _widgetlist = [];
+    for(int index=0;index<cvfView.purpose!.length;index++){
+      _widgetlist.add(ListTile(
+        title: Container(
+          margin: EdgeInsets.all(5),
+          child: new Text(cvfView.purpose![index].categoryName),
+        ),
+        onTap: () {
+          Navigator.pop(context);
+          navigateQuestions(cvfView, cvfView.purpose![index].categoryId,cvfView.purpose![index].categoryName);
+        },
+      ),);
+    }
+    return _widgetlist;
+  }
+
+  selectCategory(BuildContext context,GetDetailedPJP cvfView) async{
+    if(cvfView.purpose!.length==0){
+      //return '';
+    }else if(cvfView.purpose!.length==1){
+      navigateQuestions(cvfView, cvfView.purpose![0].categoryId,cvfView.purpose![0].categoryName);
+    }else{
+      showModalBottomSheet(
+          context: context,
+          builder: (context) {
+            return Container(
+              padding: EdgeInsets.only(right: 15,left: 15,bottom: 15,top: 10),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text('Select Category',style: TextStyle(
+                      fontStyle: FontStyle.normal,
+                      letterSpacing: 0.4,
+                      fontSize: 22,
+                      fontWeight: FontWeight.w600),
+                  ),
+                  Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: getList(cvfView)
+                  )
+                ],
+              ),
+            ) ;
+          });
+    }
+  }
+  navigateQuestions(GetDetailedPJP cvfView,String categoryId,String categoryName){
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+          builder: (context) => QuestionListScreen(
+            cvfView: cvfView,
+            PJPCVF_Id: int.parse(cvfView.PJPCVF_Id),
+            employeeId: employeeId,
+            mCategory: categoryName,
+            mCategoryId: categoryId,
+            isViewOnly: widget.mPjpInfo.isSelfPJP=='0' ? true : false,
+          )),
+    );
+  }
+
   getCvfView(GetDetailedPJP cvfView) {
 
     if(cvfView.Status.trim()=='NA'){
@@ -330,7 +392,8 @@ class _MyCVFListScreen extends State<CVFListScreen> implements onResponse,onClic
       onTap: () {
         print('on tap ${widget.mPjpInfo.isSelfPJP}');
         if(widget.mPjpInfo.isSelfPJP=='0'){
-          Navigator.push(
+          selectCategory(context, cvfView);
+          /*Navigator.push(
             context,
             MaterialPageRoute(
                 builder: (context) => QuestionListScreen(
@@ -341,40 +404,18 @@ class _MyCVFListScreen extends State<CVFListScreen> implements onResponse,onClic
                   mCategoryId: cvfView.purpose![0].categoryId,
                   isViewOnly: true,
                 )),
-          );
+          );*/
         }else if (cvfView.Status == 'Check In' || cvfView.Status == ' Check In' || cvfView.Status == 'NA') {
           //Utility.showMessage(context, 'Please Click on Check In button');
           Utility.onConfirmationBox(context,'Check In','Cancel', 'PJP Status Update?', 'Would you like to Check In?',cvfView, this);
         }else if(cvfView.Status =='Completed'){
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-                builder: (context) => QuestionListScreen(
-                  cvfView: cvfView,
-                  mCategory: 'All',
-                  PJPCVF_Id: int.parse(cvfView.PJPCVF_Id),
-                  employeeId: employeeId,
-                  mCategoryId: cvfView.purpose![0].categoryId,
-                  isViewOnly: false,
-                )),
-          );
+          selectCategory(context, cvfView);
           //Utility.showMessageSingleButton(context, 'The Center Visit Form is already submitted, Now you can only view the CVF', this);
 
         }else if (cvfView.Status == 'Check In' || cvfView.Status == ' Check In' || cvfView.Status == 'NA') {
           //Utility.showMessage(context, 'Please Click on Check In button');
         } else {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-                builder: (context) => QuestionListScreen(
-                  cvfView: cvfView,
-                  mCategory: 'All',
-                  PJPCVF_Id: int.parse(cvfView.PJPCVF_Id),
-                  employeeId: employeeId,
-                  mCategoryId: cvfView.purpose![0].categoryId,
-                  isViewOnly: false,
-                )),
-          );
+          selectCategory(context, cvfView);
         }
       },
       child: Padding(
@@ -500,17 +541,7 @@ class _MyCVFListScreen extends State<CVFListScreen> implements onResponse,onClic
                 ),
                 trailing: cvfView.Status =='Check Out' ? OutlinedButton(
                   onPressed: () {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                        builder: (context) => QuestionListScreen(
-                      cvfView: cvfView,
-                      PJPCVF_Id: int.parse(cvfView.PJPCVF_Id),
-                      employeeId: employeeId,
-                      mCategory: 'All',
-                      mCategoryId: cvfView.purpose![0].categoryId,
-                      isViewOnly: widget.mPjpInfo.isSelfPJP=='1' ? true : false,
-                    )));
+                    selectCategory(context, cvfView);
                   },
                   child: Text(
                     cvfView.Status,
@@ -577,18 +608,7 @@ class _MyCVFListScreen extends State<CVFListScreen> implements onResponse,onClic
         if (cvfView.Status == 'Check In' || cvfView.Status == ' Check In' || cvfView.Status == 'NA') {
           //Utility.showMessage(context, 'Please Click on Check In button');
         } else {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-                builder: (context) => QuestionListScreen(
-                  cvfView: cvfView,
-                  mCategory: 'All',
-                  PJPCVF_Id: int.parse(cvfView.PJPCVF_Id),
-                  employeeId: employeeId,
-                  mCategoryId: cvfView.purpose![0].categoryId,
-                  isViewOnly: widget.mPjpInfo.isSelfPJP=='1' ? true : false,
-                )),
-          );
+          selectCategory(context, cvfView);
         }
       },
       child: Padding(
@@ -1066,18 +1086,7 @@ class _MyCVFListScreen extends State<CVFListScreen> implements onResponse,onClic
           if (cvfView.Status == 'Check In' || cvfView.Status == ' Check In' || cvfView.Status == 'NA') {
             Utility.showMessage(context, 'Please Click on Check In button');
           } else {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (context) => QuestionListScreen(
-                    cvfView: cvfView,
-                    PJPCVF_Id: int.parse(cvfView.PJPCVF_Id),
-                    employeeId: employeeId,
-                    mCategory: categoryname,
-                    mCategoryId: cvfView.purpose![0].categoryId,
-                    isViewOnly: widget.mPjpInfo.isSelfPJP=='1' ? true : false,
-                  )),
-            );
+            selectCategory(context, cvfView);
           }
         },
         child: Padding(
@@ -1114,33 +1123,10 @@ class _MyCVFListScreen extends State<CVFListScreen> implements onResponse,onClic
         if(cvfView.Status =='Completed'){
           Utility.showMessageSingleButton(context, 'The PJP is Already Completed', this);
         }else if(cvfView.Status =='Check Out'){
-
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-                builder: (context) => QuestionListScreen(
-                  cvfView: cvfView,
-                  PJPCVF_Id: int.parse(cvfView.PJPCVF_Id),
-                  employeeId: employeeId,
-                  mCategory: 'All',
-                  mCategoryId: cvfView.purpose![0].categoryId,
-                  isViewOnly: widget.mPjpInfo.isSelfPJP=='1' ? true : false,
-                )),
-          );
+          selectCategory(context, cvfView);
           Utility.showMessageSingleButton(context, 'Please Fill All questions and check out', this);
         }else if (cvfView.Status == 'FILL CVF') {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-                builder: (context) => QuestionListScreen(
-                  cvfView: cvfView,
-                  PJPCVF_Id: int.parse(cvfView.PJPCVF_Id),
-                  employeeId: employeeId,
-                  mCategory: 'All',
-                  mCategoryId: cvfView.purpose![0].categoryId,
-                  isViewOnly: widget.mPjpInfo.isSelfPJP=='1' ? true : false,
-                )),
-          );
+          selectCategory(context, cvfView);
         } else {
           _showMyDialog(cvfView);
         }

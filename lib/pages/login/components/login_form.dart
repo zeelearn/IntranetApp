@@ -30,12 +30,15 @@ class _LoginFormState extends State<LoginForm> implements changePasswordInterfac
   final TextEditingController userNameController = TextEditingController();
   final TextEditingController userPasswordController = TextEditingController();
 
+  bool passwordVisible = false;
+
   @override
   void initState() {
     _currentPasswordController = TextEditingController();
     _newPasswordController = TextEditingController();
     _repeatPasswordController = TextEditingController();
     super.initState();
+    passwordVisible=true;
   }
 
   @override
@@ -74,13 +77,28 @@ class _LoginFormState extends State<LoginForm> implements changePasswordInterfac
               obscureText: true,
               cursorColor: kPrimaryColor,
               controller: userPasswordController,
-              decoration: const InputDecoration(
+              decoration:  InputDecoration(
                 hintText: "Your password",
-                prefixIcon: Padding(
+                prefixIcon: const Padding(
                   padding: EdgeInsets.all(defaultPadding),
                   child: Icon(Icons.lock),
                 ),
+                suffixIcon: IconButton(
+                  icon: Icon(passwordVisible
+                      ? Icons.visibility
+                      : Icons.visibility_off),
+                  onPressed: () {
+                    setState(
+                          () {
+                        passwordVisible = !passwordVisible;
+                      },
+                    );
+                  },
+                ),
+                alignLabelWithHint: false,
+                filled: true,
               ),
+              keyboardType: TextInputType.visiblePassword,
             ),
           ),
           Hero(
