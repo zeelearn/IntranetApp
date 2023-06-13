@@ -300,9 +300,9 @@ class _QuestionListScreenState extends State<QuestionListScreen>
             /* mQuestionMaster[index].allquestion[jIndex].answers[0].answerType == 'YesNo' ?
                   mQuestionMaster[index].allquestion[jIndex].userAnswers : ''*/
             }</AnswerId>'
-                '<Files>${mQuestionMaster[index]
+                '<Files>${decodeFile(mQuestionMaster[index]
                 .allquestion[jIndex]
-                .files}</Files><Remarks>${mQuestionMaster[index]
+                .files)}</Files><Remarks>${mQuestionMaster[index]
                 .allquestion[jIndex].answers[0].answerType == 'YesNo'
                 ? ''
                 : mQuestionMaster[index].allquestion[jIndex].userAnswers
@@ -327,9 +327,9 @@ class _QuestionListScreenState extends State<QuestionListScreen>
                 .convertShortDate(DateTime
                 .now())}</SubmissionDate><Question_Id>${mQuestionMaster[index]
                 .allquestion[jIndex]
-                .Question_Id}</Question_Id><Files>${mQuestionMaster[index]
+                .Question_Id}</Question_Id><Files>${decodeFile(mQuestionMaster[index]
                 .allquestion[jIndex]
-                .files}</Files><AnswerId>${
+                .files)}</Files><AnswerId>${
                 getAnswerId(mQuestionMaster[index].allquestion[jIndex].answers,
                     mQuestionMaster[index].allquestion[jIndex].answers[0]
                         .answerType, userAnswerMap[mQuestionMaster[index]
@@ -383,6 +383,13 @@ class _QuestionListScreenState extends State<QuestionListScreen>
     } else {
       Utility.noInternetConnection(context);
     }
+  }
+
+  decodeFile(String url){
+    return url.replaceAll('&', '&amp;');
+  }
+  encodeFile(String url){
+    return Uri.decodeFull(url.replaceAll('&amp;', '&'));
   }
 
   @override
