@@ -140,7 +140,7 @@ class FirebaseStorageUtil{
         case TaskState.success:
         // Handle successful uploads on complete
           dynamic imageUrl= await taskSnapshot.ref.getDownloadURL();
-          player.files = Uri.encodeFull(imageUrl as String);
+          player.files = imageUrl as String;
           //player.files = player.files.replaceAll('&', '___');
           print(player.files);
           response.onUploadSuccess(player);

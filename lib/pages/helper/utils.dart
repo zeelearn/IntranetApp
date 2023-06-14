@@ -56,6 +56,7 @@ class Utility{
   }
 
   static Future<dynamic> downloadFile(String url, String filename) async {
+    print('download url  59 ${url}');
     var httpClient = new HttpClient();
     String dir = (await getTemporaryDirectory()).path;
     print(dir.toString());

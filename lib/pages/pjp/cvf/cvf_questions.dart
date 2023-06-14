@@ -1526,19 +1526,19 @@ class _QuestionListScreenState extends State<QuestionListScreen>
         context,
         MaterialPageRoute(
           builder: (context) =>
-              MyPdfApp(worksheetUrl: Uri.decodeFull(question.files),
+              MyPdfApp(worksheetUrl: decodeUrl(question.files),
                 title: question.files,
                 filename: '${widget.PJPCVF_Id}_${question.Question_Id}.pdf',
                 module: 'CVF',),
         ),
       );
     } else {
-      File file = File(question.files);
+      File file = File(decodeUrl(question.files));
       var filePath =file.path.split('?');
       //print('FilePath : ${filePath[0]}');
       var fileExt = filePath[0].split('/');
       String fileName = fileExt[fileExt.length-1].toString();
-      //print('fileExt : ${fileName}');
+      print('fileExt : ${fileName}');
 
       (await Utility.isFileExists(fileName)) ? Utility.shareFile(fileName) :
       setState(() {
@@ -1552,6 +1552,17 @@ class _QuestionListScreenState extends State<QuestionListScreen>
         });
       });
     }
+  }
+
+  decodeUrl(String url){
+    url = Uri.decodeFull(url);
+    if(url.contains('%2F')){
+      url = Uri.decodeFull(url);
+    }
+    if(url.contains('%2F')){
+      url = Uri.decodeFull(url);
+    }
+    return url;
   }
 
   launchMyUrl(String weburl) async{
