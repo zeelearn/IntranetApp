@@ -1533,7 +1533,7 @@ class _QuestionListScreenState extends State<QuestionListScreen>
         context,
         MaterialPageRoute(
           builder: (context) =>
-              MyPdfApp(worksheetUrl: (question.files),
+              MyPdfApp(worksheetUrl: (decodeUrl(question.files)),
                 title: title,
                 filename: title,
                 module: 'CVF',),
@@ -1562,7 +1562,6 @@ class _QuestionListScreenState extends State<QuestionListScreen>
   }
 
   decodeUrl(String url){
-    url = Uri.decodeFull(url);
     if(url.contains('%2F')){
       url = Uri.decodeFull(url);
     }
