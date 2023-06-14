@@ -281,14 +281,7 @@ class _QuestionListScreenState extends State<QuestionListScreen>
         for (int jIndex = 0; jIndex <
             mQuestionMaster[index].allquestion.length; jIndex++) {
           if (mQuestionMaster[index].allquestion[jIndex].userAnswers
-              .isNotEmpty) {
-            print(' 1  ' +
-                mQuestionMaster[index].allquestion[jIndex].Question_Id + '  ' +
-                mQuestionMaster[index].allquestion[jIndex].question + '  :  ' +
-                mQuestionMaster[index].allquestion[jIndex].userAnswers);
-            print(' 100  ' +
-                mQuestionMaster[index].allquestion[jIndex].userAnswers
-                    .toString());
+              .isNotEmpty ||  mQuestionMaster[index].allquestion[jIndex].files.isNotEmpty) {
             docXml = '${docXml}<tblPJPCVF_Answer><SubmissionDate>${Utility
                 .convertShortDate(DateTime
                 .now())}</SubmissionDate><Question_Id>${mQuestionMaster[index]
@@ -314,15 +307,7 @@ class _QuestionListScreenState extends State<QuestionListScreen>
               userAnswerMap[mQuestionMaster[index].allquestion[jIndex]
                   .Question_Id]
                   .toString()
-                  .isNotEmpty) {
-            print(' 2  ' +
-                mQuestionMaster[index].allquestion[jIndex].Question_Id + '  ' +
-                mQuestionMaster[index].allquestion[jIndex].question + '  :  ' +
-                userAnswerMap[mQuestionMaster[index].allquestion[jIndex]
-                    .Question_Id].toString());
-            print('UserAnswer : ' +
-                userAnswerMap[mQuestionMaster[index].allquestion[jIndex]
-                    .Question_Id].toString());
+                  .isNotEmpty || mQuestionMaster[index].allquestion[jIndex].files.isNotEmpty) {
             docXml =
             '${docXml}<tblPJPCVF_Answer><SubmissionDate>${Utility
                 .convertShortDate(DateTime
