@@ -27,6 +27,7 @@ class _HomePage extends State<MyPdfApp> {
   void initState() {
     // TODO: implement initState
     super.initState();
+    print('worksheet ${widget.worksheetUrl}');
     checkFile();
   }
 
@@ -35,7 +36,7 @@ class _HomePage extends State<MyPdfApp> {
       setState(() {
         isLoading = false;
       });
-    }else {
+    }else if(widget.module.isNotEmpty) {
       String dir = (await getTemporaryDirectory()).path;
       String path = '${dir}/${widget.module}/${widget.filename}.pdf';
       if(widget.filename.contains('.pdf')){
@@ -61,6 +62,7 @@ class _HomePage extends State<MyPdfApp> {
             isLoading = false;
           });
         });
+        mFile = null;
       }
     }
   }
