@@ -1111,8 +1111,8 @@ class _QuestionListScreenState extends State<QuestionListScreen>
               border: Border.all(color: Colors.grey),
             ),
             child: Center(
-                child: Text(questions.Remarks.isNotEmpty && questions.Remarks !='null'
-                    ? questions.Remarks
+                child: Text(questions.Remarks.isEmpty || questions.Remarks !='null' ? '' :
+                questions.Remarks.isNotEmpty ? questions.Remarks
                     : (userAnswerMap.containsKey(questions.Question_Id) &&
                     userAnswerMap[questions.Question_Id]
                         .toString()

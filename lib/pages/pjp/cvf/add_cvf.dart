@@ -800,11 +800,6 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener{
 
   @override
   Widget build(BuildContext context) {
-    print(
-        'From Date ${Utility.shortDate(Utility.convertDate(widget.mPjpModel.fromDate))}');
-    print(
-        'To Date ${Utility.shortDate(Utility.convertDate(widget.mPjpModel.toDate))}');
-
     Size size = MediaQuery.of(context).size;
     var brightness = MediaQuery.of(context).platformBrightness;
     bool isDarkMode = brightness == Brightness.light;
