@@ -1522,13 +1522,20 @@ class _QuestionListScreenState extends State<QuestionListScreen>
 
   openFile(Allquestion question) async {
     if (question.files.contains('.pdf')) {
+      File file = File(decodeUrl(question.files));
+      var filePath =file.path.split('?');
+      //print('FilePath : ${filePath[0]}');
+      var fileExt = filePath[0].split('/');
+      String title = fileExt[fileExt.length-1].toString();
+
+
       Navigator.push(
         context,
         MaterialPageRoute(
           builder: (context) =>
-              MyPdfApp(worksheetUrl: decodeUrl(question.files),
-                title: question.files,
-                filename: '${widget.PJPCVF_Id}_${question.Question_Id}.pdf',
+              MyPdfApp(worksheetUrl: (question.files),
+                title: title,
+                filename: title,
                 module: 'CVF',),
         ),
       );

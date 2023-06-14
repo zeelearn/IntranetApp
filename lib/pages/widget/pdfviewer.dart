@@ -38,6 +38,9 @@ class _HomePage extends State<MyPdfApp> {
     }else {
       String dir = (await getTemporaryDirectory()).path;
       String path = '${dir}/${widget.module}/${widget.filename}.pdf';
+      if(widget.filename.contains('.pdf')){
+        path = '${dir}/${widget.module}/${widget.filename}';
+      }
       if(!await Directory('${dir}/${widget.module}').exists()){
         Directory myNewDir = await Directory('${dir}/${widget.module}').create(recursive: true);
         print('directory created');
