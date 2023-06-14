@@ -144,9 +144,9 @@ class _QuestionListScreenState extends State<QuestionListScreen>
 
   loadData() async {
     DBHelper helper = DBHelper();
-    questionResponse = await helper.getQuestionsList(widget.PJPCVF_Id.toString());
+    //questionResponse = await helper.getQuestionsList(widget.PJPCVF_Id.toString());
     bool isInternet = await Utility.isInternet();
-    if (!isInternet && (questionResponse != null && questionResponse.responseData.length > 0)) {
+    if (false || !isInternet && (questionResponse != null && questionResponse.responseData.length > 0)) {
       isLoading = true;
       mQuestionMaster.clear();
       for(int index=0;index<questionResponse.responseData.length;index++) {
@@ -884,9 +884,9 @@ class _QuestionListScreenState extends State<QuestionListScreen>
         }
       }
     }
-    DBHelper helper = DBHelper();
+    /*DBHelper helper = DBHelper();
     helper.updateCVFQuestions(
-        widget.PJPCVF_Id.toString(), json.encode(questionResponse.toJson()), 0);
+        widget.PJPCVF_Id.toString(), questionResponse.toJson(), 0);*/
     setState(() {});
   }
 
@@ -1111,14 +1111,13 @@ class _QuestionListScreenState extends State<QuestionListScreen>
               border: Border.all(color: Colors.grey),
             ),
             child: Center(
-                child: Text(questions.Remarks.isEmpty || questions.Remarks !='null' ? '' :
-                questions.Remarks.isNotEmpty ? questions.Remarks
-                    : (userAnswerMap.containsKey(questions.Question_Id) &&
-                    userAnswerMap[questions.Question_Id]
-                        .toString()
-                        .isNotEmpty)
-                    ? userAnswerMap[questions.Question_Id].toString()
-                    : questions.Remarks)),
+                child: Text(
+                 (userAnswerMap.containsKey(questions.Question_Id) && userAnswerMap[questions.Question_Id].toString().isNotEmpty && userAnswerMap[questions.Question_Id].toString() !=null)
+                          ? userAnswerMap[questions.Question_Id].toString()
+                          : questions.Remarks.isNotEmpty && questions.Remarks !='null'
+                     ? questions.Remarks : ''
+                  )
+                ),
           ),
         ),
         trailing: GestureDetector(

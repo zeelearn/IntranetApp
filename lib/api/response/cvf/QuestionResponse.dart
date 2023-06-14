@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 class QuestionResponse {
   late String responseMessage;
   late int statusCode;
@@ -19,14 +21,19 @@ class QuestionResponse {
     }
   }
 
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
+  toJson() {
+    /*final Map<String, dynamic> data = new Map<String, dynamic>();
     data['responseMessage'] = this.responseMessage;
     data['statusCode'] = this.statusCode;
     if (this.responseData != null) {
       data['responseData'] = this.responseData.map((v) => v.toJson()).toList();
     }
-    return data;
+    return data;*/
+    return jsonEncode( {
+      'responseMessage': this.responseMessage,
+      'statusCode': this.statusCode,
+      'responseData' : this.responseData.map((v) => v.toJson()).toList()
+    });
   }
 }
 
