@@ -301,7 +301,7 @@ class _QuestionListScreenState extends State<QuestionListScreen>
             /* mQuestionMaster[index].allquestion[jIndex].answers[0].answerType == 'YesNo' ?
                   mQuestionMaster[index].allquestion[jIndex].userAnswers : ''*/
             }</AnswerId>'
-                '<Files>${decodeFile(mQuestionMaster[index]
+                '<Files>${encodeFile(mQuestionMaster[index]
                 .allquestion[jIndex]
                 .files)}</Files><Remarks>${mQuestionMaster[index]
                 .allquestion[jIndex].answers[0].answerType == 'YesNo'
@@ -328,7 +328,7 @@ class _QuestionListScreenState extends State<QuestionListScreen>
                 .convertShortDate(DateTime
                 .now())}</SubmissionDate><Question_Id>${mQuestionMaster[index]
                 .allquestion[jIndex]
-                .Question_Id}</Question_Id><Files>${decodeFile(mQuestionMaster[index]
+                .Question_Id}</Question_Id><Files>${encodeFile(mQuestionMaster[index]
                 .allquestion[jIndex]
                 .files)}</Files><AnswerId>${
                 getAnswerId(mQuestionMaster[index].allquestion[jIndex].answers,
@@ -387,11 +387,12 @@ class _QuestionListScreenState extends State<QuestionListScreen>
   }
 
   decodeFile(String url){
-    String link = url.replaceAll('&', '&amp;');
-    return link.replaceAll('___', '&');
+    return url.replaceAll('&amp;', '&');
   }
   encodeFile(String url){
-    return url.replaceAll('&amp;', '&');
+    String link = url.replaceAll('___', '&');
+    link = link.replaceAll('&', '&amp;');
+    return link;
   }
 
   @override
