@@ -280,8 +280,8 @@ class _QuestionListScreenState extends State<QuestionListScreen>
       for (int index = 0; index < mQuestionMaster.length; index++) {
         for (int jIndex = 0; jIndex <
             mQuestionMaster[index].allquestion.length; jIndex++) {
-          if (mQuestionMaster[index].allquestion[jIndex].userAnswers
-              .isNotEmpty ||  mQuestionMaster[index].allquestion[jIndex].files.isNotEmpty) {
+          if (mQuestionMaster[index].allquestion[jIndex].answers[0].answerType=='YesNo' && (mQuestionMaster[index].allquestion[jIndex].userAnswers.isNotEmpty || mQuestionMaster[index].allquestion[jIndex].files.isNotEmpty) ) {
+
             docXml = '${docXml}<tblPJPCVF_Answer><SubmissionDate>${Utility
                 .convertShortDate(DateTime
                 .now())}</SubmissionDate><Question_Id>${mQuestionMaster[index]
@@ -302,12 +302,10 @@ class _QuestionListScreenState extends State<QuestionListScreen>
                 : mQuestionMaster[index].allquestion[jIndex].userAnswers
                 .isNotEmpty ? mQuestionMaster[index].allquestion[jIndex]
                 .userAnswers : '' }</Remarks></tblPJPCVF_Answer>';
-          } else if (userAnswerMap[mQuestionMaster[index].allquestion[jIndex]
-              .Question_Id] != null &&
-              userAnswerMap[mQuestionMaster[index].allquestion[jIndex]
+          } else if (mQuestionMaster[index].allquestion[jIndex].answers[0].answerType !='YesNo' && (userAnswerMap[mQuestionMaster[index].allquestion[jIndex].Question_Id] != null && userAnswerMap[mQuestionMaster[index].allquestion[jIndex]
                   .Question_Id]
                   .toString()
-                  .isNotEmpty || mQuestionMaster[index].allquestion[jIndex].files.isNotEmpty) {
+                  .isNotEmpty || mQuestionMaster[index].allquestion[jIndex].files.isNotEmpty)) {
             docXml =
             '${docXml}<tblPJPCVF_Answer><SubmissionDate>${Utility
                 .convertShortDate(DateTime
@@ -859,7 +857,6 @@ class _QuestionListScreenState extends State<QuestionListScreen>
   }
 
   updateAnswers(Allquestion questions, String answers) {
-    //print('updateAnswers ${questions.Question_Id} ${answers}');
     if (userAnswerMap.containsKey(questions.Question_Id.toString())) {
       userAnswerMap.update(
           questions.Question_Id.toString(), (value) => answers);
@@ -1114,7 +1111,7 @@ class _QuestionListScreenState extends State<QuestionListScreen>
               border: Border.all(color: Colors.grey),
             ),
             child: Center(
-                child: Text(questions.Remarks.isNotEmpty
+                child: Text(questions.Remarks.isNotEmpty && questions.Remarks !='null'
                     ? questions.Remarks
                     : (userAnswerMap.containsKey(questions.Question_Id) &&
                     userAnswerMap[questions.Question_Id]
@@ -1247,8 +1244,7 @@ class _QuestionListScreenState extends State<QuestionListScreen>
                             if (_textEditingController.text
                                 .toString()
                                 .isNotEmpty) {
-                              updateAnswers(question,
-                                  _textEditingController.text.toString());
+                              updateAnswers(question,_textEditingController.text.toString());
                               Navigator.of(context).pop();
                             }
                           },

@@ -373,7 +373,7 @@ class DBHelper {
     var dbclient = await db;
     try {
       await dbclient.rawUpdate('update ${LocalConstant
-          .TABLE_CVF_QUESTION_JSON} set issync = \'${json}\' ,${DBConstant
+          .TABLE_CVF_QUESTION_JSON} set is_sync = \'${json}\' ,${DBConstant
           .IS_SYNC} = \'${isSync}\' ,${DBConstant.MODIFIED_DATE} = \'${Utility
           .parseDate(DateTime.now())}\'   where ${DBConstant.CVF_ID}=${cvfId}');
     }catch(e){
