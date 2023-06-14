@@ -1528,15 +1528,14 @@ class _QuestionListScreenState extends State<QuestionListScreen>
       var fileExt = filePath[0].split('/');
       String title = fileExt[fileExt.length-1].toString();
 
-
       Navigator.push(
         context,
         MaterialPageRoute(
           builder: (context) =>
-              MyPdfApp(worksheetUrl: (question.files),
+              MyPdfApp(worksheetUrl: question.files,
                 title: title,
                 filename: title,
-                module: 'CVF',),
+                module: '',),
         ),
       );
     } else {
@@ -1569,6 +1568,7 @@ class _QuestionListScreenState extends State<QuestionListScreen>
     if(url.contains('%2F')){
       url = Uri.decodeFull(url);
     }
+    print('decoe file ${url}');
     return url;
   }
 
