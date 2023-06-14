@@ -302,9 +302,9 @@ class _QuestionListScreenState extends State<QuestionListScreen>
                 : mQuestionMaster[index].allquestion[jIndex].userAnswers
                 .isNotEmpty ? mQuestionMaster[index].allquestion[jIndex]
                 .userAnswers : '' }</Remarks></tblPJPCVF_Answer>';
-          } else if (mQuestionMaster[index].allquestion[jIndex].answers[0].answerType !='YesNo' && (userAnswerMap[mQuestionMaster[index].allquestion[jIndex].Question_Id] != null && userAnswerMap[mQuestionMaster[index].allquestion[jIndex]
-                  .Question_Id]
-                  .toString()
+          } else if (mQuestionMaster[index].allquestion[jIndex].answers[0].answerType !='YesNo'
+              && (userAnswerMap[mQuestionMaster[index].allquestion[jIndex].Question_Id] != null
+                  && userAnswerMap[mQuestionMaster[index].allquestion[jIndex].Question_Id].toString()
                   .isNotEmpty || mQuestionMaster[index].allquestion[jIndex].files.isNotEmpty)) {
             docXml =
             '${docXml}<tblPJPCVF_Answer><SubmissionDate>${Utility
@@ -322,12 +322,13 @@ class _QuestionListScreenState extends State<QuestionListScreen>
                 .allquestion[jIndex].answers[0].answerType == 'YesNo' ? userAnswerMap[mQuestionMaster[index]
                 .allquestion[jIndex].Question_Id].toString() : ''*/
             }</AnswerId>'
-                '<Remarks>${mQuestionMaster[index]
-                .allquestion[jIndex].answers[0].answerType == 'YesNo'
-                ? ''
-                : userAnswerMap[mQuestionMaster[index]
-                .allquestion[jIndex].Question_Id]
-                .toString()} </Remarks></tblPJPCVF_Answer>';
+                '<Remarks>${userAnswerMap[mQuestionMaster[index].allquestion[jIndex].Question_Id].toString().isEmpty || userAnswerMap[mQuestionMaster[index].allquestion[jIndex].Question_Id].toString() =='null'
+                ? mQuestionMaster[index].allquestion[jIndex].Remarks
+                : userAnswerMap[mQuestionMaster[index].allquestion[jIndex].Question_Id].toString()}</Remarks></tblPJPCVF_Answer>';
+
+            print(mQuestionMaster[index].allquestion[jIndex].question);
+            print(userAnswerMap[mQuestionMaster[index].allquestion[jIndex].Question_Id].toString());
+            print(mQuestionMaster[index].allquestion[jIndex].Remarks);
           }
         }
       }
@@ -1192,8 +1193,7 @@ class _QuestionListScreenState extends State<QuestionListScreen>
   }
 
   showBottomSheet(Allquestion question, String hint) {
-    _textEditingController.text =
-    question.userAnswers.isNotEmpty ? question.userAnswers : '';
+    _textEditingController.text = question.userAnswers.isNotEmpty ? question.userAnswers : question.Remarks.isNotEmpty && question.Remarks !='null' ? question.Remarks : '';
     showModalBottomSheet(
       isScrollControlled: true,
       backgroundColor: Colors.white,

@@ -386,6 +386,7 @@ class _MyPjpReportListState extends State<MyPjpReportScreen> implements onRespon
     return GestureDetector(
       onTap: () {
         if(pjpInfo.ApprovalStatus =='Approved') {
+          pjpInfo.isSelfPJP='0';
           Navigator.push(
               context,
               MaterialPageRoute(
