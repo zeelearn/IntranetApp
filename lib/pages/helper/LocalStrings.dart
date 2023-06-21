@@ -28,6 +28,7 @@ class LocalStrings {
   static const String GET_APPROVE_LEAVE_REQUISITION_MULTIPLE = '/api/Leave/UpdateWorkflowGenericNew';
   static const String GET_APPROVE_ATTENDANCE_REQUISITION_NEW = '/api/EmployeeInfo/AttendanceMarkingNew';
   static const String UPDATE_FCM = '/api/EmployeeInfo/Insert_FCM_Table';
+  static const String GET_PHPSTATUSBYEMPID = '/api/PJP/GetPJPByEmpID';
 
   static const String GET_EMPLOYEE_LIST = '/api/EmployeeInfo/GetEmployees';
 
