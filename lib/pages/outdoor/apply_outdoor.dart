@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hive/hive.dart';
 import 'package:intl/intl.dart';
+import 'package:intranet/api/request/leave/php_checker.dart';
 import 'package:intranet/api/response/LeaveRequisitionResponse.dart';
 import 'package:intranet/pages/helper/LocalConstant.dart';
 import 'package:intranet/pages/helper/utils.dart';
@@ -9,8 +10,10 @@ import 'package:intranet/pages/iface/onClick.dart';
 import 'package:intranet/pages/widget/MyWidget.dart';
 import '../../api/APIService.dart';
 import '../../api/request/apply_leave_request.dart';
+import '../../api/request/leave/pjp_response.dart';
 import '../../api/response/apply_leave_response.dart';
 import '../helper/LightColor.dart';
+import '../pjp/add_new_pjp.dart';
 import '../utils/theme/colors/light_colors.dart';
 
 class ApplyOutDoorScreen extends StatefulWidget {
@@ -214,7 +217,8 @@ class _ApplyOutDoorScreen extends State<ApplyOutDoorScreen> implements onClickLi
         if (startDate.isAfter(endDate)) {
           Utility.showMessage(context, 'Please Enter Valid Time');
         }else {
-          applyOutdoor();
+          //applyOutdoor();
+          checkPJPStatus();
         }
       }
 
@@ -226,6 +230,54 @@ class _ApplyOutDoorScreen extends State<ApplyOutDoorScreen> implements onClickLi
     _fromTimeController.text = '';
     _toTimeController.text = '';
     _jobDescController.text = '';
+  }
+
+  checkPJPStatus() {
+    Utility.showLoaderDialog(context);
+    //2022-01-17T10:26:02
+    CheckPhpRequest request = CheckPhpRequest(Employee_id: widget.employeeId.toString(),
+        OnDate: DateFormat('yyyy-MM-dd').format(parseDateTime('${_startDateController.text} ${_fromTimeController.text}')));
+    print(request.toJson());
+    APIService apiService = APIService();
+    apiService.getPhpByDate(request).then((value) {
+      if (value != null) {
+        Navigator.of(context).pop();
+        if (value == null || value.responseData == null) {
+          Utility.showMessage(context, 'Unable to Apply Outdoor Request');
+        } else if (value == null || value.responseData == null) {
+          Utility.showMessage(context, 'Unable to Apply Outdoor Request');
+        } else if (value is PJPListResponse) {
+          PJPListResponse response = value;
+          if(response.responseMessage.isNotEmpty) {
+            if(response.responseData[0].isMandatory){
+              if(response.responseData[0].count>0){
+                //allow to insert
+                Utility.showWarning(context, response.responseData[0].msg, '','alert_animation','Apply', this);
+              }else{
+                //restrict
+                Utility.getAlertDialog(context, response.responseData[0].msg, this);
+              }
+            }else{
+              //warning and continue
+              if(response.responseData[0].count>0) {
+                Utility.showWarning(context, response.responseData[0].msg, '', 'alert_animation','Apply', this);
+              }else{
+                Utility.showWarning(context, response.responseData[0].msg, '', 'warning','Apply Anyway ', this);
+              }
+            }
+            /*Utility.showMessageSingleButton(
+                context, "Outdoor Request successfully submitted", this);*/
+          }else{
+            Utility.showMessageSingleButton(context, response.responseMessage, this);
+          }
+
+        }
+      } else {
+        Navigator.pop(context);
+        Utility.showMessages(context, "Unable to Apply Outdoor Request");
+        print("null value");
+      }
+    });
   }
 
   applyOutdoor() {
@@ -302,7 +354,21 @@ class _ApplyOutDoorScreen extends State<ApplyOutDoorScreen> implements onClickLi
 
   @override
   void onClick(int action, value) {
-    Navigator.pop(context, 'DONE');
+    if (action == Utility.ACTION_CONFIRM) {
+      applyOutdoor();
+    }else if (action == Utility.ACTION_ADDPJP) {
+      Navigator.pop(context, 'DONE');
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (context) => AddNewPJPScreen(employeeId: widget.employeeId,)),
+      );
+    }else if (action == Utility.ACTION_OK) {
+      Navigator.pop(context, 'DONE');
+    }else if (action == Utility.ACTION_CCNCEL) {
+      Navigator.pop(context, 'DONE');
+    }else
+      Navigator.pop(context, 'DONE');
   }
 
 

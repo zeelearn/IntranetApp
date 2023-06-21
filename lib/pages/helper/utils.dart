@@ -26,8 +26,11 @@ enum TaskPageStatus {
 class Utility{
 
   static int ACTION_OK=100012;
+  static int ACTION_CONFIRM=100018;
+  static int ACTION_ALERT_OK=100019;
   static int ACTION_REJECT=100014;
   static int ACTION_CCNCEL=100013;
+  static int ACTION_ADDPJP=100015;
 
   static showLoader(){
     return Lottie.asset('assets/json/loading.json');
@@ -500,6 +503,46 @@ class Utility{
     );
   }
 
+  static getAlertDialog(BuildContext context,String message,onClickListener response){
+    Dialogs.materialDialog(
+      color: Colors.white,
+      msg: message,
+      title: 'Alert',
+      lottieBuilder: Lottie.asset(
+        'assets/json/error.json',
+        fit: BoxFit.contain,
+      ),
+      dialogWidth: kIsWeb ? 0.3 : null,
+      context: context,
+      actions: [
+        IconsButton(
+          onPressed: () {
+            Future.delayed(Duration(milliseconds: 50)).then((_) {
+              response.onClick(ACTION_ADDPJP, 'addpjp');
+            });
+          },
+          text: 'ADD PJP',
+          iconData: Icons.location_pin,
+          color: Colors.blue,
+          textStyle: TextStyle(color: Colors.white),
+          iconColor: Colors.white,
+        ),
+        IconsButton(
+          onPressed: () {
+            Future.delayed(Duration(milliseconds: 50)).then((_) {
+              response.onClick(ACTION_OK, 'ok');
+            });
+          },
+          text: 'OK',
+          iconData: Icons.done,
+          color: Colors.blue,
+          textStyle: TextStyle(color: Colors.white),
+          iconColor: Colors.white,
+        ),
+      ],
+    );
+  }
+
   static onSuccessMessage(BuildContext context,String title,String message,onResponse response){
     Dialogs.materialDialog(
       color: Colors.white,
@@ -681,6 +724,48 @@ class Utility{
     if (!kIsWeb && !Hive.isBoxOpen(LocalConstant.KidzeeDB))
       Hive.init((await getApplicationDocumentsDirectory()).path);
     return await Hive.openBox(LocalConstant.KidzeeDB);
+  }
+
+  static showWarning(BuildContext context,String title,String description,String filename,String oklabel,onClickListener response){
+    Dialogs.materialDialog(
+      color: Colors.white,
+      msg: description,
+      title: title,
+      lottieBuilder: Lottie.asset(
+        'assets/json/${filename}.json',
+        fit: BoxFit.contain,
+        width: 20
+      ),
+      dialogWidth: kIsWeb ? 0.3 : null,
+      context: context,
+      actions: [
+        IconsButton(
+          onPressed: () {
+            Future.delayed(Duration(milliseconds: 50)).then((_) {
+              Navigator.of(context, rootNavigator: true).pop('dialog');
+              response.onClick(ACTION_CONFIRM,'Alert');
+            });
+          },
+          text: oklabel,
+
+          color: Colors.blue,
+          textStyle: TextStyle(color: Colors.white),
+          iconColor: Colors.white,
+        ),IconsButton(
+          onPressed: () {
+            Future.delayed(Duration(milliseconds: 50)).then((_) {
+              Navigator.of(context, rootNavigator: true).pop('dialog');
+              response.onClick(ACTION_CCNCEL,'Cancel');
+            });
+          },
+          text: 'Cancel',
+
+          color: Colors.blue,
+          textStyle: TextStyle(color: Colors.white),
+          iconColor: Colors.white,
+        ),
+      ],
+    );
   }
 
 }

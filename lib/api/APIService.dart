@@ -17,6 +17,8 @@ import 'package:intranet/api/request/cvf/save_cvfquestions_request.dart';
 import 'package:intranet/api/request/cvf/update_cvf_status_request.dart';
 import 'package:intranet/api/request/fcm_request.dart';
 import 'package:intranet/api/request/leave/leave_approve_request.dart';
+import 'package:intranet/api/request/leave/php_checker.dart';
+import 'package:intranet/api/request/leave/pjp_response.dart';
 import 'package:intranet/api/request/leave_balance_req.dart';
 import 'package:intranet/api/request/leave_request.dart';
 import 'package:intranet/api/request/leavelist_request_man.dart';
@@ -954,6 +956,36 @@ class APIService {
           );
         }else {
           return FcmResponse.fromJson(
+            json.decode(response.body),
+          );
+        }
+      } else {
+        return null; //LoginResponseModel(token:"",Status:"Invalid/Wrong Login Details");
+      }
+    } catch (e) {
+      print(e.toString());
+      e.toString();
+    }
+  }
+
+  Future<dynamic> getPhpByDate(CheckPhpRequest requestModel) async {
+    try {
+      print(Uri.parse(url + LocalStrings.GET_PHPSTATUSBYEMPID));
+      print(requestModel.toJson());
+      final response = await http.post(Uri.parse(url + LocalStrings.GET_PHPSTATUSBYEMPID),
+          headers: {
+            "Accept": "application/json",
+            "content-type": "application/json"
+          },
+          body:requestModel.toJson());
+      print(response.body);
+      if (response.statusCode == 200 || response.statusCode == 400) {
+        if(response.body is PJPListResponse){
+          return PJPListResponse.fromJson(
+            json.decode(response.body),
+          );
+        }else {
+          return PJPListResponse.fromJson(
             json.decode(response.body),
           );
         }
