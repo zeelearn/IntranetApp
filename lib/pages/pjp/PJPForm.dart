@@ -51,6 +51,7 @@ class _AddNewPjp extends State<AddNewPjp> {
   TextEditingController _remarkController = TextEditingController();
   StepInfo mStepInfo = StepInfo();
   int employeeId = 0;
+  int businessId = 0;
 
   @override
   void initState() {
@@ -80,8 +81,8 @@ class _AddNewPjp extends State<AddNewPjp> {
   Future<void> getUserInfo() async {
     var hiveBox = Hive.box(LocalConstant.KidzeeDB);
     await Hive.openBox(LocalConstant.KidzeeDB);
-    employeeId =
-        int.parse(hiveBox.get(LocalConstant.KEY_EMPLOYEE_ID) as String);
+    employeeId =int.parse(hiveBox.get(LocalConstant.KEY_EMPLOYEE_ID) as String);
+    businessId =hiveBox.get(LocalConstant.KEY_BUSINESS_ID);
     getPjpList();
     getCategoryList();
   }
@@ -177,7 +178,7 @@ class _AddNewPjp extends State<AddNewPjp> {
     if (pjpListModels != null) {
       mPjpList.addAll(pjpListModels);
     }
-    List<FranchiseeInfo> franchiseeList = await helper.getFranchiseeList();
+    List<FranchiseeInfo> franchiseeList = await helper.getFranchiseeList(businessId);
     mFrianchiseeList.clear();
     if (franchiseeList == null || franchiseeList.length == 0) {
       print('data load ssss');
@@ -203,7 +204,7 @@ class _AddNewPjp extends State<AddNewPjp> {
     DateTime time = DateTime.now();
     DateTime selectedDate = new DateTime(time.year, time.month - 1, time.day);
     CentersRequestModel requestModel =
-        CentersRequestModel(EmployeeId: employeeId, Brand: 1);
+        CentersRequestModel(EmployeeId: employeeId, Brand: businessId);
     APIService apiService = APIService();
     apiService.getCVFCenters(requestModel).then((value) {
       print(value.toString());
@@ -267,7 +268,7 @@ class _AddNewPjp extends State<AddNewPjp> {
         FromDate: Utility.convertShortDate(mPjpModel.fromDate),
         ToDate: Utility.convertShortDate(mPjpModel.toDate),
         ByEmployee_Id: employeeId.toString(),
-        remarks: _remarkController.text.toString());
+        remarks: _remarkController.text.toString(), Business_Id: businessId);
     print(request.toJson());
     APIService apiService = APIService();
     apiService.addNewPJP(request).then((value) {
@@ -304,6 +305,7 @@ class _AddNewPjp extends State<AddNewPjp> {
     Utility.showLoaderDialog(context);
     print('categoty');
     AddPJPRequest request = AddPJPRequest(
+        Business_Id: businessId,
         FromDate: Utility.convertShortDate(model.fromDate),
         ToDate: Utility.convertShortDate(model.toDate),
         ByEmployee_Id: employeeId.toString(),

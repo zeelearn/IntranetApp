@@ -32,6 +32,7 @@ class MyPjpListScreen extends StatefulWidget {
 class _MyPjpListState extends State<MyPjpListScreen> implements onResponse,onClickListener{
   List<PJPInfo> mPjpList = [];
   int employeeId = 0;
+  int businessId = 0;
   var hiveBox;
   bool isLoading=true;
   //FilterSelection mFilterSelection = FilterSelection(filters: [], type: FILTERStatus.MYSELF);
@@ -54,6 +55,7 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse,onCli
     hiveBox = await Utility.openBox();
     await Hive.openBox(LocalConstant.KidzeeDB);
     employeeId = int.parse(hiveBox.get(LocalConstant.KEY_EMPLOYEE_ID) as String);
+    businessId = hiveBox.get(LocalConstant.KEY_BUSINESS_ID);
 
 
     isInternet = await Utility.isInternet();
@@ -168,7 +170,7 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse,onCli
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
-          builder: (context) => AddNewPJPScreen(employeeId: employeeId,)),
+          builder: (context) => AddNewPJPScreen(employeeId: employeeId, businessId: businessId,)),
     );
     //print('Response Received');
 

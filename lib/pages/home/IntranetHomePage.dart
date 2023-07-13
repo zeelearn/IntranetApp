@@ -2,19 +2,17 @@ import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:hive/hive.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:in_app_update/in_app_update.dart';
 import 'package:intl/intl.dart';
+import 'package:intranet/api/response/login_response.dart';
 import 'package:intranet/pages/helper/LocalConstant.dart';
 import 'package:intranet/pages/helper/utils.dart';
 import 'package:intranet/pages/leave/leave_list.dart';
@@ -25,6 +23,8 @@ import 'package:intranet/pages/userinfo/employee_list.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:table_calendar/table_calendar.dart';
 
+import '../../api/APIService.dart';
+import '../../api/request/login_request.dart';
 import '../attendance/attendance_list.dart';
 import '../attendance/attendance_marking.dart';
 import '../attendance/manager_screen.dart';
@@ -85,11 +85,14 @@ class _IntranetHomePageState extends State<IntranetHomePage>
   DateTime? _rangeEnd;
   Map<DateTime, List<PJPModel>> attendanceEvent = Map();
   int employeeId = 0;
+  int businessId = 0;
+  String _currentBusinessName = '';
   String mDesignation = '';
   String _profileImage = 'https://cdn-icons-png.flaticon.com/128/149/149071.png';
   Uint8List? _profileAvtar;
   List<PJPModel> mPjpList = [];
   late String mTitle = "";
+  var hiveBox;
 
   bool _flexibleUpdateAvailable = false;
   AppUpdateInfo? _updateInfo;
@@ -97,6 +100,178 @@ class _IntranetHomePageState extends State<IntranetHomePage>
   FirebaseAnalytics analytics = FirebaseAnalytics.instance;
   FirebaseMessaging messaging = FirebaseMessaging.instance;
   String appVersion = '';
+  List<BusinessApplications> businessApplications =[];
+
+  updateCurrentBusiness(int bid,String name) async {
+    hiveBox = await Utility.openBox();
+    await Hive.openBox(LocalConstant.KidzeeDB);
+    hiveBox.put(LocalConstant.KEY_BUSINESS_ID, bid);
+    hiveBox.put(LocalConstant.KEY_BUSINESS_NAME, name);
+    setState(() {
+      _currentBusinessName = name;
+    });
+  }
+
+
+  void validate(BuildContext context) async {
+    hiveBox = await Utility.openBox();
+    await Hive.openBox(LocalConstant.KidzeeDB);
+    String userName  = hiveBox.get(LocalConstant.KEY_USER_NAME);
+    String userPassword  = hiveBox.get(LocalConstant.KEY_USER_PASSWORD);
+    String loginResponse  = hiveBox.get(LocalConstant.KEY_LOGIN_RESPONSE);
+    if(loginResponse.isEmpty || userName.isNotEmpty && userPassword.isNotEmpty){
+      Utility.showLoaderDialog(context);
+      LoginRequestModel loginRequestModel = LoginRequestModel(
+        userName: userName,
+        password: userPassword,
+      );
+      APIService apiService = APIService();
+      apiService.login(loginRequestModel).then((value) {
+        print(value.toString());
+        if (value != null) {
+          setState(() {
+            //isApiCallProcess = false;
+          });
+          if(value==null || value.responseData==null){
+            //Utility.showMessage(context,'Invalid UserName/Password');
+          }else if(value is LoginResponseInvalid){
+            LoginResponseInvalid responseInvalid = value;
+            //Utility.showMessage(context, responseInvalid.responseData);
+          }else {
+            List<EmployeeDetails> infoList = value.responseData.employeeDetails;
+            if (infoList == null || infoList.length <= 0) {
+              //Utility.showMessage(context, 'Invalid UserName/Password');
+            } else {
+              EmployeeDetails info = value.responseData.employeeDetails[0];
+              var hive = Hive.box(LocalConstant.KidzeeDB);
+              // // Save an integer value to 'counter' key.
+              hive.put(
+                  LocalConstant.KEY_EMPLOYEE_ID, info.employeeId.toInt().toString());
+              hive.put(
+                  LocalConstant.KEY_EMPLOYEE_CODE, info.employeeCode as String);
+              hive.put(
+                  LocalConstant.KEY_FIRST_NAME,
+                  info.employeeFirstName as String);
+              hive.put(LocalConstant.KEY_LAST_NAME, info.employeeLastName as String);
+              hive.put(LocalConstant.KEY_DOJ, info.employeeDateOfJoining as String);
+              hive.put(LocalConstant.KEY_EMP_SUPERIOR_ID,
+                  info.employeeSuperiorId.toInt().toString());
+              hive.put(LocalConstant.KEY_DEPARTMENT,
+                  info.employeeDepartmentName as String);
+              hive.put(LocalConstant.KEY_DESIGNATION,
+                  info.employeeDesignation as String);
+              hive.put(
+                  LocalConstant.KEY_EMAIL, info.employeeEmailId as String);
+              hive.put(LocalConstant.KEY_CONTACT,
+                  info.employeeContactNumber as String);
+              hive.put(LocalConstant.KEY_IS_ACTIVE, info.isActive);
+              hive.put(LocalConstant.KEY_ISCEO, info.isCEO);
+              hive.put(
+                  LocalConstant.KEY_IS_BUSINESS_HEAD, info.isBusinessHead);
+              hive.put(
+                  LocalConstant.KEY_USER_NAME, info.userName as String);
+              hive.put(LocalConstant.KEY_USER_PASSWORD, info.userPassword as String);
+              hive.put(LocalConstant.KEY_DOB, info.employeeDateOfBirth as String);
+              hive.put(LocalConstant.KEY_GRADE, info.employeeGrade as String);
+              hive.put(LocalConstant.KEY_DATE_OF_MARRAGE,info.employeeDateOfMarriage as String);
+              hive.put(LocalConstant.KEY_LOCATION, info.employeeLocation as String);
+              hive.put(LocalConstant.KEY_GENDER, info.gender as String);
+
+              FirebaseAnalyticsUtils.sendEvent(info.userName);
+              hive.put(LocalConstant.KEY_LOGIN_RESPONSE, jsonEncode(value));
+              try {
+                hive.put(LocalConstant.KEY_BUSINESS_ID,
+                    value.responseData.businessApplications[0].businessID);
+              }catch(e){}
+              print('========Login Form ====== ${jsonEncode(value)}');
+              getLoginResponse();
+            }
+          }
+          Navigator.of(context).pop();
+          setState(() {
+
+          });
+        } else {
+          Navigator.pop(context);
+          //Utility.showMessage(context, "Invalid User Name and Password");
+          print("null value");
+        }
+      });
+
+    } else {
+
+    }
+  }
+
+  getLoginResponse() async {
+    print('in Login Response ================');
+    businessApplications.clear();
+    hiveBox = await Utility.openBox();
+    await Hive.openBox(LocalConstant.KidzeeDB);
+    var loginresponse = hiveBox.get(LocalConstant.KEY_LOGIN_RESPONSE);
+      print('login Response is : '+loginresponse);
+    try {
+      LoginResponseModel response = LoginResponseModel.fromJson(
+        json.decode(loginresponse),
+      );
+      print('response received.....');
+      if (response != null && response.responseData.businessApplications != null)
+        businessApplications.addAll(response.responseData.businessApplications);
+      if(_currentBusinessName.isNotEmpty && businessApplications!=null && businessApplications.length>0){
+        _currentBusinessName = businessApplications[0].businessName;
+      }
+      setState(() {});
+    }catch(e){
+      print('Error in getting login response');
+      print(e.toString());
+      //IntranetServiceHandler.loadPjpSummery(employeeId, 0, this);
+    }
+  }
+
+  Future<void> showBusinessListDialog(isFromDrawar) {
+    if(businessApplications==null || businessApplications.length<=0){
+      return showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              title: Text("Alert"),
+              content: Text('No Business has been markied in your account'),
+            );
+          });
+    }else
+      return showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              title: Text("Select Business"),
+              content: Container(
+                width: 300.0,
+                child: ListView.builder(
+                  itemCount: businessApplications.length,
+                  shrinkWrap: true,
+                  itemBuilder: (context, index) {
+                    return Container(
+                        child:  Card(
+                            color: businessId == businessApplications[index].businessID ? Colors.white54 : Colors.white,
+                            child: GestureDetector(
+                              onTap: (){
+                                Navigator.pop(context);
+                                if(isFromDrawar)
+                                  Navigator.pop(context);
+                                updateCurrentBusiness(businessApplications[index].businessID,businessApplications[index].businessName);
+                              },
+                              child: ListTile(
+                                title: Text(businessApplications[index].businessName),
+                              ),
+                            )
+                        )
+                    );
+                  },
+                ),
+              ),
+            );
+          });
+  }
 
   @override
   void initState() {
@@ -106,13 +281,14 @@ class _IntranetHomePageState extends State<IntranetHomePage>
       print(message.toString());
     });
     super.initState();
-    print('initstate');
+    print('initstate ======================');
     _selectedDay = _focusedDay;
     _selectedEvents = ValueNotifier(_getEventsForDay(_selectedDay!));
     //addEvent();
     getUserInfo();
     //_listenForMessages();
-
+    getLoginResponse();
+    validate(context);
     //_listenForMessages();
     if (Platform.isAndroid) {
       checkForUpdate();
@@ -208,6 +384,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
     mTitle = hiveBox.get(LocalConstant.KEY_FIRST_NAME).toString() +
         " " +
         hiveBox.get(LocalConstant.KEY_LAST_NAME).toString();
+    _currentBusinessName = hiveBox.get(LocalConstant.KEY_BUSINESS_NAME).toString();
     _profileImage = 'https://cdn-icons-png.flaticon.com/128/149/149071.png';
     String sex = hiveBox.get(LocalConstant.KEY_GENDER) as String;
     if(imageUrl!=null){
@@ -521,12 +698,26 @@ class _IntranetHomePageState extends State<IntranetHomePage>
   AppBar getAppbar() {
     return AppBar(
       backgroundColor: kPrimaryLightColor,
-      centerTitle: true,
-      title: Text(
-        mTitle,
-        style:
+      centerTitle: false,
+      title: Column(mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+          Text(
+            mTitle,
+            style:
             TextStyle(fontSize: 17, color: Colors.white, letterSpacing: 0.53),
-      ),
+          ),
+          InkWell(
+            onTap: () {
+              showBusinessListDialog(false);
+            },
+            child: Padding(
+              padding: const EdgeInsets.all(0),
+              child: Text(_currentBusinessName,style:
+              TextStyle(fontSize: 12, color: Colors.white, letterSpacing: 0.53)),
+            ),
+          ),
+      ],),
       /*shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
           bottom: Radius.circular(20),
@@ -595,7 +786,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
         break;
       case MENU_OUTDOOR:
         return OutdoorScreen(
-          displayName: mTitle,
+          displayName: mTitle, businessId: businessId,
         );
         break;
       case MENU_LEAVE:
@@ -769,12 +960,23 @@ class _IntranetHomePageState extends State<IntranetHomePage>
       children: <Widget>[
         UserAccountsDrawerHeader(
           onDetailsPressed: (){
-            uploadProfilePicture();
+//            uploadProfilePicture();
+            showBusinessListDialog(true);
           },
-          accountEmail: Text(mDesignation,style: TextStyle(
-            fontSize: 16.0,
-            color: Colors.white,
-          ),),
+          accountEmail: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(mDesignation,style: TextStyle(
+                fontSize: 14.0,
+                color: Colors.white,
+              ),),
+              Text(_currentBusinessName,style: TextStyle(
+                fontSize: 14.0,
+                color: Colors.white,
+              ),),
+            ],
+          ),
           accountName: Text(mTitle,style: TextStyle(
             fontSize: 20.0,
             color: Colors.white,

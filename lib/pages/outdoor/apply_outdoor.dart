@@ -20,9 +20,11 @@ class ApplyOutDoorScreen extends StatefulWidget {
   String displayName;
 
   int employeeId = 0;
+  int businessId = 0;
 
   ApplyOutDoorScreen(
       {Key? key,
+        required this.businessId,
         required this.employeeId,
         required this.displayName,
       })
@@ -361,7 +363,7 @@ class _ApplyOutDoorScreen extends State<ApplyOutDoorScreen> implements onClickLi
       Navigator.push(
         context,
         MaterialPageRoute(
-            builder: (context) => AddNewPJPScreen(employeeId: widget.employeeId,)),
+            builder: (context) => AddNewPJPScreen(employeeId: widget.employeeId, businessId: widget.businessId,)),
       );
     }else if (action == Utility.ACTION_OK) {
       Navigator.pop(context, 'DONE');

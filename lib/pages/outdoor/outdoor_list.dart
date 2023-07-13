@@ -14,9 +14,10 @@ import 'apply_outdoor.dart';
 
 class OutdoorScreen extends StatefulWidget {
   String displayName;
+  int businessId;
 
 
-  OutdoorScreen({Key? key, required this.displayName}) : super(key: key);
+  OutdoorScreen({Key? key, required this.displayName,required this.businessId}) : super(key: key);
 
   @override
   _OutdoorScreen createState() => _OutdoorScreen();
@@ -202,7 +203,7 @@ class _OutdoorScreen extends State<OutdoorScreen>
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
-          builder: (context) => ApplyOutDoorScreen(employeeId: employeeId,displayName: '',)),
+          builder: (context) => ApplyOutDoorScreen(employeeId: employeeId,displayName: '', businessId: widget.businessId,)),
     );
     print('Response Received');
 

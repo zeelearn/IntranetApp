@@ -2,6 +2,7 @@ class DBConstant{
 
   static String USER_ID ='userid';
   static String FRANCHISEE_ID ='frid';
+  static String BUSINESS_ID ='bid';
   static String STUDENT_PROGRAM_ID ='student_program_id';
   static String STUDENT_ID ='student_id';
   static String CLASS_ID ='class_id';

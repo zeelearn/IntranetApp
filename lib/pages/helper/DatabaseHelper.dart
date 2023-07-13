@@ -164,6 +164,7 @@ class DBHelper {
   static String CREATE_TABLE_CVF_FRANCHISEE = 'CREATE TABLE IF NOT EXISTS  ${LocalConstant.TABLE_CVF_FRANCHISEE}'
       '(${DBConstant.ID} INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, '
       '${DBConstant.FRANCHISEE_ID} INT, '
+      '${DBConstant.BUSINESS_ID} INT, '
       '${DBConstant.FRANCHISEE_NAME} TEXT, '
       '${DBConstant.FRANCHISEE_CODE} TEXT, '
       '${DBConstant.ZONE} TEXT, '
@@ -217,7 +218,11 @@ class DBHelper {
             }else if(old<=6){
               db.execute(CREATE_TABLE_BACKGROUND_SYNC);
             }
-        }, version: 7);
+            if(old<=7){
+              //db.execute(CREATE_TABLE_CVF_FRANCHISEE);
+              db.execute("ALTER TABLE ${LocalConstant.TABLE_CVF_FRANCHISEE} ADD COLUMN ${DBConstant.BUSINESS_ID} int;");
+            }
+        }, version: 8);
   }
 
   /// insert data to db
@@ -582,17 +587,23 @@ class DBHelper {
     return cvfList;
   }
 
-  Future<List<FranchiseeInfo>> getFranchiseeList() async {
+  Future<List<FranchiseeInfo>> getFranchiseeList(int businessId) async {
     List<FranchiseeInfo> frichiseeList = [];
 
     List<Map<String, dynamic>> list = await  DBHelper().getData(LocalConstant.TABLE_CVF_FRANCHISEE);
     if(list !=null){
       for(int index=0;index<list.length;index++) {
         Map<String, dynamic> map = list[index];
-        frichiseeList.add(FranchiseeInfo(franchiseeId: double.parse(map[DBConstant.FRANCHISEE_ID].toString()),
-            franchiseeCode: map[DBConstant.FRANCHISEE_CODE], franchiseeName: map[DBConstant.FRANCHISEE_NAME],
-            franchiseeZone: map[DBConstant.ZONE], franchiseeState: map[DBConstant.STATE], franchiseeCity: map[DBConstant.CITY]));
-        if(index>30){
+        if(map[DBConstant.BUSINESS_ID] == businessId) {
+          frichiseeList.add(FranchiseeInfo(franchiseeId: double.parse(
+              map[DBConstant.FRANCHISEE_ID].toString()),
+              franchiseeCode: map[DBConstant.FRANCHISEE_CODE],
+              franchiseeName: map[DBConstant.FRANCHISEE_NAME],
+              franchiseeZone: map[DBConstant.ZONE],
+              franchiseeState: map[DBConstant.STATE],
+              franchiseeCity: map[DBConstant.CITY]));
+        }
+        if(index>50){
           break;
         }
       }

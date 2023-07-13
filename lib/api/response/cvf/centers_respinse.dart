@@ -8,8 +8,8 @@ class CentersResponse {
   CentersResponse.fromJson(Map<String, dynamic> json) {
     responseMessage = json['responseMessage'];
     statusCode = json['statusCode'];
+    responseData = <FranchiseeInfo>[];
     if (json['responseData'] != null) {
-      responseData = <FranchiseeInfo>[];
       json['responseData'].forEach((v) {
         responseData.add(new FranchiseeInfo.fromJson(v));
       });

@@ -59,14 +59,15 @@ class _PjpState extends State<NewPJP> {
   List<String> _selectedItems = [];
   bool isAddCVF = false;
   int employeeId = 0;
+  int businessId = 0;
   String appVersion='';
   var hiveBox;
 
   Future<void> getUserInfo() async {
     hiveBox = Hive.box(LocalConstant.KidzeeDB);
     await Hive.openBox(LocalConstant.KidzeeDB);
-    employeeId =
-        int.parse(hiveBox.get(LocalConstant.KEY_EMPLOYEE_ID) as String);
+    employeeId =int.parse(hiveBox.get(LocalConstant.KEY_EMPLOYEE_ID) as String);
+    businessId =hiveBox.get(LocalConstant.KEY_EMPLOYEE_ID);
     getCvfList();
     fetchCategory();
     getFrichinseeList();
@@ -109,7 +110,7 @@ class _PjpState extends State<NewPJP> {
   getFrichinseeList() async {
     DBHelper helper = DBHelper();
 
-    List<FranchiseeInfo> franchiseeList = await helper.getFranchiseeList();
+    List<FranchiseeInfo> franchiseeList = await helper.getFranchiseeList(businessId);
 
     if (franchiseeList == null || franchiseeList.length == 0) {
       print('data load ssss');
@@ -126,7 +127,7 @@ class _PjpState extends State<NewPJP> {
     DateTime time = DateTime.now();
     DateTime selectedDate = new DateTime(time.year, time.month - 1, time.day);
     CentersRequestModel requestModel =
-    CentersRequestModel(EmployeeId: employeeId, Brand: 1);
+    CentersRequestModel(EmployeeId: employeeId, Brand: businessId);
     APIService apiService = APIService();
     apiService.getCVFCenters(requestModel).then((value) {
       print(value.toString());
@@ -137,7 +138,7 @@ class _PjpState extends State<NewPJP> {
           CentersResponse response = value;
           if (response != null && response.responseData != null) {
             mFrianchiseeList.addAll(response.responseData);
-            addCentersinDB();
+            addCentersinDB(businessId);
             setState(() {});
           }
           print('summery list ${response.responseData.length}');
@@ -150,7 +151,7 @@ class _PjpState extends State<NewPJP> {
     });
   }
 
-  addCentersinDB() async {
+  addCentersinDB(businessId) async {
     DBHelper dbHelper = DBHelper();
     for (int index = 0; index < mFrianchiseeList.length; index++) {
       Map<String, Object> data = {
@@ -159,7 +160,8 @@ class _PjpState extends State<NewPJP> {
         DBConstant.FRANCHISEE_CODE: mFrianchiseeList[index].franchiseeCode,
         DBConstant.ZONE: mFrianchiseeList[index].franchiseeZone,
         DBConstant.STATE: mFrianchiseeList[index].franchiseeState,
-        DBConstant.CITY: mFrianchiseeList[index].franchiseeCity
+        DBConstant.CITY: mFrianchiseeList[index].franchiseeCity,
+        DBConstant.BUSINESS_ID: businessId
       };
       dbHelper.insert(LocalConstant.TABLE_CVF_FRANCHISEE, data);
     }

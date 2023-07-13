@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -386,19 +388,16 @@ class _LoginPage extends State<LoginPage> {
                   LocalConstant.KEY_IS_BUSINESS_HEAD, info.isBusinessHead);
               hive.put(
                   LocalConstant.KEY_USER_NAME, info.userName as String);
-              hive.put(
-                  LocalConstant.KEY_USER_PASSWORD, info.userPassword as String);
-              hive.put(
-                  LocalConstant.KEY_DOB, info.employeeDateOfBirth as String);
-              hive.put(
-                  LocalConstant.KEY_GRADE, info.employeeGrade as String);
-              hive.put(LocalConstant.KEY_DATE_OF_MARRAGE,
-                  info.employeeDateOfMarriage as String);
-              hive.put(
-                  LocalConstant.KEY_LOCATION, info.employeeLocation as String);
+              hive.put(LocalConstant.KEY_USER_PASSWORD, info.userPassword as String);
+              hive.put(LocalConstant.KEY_DOB, info.employeeDateOfBirth as String);
+              hive.put(LocalConstant.KEY_GRADE, info.employeeGrade as String);
+              hive.put(LocalConstant.KEY_DATE_OF_MARRAGE,info.employeeDateOfMarriage as String);
+              hive.put(LocalConstant.KEY_LOCATION, info.employeeLocation as String);
               hive.put(LocalConstant.KEY_GENDER, info.gender as String);
 
               FirebaseAnalyticsUtils.sendEvent(info.userName);
+              hive.put(LocalConstant.KEY_LOGIN_RESPONSE, jsonEncode(value));
+              print('========Login Form ====== ${jsonEncode(value)}');
               Navigator.push(
                 context,
                 MaterialPageRoute(

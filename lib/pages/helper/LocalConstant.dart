@@ -35,6 +35,9 @@ class LocalConstant {
   static const String KEY_ZONE = "zone";
   static const String KEY_DATE_OF_MARRAGE= "marrage_date";
   static const String KEY_LOCATION = "location";
+  static const String KEY_LOGIN_RESPONSE ="loginresponse";
+  static const String KEY_BUSINESS_ID ="bid";
+  static const String KEY_BUSINESS_NAME ="bname";
 
   static const String KEY_CVF_QUESTIONS = "_cvfques";
   static const String KEY_MY_ATTENDANCE = "attend";

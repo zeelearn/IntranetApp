@@ -27,7 +27,8 @@ import 'models/PjpModel.dart';
 class AddNewPJPScreen extends StatefulWidget {
 
   int employeeId;
-  AddNewPJPScreen({Key? key,required this.employeeId}) : super(key: key);
+  int businessId;
+  AddNewPJPScreen({Key? key,required this.employeeId,required this.businessId}) : super(key: key);
 
   @override
   State<AddNewPJPScreen> createState() => _AddNewPJPState();
@@ -328,6 +329,7 @@ class _AddNewPJPState extends State<AddNewPJPScreen> implements onResponse,onCli
       mPjpModel.fromDate = _fromDate;
       mPjpModel.toDate = _toDate;
       AddPJPRequest request = AddPJPRequest(
+          Business_Id: widget.businessId,
           FromDate: Utility.convertShortDate(mPjpModel.fromDate),
           ToDate: Utility.convertShortDate(mPjpModel.toDate),
           ByEmployee_Id: widget.employeeId.toString(),

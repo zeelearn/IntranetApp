@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 class LoginResponseModel {
   LoginResponseModel({
     required this.responseMessage,
@@ -27,20 +29,48 @@ class ResponseData {
   ResponseData({
     required this.employeeDetails,
     required this.employeeRoles,
+    required this.businessApplications
   });
   late final List<EmployeeDetails> employeeDetails;
   late final List<EmployeeRoles> employeeRoles;
+  late final List<BusinessApplications> businessApplications;
 
   ResponseData.fromJson(Map<String, dynamic> json){
-    employeeDetails = List.from(json['employeeDetails']).map((e)=>EmployeeDetails.fromJson(e)).toList();
-    employeeRoles = List.from(json['employeeRoles']).map((e)=>EmployeeRoles.fromJson(e)).toList();
+    print('1111');
+    print(json);
+    try {
+      employeeDetails = List.from(json['employeeDetails']).map((e) =>
+          EmployeeDetails.fromJson(e)).toList();
+      employeeRoles = List.from(json['employeeRoles'])
+          .map((e) => EmployeeRoles.fromJson(e))
+          .toList();
+    }catch(e){
+      print(e.toString());
+    }
+    businessApplications = [];
+    if (json['businessApplications'] is List) {
+      print('at line 21');
+      json['businessApplications'].forEach((v) {
+        try {
+          businessApplications.add(new BusinessApplications.fromJson(v));
+        } catch (e) {
+          print('at line 21 ${v.toString()}');
+          print(e.toString());
+        }
+      });
+    }else{
+      print('at line 30');
+      businessApplications.add(BusinessApplications.fromJson(json['businessApplications']));
+    }
+    //businessApplications = List.from(json['businessApplications']).map((e)=>BusinessApplications.fromJson(e)).toList();
   }
 
   Map<String, dynamic> toJson() {
     final _data = <String, dynamic>{};
     _data['employeeDetails'] = employeeDetails.map((e)=>e.toJson()).toList();
     _data['employeeRoles'] = employeeRoles.map((e)=>e.toJson()).toList();
-    return _data;
+    _data['businessApplications'] = businessApplications.map((e)=>e.toJson()).toList();
+    return _data;//jsonEncode(businessApplications);
   }
 }
 
@@ -233,6 +263,49 @@ class EmployeeRoles {
     final _data = <String, dynamic>{};
     _data['splRole'] = splRole;
     _data['value'] = value;
+    return _data;
+  }
+}
+
+class BusinessApplications {
+  BusinessApplications({
+    required this.businessID,
+    required this.employeeId,
+    required this.businessName,
+    required this.logoPath,
+    required this.headerPath,
+    required this.footerPath,
+    required this.path,
+  });
+  late final int businessID;
+  late final String employeeId;
+  late final String businessName;
+  late final String? logoPath;
+  late final String? headerPath;
+  late final String? footerPath;
+  late final String path;
+
+  BusinessApplications.fromJson(Map<String, dynamic> json){
+    print('in fromjson');
+    print(json);
+    businessID = json['business_ID'] ?? '';
+    employeeId = json['employee_Id'] ?? 0;
+    businessName = json['business_Name'] ?? '';
+    logoPath = json['logo_Path'] ?? '';
+    headerPath = json['header_Path'] ?? '';
+    footerPath = json['footer_Path'] ?? '';
+    path = json['path'] ?? '';
+  }
+
+  Map<String, dynamic> toJson() {
+    final _data = <String, dynamic>{};
+    _data['business_ID'] = businessID;
+    _data['employee_Id'] = employeeId;
+    _data['business_Name'] = businessName;
+    _data['logo_Path'] = logoPath;
+    _data['header_Path'] = headerPath;
+    _data['footer_Path'] = footerPath;
+    _data['path'] = path;
     return _data;
   }
 }

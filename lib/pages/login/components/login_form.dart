@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
@@ -194,44 +196,30 @@ class _LoginFormState extends State<LoginForm> implements changePasswordInterfac
               Utility.showMessage(context, 'Invalid UserName/Password');
             } else {
               EmployeeDetails info = value.responseData.employeeDetails[0];
-              // // Save an integer value to 'counter' key.
+              //// Save an integer value to 'counter' key.
               hiveBox.put(LocalConstant.KEY_EMPLOYEE_ID, info.employeeId as String);
-              hiveBox.put(
-                  LocalConstant.KEY_EMPLOYEE_CODE, info.employeeCode as String);
-              hiveBox.put(
-                  LocalConstant.KEY_FIRST_NAME,
-                  info.employeeFirstName as String);
-              hiveBox.put(
-                  LocalConstant.KEY_LAST_NAME, info.employeeLastName as String);
-              hiveBox.put(
-                  LocalConstant.KEY_DOJ, info.employeeDateOfJoining as String);
-              hiveBox.put(LocalConstant.KEY_EMP_SUPERIOR_ID,
-                  info.employeeSuperiorId as String);
-              hiveBox.put(LocalConstant.KEY_DEPARTMENT,
-                  info.employeeDepartmentName as String);
-              hiveBox.put(LocalConstant.KEY_DESIGNATION,
-                  info.employeeDesignation as String);
-              hiveBox.put(
-                  LocalConstant.KEY_EMAIL, info.employeeEmailId as String);
-              hiveBox.put(LocalConstant.KEY_CONTACT,
-                  info.employeeContactNumber as String);
+              hiveBox.put(LocalConstant.KEY_EMPLOYEE_CODE, info.employeeCode as String);
+              hiveBox.put(LocalConstant.KEY_FIRST_NAME,info.employeeFirstName as String);
+              hiveBox.put(LocalConstant.KEY_LAST_NAME, info.employeeLastName as String);
+              hiveBox.put(LocalConstant.KEY_DOJ, info.employeeDateOfJoining as String);
+              hiveBox.put(LocalConstant.KEY_EMP_SUPERIOR_ID,info.employeeSuperiorId as String);
+              hiveBox.put(LocalConstant.KEY_DEPARTMENT,info.employeeDepartmentName as String);
+              hiveBox.put(LocalConstant.KEY_DESIGNATION,info.employeeDesignation as String);
+              hiveBox.put(LocalConstant.KEY_EMAIL, info.employeeEmailId as String);
+              hiveBox.put(LocalConstant.KEY_CONTACT,info.employeeContactNumber as String);
               hiveBox.put(LocalConstant.KEY_IS_ACTIVE, info.isActive);
               hiveBox.put(LocalConstant.KEY_ISCEO, info.isCEO);
-              hiveBox.put(
-                  LocalConstant.KEY_IS_BUSINESS_HEAD, info.isBusinessHead);
-              hiveBox.put(
-                  LocalConstant.KEY_USER_NAME, info.userName as String);
-              hiveBox.put(
-                  LocalConstant.KEY_USER_PASSWORD, info.userPassword as String);
-              hiveBox.put(
-                  LocalConstant.KEY_DOB, info.employeeDateOfBirth as String);
-              hiveBox.put(
-                  LocalConstant.KEY_GRADE, info.employeeGrade as String);
-              hiveBox.put(LocalConstant.KEY_DATE_OF_MARRAGE,
-                  info.employeeDateOfMarriage as String);
-              hiveBox.put(
-                  LocalConstant.KEY_LOCATION, info.employeeLocation as String);
+              hiveBox.put(LocalConstant.KEY_IS_BUSINESS_HEAD, info.isBusinessHead);
+              hiveBox.put(LocalConstant.KEY_USER_NAME, info.userName as String);
+              hiveBox.put(LocalConstant.KEY_USER_PASSWORD, info.userPassword as String);
+              hiveBox.put(LocalConstant.KEY_DOB, info.employeeDateOfBirth as String);
+              hiveBox.put(LocalConstant.KEY_GRADE, info.employeeGrade as String);
+              hiveBox.put(LocalConstant.KEY_DATE_OF_MARRAGE,info.employeeDateOfMarriage as String);
+              hiveBox.put(LocalConstant.KEY_LOCATION, info.employeeLocation as String);
 
+              hiveBox.put(LocalConstant.KEY_LOGIN_RESPONSE, jsonEncode(value.responseData));
+              print('-------------------------LOGINFORM');
+              print(jsonEncode(value.responseData));
               Navigator.push(
                 context,
                 MaterialPageRoute(

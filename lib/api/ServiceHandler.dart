@@ -19,13 +19,13 @@ class IntranetServiceHandler{
 
   static loadPjpSummery(int employeeId,int pjpId,onResponse onResponse) {
     List<PJPInfo> pjpList = [];
-    print('IntranetServiceHandler');
+    //print('IntranetServiceHandler');
     onResponse.onStart();
     PJPListRequest request = PJPListRequest(Employee_id: employeeId,PJP_id: pjpId);
-    print(request.toJson());
+    //print(request.toJson());
     APIService apiService = APIService();
     apiService.getPJPList(request).then((value) {
-      print(value.toString());
+      //print(value.toString());
       if (value != null) {
         /*String data = value.toString().replaceAll('null', '\"NA\"');
         PjpListResponse response = PjpListResponse.fromJson(

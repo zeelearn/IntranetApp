@@ -3,7 +3,7 @@ import 'dart:io';
 
 class AddPJPRequest {
   final int PJP_Id=0;
-  final int Business_Id=1;
+  final int Business_Id;
   final String Visit_Type='';
   String remarks='';
   String FromDate;
@@ -12,7 +12,7 @@ class AddPJPRequest {
   int Is_Submit=1;
 
   AddPJPRequest(
-      {required this.FromDate,required this.ToDate,required this.ByEmployee_Id,required this.remarks
+      {required this.Business_Id, required this.FromDate,required this.ToDate,required this.ByEmployee_Id,required this.remarks
       });
 
   getJson(){
