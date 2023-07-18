@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hive/hive.dart';
@@ -297,7 +299,8 @@ class _ApplyOutDoorScreen extends State<ApplyOutDoorScreen> implements onClickLi
         NosDays: 0,
         IsMaternityLeave: false,
         noofChildren: "0",
-        WorkLocation: "");
+        AppType :Platform.isAndroid ? 'Android' : Platform.isIOS ? 'IOS' : 'unknown',
+        WorkLocation: "", IsHappinessLeave: false);
     print(request.toJson());
     APIService apiService = APIService();
     apiService.applyLeave(request).then((value) {

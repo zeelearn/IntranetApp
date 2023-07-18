@@ -270,31 +270,48 @@ class _LeaveSummeryScreenState extends State<LeaveSummeryScreen>
                         style: TextStyle(
                             fontSize: 16, fontWeight: FontWeight.bold),
                       ),
-                      InkWell(
-                        onTap: () {
-                          Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => ApplyLeaveScreen(
-                                      employeeId: employeeId,
-                                      displayName: '',
-                                      applied: widget._applied,
-                                      taken: widget._taken,
-                                      rejected: widget._rejected,
-                                      totalCanceled: widget._totalCanceled,
-                                      avaliableForEncash:
-                                          widget._avaliableForEncash,
-                                      totalLeaveBalance:
-                                          widget._totalLeaveBalance)));
-                        },
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Icon(
-                            Icons.add_box,
-                            size: 20,
+                      Row(
+                        children: [
+                          InkWell(
+                            onTap: () {
+                              loadLeaveRequsition();
+                              loadSummery();
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Icon(
+                                Icons.refresh,
+                                size: 30,
+                              ),
+                            ),
                           ),
-                        ),
-                      ),
+                          InkWell(
+                            onTap: () {
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => ApplyLeaveScreen(
+                                          employeeId: employeeId,
+                                          displayName: '',
+                                          applied: widget._applied,
+                                          taken: widget._taken,
+                                          rejected: widget._rejected,
+                                          totalCanceled: widget._totalCanceled,
+                                          avaliableForEncash:
+                                          widget._avaliableForEncash,
+                                          totalLeaveBalance:
+                                          widget._totalLeaveBalance)));
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Icon(
+                                Icons.add_box,
+                                size: 30,
+                              ),
+                            ),
+                          ),
+                        ],
+                      )
                     ],
                   ),
                 ),

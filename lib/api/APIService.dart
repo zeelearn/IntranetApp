@@ -355,7 +355,7 @@ class APIService {
         'Type': requestModel.Type,
         'RequisitionTypeCode': requestModel.RequisitionTypeCode,
         'WorkLocation': requestModel.WorkLocation,
-        'WorkLocation': requestModel.WorkLocation,
+        'IsHappinessLeave': requestModel.IsHappinessLeave,
         'AppType' :Platform.isAndroid ? 'Android' : Platform.isIOS ? 'IOS' : 'unknown'
       });
       print(body);

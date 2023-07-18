@@ -11,6 +11,8 @@ class ApplyLeaveRequest {
   bool IsMaternityLeave;
   String noofChildren;
   String WorkLocation;
+  String AppType;
+  bool IsHappinessLeave;
 
   ApplyLeaveRequest(
       {required this.Requisition_Id,
@@ -24,7 +26,9 @@ class ApplyLeaveRequest {
         required this.NosDays,
         required this.IsMaternityLeave,
         required this.noofChildren,
+        required this.AppType,
         required this.WorkLocation,
+        required this.IsHappinessLeave,
       });
 
   Map<String, dynamic> toJson() {
@@ -41,6 +45,8 @@ class ApplyLeaveRequest {
       'IsMaternityLeave': IsMaternityLeave,
       'noofChildren': noofChildren,
       'WorkLocation': WorkLocation,
+      'AppType': AppType,
+      'IsHappinessLeave': IsHappinessLeave,
     };
 
     return map;

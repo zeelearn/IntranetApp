@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hive/hive.dart';
@@ -51,6 +53,9 @@ class _ApplyLeaveScreen extends State<ApplyLeaveScreen> implements onClickListen
   DateTime minDate = DateTime(DateTime.now().year, DateTime.now().month - 3, 1);
   DateTime maxDate = DateTime(DateTime.now().year, DateTime.now().month + 3, 1);
   bool isMaternaty = false;
+  bool isHappinessLeave = false;
+  bool isCompoff = false;
+  bool isCompoffEligible = false;
   String appVersion='';
   @override
   void initState() {
@@ -65,7 +70,10 @@ class _ApplyLeaveScreen extends State<ApplyLeaveScreen> implements onClickListen
     widget.employeeId =
         int.parse(hiveBox.get(LocalConstant.KEY_EMPLOYEE_ID) as String);
     widget.gender = hiveBox.get(LocalConstant.KEY_GENDER) as String;
-
+    String grade = hiveBox.get(LocalConstant.KEY_GRADE) as String;
+    if(grade.isNotEmpty && grade.contains('M1')){
+      isCompoffEligible=true;
+    }
     PackageInfo.fromPlatform().then((PackageInfo packageInfo) {
       String appName = packageInfo.appName;
       String packageName = packageInfo.packageName;
@@ -92,11 +100,27 @@ class _ApplyLeaveScreen extends State<ApplyLeaveScreen> implements onClickListen
       }
       return Colors.black;
     }
-
+int _HappinessLeave=1;
+int _CompOff=2;
+int _groupValue=0;
+    selectHappinessLeave(int timeSelected) {
+      setState(() {
+        _HappinessLeave = timeSelected;
+        _groupValue = _HappinessLeave;
+        _CompOff = 0;
+      });
+    }
+    selectCompoff(int timeSelected) {
+      setState(() {
+        _CompOff = timeSelected;
+        _groupValue = _HappinessLeave;
+        _HappinessLeave = 0;
+      });
+    }
     return Scaffold(
         resizeToAvoidBottomInset: false,
         extendBodyBehindAppBar: true,
-        backgroundColor: LightColors.kLightYellow,
+        backgroundColor: Colors.white,
         appBar: AppBar(
           title: Text(
             'Leave Application',
@@ -112,7 +136,7 @@ class _ApplyLeaveScreen extends State<ApplyLeaveScreen> implements onClickListen
 
         ),
         body: SafeArea(
-          child: Column(
+          child:  Column(
             children: [
               Container(
                 color: LightColors.kLightBlue,
@@ -133,82 +157,135 @@ class _ApplyLeaveScreen extends State<ApplyLeaveScreen> implements onClickListen
               SizedBox(
                 height: size.height * 0.01,
               ),
-              MyWidget().richText(14, 'Apply Leave Request'),
-              SizedBox(
-                height: size.height * 0.01,
-              ),
-              Container(
-                padding: EdgeInsets.only(left: 20, right: 20),
+              MyWidget().richText(12, 'Apply Leave Request'),
+              SingleChildScrollView(
                 child: Column(
                   children: [
-                    MyWidget().getDateTime(context, 'Start Date',
-                        _startDateController, minDate, maxDate),
-                    SizedBox(
-                      height: size.height * 0.03,
-                    ),
-                    MyWidget().getDateTime(context, 'End Date',
-                        _endDateController, minDate, maxDate),
-                    SizedBox(
-                      height: size.height * 0.03,
-                    ),
-                    MyWidget().normalTextAreaField(
-                        context, 'Purpose', _purposeController),
                     SizedBox(
                       height: size.height * 0.01,
                     ),
-                    widget.gender !='Male' ?
-                    Row(
-                      mainAxisSize: MainAxisSize.max,
-                      children: [
-                        Material(
-                          child: Checkbox(
-                            checkColor: Colors.white,
-                            fillColor: MaterialStateProperty.resolveWith(getColor),
-                            value: isMaternaty,
-                            onChanged: (bool? value) {
-                              setState(() {
-                                isMaternaty = value!;
-                              });
+                    Container(
+                      padding: EdgeInsets.only(left: 20, right: 20),
+                      child: Column(
+                        children: [
+                          MyWidget().getDateTime(context, 'Start Date',
+                              _startDateController, minDate, maxDate),
+                          SizedBox(
+                            height: size.height * 0.03,
+                          ),
+                          MyWidget().getDateTime(context, 'End Date',
+                              _endDateController, minDate, maxDate),
+                          SizedBox(
+                            height: size.height * 0.03,
+                          ),
+                          MyWidget().normalTextAreaField(
+                              context, 'Purpose', _purposeController),
+                          SizedBox(
+                            height: size.height * 0.01,
+                          ),
+                          widget.gender =='Female' ?
+                          Row(
+                            mainAxisSize: MainAxisSize.max,
+                            children: [
+                              Material(
+                                child: Checkbox(
+                                  checkColor: Colors.white,
+                                  fillColor: MaterialStateProperty.resolveWith(getColor),
+                                  value: isMaternaty,
+                                  onChanged: (bool? value) {
+                                    setState(() {
+                                      isMaternaty = value!;
+                                    });
+                                  },
+                                ),
+                              ),
+                              Text(
+                                'IsMaternityLeave',
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              )
+                            ],
+                          ) : SizedBox(height: 0,),
+                          Row(
+                            mainAxisSize: MainAxisSize.max,
+                            children: [
+                              Material(
+                                child: Checkbox(
+                                  checkColor: Colors.white,
+                                  fillColor: MaterialStateProperty.resolveWith(getColor),
+                                  value: isHappinessLeave,
+                                  onChanged: (bool? value) {
+                                    setState(() {
+                                      isCompoff = false;
+                                      isHappinessLeave = value!;
+                                    });
+                                  },
+                                ),
+                              ),
+                              Text(
+                                'Happiness Leave',
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              )
+                            ],
+                          ),
+                          isCompoffEligible ?
+                          Row(
+                            mainAxisSize: MainAxisSize.max,
+                            children: [
+                              Material(
+                                child: Checkbox(
+                                  checkColor: Colors.white,
+                                  fillColor: MaterialStateProperty.resolveWith(getColor),
+                                  value: isCompoff,
+                                  onChanged: (bool? value) {
+                                    setState(() {
+                                      isHappinessLeave = false;
+                                      isCompoff = value!;
+                                    });
+                                  },
+                                ),
+                              ),
+                              Text(
+                                'Comp Off',
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              )
+                            ],
+                          ) : SizedBox(height: 0,),
+                          GestureDetector(
+                            onTap: () {
+                              validate();
                             },
-                          ),
-                        ),
-                        Text(
-                          'IsMaternityLeave',
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        )
-                      ],
-                    ) : Text(''),
-                    GestureDetector(
-                      onTap: () {
-                        validate();
-                      },
-                      child: Container(
-                        alignment: Alignment.center,
-                        height: size.height / 14,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(50.0),
-                          color: LightColor.primary_color,
-                          boxShadow: [
-                            BoxShadow(
-                              color: LightColor.seeBlue,
-                              offset: const Offset(0, 5.0),
-                              blurRadius: 10.0,
+                            child: Container(
+                              alignment: Alignment.center,
+                              height: size.height / 14,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(50.0),
+                                color: LightColor.primary_color,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: LightColor.seeBlue,
+                                    offset: const Offset(0, 5.0),
+                                    blurRadius: 10.0,
+                                  ),
+                                ],
+                              ),
+                              child: Text(
+                                'Submit',
+                                style: GoogleFonts.inter(
+                                  fontSize: 16.0,
+                                  color: LightColor.black,
+                                  fontWeight: FontWeight.w600,
+                                  height: 1.5,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
                             ),
-                          ],
-                        ),
-                        child: Text(
-                          'Submit',
-                          style: GoogleFonts.inter(
-                            fontSize: 16.0,
-                            color: LightColor.black,
-                            fontWeight: FontWeight.w600,
-                            height: 1.5,
                           ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                    ),
+                  ],
+                ),
+              )
                   ],
                 ),
               ),
@@ -254,17 +331,18 @@ class _ApplyLeaveScreen extends State<ApplyLeaveScreen> implements onClickListen
 
     ApplyLeaveRequest request = ApplyLeaveRequest(
         Requisition_Id: 0,
-        Type: 'leave',
+        Type: isHappinessLeave ? '' : 'leave',
         Employee_Id: widget.employeeId.toString(),
         Remarks: _purposeController.text,
         Requisition_Date: DateFormat('yyyy-MM-dd').format(DateTime.now()),
-        RequisitionTypeCode: 'LV1',
+        RequisitionTypeCode: isCompoff ? 'LV4' : 'LV1',
         Start_Date: DateFormat('yyyy-MM-dd').format(parseDateTime(_startDateController.text)),
         End_Date: DateFormat('yyyy-MM-dd').format(parseDateTime(_endDateController.text)),
         NosDays: 0,
         IsMaternityLeave: isMaternaty,
         noofChildren: "0",
-        WorkLocation: "");
+        AppType :Platform.isAndroid ? 'Android' : Platform.isIOS ? 'IOS' : 'unknown',
+        WorkLocation: "",IsHappinessLeave: isHappinessLeave);
     print(request.toJson());
     APIService apiService = APIService();
     apiService.applyLeave(request).then((value) {
