@@ -286,8 +286,26 @@ class _LeaveSummeryScreenState extends State<LeaveSummeryScreen>
                             ),
                           ),
                           InkWell(
-                            onTap: () {
-                              Navigator.push(
+                            onTap: () async {
+
+                              await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => ApplyLeaveScreen(
+                                        employeeId: employeeId,
+                                        displayName: '',
+                                        applied: widget._applied,
+                                        taken: widget._taken,
+                                        rejected: widget._rejected,
+                                        totalCanceled: widget._totalCanceled,
+                                        avaliableForEncash:
+                                        widget._avaliableForEncash,
+                                        totalLeaveBalance:
+                                        widget._totalLeaveBalance)),
+                              );
+                              loadLeaveRequsition();
+
+                              /*Navigator.push(
                                   context,
                                   MaterialPageRoute(
                                       builder: (context) => ApplyLeaveScreen(
@@ -300,7 +318,7 @@ class _LeaveSummeryScreenState extends State<LeaveSummeryScreen>
                                           avaliableForEncash:
                                           widget._avaliableForEncash,
                                           totalLeaveBalance:
-                                          widget._totalLeaveBalance)));
+                                          widget._totalLeaveBalance)));*/
                             },
                             child: Padding(
                               padding: const EdgeInsets.all(8.0),
@@ -370,17 +388,15 @@ class _LeaveSummeryScreenState extends State<LeaveSummeryScreen>
                           Text(
                             model.noOfDays.toInt().toString(),
                             style: TextStyle(
-                              fontSize: 22.0,
+                              fontSize: 20.0,
+                              letterSpacing: 0.53,
                               fontWeight: FontWeight.bold,
                               color: Colors.black,
                             ),
                           ),
                           Text(
                             'days',
-                            style: TextStyle(
-                              fontSize: 16.0,
-                              color: Colors.black,
-                            ),
+                            style: TextStyle(fontSize: 14, color: Colors.black, letterSpacing: 0.53),
                           ),
                         ],
                       ),
@@ -388,24 +404,24 @@ class _LeaveSummeryScreenState extends State<LeaveSummeryScreen>
                     Padding(
                       padding: EdgeInsets.all(10),
                       child: Column(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        mainAxisAlignment: MainAxisAlignment.start,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
                             'Ref No : ${model.requisitionId}',
-                            style: TextStyle(color: Colors.black),
+                            style: TextStyle(fontSize: 8, color: Colors.black, letterSpacing: 0.53),
                           ),
                           Container(
                             padding: const EdgeInsets.only(top: 5, bottom: 5),
                             alignment: Alignment.center,
                             child: Text(
                               model.employeeName,
-                              style: TextStyle(color: Colors.black),
+                              style: TextStyle(fontSize: 12, color: Colors.black, letterSpacing: 0.53),
                             ),
                           ),
                           Text(
                             'Manager : ${model.superiorName}',
-                            style: TextStyle(color: Colors.black),
+                            style: TextStyle(fontSize: 11, color: Colors.black, letterSpacing: 0.53),
                           ),
                         ],
                       ),
@@ -420,10 +436,10 @@ class _LeaveSummeryScreenState extends State<LeaveSummeryScreen>
                       ),
                       child: Text(
                         model.status=='Manager Approved' ? 'Manager\nApproved' : model.status,
-                        style: TextStyle(color: Colors.black,fontSize: 12),
+                        style: TextStyle(fontSize: 12, color: Colors.black, letterSpacing: 0.53),
                       ),
                     ),
-                    Text(''),
+                    SizedBox(height: 0,)
                   ],
                 ),
               ),
@@ -440,7 +456,7 @@ class _LeaveSummeryScreenState extends State<LeaveSummeryScreen>
                   children: [
                     Text(
                       'Reasons : ${model.reason}',
-                      style: TextStyle(color: Colors.black),
+                      style: TextStyle(fontSize: 11, color: Colors.black, letterSpacing: 0.53),
                     ),
                   ],
                 )),
@@ -452,11 +468,15 @@ class _LeaveSummeryScreenState extends State<LeaveSummeryScreen>
                   color: LightColors.kAbsent_BUTTON, // Set border width
                 ),
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
                       'Leave From : ${getParsedShortDate(model.fromDay)} to ${getParsedShortDate(model.toDay)} ',
-                      style: TextStyle(color: Colors.black),
+                      style: TextStyle(fontSize: 11, color: Colors.black, letterSpacing: 0.53),
+                    ),
+                    Text(
+                      'Type : ${model.leaveType}',
+                      style: TextStyle(fontSize: 11, color: Colors.black, letterSpacing: 0.53),
                     ),
                   ],
                 )),

@@ -3,7 +3,9 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_google_places/flutter_google_places.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:get/get.dart';
 import 'package:google_api_headers/google_api_headers.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:google_maps_webservice/places.dart';
@@ -52,12 +54,12 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener{
   List<GetDetailedPJP> mCVFList = [];
 
   DateTime cvfDate = DateTime.now();
-  late List<CategotyInfo> mCategoryList = [];
+  List<CategotyInfo> mCategoryList = [];
   List<FranchiseeInfo> mFrianchiseeList = [];
   TimeOfDay? vistitDateTime;
-  late String _CenterName='';
-  late bool _isNotify = false;
-  late String _purposeMultiSelect = 'Select';
+  String _CenterName='';
+  bool _isNotify = false;
+  String _purposeMultiSelect = 'Select';
   List<String> _selectedItems = [];
   bool isAddCVF = false;
   int employeeId = 0;
@@ -68,7 +70,7 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener{
   TextEditingController _timeController = TextEditingController();
   var hiveBox;
   var _categoryController = TextEditingController(text: 'Select Purpose');
-  var _dateController = TextEditingController(text: 'Select Date');
+  var _dateController = TextEditingController();
   String location = "Search Location";
 
   Future<void> getUserInfo() async {
@@ -234,35 +236,52 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener{
     }
     return list;
   }
-
+  Size? size;
   getCenterForm() {
-    Size size = MediaQuery.of(context).size;
+    size = MediaQuery.of(context).size;
     return Container(
       child: Column(
         children: [
           Card(
+            color: LightColor.lightGrey,
             margin: EdgeInsets.only(left: 10,right: 10),
             child: Padding(
               padding: EdgeInsets.only(left: 10, right: 10, bottom: 10,top:10),
               child: Column(
                 children: [
-                  Container(
-                    decoration: BoxDecoration(
-                        border: Border.all(color: LightColors.kLightGray1)),
-                    height: 45,
-                    child: TextField(
-                      //editing controller of this TextField
-                      decoration: InputDecoration(
-                        icon: Icon(Icons.arrow_drop_down), //icon of text field
-                        //label text of field
-                      ),
-                      controller: _categoryController,
-                      style: TextStyle(color: Colors.black),
-                      readOnly: true,
-                      //set it true, so that user will not able to edit text
-                      onTap: () {
-                        openCategory();
-                      },
+                  Card(
+                    color: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(0),
+                    ),
+                    child: Material(
+                      borderRadius: BorderRadius.circular(0),
+                      clipBehavior: Clip.antiAlias,
+                      color: Colors.transparent,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          //if (_CenterName.isNotEmpty) (8.0).addHSpace(),
+                          //if (_CenterName.isNotEmpty) "${_CenterName}".grayText(),
+                          SizedBox(
+                            height: 40,
+                            child: TextField(
+                                style: TextStyle(color: LightColor.subTitleTextColor),
+                                controller: _categoryController,
+                                decoration: InputDecoration(
+                                  border: InputBorder.none,
+                                  suffixIcon: Icon(Icons.arrow_drop_down),
+                                  hintText: 'Select Category',
+                                ),
+                                undoController: null,
+                                readOnly: true, //set it true, so that user will not able to edit text
+                                onTap: () async {
+                                  openCategory();
+                                }),
+                          )
+                        ],
+                      ).paddingSymmetric(horizontal: 10),
                     ),
                   ),
                   SizedBox(
@@ -272,38 +291,47 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener{
                   SizedBox(
                     height: 10,
                   ),
-                  TextField(
-                      style: TextStyle(color: LightColor.titleTextColor),
-                      controller: _timeController, //editing controller of this TextField
-                      decoration: InputDecoration(
-                          border: OutlineInputBorder(
-                              borderRadius: BorderRadius.all(Radius.circular(5.0)),
-                              borderSide: BorderSide(color: LightColors.kLavender)),
-                          //icon of text field
-                          labelText: 'Select Time' //label text of field
-                      ),
-                      readOnly: true, //set it true, so that user will not able to edit text
-                      onTap: () async {
-                        _selectTime(context);
-                      }),
-                  /*Container(
-                    decoration: BoxDecoration(
-                        border: Border.all(color: LightColors.kLightGray1)),
-                    height: 50,
-                    child: FastTimePicker(
-                      decoration: MyWidget.getInputDecoratino('Select Time'),
-                      name: 'Time',
-                      onChanged: (value) {
-                        vistitDateTime = value;
-                      },
+                  Card(
+                    color: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(0),
                     ),
-                  ),*/
+                    child: Material(
+                      borderRadius: BorderRadius.circular(0),
+                      clipBehavior: Clip.antiAlias,
+                      color: Colors.transparent,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          //if (_CenterName.isNotEmpty) (8.0).addHSpace(),
+                          //if (_CenterName.isNotEmpty) "${_CenterName}".grayText(),
+                          SizedBox(
+                            height: 40,
+                            child: TextField(
+                                style: TextStyle(color: LightColor.subTitleTextColor),
+                                controller: _timeController, //editing controller of this TextField
+                                decoration: InputDecoration(
+                                  border: InputBorder.none,
+                                  icon: Icon(Icons.access_time),
+                                  hintText: 'Select Time',
+                                ),
+                                undoController: null,
+                                readOnly: true, //set it true, so that user will not able to edit text
+                                onTap: () async {
+                                  _selectTime(context);
+                                }),
+                          )
+                        ],
+                      ).paddingSymmetric(horizontal: 10),
+                    ),
+                  ),
                   SizedBox(
                     height: 10,
                   ),
                   _purposeMultiSelect == 'Activity'
-                      ? getActivity(size)
-                      : getCenter(size),
+                      ? getActivity(size!)
+                      : getCenter(size!),
                 ],
               ),
             ),
@@ -343,15 +371,24 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener{
   getFrichanseeId() {
     int code = 0;
     for (int index = 0; index < mFrianchiseeList.length; index++) {
-      if (mFrianchiseeList[index].franchiseeName.length < 25) {
+      if (mFrianchiseeList[index].franchiseeName.length < 150) {
         if (_CenterName == mFrianchiseeList[index].franchiseeName) {
           code = mFrianchiseeList[index].franchiseeId.toInt();
         }
-      } else if (_CenterName == mFrianchiseeList[index].franchiseeName.substring(0, 25)) {
+      } else if (_CenterName == mFrianchiseeList[index].franchiseeName.substring(0, 150)) {
         code = mFrianchiseeList[index].franchiseeId.toInt();
       }
     }
     return code;
+  }
+  getFrichanseeAddress() {
+    String address='';
+    for (int index = 0; index < mFrianchiseeList.length; index++) {
+      if (_CenterName == mFrianchiseeList[index].franchiseeName) {
+        address = '${mFrianchiseeList[index].franchiseeCity} , ${mFrianchiseeList[index].franchiseeState}';
+      }
+    }
+    return address;
   }
 
   bool validate(){
@@ -398,7 +435,7 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener{
       String xml = '<root><tblPJPCVF><Employee_Id>${employeeId}</Employee_Id><Franchisee_Id>${getFrichanseeId()}</Franchisee_Id><Visit_Date>${Utility
           .convertShortDate(cvfDate)}</Visit_Date><Visit_Time>${vistitDateTime
           ?.hour}:${vistitDateTime
-          ?.minute}</Visit_Time><Category_Id>${getCategoryList()}</Category_Id><Latitude>${longitude}</Latitude><Longitude>${latitude}</Longitude><ActivityTitle>${_activityNameController.text.toString()}</ActivityTitle><Address>${location=='Search Location' ? 'NA' :location}</Address></tblPJPCVF></root>';
+          ?.minute}</Visit_Time><Category_Id>${getCategoryList()}</Category_Id><Latitude>${longitude}</Latitude><Longitude>${latitude}</Longitude><ActivityTitle>${_activityNameController.text.toString()}</ActivityTitle><Address>${location=='Search Location' ? getFrichanseeAddress() :location}</Address></tblPJPCVF></root>';
       AddCVFRequest request = AddCVFRequest(
           PJP_Id: int.parse(widget.mPjpModel.PJP_Id),
           DocXml: xml,
@@ -435,10 +472,60 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener{
     }
   }
 
+  Widget getCenterDropdown(BuildContext context) {
+    return Card(
+      color: Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(0),
+      ),
+      child: Material(
+        borderRadius: BorderRadius.circular(0),
+        clipBehavior: Clip.antiAlias,
+        color: Colors.transparent,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            //if (_CenterName.isNotEmpty) (8.0).addHSpace(),
+            //if (_CenterName.isNotEmpty) "${_CenterName}".grayText(),
+            SizedBox(
+              height: 40,
+              child: DropdownButton<String>(
+                isExpanded: true,
+                hint: Text('Select Center ',textAlign: TextAlign.left,),
+                value: _CenterName.isNotEmpty ? _CenterName : null,
+                underline: SizedBox(),
+                onChanged: (String? value) {
+                  print(value);
+                  setState(() {
+                    _CenterName = value!;
+                  });
+                },
+                alignment: Alignment.centerLeft,
+                borderRadius: BorderRadius.circular(15),
+                items: getList(mFrianchiseeList)
+                    .map((item) => DropdownMenuItem(
+                  child: SizedBox(
+                    width: size!.width * 0.7,
+                    child: Text(
+                      item,
+                    ),
+                  ),
+                  value: item,
+                ))
+                    .toList(),
+              ),
+            )
+          ],
+        ).paddingSymmetric(horizontal: 10),
+      ),
+    );
+  }
+
   getCenter(Size size) {
     return Column(
       children: [
-        Container(
+        /*Container(
           decoration: BoxDecoration(
               border: Border.all(color: LightColors.kLightGray1)),
           height: 50,
@@ -450,10 +537,17 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener{
               _CenterName = value as String;
               // Utility.showMessage(context, '${value}');
             },
+            builder: (value) {
+                return DropdownMenuItem<String>(
+                  value: 'Select ',
+                  child: Text('Select',style:TextStyle(color:Colors.black),),
+                );
+            },
             items: getList(mFrianchiseeList),
           ),
-        ),
-
+        ),*/
+        getCenterDropdown(context),
+        //getCenterListDropDown(),
         SizedBox(
           height: 10,
         ),
@@ -524,24 +618,42 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener{
   }
 
   Widget datePicker(BuildContext context) {
-    return Container(
-        decoration:
-            BoxDecoration(border: Border.all(color: LightColors.kLightGray1)),
-        height: 45,
-        child: Center(
-            child: TextField(
-          //editing controller of this TextField
-          decoration: InputDecoration(
-            icon: Icon(Icons.calendar_today), //icon of text field
-            //label text of field
-          ),
-          controller: _dateController,
-          readOnly: true,
-          //set it true, so that user will not able to edit text
-          onTap: () async {
-            _showDatePicker(context);
-          },
-        )));
+    return Card(
+      color: Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(0),
+      ),
+      child: Material(
+        borderRadius: BorderRadius.circular(0),
+        clipBehavior: Clip.antiAlias,
+        color: Colors.transparent,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            //if (_CenterName.isNotEmpty) (8.0).addHSpace(),
+            //if (_CenterName.isNotEmpty) "${_CenterName}".grayText(),
+            SizedBox(
+              height: 40,
+              child: TextField(
+                  style: TextStyle(color: LightColor.subTitleTextColor),
+                  decoration: InputDecoration(
+                    border: InputBorder.none,
+                    icon: Icon(Icons.calendar_today),
+                    hintText: 'Select Date',
+                  ),
+
+                  undoController: null,
+                  controller: _dateController,
+                  readOnly: true,
+                  onTap: () async {
+                    _showDatePicker(context);
+                  }),
+            )
+          ],
+        ).paddingSymmetric(horizontal: 10),
+      ),
+    );
   }
 
   Widget _getLocation(BuildContext context) {
@@ -889,22 +1001,28 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener{
     );
   }
 
-  getList(List<FranchiseeInfo> mFrianchiseeList) {
+  List<String> getList(List<FranchiseeInfo> mFrianchiseeList) {
     List<String> data = ['Select'];
     for (int index = 0; index < mFrianchiseeList.length; index++) {
-      if (mFrianchiseeList[index].franchiseeName.length > 25) {
-        data.add(mFrianchiseeList[index].franchiseeName.substring(0, 25));
+      if (mFrianchiseeList[index].franchiseeName.length > 150) {
+        data.add(mFrianchiseeList[index].franchiseeName.substring(0, 150));
       } else
         data.add(mFrianchiseeList[index].franchiseeName);
     }
+    /*return data.map<DropdownMenuItem<String>>((String value) {
+      return DropdownMenuItem<String>(
+        value: value,
+        child: Text(value,style:TextStyle(color:Colors.black),),
+      );
+    }).toList();*/
     return data;
   }
 
   getPurposeList() {
     List<String> list = [];
     for (int index = 0; index < mCategoryList.length; index++) {
-      if (mCategoryList[index].categoryName.length > 25) {
-        list.add(mCategoryList[index].categoryName.substring(0, 25));
+      if (mCategoryList[index].categoryName.length > 150) {
+        list.add(mCategoryList[index].categoryName.substring(0, 150));
       } else
         list.add(mCategoryList[index].categoryName);
     }

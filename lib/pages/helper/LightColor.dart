@@ -34,7 +34,7 @@ class LightColor {
   static const Color Darker = Color(0xffffffff);
   static const Color black = Color(0xff040405);
   static const Color lightblack = Color(0xff3E404D);
-  static const Color lightGrey = Color(0xffDFE7DD);
+  static const Color lightGrey = Color.fromRGBO(251, 252, 252 , 50);
   static const Color darkBlue = Color(0xff13165A);
   static const Color lightBlue = Color(0xff203387);
 }

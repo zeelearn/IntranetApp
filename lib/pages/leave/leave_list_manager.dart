@@ -169,7 +169,7 @@ class _LeaveManagerScreen extends State<LeaveManagerScreen>
         if(_isChecked[index]) {
           String data = "{'Requisition_Id': ${requisitionList[index]
               .requisitionId.toInt()
-              .toString()},'WorkflowTypeCode': 'LV1','RequisitionTypeCode': '${requisitionList[index]
+              .toString()},'WorkflowTypeCode': '${requisitionList[index].leaveType}','RequisitionTypeCode': '${requisitionList[index]
               .requisitionTypeCode}','Requistion_Status_Code': '${status}','Is_Approved': ${status ==
               'REJ'
               ? "0"
@@ -336,12 +336,16 @@ class _LeaveManagerScreen extends State<LeaveManagerScreen>
           Utility.showMessage(context, 'data not found');
         } else if (value is LeaveListManagerResponse) {
           LeaveListManagerResponse response = value;
+          requisitionList.clear();
           if (response != null && response.responseData != null) {
             for(int index=0;index<response.responseData.length;index++){
               if(_tabController.index==0){
                 //pending
                 if(response.responseData[index].status=='Pending'){
                     requisitionList.add(response.responseData[index]);
+                }else{
+                  print(response.responseData[index].employeeName);
+                  print(response.responseData[index].leaveType);
                 }
               }else{
                 //approve
@@ -590,10 +594,14 @@ class _LeaveManagerScreen extends State<LeaveManagerScreen>
                   color: LightColors.kAbsent_BUTTON, // Set border width
                 ),
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
                       'Leave for : ${getParsedShortDate(model.fromDay)} to ${getParsedShortDate(model.toDay)} ',
+                      style: TextStyle(color: Colors.black),
+                    ),
+                    Text(
+                      'Type : ${model.leaveType}',
                       style: TextStyle(color: Colors.black),
                     ),
                   ],
