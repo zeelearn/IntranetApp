@@ -332,12 +332,14 @@ class _ApplyOutDoorScreen extends State<ApplyOutDoorScreen> implements onClickLi
   DateTime parseDate(String value) {
     DateTime dt = DateTime.now();
     //2022-07-18T00:00:00
+    print(value);
     try {
       dt = new DateFormat('yyyy-MM-dd').parse(value);
       //print('asasdi   ' + dt.day.toString());
     } catch (e) {
       e.toString();
     }
+    print('parsed date sss ${dt}');
     return dt;
   }
   DateTime parseDateTime(String value) {
@@ -346,6 +348,15 @@ class _ApplyOutDoorScreen extends State<ApplyOutDoorScreen> implements onClickLi
     try {
       dt = new DateFormat('dd-MMM-yyyy hh:mm a').parse(value);
       //print('asasdi   ' + dt.day.toString());
+    } catch (e) {
+      e.toString();
+    }
+    return dt;
+  }
+  DateTime parseDateOnly(String value) {
+    DateTime dt = DateTime.now();
+    try {
+      dt = new DateFormat('dd-MMM-yyyy').parse(value);
     } catch (e) {
       e.toString();
     }
@@ -363,10 +374,11 @@ class _ApplyOutDoorScreen extends State<ApplyOutDoorScreen> implements onClickLi
       applyOutdoor();
     }else if (action == Utility.ACTION_ADDPJP) {
       Navigator.pop(context, 'DONE');
+      Navigator.pop(context, 'DONE');
       Navigator.push(
         context,
         MaterialPageRoute(
-            builder: (context) => AddNewPJPScreen(employeeId: widget.employeeId, businessId: widget.businessId,)),
+            builder: (context) => AddNewPJPScreen(employeeId: widget.employeeId, businessId: widget.businessId, currentDate: parseDateOnly(_startDateController.text.toString()),)),
       );
     }else if (action == Utility.ACTION_OK) {
       Navigator.pop(context, 'DONE');

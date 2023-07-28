@@ -28,6 +28,7 @@ class MyPJPCVFListScreen extends StatefulWidget {
 
 class _MyCVFListScreen extends State<MyPJPCVFListScreen> implements onResponse {
   int employeeId = 0;
+  int businessId = 0;
   String appVersion='';
   bool isNavigate=false;
 
@@ -49,8 +50,9 @@ class _MyCVFListScreen extends State<MyPJPCVFListScreen> implements onResponse {
     var hiveBox = Hive.box(LocalConstant.KidzeeDB);
     await Hive.openBox(LocalConstant.KidzeeDB);
     employeeId =int.parse(hiveBox.get(LocalConstant.KEY_EMPLOYEE_ID) as String);
+    businessId = hiveBox.get(LocalConstant.KEY_BUSINESS_ID);
     IntranetServiceHandler.loadPjpSummery(
-        employeeId, int.parse(widget.mPjpInfo.PJP_Id), this);
+        employeeId, int.parse(widget.mPjpInfo.PJP_Id),businessId, this);
     PackageInfo.fromPlatform().then((PackageInfo packageInfo) {
       String appName = packageInfo.appName;
       String packageName = packageInfo.packageName;
@@ -645,7 +647,7 @@ class _MyCVFListScreen extends State<MyPJPCVFListScreen> implements onResponse {
     Utility.showLoaderDialog(context);
     List<PJPInfo> pjpList = [];
     PJPListRequest request = PJPListRequest(
-        Employee_id: employeeId, PJP_id: int.parse(widget.mPjpInfo.PJP_Id));
+        Employee_id: employeeId, PJP_id: int.parse(widget.mPjpInfo.PJP_Id), Business_id: businessId);
     APIService apiService = APIService();
     //print(request.toJson());
     apiService.getPJPList(request).then((value) {
@@ -689,7 +691,7 @@ class _MyCVFListScreen extends State<MyPJPCVFListScreen> implements onResponse {
     //loadPjpSummery();
     isNavigate = true;
     IntranetServiceHandler.loadPjpSummery(
-        employeeId, int.parse(widget.mPjpInfo.PJP_Id), this);
+        employeeId, int.parse(widget.mPjpInfo.PJP_Id),businessId, this);
     //Scaffold.of(context).showSnackBar(SnackBar(content: Text("$result"),duration: Duration(seconds: 3),));
   }
 
@@ -709,7 +711,7 @@ class _MyCVFListScreen extends State<MyPJPCVFListScreen> implements onResponse {
     if (value is UpdateCVFStatusResponse) {
       UpdateCVFStatusResponse response = value;
       IntranetServiceHandler.loadPjpSummery(
-          employeeId, int.parse(widget.mPjpInfo.PJP_Id), this);
+          employeeId, int.parse(widget.mPjpInfo.PJP_Id),businessId, this);
     } else if (value is PjpListResponse) {
       PjpListResponse response = value;
       print('onResponse in if ');

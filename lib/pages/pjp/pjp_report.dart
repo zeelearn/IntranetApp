@@ -281,7 +281,7 @@ class _MyPjpReportListState extends State<MyPjpReportScreen> implements onRespon
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
-          builder: (context) => AddNewPJPScreen(employeeId: employeeId, businessId: businessId,)),
+          builder: (context) => AddNewPJPScreen(employeeId: employeeId, businessId: businessId, currentDate: DateTime.now(),)),
     );
     //print('Response Received');
 

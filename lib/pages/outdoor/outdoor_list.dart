@@ -58,8 +58,8 @@ class _OutdoorScreen extends State<OutdoorScreen>
   Future<void> getUserInfo() async {
     hiveBox = Hive.box(LocalConstant.KidzeeDB);
     await Hive.openBox(LocalConstant.KidzeeDB);
-    employeeId =
-        int.parse(hiveBox.get(LocalConstant.KEY_EMPLOYEE_ID) as String);
+    employeeId = int.parse(hiveBox.get(LocalConstant.KEY_EMPLOYEE_ID) as String);
+    widget.businessId = hiveBox.get(LocalConstant.KEY_BUSINESS_ID);
 
     var leaveODSummery = hiveBox.get('r'+getId());
     if(leaveODSummery==null){

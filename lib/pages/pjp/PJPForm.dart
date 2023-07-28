@@ -138,6 +138,7 @@ class _AddNewPjp extends State<AddNewPjp> {
         DBConstant.STATE: mFrianchiseeList[index].franchiseeState,
         DBConstant.CITY: mFrianchiseeList[index].franchiseeCity
       };
+      dbHelper.deleteData(LocalConstant.TABLE_CVF_FRANCHISEE);
       dbHelper.insert(LocalConstant.TABLE_CVF_FRANCHISEE, data);
     }
   }
@@ -237,7 +238,7 @@ class _AddNewPjp extends State<AddNewPjp> {
     Utility.showLoaderDialog(context);
     mCategoryList.clear();
     print('categoty');
-    CVFCategoryRequest request = CVFCategoryRequest(Category_Id: "0");
+    CVFCategoryRequest request = CVFCategoryRequest(Category_Id: "0", Business_id: businessId);
     APIService apiService = APIService();
     apiService.getCVFCategoties(request).then((value) {
       print(value.toString());
@@ -353,9 +354,7 @@ class _AddNewPjp extends State<AddNewPjp> {
   addNewCVF() {
     Utility.showLoaderDialog(context);
     mCategoryList.clear();
-    print('categoty');
-    String xml =
-        '<root><tblPJPCVF><Employee_Id>${employeeId}</Employee_Id><Franchisee_Id>${getFrichanseeId()}</Franchisee_Id><Visit_Date>${Utility.convertShortDate(cvfDate)}</Visit_Date><Visit_Time>${vistitDateTime?.hour}:${vistitDateTime?.minute}</Visit_Time><Category_Id>${getCategoryId()}</Category_Id></tblPJPCVF></root>';
+    String xml ='<root><tblPJPCVF><Business_Id>${businessId}</Business_Id><Employee_Id>${employeeId}</Employee_Id><Franchisee_Id>${getFrichanseeId()}</Franchisee_Id><Visit_Date>${Utility.convertShortDate(cvfDate)}</Visit_Date><Visit_Time>${vistitDateTime?.hour}:${vistitDateTime?.minute}</Visit_Time><Category_Id>${getCategoryId()}</Category_Id></tblPJPCVF></root>';
     AddCVFRequest request =
         AddCVFRequest(PJP_Id: mPjpModel.pjpId, DocXml: xml, UserId: employeeId);
     APIService apiService = APIService();

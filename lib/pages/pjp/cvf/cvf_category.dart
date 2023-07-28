@@ -371,7 +371,7 @@ class _CategotyScreenState extends State<CVfCategotyScreen> {
   fetchCategory() {
     Utility.showLoaderDialog(context);
     mCategoryList.clear();
-    CVFCategoryRequest request = CVFCategoryRequest(Category_Id: "1");
+    CVFCategoryRequest request = CVFCategoryRequest(Category_Id: "1", Business_id: 0);
     APIService apiService = APIService();
     apiService.getCVFCategoties(request).then((value) {
       print(value.toString());

@@ -92,7 +92,7 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener{
     Utility.showLoaderDialog(context);
     mCategoryList.clear();
     print('categoty');
-    CVFCategoryRequest request = CVFCategoryRequest(Category_Id: "0");
+    CVFCategoryRequest request = CVFCategoryRequest(Category_Id: "0", Business_id: businessId);
     APIService apiService = APIService();
     apiService.getCVFCategoties(request).then((value) {
       print(value.toString());
@@ -120,10 +120,11 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener{
 
     List<FranchiseeInfo> franchiseeList = await helper.getFranchiseeList(businessId);
 
-    if (franchiseeList == null || franchiseeList.length == 0) {
+    if (false || franchiseeList == null || franchiseeList.length == 0) {
       print('data load ssss');
       loadCenterList();
     } else {
+      mFrianchiseeList.clear();
       mFrianchiseeList.addAll(franchiseeList);
       print('data ssss');
     }
@@ -171,6 +172,7 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener{
         DBConstant.CITY: mFrianchiseeList[index].franchiseeCity,
         DBConstant.BUSINESS_ID: businessId
       };
+      dbHelper.deleteData(LocalConstant.TABLE_CVF_FRANCHISEE);
       dbHelper.insert(LocalConstant.TABLE_CVF_FRANCHISEE, data);
     }
   }
@@ -185,8 +187,8 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener{
     });
   }
 
-  loadUserData() {
-    getUserInfo();
+  loadUserData() async{
+    await getUserInfo();
     fetchCategory();
     getFrichinseeList();
   }
@@ -432,7 +434,7 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener{
         latitude=position.latitude;
         longitude=position.longitude;
       }
-      String xml = '<root><tblPJPCVF><Employee_Id>${employeeId}</Employee_Id><Franchisee_Id>${getFrichanseeId()}</Franchisee_Id><Visit_Date>${Utility
+      String xml = '<root><tblPJPCVF><Business_Id>${businessId}</Business_Id><Employee_Id>${employeeId}</Employee_Id><Franchisee_Id>${getFrichanseeId()}</Franchisee_Id><Visit_Date>${Utility
           .convertShortDate(cvfDate)}</Visit_Date><Visit_Time>${vistitDateTime
           ?.hour}:${vistitDateTime
           ?.minute}</Visit_Time><Category_Id>${getCategoryList()}</Category_Id><Latitude>${longitude}</Latitude><Longitude>${latitude}</Longitude><ActivityTitle>${_activityNameController.text.toString()}</ActivityTitle><Address>${location=='Search Location' ? getFrichanseeAddress() :location}</Address></tblPJPCVF></root>';

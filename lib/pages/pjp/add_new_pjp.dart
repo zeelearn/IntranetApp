@@ -28,7 +28,8 @@ class AddNewPJPScreen extends StatefulWidget {
 
   int employeeId;
   int businessId;
-  AddNewPJPScreen({Key? key,required this.employeeId,required this.businessId}) : super(key: key);
+  DateTime currentDate;
+  AddNewPJPScreen({Key? key,required this.employeeId,required this.businessId,required this.currentDate}) : super(key: key);
 
   @override
   State<AddNewPJPScreen> createState() => _AddNewPJPState();
@@ -49,6 +50,9 @@ class _AddNewPJPState extends State<AddNewPJPScreen> implements onResponse,onCli
   void initState() {
     // TODO: implement initState
     super.initState();
+    print(widget.currentDate);
+    _fromDate=widget.currentDate;
+    _toDate=widget.currentDate;
     mPjpModel = PJPModel(
         pjpId: 0,
         dateTime: DateTime.now(),
@@ -101,11 +105,11 @@ class _AddNewPJPState extends State<AddNewPJPScreen> implements onResponse,onCli
                 ),
                 child: SfDateRangePicker(
                   selectionMode: DateRangePickerSelectionMode.range,
-                  minDate: DateTime.now(),
+                  minDate: DateTime(DateTime.now().year, DateTime.now().month - 3, 1),
                   maxDate: DateTime.now().add(const Duration(days: 30)),
                   initialSelectedRange: PickerDateRange(
-                      DateTime.now(),
-                      DateTime.now()),
+                      widget.currentDate,
+                      widget.currentDate),
                   onSelectionChanged: _onSelectionChanged,
                   headerStyle: DateRangePickerHeaderStyle(
                     textAlign: TextAlign.center,

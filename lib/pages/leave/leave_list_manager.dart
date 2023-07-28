@@ -28,6 +28,8 @@ class LeaveManagerScreen extends StatefulWidget {
 class _LeaveManagerScreen extends State<LeaveManagerScreen>
     with SingleTickerProviderStateMixin implements onClickListener {
   late TabController _tabController;
+  final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey =
+  GlobalKey<RefreshIndicatorState>();
   List<bool> _isChecked = [];
   bool _isSelectAll = false;
   final _selectedColor = LightColors.kLavender;
@@ -80,22 +82,64 @@ class _LeaveManagerScreen extends State<LeaveManagerScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Stack(
-        children: [
-          /*Container(
-            color: LightColors.kLightBlue,
-            padding: EdgeInsets.only(left: 10, right: 10),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Leave Management - Approval',
-                  style: TextStyle(
-                      fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-              ],
+      body: SafeArea(
+        child: RefreshIndicator(
+        key: _refreshIndicatorKey,
+        color: Colors.white,
+        backgroundColor: Colors.blue,
+        strokeWidth: 4.0,
+        onRefresh: () async {
+          loadAcquisition();
+          return Future<void>.delayed(const Duration(seconds: 3));
+        },child: Stack(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: ListView(
+                children: [
+                  Text(
+                    'Leave Approval',
+                    style: TextStyle(
+                        fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  /// Custom Tabbar with solid selected bg and transparent tabbar bg
+                  Container(
+                    height: kToolbarHeight - 8.0,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade200,
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
+                    child: TabBar(
+                      controller: _tabController,
+                      indicator: BoxDecoration(
+                          borderRadius: BorderRadius.circular(8.0),
+                          color: _selectedColor),
+                      labelColor: LightColors.kGreen,
+                      unselectedLabelColor: Colors.grey,
+                      tabs: _tabs,
+                    ),
+                  ),
+                ]
+                    .map((item) => Column(
+                  /// Added a divider after each item to let the tabbars have room to breathe
+                  children: [
+                    item,
+                    Divider(
+                      color: Colors.transparent,
+                    )
+                  ],
+                ))
+                    .toList(),
+              ),
             ),
-          ),*/
+            Padding(
+              padding: EdgeInsets.only(top: 90),
+              child: getAttendanceListView(),
+            ),
+          ],
+        ),
+      /*body: Stack(
+        children: [
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: ListView(
@@ -140,8 +184,8 @@ class _LeaveManagerScreen extends State<LeaveManagerScreen>
             child: getAttendanceListView(),
           ),
         ],
-      ),
-    );
+      ),*/
+    )));
   }
 
   approveAcquisitinoSingle() {
@@ -169,7 +213,7 @@ class _LeaveManagerScreen extends State<LeaveManagerScreen>
         if(_isChecked[index]) {
           String data = "{'Requisition_Id': ${requisitionList[index]
               .requisitionId.toInt()
-              .toString()},'WorkflowTypeCode': '${requisitionList[index].leaveType}','RequisitionTypeCode': '${requisitionList[index]
+              .toString()},'WorkflowTypeCode': '${requisitionList[index].workflowTypeCode}','RequisitionTypeCode': '${requisitionList[index]
               .requisitionTypeCode}','Requistion_Status_Code': '${status}','Is_Approved': ${status ==
               'REJ'
               ? "0"

@@ -34,6 +34,7 @@ class CVFListScreen extends StatefulWidget {
 
 class _MyCVFListScreen extends State<CVFListScreen> implements onResponse,onClickListener{
   int employeeId = 0;
+  int businessId = 0;
   List<GetDetailedPJP> mCvfList = [];
   bool isLoading = true;
   bool isInternet=true;
@@ -67,8 +68,8 @@ class _MyCVFListScreen extends State<CVFListScreen> implements onResponse,onClic
   Future<void> getUserInfo() async {
     hiveBox = Hive.box(LocalConstant.KidzeeDB);
     await Hive.openBox(LocalConstant.KidzeeDB);
-    employeeId =
-        int.parse(hiveBox.get(LocalConstant.KEY_EMPLOYEE_ID) as String);
+    employeeId = int.parse(hiveBox.get(LocalConstant.KEY_EMPLOYEE_ID) as String);
+    businessId =  hiveBox.get(LocalConstant.KEY_BUSINESS_ID);
     isInternet = await Utility.isInternet();
     DBHelper helper=DBHelper();
     //helper.getCheckInStatus();
@@ -124,7 +125,7 @@ class _MyCVFListScreen extends State<CVFListScreen> implements onResponse,onClic
 
   loadAllCVF() {
     IntranetServiceHandler.loadPjpSummery(
-        employeeId, int.parse(widget.mPjpInfo.PJP_Id), this);
+        employeeId, int.parse(widget.mPjpInfo.PJP_Id),businessId, this);
   }
 
   @override
@@ -208,7 +209,7 @@ class _MyCVFListScreen extends State<CVFListScreen> implements onResponse,onClic
     //loadPjpSummery();
 
     IntranetServiceHandler.loadPjpSummery(
-        employeeId, int.parse(widget.mPjpInfo.PJP_Id), this);
+        employeeId, int.parse(widget.mPjpInfo.PJP_Id),businessId, this);
   }
 
   getCVFListView() {

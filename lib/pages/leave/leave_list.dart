@@ -61,7 +61,7 @@ class _LeaveSummeryScreenState extends State<LeaveSummeryScreen>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     print('didChangeAppLifecycleState ${state} ');
     if (state == AppLifecycleState.resumed) {
-      loadLeaveRequsition();
+      getUserInfo();
     }
   }
 
@@ -408,7 +408,7 @@ class _LeaveSummeryScreenState extends State<LeaveSummeryScreen>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Ref No : ${model.requisitionId}',
+                            'Ref No : ${model.requisitionId.toInt()}',
                             style: TextStyle(fontSize: 8, color: Colors.black, letterSpacing: 0.53),
                           ),
                           Container(

@@ -17,11 +17,11 @@ import 'APIService.dart';
 
 class IntranetServiceHandler{
 
-  static loadPjpSummery(int employeeId,int pjpId,onResponse onResponse) {
+  static loadPjpSummery(int employeeId,int pjpId,int bid,onResponse onResponse) {
     List<PJPInfo> pjpList = [];
     //print('IntranetServiceHandler');
     onResponse.onStart();
-    PJPListRequest request = PJPListRequest(Employee_id: employeeId,PJP_id: pjpId);
+    PJPListRequest request = PJPListRequest(Employee_id: employeeId,PJP_id: pjpId, Business_id: bid);
     //print(request.toJson());
     APIService apiService = APIService();
     apiService.getPJPList(request).then((value) {

@@ -553,6 +553,7 @@ class APIService {
             "content-type": "application/json"
           },
           body:requestModel.getJson());
+      print(requestModel.getJson());
       print(response.body);
       if (response.statusCode == 200 || response.statusCode == 400) {
         if(response.body is CVFCategoryResponse){
@@ -708,16 +709,6 @@ class APIService {
         return PjpListResponse.fromJson(
           json.decode(data),
         );
-        /*if(response.body is PjpListResponse){
-
-          return PjpListResponse.fromJson(
-            json.decode(data),
-          );
-        }else {
-          return PjpListResponse.fromJson(
-            json.decode(data),
-          );
-        }*/
       } else {
         return null; //LoginResponseModel(token:"",Status:"Invalid/Wrong Login Details");
       }

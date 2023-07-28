@@ -34,6 +34,7 @@ class MyCVFListScreen extends StatefulWidget {
 
 class _MyCVFListScreen extends State<MyCVFListScreen> implements onResponse,onClickListener{
   int employeeId = 0;
+  int businessId = 0;
   List<GetDetailedPJP> mCvfList = [];
   bool isLoading = true;
   bool isInternet=true;
@@ -60,8 +61,8 @@ class _MyCVFListScreen extends State<MyCVFListScreen> implements onResponse,onCl
   Future<void> getUserInfo() async {
     hiveBox = Hive.box(LocalConstant.KidzeeDB);
     await Hive.openBox(LocalConstant.KidzeeDB);
-    employeeId =
-        int.parse(hiveBox.get(LocalConstant.KEY_EMPLOYEE_ID) as String);
+    employeeId = int.parse(hiveBox.get(LocalConstant.KEY_EMPLOYEE_ID) as String);
+    businessId = hiveBox.get(LocalConstant.KEY_BUSINESS_ID);
       loadData();
   }
 
@@ -110,7 +111,7 @@ class _MyCVFListScreen extends State<MyCVFListScreen> implements onResponse,onCl
     isLoading = true;
     Utility.showLoaderDialog(context);
     mCvfList.clear();
-    GetAllCVF request = GetAllCVF(Employee_id: employeeId);
+    GetAllCVF request = GetAllCVF(Employee_id: employeeId, Business_id: businessId);
     APIService apiService = APIService();
     apiService.getAllCVF(request).then((value) {
       isLoading = false;

@@ -60,7 +60,7 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse,onCli
 
     isInternet = await Utility.isInternet();
     if(isInternet){
-      IntranetServiceHandler.loadPjpSummery(employeeId, 0, this);
+      IntranetServiceHandler.loadPjpSummery(employeeId, 0,businessId, this);
     }else{
       var pjpList = hiveBox.get(getId());
       try {
@@ -72,7 +72,7 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse,onCli
           mPjpList.addAll(response.responseData);
         setState(() {});
       }catch(e){
-        IntranetServiceHandler.loadPjpSummery(employeeId, 0, this);
+        IntranetServiceHandler.loadPjpSummery(employeeId, 0,businessId, this);
       }
     }
   }
@@ -147,7 +147,7 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse,onCli
             onRefresh: () async {
               // Replace this delay with the code to be executed during refresh
               // and return a Future when code finishs execution.
-              IntranetServiceHandler.loadPjpSummery(employeeId, 0, this);
+              IntranetServiceHandler.loadPjpSummery(employeeId, 0,businessId, this);
               return Future<void>.delayed(const Duration(seconds: 3));
             },
             // Pull from top to show refresh indicator.
@@ -170,11 +170,11 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse,onCli
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
-          builder: (context) => AddNewPJPScreen(employeeId: employeeId, businessId: businessId,)),
+          builder: (context) => AddNewPJPScreen(employeeId: employeeId, businessId: businessId, currentDate: DateTime.now(),)),
     );
     //print('Response Received');
 
-    IntranetServiceHandler.loadPjpSummery(employeeId, 0, this);
+    IntranetServiceHandler.loadPjpSummery(employeeId, 0,businessId, this);
   }
 
   void goToSecondScreen(BuildContext context) async {
@@ -200,7 +200,7 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse,onCli
           }
         }
         //print(filter.filters.toList());
-        IntranetServiceHandler.loadPjpSummery(employeeId, 0, this);
+        IntranetServiceHandler.loadPjpSummery(employeeId, 0,businessId, this);
       }
     //Scaffold.of(context).showSnackBar(SnackBar(content: Text("$result"),duration: Duration(seconds: 3),));
   }
@@ -522,7 +522,7 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse,onCli
         }
       }
       //print(filter.filters.toList());
-      IntranetServiceHandler.loadPjpSummery(employeeId, 0, this);
+      IntranetServiceHandler.loadPjpSummery(employeeId, 0,businessId, this);
     } else {
       //print('Object not found ${result}');
     }
@@ -560,7 +560,7 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse,onCli
     isLoading = false;
     //print('PJP List onSuccess ');
     if(value is String){
-      IntranetServiceHandler.loadPjpSummery(employeeId, 0, this);
+      IntranetServiceHandler.loadPjpSummery(employeeId, 0,businessId, this);
     }else if(value is UpdatePJPStatusResponse){
       UpdatePJPStatusResponse val = value;
       //print(val.toJson());
