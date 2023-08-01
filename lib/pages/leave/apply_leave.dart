@@ -300,7 +300,7 @@ int _groupValue=0;
     bool isInternet = await Utility.isInternet();
     if(!isInternet) {
       Utility.noInternetConnection(context);
-    }else if (_startDateController.text == '' || _endDateController.text == '') {
+    }else if (isHappinessLeave ?  _startDateController.text == '' :  _startDateController.text == '' || _endDateController.text == '') {
       Utility.showMessage(context, 'Please Select the Date Range');
     } else if (_purposeController.text == '') {
       Utility.showMessage(context, 'Please Enter the purpose of leave');
