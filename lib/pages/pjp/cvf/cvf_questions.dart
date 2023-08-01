@@ -75,9 +75,6 @@ class _QuestionListScreenState extends State<QuestionListScreen>
     super.initState();
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-// your code goes here
-    print('mCategory Id ${widget.mCategoryId}');
-    print('mCategory Id ${widget.mCategory}');
       getPrefQuestions(widget.mCategoryId);
       getUsersAnswers();
     });
@@ -90,17 +87,90 @@ class _QuestionListScreenState extends State<QuestionListScreen>
 
   List<bool> ischeck = [];
 
+  bool isAllCategoryQuestionsCompleted(){
+    bool isCompleted = true;
+    int inCompleteCounts=0;
+    for(int jkIndex=0;jkIndex<widget.cvfView.purpose!.length;jkIndex++){
+      var cvfQuestions = hiveBox.get(widget.PJPCVF_Id.toString() + widget.cvfView.purpose![jkIndex].categoryId.trim() + LocalConstant.KEY_CVF_QUESTIONS);
+      if(cvfQuestions==null || cvfQuestions.toString().isEmpty){
+        isCompleted=false;
+        pendingQuestion = " Questions in ${widget.cvfView.purpose![jkIndex].categoryName} are incomplete, please complete all questions / feedback";
+      }else{
+        try{
+          QuestionResponse cvfQuestionsModel = QuestionResponse(responseMessage: '', statusCode: 100, responseData: []);
+          if(cvfQuestions is QuestionResponse){
+            cvfQuestionsModel =  cvfQuestionsModel;
+          }else {
+            try{
+
+              cvfQuestionsModel = QuestionResponse.fromJson(
+              json.decode(cvfQuestions),
+              );
+
+            }catch(e){
+              cvfQuestionsModel = QuestionResponse.fromJson(
+              cvfQuestions,
+              );
+
+            }
+          }
+          if(cvfQuestionsModel!=null && cvfQuestionsModel.responseData!=null && cvfQuestionsModel.responseData.length>0){
+            for (int index = 0; index < cvfQuestionsModel.responseData.length; index++) {
+              for (int jIndex = 0; jIndex < cvfQuestionsModel.responseData[index].allquestion.length; jIndex++) {
+                List<QuestionMaster> mQuestionMaster =  cvfQuestionsModel.responseData;
+                String userAnswer = mQuestionMaster[index]
+                    .allquestion[jIndex]
+                    .SelectedAnswer
+                    .isNotEmpty
+                    ? mQuestionMaster[index].allquestion[jIndex].SelectedAnswer
+                    : (userAnswerMap.containsKey(mQuestionMaster[index]
+                    .allquestion[jIndex]
+                    .Question_Id) &&
+                    userAnswerMap[mQuestionMaster[index]
+                        .allquestion[jIndex]
+                        .Question_Id]
+                        .toString()
+                        .isNotEmpty)
+                    ? userAnswerMap[
+                mQuestionMaster[index].allquestion[jIndex].Question_Id]
+                    .toString()
+                    : '';
+                if (mQuestionMaster[index].allquestion[jIndex].isCompulsory == '1' &&
+                    (userAnswer.isEmpty || userAnswer == 'null')) {
+                  if (pendingQuestion.isEmpty) {
+                    pendingQuestion ='Please submit the below observation \n\n - ' + mQuestionMaster[index].allquestion[jIndex].categoryName;
+                  } else {
+                    pendingQuestion = pendingQuestion + ' \n' + widget.cvfView.purpose![jkIndex].categoryName;
+                  }
+                  inCompleteCounts = inCompleteCounts + 1;
+                  isCompleted = false;
+                  break;
+                }
+              }
+            }
+          }else{
+            pendingQuestion = " Please Fill ${widget.cvfView.purpose![jkIndex].categoryName} and try again";
+          }
+        }catch(e){
+          print(e);
+        }
+      }
+    }
+    return isCompleted;
+  }
+
   getPrefQuestions(String categoryid) async {
     hiveBox = Hive.box(LocalConstant.KidzeeDB);
     await Hive.openBox(LocalConstant.KidzeeDB);
     //print('in pref questions');
     try {
-      var cvfQuestions = hiveBox.get(widget.PJPCVF_Id.toString() +
-          categoryid +
-          LocalConstant.KEY_CVF_QUESTIONS);
-      if (false && cvfQuestions is QuestionResponse) {
+      var cvfQuestions = hiveBox.get(widget.PJPCVF_Id.toString() + categoryid + LocalConstant.KEY_CVF_QUESTIONS);
+      print('cvfQES --- ${widget.PJPCVF_Id.toString() + categoryid + LocalConstant.KEY_CVF_QUESTIONS}');
+      /*if (cvfQuestions is QuestionResponse) {
+        print('localdata');
         QuestionResponse response = cvfQuestions as QuestionResponse;
-      } else if (true || cvfQuestions
+        loadData();
+      } else */if (cvfQuestions
           .toString()
           .isEmpty) {
         //print('empty');
@@ -116,6 +186,7 @@ class _QuestionListScreenState extends State<QuestionListScreen>
           isLoading = false;
           setState(() {});
         } catch (e) {
+          print('captured in catch $e');
           loadData();
         }
       }
@@ -125,6 +196,7 @@ class _QuestionListScreenState extends State<QuestionListScreen>
   }
 
   saveCvfQuestionsPref(String categoryid, String data) async {
+    print(data);
     hiveBox.put(
         widget.PJPCVF_Id.toString() +
             categoryid +
@@ -175,7 +247,7 @@ class _QuestionListScreenState extends State<QuestionListScreen>
             if (questionResponse != null &&
                 questionResponse.responseData != null) {
               saveCvfQuestionsPref(
-                  widget.mCategoryId, json.encode(questionResponse.toJson()));
+                  widget.mCategoryId, questionResponse.toJson());
               mQuestionMaster.addAll(questionResponse.responseData);
               DBHelper dbHelper = DBHelper();
               dbHelper.insertCVFQuestions(widget.cvfView.PJPCVF_Id,
@@ -326,9 +398,7 @@ class _QuestionListScreenState extends State<QuestionListScreen>
                 ? mQuestionMaster[index].allquestion[jIndex].Remarks
                 : userAnswerMap[mQuestionMaster[index].allquestion[jIndex].Question_Id].toString()}</Remarks></tblPJPCVF_Answer>';
 
-            print(mQuestionMaster[index].allquestion[jIndex].question);
-            print(userAnswerMap[mQuestionMaster[index].allquestion[jIndex].Question_Id].toString());
-            print(mQuestionMaster[index].allquestion[jIndex].Remarks);
+
           }
         }
       }
@@ -554,6 +624,15 @@ class _QuestionListScreenState extends State<QuestionListScreen>
     );
   }
 
+  List<Widget> getCategoryList(GetDetailedPJP cvfView){
+    List<Widget> list = [];
+    for(int index=0;index<widget.cvfView.purpose!.length;index++){
+      list.add(getTextCategory(cvfView, cvfView.purpose![index].categoryName,
+          cvfView.purpose![index].categoryId));
+    }
+    return list;
+  }
+
   getCvfInfo(GetDetailedPJP cvfView) {
     return ListTile(
       leading: Expanded(
@@ -596,33 +675,12 @@ class _QuestionListScreenState extends State<QuestionListScreen>
           ? '${cvfView.franchiseeName}'
           : '${cvfView.Address}'),
       subtitle: Padding(
-          padding: EdgeInsetsDirectional.fromSTEB(5, 4, 12, 4),
+          padding: EdgeInsetsDirectional.fromSTEB(5, 4, 20, 4),
           child: SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
               mainAxisSize: MainAxisSize.max,
-              children: [
-                cvfView.purpose!.length > 0
-                    ? getTextCategory(cvfView, cvfView.purpose![0].categoryName,
-                    cvfView.purpose![0].categoryId)
-                    : Text(''),
-                cvfView.purpose!.length > 1
-                    ? getTextCategory(cvfView, cvfView.purpose![1].categoryName,
-                    cvfView.purpose![1].categoryId)
-                    : Text(''),
-                cvfView.purpose!.length > 2
-                    ? getTextCategory(cvfView, cvfView.purpose![2].categoryName,
-                    cvfView.purpose![2].categoryId)
-                    : Text(''),
-                cvfView.purpose!.length > 3
-                    ? getTextCategory(cvfView, cvfView.purpose![3].categoryName,
-                    cvfView.purpose![3].categoryId)
-                    : Text(''),
-                cvfView.purpose!.length > 4
-                    ? getTextCategory(cvfView, cvfView.purpose![4].categoryName,
-                    cvfView.purpose![4].categoryId)
-                    : Text(''),
-              ],
+              children: getCategoryList(cvfView),
             ),
           )),
       trailing: getTextRounded(cvfView, 'Fill CVF'),
@@ -706,7 +764,7 @@ class _QuestionListScreenState extends State<QuestionListScreen>
               scrollDirection: Axis.horizontal,
               child: Row(
                 mainAxisSize: MainAxisSize.max,
-                children: [
+                children: getCategoryList(cvfView), /*[
                   cvfView.purpose!.length > 0
                       ? getTextCategory(
                       cvfView,
@@ -737,7 +795,7 @@ class _QuestionListScreenState extends State<QuestionListScreen>
                       cvfView.purpose![4].categoryName,
                       cvfView.purpose![4].categoryId)
                       : Text(''),
-                ],
+                ],*/
               ),
             )),
       ],
@@ -756,17 +814,18 @@ class _QuestionListScreenState extends State<QuestionListScreen>
         } else if (cvfView.Status == 'Completed') {
           Utility.showMessages(
               context, 'CVF Already submitted and not able to update');
-        } else if (isComplete()) {
+        } else if (isComplete() && isAllCategoryQuestionsCompleted()) {
           saveAnswers(cvfView.PJPCVF_Id);
         } else {
+          print('in false ${pendingQuestion}');
           if (pendingQuestion == '') {
             Utility.showMessage(
                 context, 'Please Fill all questions/feedback and try again');
           } else {
             Utility.showMessage(
                 context,
-                'Please Fill all questions / feedback \n\n'
-                    'Incomplete Questions Categoty are - \n ${pendingQuestion}');
+                /*'Please Fill all questions / feedback \n\n'
+                    'Incomplete Questions Categoty are - \n */'${pendingQuestion}');
           }
         }
       },
@@ -1391,7 +1450,7 @@ class _QuestionListScreenState extends State<QuestionListScreen>
               .allquestion[jIndex].categoryName} is pending';
           if (pendingQuestion.isEmpty) {
             pendingQuestion =
-                ' - ' + mQuestionMaster[index].allquestion[jIndex].categoryName;
+                'Please submit the below observation \n\n - ' + mQuestionMaster[index].allquestion[jIndex].categoryName;
           } else {
             pendingQuestion = pendingQuestion + ' \n - ' +
                 mQuestionMaster[index].allquestion[jIndex].categoryName;
@@ -1413,7 +1472,7 @@ class _QuestionListScreenState extends State<QuestionListScreen>
     } else {
       //pendingQuestion = '';
     }
-    //print(pendingQuestion);
+    print('isComplete ${isCompleted}');
     return isCompleted;
   }
 

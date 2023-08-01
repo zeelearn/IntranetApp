@@ -591,9 +591,11 @@ class DBHelper {
     List<FranchiseeInfo> frichiseeList = [];
 
     List<Map<String, dynamic>> list = await  DBHelper().getData(LocalConstant.TABLE_CVF_FRANCHISEE);
+    print('list franchisee ${list}');
     if(list !=null){
       for(int index=0;index<list.length;index++) {
         Map<String, dynamic> map = list[index];
+        print(' NAME ${map[DBConstant.FRANCHISEE_NAME]} business ${map[DBConstant.BUSINESS_ID]}  ${businessId}');
         if(map[DBConstant.BUSINESS_ID] == businessId) {
           frichiseeList.add(FranchiseeInfo(franchiseeId: double.parse(
               map[DBConstant.FRANCHISEE_ID].toString()),

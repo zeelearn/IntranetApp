@@ -173,8 +173,8 @@ int _groupValue=0;
                           SizedBox(
                             height: size.height * 0.03,
                           ),
-                          MyWidget().getDateTime(context, 'End Date',
-                              _endDateController, minDate, maxDate),
+                          !isHappinessLeave ? MyWidget().getDateTime(context, 'End Date',
+                              _endDateController, minDate, maxDate) : SizedBox(height: 0,),
                           SizedBox(
                             height: size.height * 0.03,
                           ),
@@ -331,13 +331,13 @@ int _groupValue=0;
 
     ApplyLeaveRequest request = ApplyLeaveRequest(
         Requisition_Id: 0,
-        Type: isHappinessLeave ? '' : 'leave',
+        Type: isHappinessLeave ? 'Happiness Leave' : 'leave',
         Employee_Id: widget.employeeId.toString(),
         Remarks: _purposeController.text,
         Requisition_Date: DateFormat('yyyy-MM-dd').format(DateTime.now()),
         RequisitionTypeCode: isCompoff ? 'LV4' : 'LV1',
         Start_Date: DateFormat('yyyy-MM-dd').format(parseDateTime(_startDateController.text)),
-        End_Date: DateFormat('yyyy-MM-dd').format(parseDateTime(_endDateController.text)),
+        End_Date: DateFormat('yyyy-MM-dd').format(parseDateTime(isHappinessLeave ? _startDateController.text : _endDateController.text)),
         NosDays: 0,
         IsMaternityLeave: isMaternaty,
         noofChildren: "0",

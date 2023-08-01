@@ -153,6 +153,7 @@ class _PjpState extends State<NewPJP> {
 
   addCentersinDB(businessId) async {
     DBHelper dbHelper = DBHelper();
+    dbHelper.deleteData(LocalConstant.TABLE_CVF_FRANCHISEE);
     for (int index = 0; index < mFrianchiseeList.length; index++) {
       Map<String, Object> data = {
         DBConstant.FRANCHISEE_ID: mFrianchiseeList[index].franchiseeId,
@@ -163,7 +164,6 @@ class _PjpState extends State<NewPJP> {
         DBConstant.CITY: mFrianchiseeList[index].franchiseeCity,
         DBConstant.BUSINESS_ID: businessId
       };
-      dbHelper.deleteData(LocalConstant.TABLE_CVF_FRANCHISEE);
       dbHelper.insert(LocalConstant.TABLE_CVF_FRANCHISEE, data);
     }
   }

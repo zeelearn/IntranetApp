@@ -279,26 +279,6 @@ class _LeaveManagerScreen extends State<LeaveManagerScreen>
 
             ),
           ),
-          /*Row(
-                children: [
-                  Checkbox(
-                    checkColor: Colors.black,
-                    activeColor: LightColors.kLavender,
-                    value: _isSelectAll,
-                    onChanged: (bool? value) {
-                      setState(() {
-                        _isSelectAll = value!;
-                        updateListView();
-                      });
-                    },
-                  ),
-                  Text(
-                    'Select All',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                ],
-              ),*/
-
           Padding(
             padding: EdgeInsets.only(right: 30),
             child: Container(
@@ -418,7 +398,7 @@ class _LeaveManagerScreen extends State<LeaveManagerScreen>
         return AlertDialog(
           title: new Text("Leave  Approval"),
           content: new Text(
-              'Are you sure to approve the Leave request'),
+              'Are you sure to approve the ${model.leaveType} request'),
           actions: <Widget>[
             // usually buttons at the bottom of the dialog
             ElevatedButton(
@@ -463,8 +443,9 @@ class _LeaveManagerScreen extends State<LeaveManagerScreen>
     //Navigator.of(context).pop();
     Utility.showMessageSingleButton(context, 'Thank You. We received your request. We will process it in background. Once  it is completed, we will update you.',this);
     NotificationService notificationService = NotificationService();
-    notificationService.showNotification(12, 'LEAVE REQUEST Received', 'We are processing your service', 'We are processing your service');
+    notificationService.showNotification(12, '${model.leaveType} REQUEST Received', 'We are processing your service', 'We are processing your service');
     initializeService();
+    loadAcquisition();
 
     //var list = getSelectedModels(status);
     //String xml ="{'root': {'subroot': [{'Requisition_Id': 1102411,'WorkflowTypeCode': 'LV1','RequisitionTypeCode': 'LVREQ','Requistion_Status_Code': '','Is_Approved': 1,'Workflow_UserType': 'MAN','Workflow_Remark': 'approved'}]}}";

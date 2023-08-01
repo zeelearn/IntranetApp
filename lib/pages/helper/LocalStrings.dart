@@ -12,7 +12,7 @@ class LocalStrings {
 
   static const String productionBaseUrl = "http://app.ekidzee.com";
   static const String developmentBaseUrl = "http://intranetapi.zeelearn.com";
-  static const kGoogleApiKey = "AIzaSyAgCy6EgdEONhjl5PaTep3SHZgMVPe-04Q";
+  static const kGoogleApiKey = "AIzaSyCGdPtCq-KbVIJ_3iAKlSep0B0DgNhyLAM";
   static const String GET_TOKEN = "/snltoken";
   static const String GET_LOGIN = '/api/Account/Login';
   static const String GET_ATTENDANCE_SUMMERY = '/api/EmployeeInfo/GetAttendance';

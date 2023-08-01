@@ -8,6 +8,7 @@ class QuestionResponse {
   QuestionResponse({required this.responseMessage,required this.statusCode,required this.responseData});
 
   QuestionResponse.fromJson(Map<String, dynamic> json) {
+    print('in QuestionResponse fromjson.....');
     responseMessage = json['responseMessage'];
     statusCode = json['statusCode'];
     responseData = <QuestionMaster>[];
@@ -21,14 +22,17 @@ class QuestionResponse {
     }
   }
 
-  toJson() {
-    /*final Map<String, dynamic> data = new Map<String, dynamic>();
+  toJsonMap(){
+    final Map<String, dynamic> data = new Map<String, dynamic>();
     data['responseMessage'] = this.responseMessage;
     data['statusCode'] = this.statusCode;
     if (this.responseData != null) {
       data['responseData'] = this.responseData.map((v) => v.toJson()).toList();
     }
-    return data;*/
+    return data;
+  }
+  toJson() {
+    /**/
     return jsonEncode( {
       'responseMessage': this.responseMessage,
       'statusCode': this.statusCode,

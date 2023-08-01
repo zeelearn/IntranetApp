@@ -120,7 +120,7 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener{
 
     List<FranchiseeInfo> franchiseeList = await helper.getFranchiseeList(businessId);
 
-    if (false || franchiseeList == null || franchiseeList.length == 0) {
+    if (franchiseeList == null || franchiseeList.length == 0) {
       print('data load ssss');
       loadCenterList();
     } else {
@@ -162,6 +162,7 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener{
 
   addCentersinDB(businessId) async {
     DBHelper dbHelper = DBHelper();
+    dbHelper.deleteData(LocalConstant.TABLE_CVF_FRANCHISEE);
     for (int index = 0; index < mFrianchiseeList.length; index++) {
       Map<String, Object> data = {
         DBConstant.FRANCHISEE_ID: mFrianchiseeList[index].franchiseeId,
@@ -172,7 +173,6 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener{
         DBConstant.CITY: mFrianchiseeList[index].franchiseeCity,
         DBConstant.BUSINESS_ID: businessId
       };
-      dbHelper.deleteData(LocalConstant.TABLE_CVF_FRANCHISEE);
       dbHelper.insert(LocalConstant.TABLE_CVF_FRANCHISEE, data);
     }
   }

@@ -332,6 +332,36 @@ class _MyCVFListScreen extends State<CVFListScreen> implements onResponse,onClic
     }
     return _widgetlist;
   }
+  getCategoryBottomList(GetDetailedPJP cvfView,int index){
+    if(index==0){
+      return Container(color: kPrimaryLightColor,
+      child: Padding(padding: EdgeInsets.all(10),
+          child: Column(
+            children: [
+              Center(
+                child: const Text('Select Category',style: TextStyle(
+                    fontStyle: FontStyle.normal,
+                    color: Colors.white,
+                    letterSpacing: 0.4,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w400),
+                ),
+              ),
+            ],)
+          )
+      ,);
+    }else
+    return ListTile(
+      title: Container(
+        margin: EdgeInsets.all(5),
+        child: new Text(cvfView.purpose![index-1].categoryName),
+      ),
+      onTap: () {
+        Navigator.pop(context);
+        navigateQuestions(cvfView, cvfView.purpose![index-1].categoryId,cvfView.purpose![index-1].categoryName);
+      },
+    );
+  }
 
   selectCategory(BuildContext context,GetDetailedPJP cvfView) async{
     if(cvfView.purpose!.length==0){
@@ -340,6 +370,40 @@ class _MyCVFListScreen extends State<CVFListScreen> implements onResponse,onClic
       navigateQuestions(cvfView, cvfView.purpose![0].categoryId,cvfView.purpose![0].categoryName);
     }else{
       showModalBottomSheet(
+        useSafeArea: true,
+          isScrollControlled: true,
+          context: context,
+          builder: (context) {
+              return FractionallySizedBox(
+
+                child: ListView.builder(
+                      itemCount: cvfView.purpose!.length+1,
+                      shrinkWrap: true,
+                      itemBuilder: (context, index) {
+                        return getCategoryBottomList(cvfView,index);
+                      },
+                    ),
+              );
+            });
+            /*return Container(
+                padding: EdgeInsets.only(right: 15,left: 15,bottom: 15,top: 10),
+                child: Column(
+                  children: [
+                    const Text('Select Category',style: TextStyle(
+                        fontStyle: FontStyle.normal,
+                        letterSpacing: 0.4,
+                        fontSize: 20,
+                        fontWeight: FontWeight.w600),
+                    ),
+                    //getCategoryList
+                    Wrap(
+                        children: getList(cvfView)
+                    )
+                  ],
+                )
+            ) ;
+          });*/
+      /*showModalBottomSheet(
           context: context,
           builder: (context) {
             return Container(
@@ -360,7 +424,7 @@ class _MyCVFListScreen extends State<CVFListScreen> implements onResponse,onClic
                 ],
               ),
             ) ;
-          });
+          });*/
     }
   }
   navigateQuestions(GetDetailedPJP cvfView,String categoryId,String categoryName){
@@ -570,7 +634,7 @@ class _MyCVFListScreen extends State<CVFListScreen> implements onResponse,onClic
                 padding: EdgeInsetsDirectional.fromSTEB(16, 0, 4, 8),
                 child: Row(
                   mainAxisSize: MainAxisSize.max,
-                      children: [
+                      children: getCategoryList(cvfView), /*[
                         cvfView.purpose!.length > 0
                             ? getTextCategory(
                             cvfView, cvfView.purpose![0].categoryName,true)
@@ -591,7 +655,7 @@ class _MyCVFListScreen extends State<CVFListScreen> implements onResponse,onClic
                             ? getTextCategory(
                             cvfView, cvfView.purpose![4].categoryName,false)
                             : Text(''),
-                      ],
+                      ],*/
                     ),
 
               ),
@@ -602,6 +666,17 @@ class _MyCVFListScreen extends State<CVFListScreen> implements onResponse,onClic
     );
   }
 
+  List<Widget> getCategoryList(GetDetailedPJP cvfView){
+    List<Widget> list = [];
+    for(int index=0;index<cvfView.purpose!.length;index++){
+      list.add(getTextCategory(cvfView, cvfView.purpose![0].categoryName,index==0?true : false));
+      if(index>=1){
+        list.add(getTextCategory(cvfView, 'more..',index==0?true : false));
+        break;
+      }
+    }
+    return list;
+  }
 
   getView(GetDetailedPJP cvfView) {
     return GestureDetector(
