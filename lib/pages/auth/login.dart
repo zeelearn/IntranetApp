@@ -21,8 +21,8 @@ import '../login/PrivacyPolicyScreen.dart';
 
 
 class LoginPage extends StatefulWidget {
-  const LoginPage({Key? key}) : super(key: key);
-
+  bool isAutoLogin;
+  LoginPage({required this.isAutoLogin, Key? key}) : super(key: key);
 
   @override
   _LoginPage createState() => _LoginPage();
@@ -48,10 +48,22 @@ class _LoginPage extends State<LoginPage> {
     passwordVisible=true;
     Future.delayed(Duration.zero, () {
       this.getDeviceInfo();
-      setState(() {
+      if(widget.isAutoLogin){
+        autoLogin();
+      }else {
+        setState(() {
 
-      });
+        });
+      }
     });
+  }
+
+  autoLogin() async{
+    var box = await Utility.openBox();
+    _userNameController.text = box.get(LocalConstant.KEY_USER_NAME) as String;
+    _userPasswordController.text = box.get(LocalConstant.KEY_USER_PASSWORD) as String;
+    isChecked = true;
+    validate(context);
   }
   Future<void> getDeviceInfo() async {
     PackageInfo.fromPlatform().then((PackageInfo packageInfo) {

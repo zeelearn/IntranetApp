@@ -40,28 +40,29 @@ class _SplashScreenState extends State<SplashScreen> {
     String displayName = '';
     String userName = '';
     String mobileNumber = '';
+    String currentBusinessName = '';
     print('navigate');
     if(box.get(LocalConstant.KEY_FIRST_NAME)!=null) {
       displayName = box.get(LocalConstant.KEY_FIRST_NAME) as String;
       userName = box.get(LocalConstant.KEY_FIRST_NAME) as String;
       mobileNumber = box.get(LocalConstant.KEY_CONTACT) as String;
+      currentBusinessName = box.get(LocalConstant.KEY_BUSINESS_NAME).toString();
     }
     print(userName);
       if(displayName != '') {
           Timer(
               Duration(seconds: 4),
-                  () =>
-                  Navigator.pushReplacement(
+                  () => Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
                         builder: (context) =>
-                            IntranetHomePage(userId: '',)),
+                        currentBusinessName.isNotEmpty ? LoginPage(isAutoLogin: true,) : IntranetHomePage(userId: '',)),
                   ));
       }else {
         print(' in else');
         if (kIsWeb) {
           Navigator.of(context).pushReplacement(MaterialPageRoute(
-              builder: (BuildContext context) => LoginPage()));
+              builder: (BuildContext context) => LoginPage(isAutoLogin: false,)));
         } else {
           //IntroPage
           print('intro');

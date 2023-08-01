@@ -42,7 +42,7 @@ class _IntroPageState extends State<IntroPage> {
             onTap: (){
               Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(builder: (context) => LoginPage()));
+                  MaterialPageRoute(builder: (context) => LoginPage(isAutoLogin: false,)));
             },
             child: Padding(
               padding: EdgeInsets.only(right: 20, top: 20),
@@ -103,7 +103,7 @@ class _IntroPageState extends State<IntroPage> {
               onPressed: () {
                 Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(builder: (context) => LoginPage()),
+                  MaterialPageRoute(builder: (context) => LoginPage(isAutoLogin: false,)),
                 );
               },
               child: Text('Start Now'),
