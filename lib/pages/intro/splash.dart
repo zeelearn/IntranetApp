@@ -46,9 +46,12 @@ class _SplashScreenState extends State<SplashScreen> {
       displayName = box.get(LocalConstant.KEY_FIRST_NAME) as String;
       userName = box.get(LocalConstant.KEY_FIRST_NAME) as String;
       mobileNumber = box.get(LocalConstant.KEY_CONTACT) as String;
+    }
+    if(box.get(LocalConstant.KEY_BUSINESS_NAME)!=null) {
       currentBusinessName = box.get(LocalConstant.KEY_BUSINESS_NAME).toString();
     }
     print(userName);
+    print(currentBusinessName);
       if(displayName != '') {
           Timer(
               Duration(seconds: 4),
@@ -56,7 +59,7 @@ class _SplashScreenState extends State<SplashScreen> {
                     context,
                     MaterialPageRoute(
                         builder: (context) =>
-                        currentBusinessName.isNotEmpty ? LoginPage(isAutoLogin: true,) : IntranetHomePage(userId: '',)),
+                        currentBusinessName==null || currentBusinessName.isEmpty ? LoginPage(isAutoLogin: true,) : IntranetHomePage(userId: '',)),
                   ));
       }else {
         print(' in else');
