@@ -419,7 +419,7 @@ class _QuestionListScreenState extends State<QuestionListScreen>
           } else if (value is CVFAnswersResponse) {
             CVFAnswersResponse response = value;
             if (cvfId.isNotEmpty) {
-              IntranetServiceHandler.updateCVFStatus(widget.employeeId, cvfId,
+              IntranetServiceHandler.updateCVFStatus(widget.employeeId, widget.cvfView,
                   Utility.getDateTime(), 'Completed', this);
             } else {
               if (cvfId.isEmpty) {

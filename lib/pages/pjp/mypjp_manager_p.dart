@@ -7,6 +7,7 @@ import 'package:intranet/api/ServiceHandler.dart';
 import 'package:intranet/api/request/pjp/update_pjpstatus_request.dart';
 
 import '../../api/request/pjp/update_pjpstatuslist_request.dart';
+import '../../api/response/general_response.dart';
 import '../../api/response/pjp/pjplistresponse.dart';
 import '../../api/response/pjp/update_pjpstatus_response.dart';
 import '../firebase/anylatics.dart';
@@ -22,16 +23,17 @@ import 'add_new_pjp.dart';
 import 'cvf/pjpcvf.dart';
 import 'filters.dart';
 
-class MyPjpListScreen extends StatefulWidget {
+class MyPjpManPListScreen extends StatefulWidget {
   FilterSelection mFilterSelection;
-
-  MyPjpListScreen({Key? key, required this.mFilterSelection}) : super(key: key);
+  List<PJPInfo> mPjpList;
+  bool isApproved;
+  MyPjpManPListScreen({Key? key, required this.mFilterSelection,required this.mPjpList,required this.isApproved}) : super(key: key);
 
   @override
   _MyPjpListState createState() => _MyPjpListState();
 }
 
-class _MyPjpListState extends State<MyPjpListScreen> implements onResponse,onClickListener{
+class _MyPjpListState extends State<MyPjpManPListScreen> implements onResponse,onClickListener{
   List<PJPInfo> mPjpList = [];
   int employeeId = 0;
   int businessId = 0;
@@ -59,7 +61,6 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse,onCli
     await Hive.openBox(LocalConstant.KidzeeDB);
     employeeId = int.parse(hiveBox.get(LocalConstant.KEY_EMPLOYEE_ID) as String);
     businessId = hiveBox.get(LocalConstant.KEY_BUSINESS_ID);
-
 
     isInternet = await Utility.isInternet();
     if(isInternet){
@@ -113,7 +114,7 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse,onCli
     return Scaffold(
         extendBodyBehindAppBar: true,
         backgroundColor: Colors.white,
-        appBar: AppBar(
+        /*appBar: AppBar(
           title: const Text("My PJP"),
           actions: <Widget>[
             //IconButton
@@ -143,7 +144,7 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse,onCli
             },
           ),
           systemOverlayStyle: SystemUiOverlayStyle.light,
-        ),
+        ),*/
         body: SafeArea(
           child: RefreshIndicator(
             key: _refreshIndicatorKey,
@@ -162,6 +163,7 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse,onCli
                 SizedBox(
                   height: 10,
                 ),
+            mPjpList.isEmpty || isLoading ? SizedBox(height: 0,) :
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -196,7 +198,12 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse,onCli
                       padding: MyWidget().MyButtonPadding(),
                       child: ElevatedButton(
                         onPressed: () {
-                          //approveAcquisitinoSingle();
+                          if(isValid()) {
+                            _approveRejectAll();
+                          }else{
+                            Utility.showMessage(context, 'Please Select the PJP');
+                          }
+                          //approvePjpList(pjpInfo, isApprove);
                         },
                         // style: ButtonStyle(elevation: MaterialStateProperty(12.0 )),
                         style: ElevatedButton.styleFrom(
@@ -218,6 +225,62 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse,onCli
             ),
           ),
         ));
+  }
+
+  void _approveRejectAll() {
+    // flutter defined function
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        // return object of type Dialog
+        return AlertDialog(
+          title: new Text("PJP Approval"),
+          content: new Text(
+              'Are you sure to approve the PJP request'),
+          actions: <Widget>[
+            // usually buttons at the bottom of the dialog
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                //approvePjpList(0);
+                Utility.onConfirmationBox(context, 'REJECT', 'Cancel', 'Reject PJP', 'Are you sure to reject the PJP', Utility.ACTION_REJECT, this);
+                //approveAcquisition(model, 'REJ');
+              },
+              // style: ButtonStyle(elevation: MaterialStateProperty(12.0 )),
+              style: ElevatedButton.styleFrom(
+                  elevation: 12.0,
+                  textStyle: const TextStyle(color: LightColors.kRed)),
+              child: const Text('Reject'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                approvePjpList(1);
+              },
+              // style: ButtonStyle(elevation: MaterialStateProperty(12.0 )),
+              style: ElevatedButton.styleFrom(
+                  elevation: 12.0,
+                  textStyle: const TextStyle(color: LightColors.kLightGreen)),
+              child: const Text('Approve'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  bool isValid(){
+    bool isValid = true;
+    if (_isChecked != null && _isChecked.length > 0) {
+      for (int index = 0; index < _isChecked.length; index++) {
+        if(_isChecked[index]==false) {
+          isValid = false;
+          break;
+        }
+      }
+    }
+    print('isValid ${isValid}');
+    return isValid;
   }
 
   updateSelection() {
@@ -412,6 +475,14 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse,onCli
                     onChanged: (bool? value) {
                       setState(() {
                         _isChecked[index] = value!;
+                        if(value==false){
+                          _isSelectAll=false;
+                        }
+                        mPjpList.sort((a,b) {
+                          var adate = a.fromDate; //before -> var adate = a.expiry;
+                          var bdate = b.fromDate; //var bdate = b.expiry;
+                          return -bdate.compareTo(adate);
+                        });
                         //singleSelection(position);
                       });
                     },
@@ -662,8 +733,7 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse,onCli
       //print('PJP List onSuccess ${response.responseData.toString()}');
       if(response.responseData!=null && response.responseData.length>0){
         if (response != null && response.responseData != null) {
-          if (widget.mFilterSelection == null ||
-              widget.mFilterSelection.type == FILTERStatus.MYTEAM) {
+          if (widget.mFilterSelection == null ||widget.mFilterSelection.type == FILTERStatus.MYTEAM) {
             //print(('FOR MY TEAM'));
             //mPjpList.addAll(response.responseData);
             for (int index = 0;
@@ -671,44 +741,37 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse,onCli
             index++) {
               if (response.responseData[index].isSelfPJP == '0') {
                 //mPjpList.add(response.responseData[index]);
-
                 for(int jIndex=0;jIndex<widget.mFilterSelection.filters.length;jIndex++){
                   if(widget.mFilterSelection.filters[jIndex].isSelected && response.responseData[index].displayName==widget.mFilterSelection.filters[jIndex].name){
-                    mPjpList.add(response.responseData[index]);
-                    //print(('FOR MY TEAM ${widget.mFilterSelection.filters[jIndex].isSelected}  ${response.responseData[index].displayName}'));
+                    if(widget.isApproved && response.responseData[index].ApprovalStatus=='Approved' || !widget.isApproved && response.responseData[index].ApprovalStatus=='Pending')
+                      mPjpList.add(response.responseData[index]);
                   }
                 }
               }
             }
           } else if (widget.mFilterSelection.type == FILTERStatus.MYSELF) {
             //print(('FOR MY SELF'));
-            for (int index = 0;
-            index < response.responseData.length;
-            index++) {
+            for (int index = 0;index < response.responseData.length;index++) {
               if (response.responseData[index].isSelfPJP == '1') {
-                mPjpList.add(response.responseData[index]);
+                if(widget.isApproved && response.responseData[index].ApprovalStatus=='Approved' || !widget.isApproved && response.responseData[index].ApprovalStatus=='Pending')
+                  mPjpList.add(response.responseData[index]);
               }
             }
           } else if (widget.mFilterSelection.type == FILTERStatus.NONE) {
             //print(('FOR MY CUSTOM TEAM'));
-            for (int index = 0;
-            index < response.responseData.length;
-            index++) {
+            for (int index = 0;index < response.responseData.length;index++) {
               if (response.responseData[index].isSelfPJP == '0') {
-                mPjpList.add(response.responseData[index]);
+                if(widget.isApproved && response.responseData[index].ApprovalStatus=='Approved' || !widget.isApproved && response.responseData[index].ApprovalStatus=='Pending')
+                  mPjpList.add(response.responseData[index]);
               }
             }
           } else {
             //print('In else');
-            for (int index = 0;
-            index < response.responseData.length;
-            index++) {
-              for (int jIndex = 0;
-              jIndex < widget.mFilterSelection.filters.length;
-              jIndex++) {
-                if (response.responseData[index].displayName ==
-                    widget.mFilterSelection.filters[jIndex].name) {
-                  mPjpList.add(response.responseData[index]);
+            for (int index = 0;index < response.responseData.length;index++) {
+              for (int jIndex = 0;jIndex < widget.mFilterSelection.filters.length;jIndex++) {
+                if (response.responseData[index].displayName == widget.mFilterSelection.filters[jIndex].name) {
+                  if(widget.isApproved && response.responseData[index].ApprovalStatus=='Approved' || !widget.isApproved && response.responseData[index].ApprovalStatus=='Pending')
+                    mPjpList.add(response.responseData[index]);
                 }
               }
             }
@@ -729,7 +792,11 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse,onCli
       }else{
         //print('onResponse in if else');
       }
+    }else if(value is GeneralResponse){
+      GeneralResponse response = value;
+      Utility.onSuccessMessage(context, 'PJP Updated', 'PJP status has been updated Successfully', this);
     }
+    print('length ${mPjpList.length}');
     setState(() {
       //mPjpList.addAll(response.responseData);
     });
@@ -741,21 +808,28 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse,onCli
     IntranetServiceHandler.updatePJPStatus(request, this);
   }
 
-/*  void approvePjpList() {
+  void approvePjpList(int isApprove) {
     StringBuffer DocXML = new StringBuffer("<root>");
     for(int index=0;index<mPjpList.length;index++){
-      if(mPjpList[index].ApprovalStatus)
+      if(_isChecked[index]==true)
+        DocXML.write("<subroot><PJP_id>${mPjpList[index].PJP_Id}</PJP_id><Is_Approved>${isApprove}</Is_Approved></subroot>");
     //<subroot><PJP_id>135</PJP_id><Is_Approved>0</Is_Approved></subroot><subroot><PJP_id>136</PJP_id><Is_Approved>1</Is_Approved></subroot>
     }
     DocXML.write("</root>");
-    UpdatePJPStatusListRequest request = UpdatePJPStatusListRequest(DocXML: DocXML, Workflow_user: Workflow_user)
+    UpdatePJPStatusListRequest request = UpdatePJPStatusListRequest(DocXML: DocXML.toString(), Workflow_user: employeeId.toString());
+    //print(request.toJson());
     IntranetServiceHandler.updatePJPStatusList(request, this);
-  }*/
+  }
 
   @override
   void onClick(int action, value) {
     //print('onClick called ${value}');
-    if(value is PJPInfo){
+    if(value is int){
+      if(action==Utility.ACTION_OK && value == Utility.ACTION_REJECT){
+        approvePjpList(0);
+      }
+      Navigator.of(context, rootNavigator: true).pop('dialog');
+    }else if(value is PJPInfo){
       PJPInfo pjpInfo = value;
       if(action==Utility.ACTION_OK){
         approvePjp(pjpInfo, 1);

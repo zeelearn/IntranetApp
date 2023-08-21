@@ -437,7 +437,7 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener{
       String xml = '<root><tblPJPCVF><Business_Id>${businessId}</Business_Id><Employee_Id>${employeeId}</Employee_Id><Franchisee_Id>${getFrichanseeId()}</Franchisee_Id><Visit_Date>${Utility
           .convertShortDate(cvfDate)}</Visit_Date><Visit_Time>${vistitDateTime
           ?.hour}:${vistitDateTime
-          ?.minute}</Visit_Time><Category_Id>${getCategoryList()}</Category_Id><Latitude>${longitude}</Latitude><Longitude>${latitude}</Longitude><ActivityTitle>${_activityNameController.text.toString()}</ActivityTitle><Address>${location=='Search Location' ? getFrichanseeAddress() :location}</Address></tblPJPCVF></root>';
+          ?.minute}</Visit_Time><Category_Id>${getCategoryList()}</Category_Id><Latitude>${latitude}</Latitude><Longitude>${longitude}</Longitude><ActivityTitle>${_activityNameController.text.toString()}</ActivityTitle><Address>${location=='Search Location' ? getFrichanseeAddress() :location}</Address></tblPJPCVF></root>';
       AddCVFRequest request = AddCVFRequest(
           PJP_Id: int.parse(widget.mPjpModel.PJP_Id),
           DocXml: xml,

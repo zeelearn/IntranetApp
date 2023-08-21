@@ -735,11 +735,9 @@ class _MyCVFListScreen extends State<MyCVFListScreen> implements onResponse,onCl
   updateCVF(GetDetailedPJP cvfView) async{
     isInternet = await Utility.isInternet();
     if(isInternet){
-      //online
-      print('internet avaliabnle asdasd');
       IntranetServiceHandler.updateCVFStatus(
           employeeId,
-          cvfView.PJPCVF_Id,
+          cvfView,
           Utility.getDateTime(),
           getNextStatus(cvfView.Status),
           this);
@@ -799,14 +797,18 @@ class _MyCVFListScreen extends State<MyCVFListScreen> implements onResponse,onCl
     }
 
       print('Status is ${cvfView.Status}');
-
+      String address = Utility.getAddress(latitude, longitude);
       UpdateCVFStatusRequest request = UpdateCVFStatusRequest(
           PJPCVF_id: cvfView.PJPCVF_Id,
           DateTime: Utility.getDateTime(),
           Status: cvfView.Status,
           Employee_id: employeeId,
-          Latitude: latitude,
-          Longitude: longitude);
+          Latitude: cvfView.Status!='FILL CVF' ? cvfView.Latitude : latitude,
+          Longitude: cvfView.Status!='FILL CVF' ? cvfView.Longitude : longitude,
+          Address: address,
+          CheckOutLatitude: cvfView.Status=='FILL CVF' ? latitude : 0.0,
+          CheckOutLongitude: cvfView.Status=='FILL CVF' ? longitude : 0.0,
+          CheckOutAddress: cvfView.Status=='FILL CVF' ? address : '');
       print('Data saved locally....');
       print(request.toJson());
       DBHelper helper = DBHelper();

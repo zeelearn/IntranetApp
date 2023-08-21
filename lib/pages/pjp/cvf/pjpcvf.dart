@@ -1244,7 +1244,7 @@ class _MyCVFListScreen extends State<CVFListScreen> implements onResponse,onClic
       print('internet avaliabnle');
       IntranetServiceHandler.updateCVFStatus(
           employeeId,
-          cvfView.PJPCVF_Id,
+          cvfView,
           Utility.getDateTime(),
           getNextStatus(cvfView.Status),
           this);
@@ -1305,14 +1305,18 @@ class _MyCVFListScreen extends State<CVFListScreen> implements onResponse,onClic
       ].request();
       print(statuses[Permission.location]);
     }
-
+    String address = Utility.getAddress(latitude, longitude);
       UpdateCVFStatusRequest request = UpdateCVFStatusRequest(
           PJPCVF_id: cvfView.PJPCVF_Id,
           DateTime: Utility.getDateTime(),
           Status: cvfView.Status,
           Employee_id: employeeId,
-          Latitude: latitude,
-          Longitude: longitude);
+          Latitude: cvfView.Status=='FILL CVF' ? cvfView.Latitude : latitude,
+          Longitude: cvfView.Status=='FILL CVF' ? cvfView.Longitude : longitude,
+          Address: address,
+          CheckOutLatitude: cvfView.Status=='Completed' ? latitude : 0.0,
+          CheckOutLongitude: cvfView.Status=='Completed' ? longitude : 0.0,
+          CheckOutAddress: cvfView.Status=='Completed' ? address : '');
       print('Data saved locally....');
       print(request.toJson());
       DBHelper helper = DBHelper();

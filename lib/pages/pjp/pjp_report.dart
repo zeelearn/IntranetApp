@@ -487,8 +487,7 @@ class _MyPjpReportListState extends State<MyPjpReportScreen> implements onRespon
                 trailing: pjpInfo.ApprovalStatus =='Pending' ? Text('') : pjpInfo.isSelfPJP=='0' && pjpInfo.ApprovalStatus =='Pending'? OutlinedButton(
                   onPressed: () {
                     if (pjpInfo.isSelfPJP=='0' || widget.mFilterSelection.type == FILTERStatus.MYSELF && pjpInfo.ApprovalStatus =='Approved') {
-                      Utility.showMessageMultiButton(context,'Approve','Reject', 'PJP : ${pjpInfo.PJP_Id}', 'Are you sure to approve the PJP, created by ${pjpInfo.displayName}',pjpInfo, this);
-                    }else{
+                      Utility.showMessageMultiButton(context,'Approve','Reject', 'PJP : ${pjpInfo.PJP_Id}', 'Are you sure to approve the PJP, created by ${pjpInfo.displayName}',pjpInfo, this);                    }else{
                       Utility.showMessages(context, 'Please wait Your manager need to approve the PJP');
                     }
                   },

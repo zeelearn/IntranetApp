@@ -124,8 +124,8 @@ class GetDetailedPJP implements Comparable<GetDetailedPJP>{
   late String visitTime;
   late String franchiseeCode;
   late String franchiseeName;
-  late String Latitude;
-  late String Longitude;
+  late double Latitude;
+  late double Longitude;
   late String Address;
   late String ActivityTitle;
   late String Status;
@@ -177,8 +177,8 @@ class GetDetailedPJP implements Comparable<GetDetailedPJP>{
       Status = json['Status'] ?? ' Check In';
       franchiseeCode = json['Franchisee_Code'] ?? 'NA';
       franchiseeName = json['Franchisee_Name'] ?? 'NA';
-      Latitude = json['Latitude'] ?? ' NA';
-      Longitude = json['Longitude'] ?? ' NA';
+      Latitude = double.parse(json['Latitude']) ?? 0.0;
+      Longitude = double.parse(json['Longitude']) ?? 0.0;
       Address = json['Address'] ?? ' NA';
       ActivityTitle = json['ActivityTitle'] ?? 'NA';
       purpose = <Purpose>[];

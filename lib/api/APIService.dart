@@ -29,6 +29,7 @@ import 'package:intranet/api/request/pjp/employee_request.dart';
 import 'package:intranet/api/request/pjp/get_pjp_list_request.dart';
 import 'package:intranet/api/request/pjp/get_pjp_report_request.dart';
 import 'package:intranet/api/request/pjp/update_pjpstatus_request.dart';
+import 'package:intranet/api/request/pjp/update_pjpstatuslist_request.dart';
 import 'package:intranet/api/request/report/myreport_request.dart';
 import 'package:intranet/api/response/LeaveRequisitionResponse.dart';
 import 'package:intranet/api/response/apply_leave_response.dart';
@@ -45,6 +46,7 @@ import 'package:intranet/api/response/cvf/get_all_cvf.dart';
 import 'package:intranet/api/response/cvf/update_status_response.dart';
 import 'package:intranet/api/response/employee_list_response.dart';
 import 'package:intranet/api/response/fcm_response.dart';
+import 'package:intranet/api/response/general_response.dart';
 import 'package:intranet/api/response/leave_list_manager.dart';
 import 'package:intranet/api/response/leave_response.dart';
 import 'package:intranet/api/response/login_response.dart';
@@ -918,6 +920,35 @@ class APIService {
           );
         }else {
           return UpdatePJPStatusResponse.fromJson(
+            json.decode(response.body),
+          );
+        }
+      } else {
+        return null; //LoginResponseModel(token:"",Status:"Invalid/Wrong Login Details");
+      }
+    } catch (e) {
+      print(e.toString());
+      e.toString();
+    }
+  }
+
+  Future<dynamic> updatePjpStatusList(UpdatePJPStatusListRequest requestModel) async {
+    try {
+      print(Uri.parse(url + LocalStrings.UPDATE_MODIFY_STATUS_MULTIPLE));
+      final response = await http.post(Uri.parse(url + LocalStrings.UPDATE_MODIFY_STATUS_MULTIPLE),
+          headers: {
+            "Accept": "application/json",
+            "content-type": "application/json"
+          },
+          body:requestModel.getJson());
+      print(response.body);
+      if (response.statusCode == 200 || response.statusCode == 400) {
+        if(response.body is GeneralResponse){
+          return GeneralResponse.fromJson(
+            json.decode(response.body),
+          );
+        }else {
+          return GeneralResponse.fromJson(
             json.decode(response.body),
           );
         }

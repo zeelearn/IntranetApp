@@ -22,16 +22,17 @@ import 'add_new_pjp.dart';
 import 'cvf/pjpcvf.dart';
 import 'filters.dart';
 
-class MyPjpListScreen extends StatefulWidget {
+class MyPjpManAListScreen extends StatefulWidget {
   FilterSelection mFilterSelection;
-
-  MyPjpListScreen({Key? key, required this.mFilterSelection}) : super(key: key);
+  List<PJPInfo> mPjpList;
+  bool isApproved;
+  MyPjpManAListScreen({Key? key, required this.mFilterSelection,required this.mPjpList,required this.isApproved}) : super(key: key);
 
   @override
   _MyPjpListState createState() => _MyPjpListState();
 }
 
-class _MyPjpListState extends State<MyPjpListScreen> implements onResponse,onClickListener{
+class _MyPjpListState extends State<MyPjpManAListScreen> implements onResponse,onClickListener{
   List<PJPInfo> mPjpList = [];
   int employeeId = 0;
   int businessId = 0;
@@ -59,7 +60,6 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse,onCli
     await Hive.openBox(LocalConstant.KidzeeDB);
     employeeId = int.parse(hiveBox.get(LocalConstant.KEY_EMPLOYEE_ID) as String);
     businessId = hiveBox.get(LocalConstant.KEY_BUSINESS_ID);
-
 
     isInternet = await Utility.isInternet();
     if(isInternet){
@@ -113,7 +113,7 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse,onCli
     return Scaffold(
         extendBodyBehindAppBar: true,
         backgroundColor: Colors.white,
-        appBar: AppBar(
+        /*appBar: AppBar(
           title: const Text("My PJP"),
           actions: <Widget>[
             //IconButton
@@ -143,7 +143,7 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse,onCli
             },
           ),
           systemOverlayStyle: SystemUiOverlayStyle.light,
-        ),
+        ),*/
         body: SafeArea(
           child: RefreshIndicator(
             key: _refreshIndicatorKey,
@@ -162,54 +162,6 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse,onCli
                 SizedBox(
                   height: 10,
                 ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Padding(
-                  padding: EdgeInsets.only(left: 10),
-                  child: Row(
-                    children: [
-                      Checkbox(
-                        checkColor: Colors.black,
-                        activeColor: LightColors.kLavender,
-                        value: _isSelectAll,
-                        onChanged: (bool? value) {
-                          setState(() {
-                            _isSelectAll = value!;
-                            updateSelection();
-                          });
-                        },
-                      ),
-                      Text(
-                        'Select All',
-                        style: TextStyle(fontSize: 12),
-                      ),
-                    ],
-
-                  ),
-                ),
-                Padding(
-                  padding: EdgeInsets.only(right: 30),
-                  child: Container(
-                    alignment: Alignment.center,
-                    child: Padding(
-                      padding: MyWidget().MyButtonPadding(),
-                      child: ElevatedButton(
-                        onPressed: () {
-                          //approveAcquisitinoSingle();
-                        },
-                        // style: ButtonStyle(elevation: MaterialStateProperty(12.0 )),
-                        style: ElevatedButton.styleFrom(
-                            elevation: 12.0,
-                            textStyle:
-                            const TextStyle(color: LightColors.kLightGreen)),
-                        child: const Text('Submit'),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
                 SizedBox(
                   height: 10,
                 ),
@@ -662,8 +614,7 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse,onCli
       //print('PJP List onSuccess ${response.responseData.toString()}');
       if(response.responseData!=null && response.responseData.length>0){
         if (response != null && response.responseData != null) {
-          if (widget.mFilterSelection == null ||
-              widget.mFilterSelection.type == FILTERStatus.MYTEAM) {
+          if (widget.mFilterSelection == null ||widget.mFilterSelection.type == FILTERStatus.MYTEAM) {
             //print(('FOR MY TEAM'));
             //mPjpList.addAll(response.responseData);
             for (int index = 0;
@@ -671,44 +622,37 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse,onCli
             index++) {
               if (response.responseData[index].isSelfPJP == '0') {
                 //mPjpList.add(response.responseData[index]);
-
                 for(int jIndex=0;jIndex<widget.mFilterSelection.filters.length;jIndex++){
                   if(widget.mFilterSelection.filters[jIndex].isSelected && response.responseData[index].displayName==widget.mFilterSelection.filters[jIndex].name){
-                    mPjpList.add(response.responseData[index]);
-                    //print(('FOR MY TEAM ${widget.mFilterSelection.filters[jIndex].isSelected}  ${response.responseData[index].displayName}'));
+                    if(response.responseData[index].ApprovalStatus=='Approved' || response.responseData[index].ApprovalStatus!='Pending')
+                      mPjpList.add(response.responseData[index]);
                   }
                 }
               }
             }
           } else if (widget.mFilterSelection.type == FILTERStatus.MYSELF) {
             //print(('FOR MY SELF'));
-            for (int index = 0;
-            index < response.responseData.length;
-            index++) {
+            for (int index = 0;index < response.responseData.length;index++) {
               if (response.responseData[index].isSelfPJP == '1') {
-                mPjpList.add(response.responseData[index]);
+                if(response.responseData[index].ApprovalStatus=='Approved' || response.responseData[index].ApprovalStatus!='Pending')
+                  mPjpList.add(response.responseData[index]);
               }
             }
           } else if (widget.mFilterSelection.type == FILTERStatus.NONE) {
             //print(('FOR MY CUSTOM TEAM'));
-            for (int index = 0;
-            index < response.responseData.length;
-            index++) {
+            for (int index = 0;index < response.responseData.length;index++) {
               if (response.responseData[index].isSelfPJP == '0') {
-                mPjpList.add(response.responseData[index]);
+                if(response.responseData[index].ApprovalStatus=='Approved' || response.responseData[index].ApprovalStatus!='Pending')
+                  mPjpList.add(response.responseData[index]);
               }
             }
           } else {
             //print('In else');
-            for (int index = 0;
-            index < response.responseData.length;
-            index++) {
-              for (int jIndex = 0;
-              jIndex < widget.mFilterSelection.filters.length;
-              jIndex++) {
-                if (response.responseData[index].displayName ==
-                    widget.mFilterSelection.filters[jIndex].name) {
-                  mPjpList.add(response.responseData[index]);
+            for (int index = 0;index < response.responseData.length;index++) {
+              for (int jIndex = 0;jIndex < widget.mFilterSelection.filters.length;jIndex++) {
+                if (response.responseData[index].displayName == widget.mFilterSelection.filters[jIndex].name) {
+                  if(response.responseData[index].ApprovalStatus=='Approved' || response.responseData[index].ApprovalStatus!='Pending')
+                    mPjpList.add(response.responseData[index]);
                 }
               }
             }
@@ -730,6 +674,7 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse,onCli
         //print('onResponse in if else');
       }
     }
+    print('length ${mPjpList.length}');
     setState(() {
       //mPjpList.addAll(response.responseData);
     });

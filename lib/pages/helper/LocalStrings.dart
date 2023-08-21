@@ -46,5 +46,6 @@ class LocalStrings {
   static const String GET_UPDATE_CVF_STATUS = '/api/PJP/AddPJPAttendance';
   static const String GET_GETPJPREPORT = '/api/PJP/GetPJPReport';
   static const String UPDATE_MODIFY_STATUS = '/api/PJP/ModifyPJPStatus';
+  static const String UPDATE_MODIFY_STATUS_MULTIPLE = '/api/PJP/ModifyPJPStatus_multiple';
 
 }
