@@ -87,6 +87,8 @@ class _QuestionListScreenState extends State<QuestionListScreen>
 
   List<bool> ischeck = [];
 
+  int businessId =1;
+
   bool isAllCategoryQuestionsCompleted(){
     bool isCompleted = true;
     int inCompleteCounts=0;
@@ -161,7 +163,9 @@ class _QuestionListScreenState extends State<QuestionListScreen>
 
   getPrefQuestions(String categoryid) async {
     hiveBox = Hive.box(LocalConstant.KidzeeDB);
+    businessId = hiveBox.get(LocalConstant.KEY_BUSINESS_ID);
     await Hive.openBox(LocalConstant.KidzeeDB);
+
     //print('in pref questions');
     try {
       var cvfQuestions = hiveBox.get(widget.PJPCVF_Id.toString() + categoryid + LocalConstant.KEY_CVF_QUESTIONS);
@@ -170,7 +174,7 @@ class _QuestionListScreenState extends State<QuestionListScreen>
         print('localdata');
         QuestionResponse response = cvfQuestions as QuestionResponse;
         loadData();
-      } else */if (cvfQuestions
+      } else */if (true || cvfQuestions
           .toString()
           .isEmpty) {
         //print('empty');
@@ -196,7 +200,6 @@ class _QuestionListScreenState extends State<QuestionListScreen>
   }
 
   saveCvfQuestionsPref(String categoryid, String data) async {
-    print(data);
     hiveBox.put(
         widget.PJPCVF_Id.toString() +
             categoryid +
@@ -233,7 +236,7 @@ class _QuestionListScreenState extends State<QuestionListScreen>
       DateTime time = DateTime.now();
       QuestionsRequest request = QuestionsRequest(
           Category_Id: widget.mCategoryId,
-          Business_id: '1',
+          Business_id: businessId.toString(),
           PJPCVF_Id: widget.cvfView.PJPCVF_Id);
       APIService apiService = APIService();
       apiService.getCVFQuestions(request).then((value) {
@@ -326,20 +329,16 @@ class _QuestionListScreenState extends State<QuestionListScreen>
 
   String getAnswerId(List<Answers> answerList, String answerType,
       String answer) {
-    print('answerType  ${answerType}');
     String answerId = answer;
     if (answerType == 'YesNo') {
       for (int index = 0; index < answerList.length; index++) {
-        print('Answer ${answer} AnswerName ${answerList[index].answerName}');
         if (answer == answerList[index].answerName) {
-          print('------');
           answerId = answerList[index].answerId;
         }
       }
     } else {
       answerId = answerList[0].answerId;
     }
-    print('Answer Id is ${answerId} for ${answer}');
     return answerId;
   }
 
@@ -403,15 +402,12 @@ class _QuestionListScreenState extends State<QuestionListScreen>
         }
       }
       docXml = '${docXml} </root>';
-      //print(docXml);
       SaveCVFAnswers request = SaveCVFAnswers(
           PJPCVF_Id: widget.PJPCVF_Id,
           DocXml: docXml,
           UserId: widget.employeeId);
-      print(request.toJson());
       APIService apiService = APIService();
       apiService.saveCVFAnswers(request).then((value) {
-        print(value.toString());
         if (value != null) {
           Navigator.of(context).pop();
           if (value == null || value.responseData == null) {
@@ -504,7 +500,6 @@ class _QuestionListScreenState extends State<QuestionListScreen>
         ),
       );
     } else if (mQuestionMaster.isEmpty) {
-      //print('List not avaliable');
       return Utility.emptyDataSet(context, "CVF Questions are not avaliable");
     } else {
       return Flexible(
@@ -764,38 +759,7 @@ class _QuestionListScreenState extends State<QuestionListScreen>
               scrollDirection: Axis.horizontal,
               child: Row(
                 mainAxisSize: MainAxisSize.max,
-                children: getCategoryList(cvfView), /*[
-                  cvfView.purpose!.length > 0
-                      ? getTextCategory(
-                      cvfView,
-                      cvfView.purpose![0].categoryName,
-                      cvfView.purpose![0].categoryId)
-                      : Text(''),
-                  cvfView.purpose!.length > 1
-                      ? getTextCategory(
-                      cvfView,
-                      cvfView.purpose![1].categoryName,
-                      cvfView.purpose![1].categoryId)
-                      : Text(''),
-                  cvfView.purpose!.length > 2
-                      ? getTextCategory(
-                      cvfView,
-                      cvfView.purpose![2].categoryName,
-                      cvfView.purpose![2].categoryId)
-                      : Text(''),
-                  cvfView.purpose!.length > 3
-                      ? getTextCategory(
-                      cvfView,
-                      cvfView.purpose![3].categoryName,
-                      cvfView.purpose![3].categoryId)
-                      : Text(''),
-                  cvfView.purpose!.length > 4
-                      ? getTextCategory(
-                      cvfView,
-                      cvfView.purpose![4].categoryName,
-                      cvfView.purpose![4].categoryId)
-                      : Text(''),
-                ],*/
+                children: getCategoryList(cvfView),
               ),
             )),
       ],
@@ -817,7 +781,6 @@ class _QuestionListScreenState extends State<QuestionListScreen>
         } else if (isComplete() && isAllCategoryQuestionsCompleted()) {
           saveAnswers(cvfView.PJPCVF_Id);
         } else {
-          print('in false ${pendingQuestion}');
           if (pendingQuestion == '') {
             Utility.showMessage(
                 context, 'Please Fill all questions/feedback and try again');
@@ -933,7 +896,6 @@ class _QuestionListScreenState extends State<QuestionListScreen>
           mQuestionMaster[index].allquestion[jIndex].SelectedAnswer = answers;
           mQuestionMaster[index].allquestion[jIndex].userAnswers = answers;
           DBHelper helper = DBHelper();
-          //print('update ansert');
           helper.updateUserAnswer(
               widget.PJPCVF_Id,
               widget.PJPCVF_Id,
@@ -951,7 +913,6 @@ class _QuestionListScreenState extends State<QuestionListScreen>
   }
 
   Widget showPlayers(Allquestion player, int index) {
-    //print(player.toJson().toString());
     return Padding(
         padding: EdgeInsets.only(left: 20, right: 25),
         child: Column(

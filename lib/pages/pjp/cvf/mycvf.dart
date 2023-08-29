@@ -234,6 +234,8 @@ class _MyCVFListScreen extends State<MyCVFListScreen> implements onResponse,onCl
     return list;
   }
 
+
+
   getCvfView(GetDetailedPJP cvfView) {
     return GestureDetector(
       onTap: () {
@@ -398,19 +400,16 @@ class _MyCVFListScreen extends State<MyCVFListScreen> implements onResponse,onCl
                   ),
                 ),
               ),
-              Row(
-                children: [
-                  Padding(
-                      padding: EdgeInsetsDirectional.fromSTEB(5, 4, 20, 4),
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Row(
-                          mainAxisSize: MainAxisSize.max,
-                          children: getCategoryList(cvfView),
-                        ),
-                      )),
-                ],
-              )
+              Padding(
+                  padding: EdgeInsetsDirectional.fromSTEB(5, 4, 12, 4),
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.max,
+                      children: getCategoryList(cvfView),
+                    ),
+                  )),
+
             ],
           ),
         ),

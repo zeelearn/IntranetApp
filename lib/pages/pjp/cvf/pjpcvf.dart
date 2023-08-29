@@ -631,34 +631,14 @@ class _MyCVFListScreen extends State<CVFListScreen> implements onResponse,onClic
                 ),
               ),
               Padding(
-                padding: EdgeInsetsDirectional.fromSTEB(16, 0, 4, 8),
-                child: Row(
-                  mainAxisSize: MainAxisSize.max,
-                      children: getCategoryList(cvfView), /*[
-                        cvfView.purpose!.length > 0
-                            ? getTextCategory(
-                            cvfView, cvfView.purpose![0].categoryName,true)
-                            : Text(''),
-                        cvfView.purpose!.length > 1
-                            ? getTextCategory(
-                            cvfView, cvfView.purpose![1].categoryName,false)
-                            : Text(''),
-                        cvfView.purpose!.length > 2
-                            ? getTextCategory(
-                            cvfView, cvfView.purpose![2].categoryName,false)
-                            : Text(''),
-                        cvfView.purpose!.length > 3
-                            ? getTextCategory(
-                            cvfView, cvfView.purpose![3].categoryName,false)
-                            : Text(''),
-                        cvfView.purpose!.length > 4
-                            ? getTextCategory(
-                            cvfView, cvfView.purpose![4].categoryName,false)
-                            : Text(''),
-                      ],*/
+                  padding: EdgeInsetsDirectional.fromSTEB(5, 4, 12, 4),
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.max,
+                      children: getCategoryList(cvfView),
                     ),
-
-              ),
+                  )),
             ],
           ),
         ),
