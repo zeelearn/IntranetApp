@@ -8,6 +8,7 @@ class QuestionResponse {
   QuestionResponse({required this.responseMessage,required this.statusCode,required this.responseData});
 
   QuestionResponse.fromJson(Map<String, dynamic> json) {
+    print('decoding....${json}');
     responseMessage = json['responseMessage'];
     statusCode = json['statusCode'];
     responseData = <QuestionMaster>[];

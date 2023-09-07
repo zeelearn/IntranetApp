@@ -56,7 +56,7 @@ class FirebaseStorageUtil{
           dynamic imageUrl= await taskSnapshot.ref.getDownloadURL();
           player.files = imageUrl as String;
           //player.files = player.files.replaceAll('&', '___');
-          print(player.files);
+          print('FILEUPLOAD---- ${player.files}');
           response.onUploadSuccess(player);
           break;
       }

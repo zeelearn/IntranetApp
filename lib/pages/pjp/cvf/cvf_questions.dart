@@ -41,13 +41,14 @@ class QuestionListScreen extends StatefulWidget {
   int employeeId;
   bool isViewOnly;
 
-  QuestionListScreen({Key? key,
-    required this.PJPCVF_Id,
-    required this.employeeId,
-    required this.cvfView,
-    required this.mCategory,
-    required this.mCategoryId,
-    required this.isViewOnly})
+  QuestionListScreen(
+      {Key? key,
+      required this.PJPCVF_Id,
+      required this.employeeId,
+      required this.cvfView,
+      required this.mCategory,
+      required this.mCategoryId,
+      required this.isViewOnly})
       : super(key: key);
 
   @override
@@ -65,7 +66,7 @@ class _QuestionListScreenState extends State<QuestionListScreen>
 
   TextEditingController _textEditingController = TextEditingController();
 
-  late QuestionResponse questionResponse;
+  late QuestionResponse? questionResponse = null;
 
   var hiveBox;
 
@@ -87,62 +88,79 @@ class _QuestionListScreenState extends State<QuestionListScreen>
 
   List<bool> ischeck = [];
 
-  int businessId =1;
+  int businessId = 1;
 
-  bool isAllCategoryQuestionsCompleted(){
+  bool isAllCategoryQuestionsCompleted() {
     bool isCompleted = true;
-    int inCompleteCounts=0;
-    for(int jkIndex=0;jkIndex<widget.cvfView.purpose!.length;jkIndex++){
-      var cvfQuestions = hiveBox.get(widget.PJPCVF_Id.toString() + widget.cvfView.purpose![jkIndex].categoryId.trim() + LocalConstant.KEY_CVF_QUESTIONS);
-      if(cvfQuestions==null || cvfQuestions.toString().isEmpty){
-        isCompleted=false;
-        pendingQuestion = " Questions in ${widget.cvfView.purpose![jkIndex].categoryName} are incomplete, please complete all questions / feedback";
-      }else{
-        try{
-          QuestionResponse cvfQuestionsModel = QuestionResponse(responseMessage: '', statusCode: 100, responseData: []);
-          if(cvfQuestions is QuestionResponse){
-            cvfQuestionsModel =  cvfQuestionsModel;
-          }else {
-            try{
-
+    int inCompleteCounts = 0;
+    for (int jkIndex = 0; jkIndex < widget.cvfView.purpose!.length; jkIndex++) {
+      var cvfQuestions = hiveBox.get(widget.PJPCVF_Id.toString() +
+          widget.cvfView.purpose![jkIndex].categoryId.trim() +
+          LocalConstant.KEY_CVF_QUESTIONS);
+      if (cvfQuestions == null || cvfQuestions.toString().isEmpty) {
+        isCompleted = false;
+        pendingQuestion =
+            " Questions in ${widget.cvfView.purpose![jkIndex].categoryName} are incomplete, please complete all questions / feedback";
+      } else {
+        try {
+          QuestionResponse cvfQuestionsModel = QuestionResponse(
+              responseMessage: '', statusCode: 100, responseData: []);
+          if (cvfQuestions is QuestionResponse) {
+            cvfQuestionsModel = cvfQuestionsModel;
+          } else {
+            try {
               cvfQuestionsModel = QuestionResponse.fromJson(
-              json.decode(cvfQuestions),
+                json.decode(cvfQuestions),
               );
-
-            }catch(e){
+            } catch (e) {
               cvfQuestionsModel = QuestionResponse.fromJson(
-              cvfQuestions,
+                cvfQuestions,
               );
-
             }
           }
-          if(cvfQuestionsModel!=null && cvfQuestionsModel.responseData!=null && cvfQuestionsModel.responseData.length>0){
-            for (int index = 0; index < cvfQuestionsModel.responseData.length; index++) {
-              for (int jIndex = 0; jIndex < cvfQuestionsModel.responseData[index].allquestion.length; jIndex++) {
-                List<QuestionMaster> mQuestionMaster =  cvfQuestionsModel.responseData;
+          if (cvfQuestionsModel != null &&
+              cvfQuestionsModel.responseData != null &&
+              cvfQuestionsModel.responseData.length > 0) {
+            for (int index = 0;
+                index < cvfQuestionsModel.responseData.length;
+                index++) {
+              for (int jIndex = 0;
+                  jIndex <
+                      cvfQuestionsModel.responseData[index].allquestion.length;
+                  jIndex++) {
+                List<QuestionMaster> mQuestionMaster =
+                    cvfQuestionsModel.responseData;
                 String userAnswer = mQuestionMaster[index]
-                    .allquestion[jIndex]
-                    .SelectedAnswer
-                    .isNotEmpty
+                        .allquestion[jIndex]
+                        .SelectedAnswer
+                        .isNotEmpty
                     ? mQuestionMaster[index].allquestion[jIndex].SelectedAnswer
                     : (userAnswerMap.containsKey(mQuestionMaster[index]
-                    .allquestion[jIndex]
-                    .Question_Id) &&
-                    userAnswerMap[mQuestionMaster[index]
-                        .allquestion[jIndex]
-                        .Question_Id]
-                        .toString()
-                        .isNotEmpty)
-                    ? userAnswerMap[
-                mQuestionMaster[index].allquestion[jIndex].Question_Id]
-                    .toString()
-                    : '';
-                if (mQuestionMaster[index].allquestion[jIndex].isCompulsory == '1' &&
+                                .allquestion[jIndex]
+                                .Question_Id) &&
+                            userAnswerMap[mQuestionMaster[index]
+                                    .allquestion[jIndex]
+                                    .Question_Id]
+                                .toString()
+                                .isNotEmpty)
+                        ? userAnswerMap[mQuestionMaster[index]
+                                .allquestion[jIndex]
+                                .Question_Id]
+                            .toString()
+                        : '';
+                if (mQuestionMaster[index].allquestion[jIndex].isCompulsory ==
+                        '1' &&
                     (userAnswer.isEmpty || userAnswer == 'null')) {
                   if (pendingQuestion.isEmpty) {
-                    pendingQuestion ='Please submit the below observation \n\n - ' + mQuestionMaster[index].allquestion[jIndex].categoryName;
+                    pendingQuestion =
+                        'Please submit the below observation \n\n - ' +
+                            mQuestionMaster[index]
+                                .allquestion[jIndex]
+                                .categoryName;
                   } else {
-                    pendingQuestion = pendingQuestion + ' \n' + widget.cvfView.purpose![jkIndex].categoryName;
+                    pendingQuestion = pendingQuestion +
+                        ' \n' +
+                        widget.cvfView.purpose![jkIndex].categoryName;
                   }
                   inCompleteCounts = inCompleteCounts + 1;
                   isCompleted = false;
@@ -150,10 +168,11 @@ class _QuestionListScreenState extends State<QuestionListScreen>
                 }
               }
             }
-          }else{
-            pendingQuestion = " Please Fill ${widget.cvfView.purpose![jkIndex].categoryName} and try again";
+          } else {
+            pendingQuestion =
+                " Please Fill ${widget.cvfView.purpose![jkIndex].categoryName} and try again";
           }
-        }catch(e){
+        } catch (e) {
           print(e);
         }
       }
@@ -168,15 +187,17 @@ class _QuestionListScreenState extends State<QuestionListScreen>
 
     //print('in pref questions');
     try {
-      var cvfQuestions = hiveBox.get(widget.PJPCVF_Id.toString() + categoryid + LocalConstant.KEY_CVF_QUESTIONS);
-      print('cvfQES --- ${widget.PJPCVF_Id.toString() + categoryid + LocalConstant.KEY_CVF_QUESTIONS}');
+      var cvfQuestions = hiveBox.get(widget.PJPCVF_Id.toString() +
+          categoryid +
+          LocalConstant.KEY_CVF_QUESTIONS);
+      print(
+          'cvfQES --- ${widget.PJPCVF_Id.toString() + categoryid + LocalConstant.KEY_CVF_QUESTIONS}');
       /*if (cvfQuestions is QuestionResponse) {
         print('localdata');
         QuestionResponse response = cvfQuestions as QuestionResponse;
         loadData();
-      } else */if (true || cvfQuestions
-          .toString()
-          .isEmpty) {
+      } else */
+      if (true || cvfQuestions.toString().isEmpty) {
         //print('empty');
         loadData();
       } else {
@@ -208,32 +229,44 @@ class _QuestionListScreenState extends State<QuestionListScreen>
   }
 
   updateImageOffline(Allquestion question, String path) async {
-    hiveBox.put('img_' + widget.PJPCVF_Id.toString() + question.Question_Id,
-        path);
+    hiveBox.put(
+        'img_' + widget.PJPCVF_Id.toString() + question.Question_Id, path);
   }
 
   String getImagePath(Allquestion question) {
-    String? path = hiveBox.get('img_' + widget.PJPCVF_Id.toString() + question.Question_Id);
+    String? path = hiveBox
+        .get('img_' + widget.PJPCVF_Id.toString() + question.Question_Id);
     return path == null ? '' : path.toString();
   }
 
   loadData() async {
     DBHelper helper = DBHelper();
-    //questionResponse = await helper.getQuestionsList(widget.PJPCVF_Id.toString());
+    questionResponse = await helper.getQuestions(
+        widget.PJPCVF_Id.toString(), widget.mCategory, widget.mCategoryId);
     bool isInternet = await Utility.isInternet();
-    if (false || !isInternet && (questionResponse != null && questionResponse.responseData.length > 0)) {
+
+    if (!isInternet &&
+        (questionResponse != null &&
+            questionResponse!.responseData.length > 0)) {
+      print(
+          'NO  INTERNET-----------------${questionResponse!.responseData.length}');
+      print('N${questionResponse!.responseData}');
       isLoading = true;
       mQuestionMaster.clear();
-      for(int index=0;index<questionResponse.responseData.length;index++) {
-        if(questionResponse.responseData[index].categoryId == widget.mCategoryId)
-          mQuestionMaster.add(questionResponse.responseData[index]);
+      for (int index = 0;
+          index < questionResponse!.responseData.length;
+          index++) {
+        print(
+            'Category ID ${questionResponse!.responseData[index].categoryId}  and ${widget.mCategoryId}');
+        //if(questionResponse!.responseData[index].categoryId == widget.mCategoryId)
+        mQuestionMaster.add(questionResponse!.responseData[index]);
       }
+      print(mQuestionMaster.length);
       isLoading = false;
       setState(() {});
     } else {
       isLoading = true;
       mQuestionMaster.clear();
-      DateTime time = DateTime.now();
       QuestionsRequest request = QuestionsRequest(
           Category_Id: widget.mCategoryId,
           Business_id: businessId.toString(),
@@ -248,13 +281,16 @@ class _QuestionListScreenState extends State<QuestionListScreen>
             questionResponse = value;
 
             if (questionResponse != null &&
-                questionResponse.responseData != null) {
+                questionResponse!.responseData != null) {
               saveCvfQuestionsPref(
-                  widget.mCategoryId, questionResponse.toJson());
-              mQuestionMaster.addAll(questionResponse.responseData);
+                  widget.mCategoryId, questionResponse!.toJson());
+              mQuestionMaster.addAll(questionResponse!.responseData);
               DBHelper dbHelper = DBHelper();
-              dbHelper.insertCVFQuestions(widget.cvfView.PJPCVF_Id,
-                  json.encode(questionResponse.toJson()), 0);
+              dbHelper.insertCVFQuestions(
+                  widget.cvfView.PJPCVF_Id,
+                  widget.mCategoryId,
+                  json.encode(questionResponse!.toJson()),
+                  0);
               insertQuestions();
               setState(() {});
             }
@@ -285,33 +321,33 @@ class _QuestionListScreenState extends State<QuestionListScreen>
     HashMap<String, String> map = HashMap();
     for (int index = 0; index < mQuestionMaster.length; index++) {
       for (int jIndex = 0;
-      jIndex < mQuestionMaster[index].allquestion.length;
-      jIndex++) {
+          jIndex < mQuestionMaster[index].allquestion.length;
+          jIndex++) {
         if (!map.containsKey(mQuestionMaster[index].categoryId)) {
           dbHelper.deleteCategory(int.parse(mQuestionMaster[index].categoryId));
           map.putIfAbsent(mQuestionMaster[index].categoryId,
-                  () => mQuestionMaster[index].categoryId);
+              () => mQuestionMaster[index].categoryId);
         }
 
         Map<String, Object> data = {
           DBConstant.QUESTION_ID:
-          mQuestionMaster[index].allquestion[jIndex].Question_Id,
+              mQuestionMaster[index].allquestion[jIndex].Question_Id,
           DBConstant.QUESTION:
-          mQuestionMaster[index].allquestion[jIndex].question,
+              mQuestionMaster[index].allquestion[jIndex].question,
           DBConstant.CATEGORY_ID: mQuestionMaster[index].categoryId,
           DBConstant.CATEGORY_NAME: mQuestionMaster[index].categoryName,
           DBConstant.IS_COMPULSARY:
-          mQuestionMaster[index].allquestion[jIndex].isCompulsory,
+              mQuestionMaster[index].allquestion[jIndex].isCompulsory,
         };
         dbHelper.insert(LocalConstant.TABLE_CVF_QUESTIONS, data);
         for (int kIndex = 0;
-        kIndex < mQuestionMaster[index].allquestion[jIndex].answers.length;
-        kIndex++) {
+            kIndex < mQuestionMaster[index].allquestion[jIndex].answers.length;
+            kIndex++) {
           Map<String, Object> data = {
             DBConstant.QUESTION_ID:
-            mQuestionMaster[index].allquestion[jIndex].Question_Id,
+                mQuestionMaster[index].allquestion[jIndex].Question_Id,
             DBConstant.QUESTION:
-            mQuestionMaster[index].allquestion[jIndex].question,
+                mQuestionMaster[index].allquestion[jIndex].question,
             DBConstant.ANSWER_NAME: mQuestionMaster[index]
                 .allquestion[jIndex]
                 .answers[kIndex]
@@ -327,8 +363,8 @@ class _QuestionListScreenState extends State<QuestionListScreen>
     }
   }
 
-  String getAnswerId(List<Answers> answerList, String answerType,
-      String answer) {
+  String getAnswerId(
+      List<Answers> answerList, String answerType, String answer) {
     String answerId = answer;
     if (answerType == 'YesNo') {
       for (int index = 0; index < answerList.length; index++) {
@@ -341,67 +377,83 @@ class _QuestionListScreenState extends State<QuestionListScreen>
     }
     return answerId;
   }
+bool isOffline=false;
+  isFileUpload() {
+    isOffline=true;
+    for (int index = 0; index < mQuestionMaster.length; index++) {
+      for (int jIndex = 0;jIndex < mQuestionMaster[index].allquestion.length;jIndex++) {
+        if(mQuestionMaster[index].allquestion[jIndex].files.isNotEmpty && mQuestionMaster[index].allquestion[jIndex].files.contains('data/user')){
+          String name = widget.employeeId.toString() +'_c' +widget.PJPCVF_Id.toString() +'_q' +mQuestionMaster[index].allquestion[jIndex].Question_Id;
+          FirebaseStorageUtil().uploadFile(mQuestionMaster[index].allquestion[jIndex], mQuestionMaster[index].allquestion[jIndex].files, name, this);
+          return false;
+        }
+      }
+    }
+    isOffline=false;
+    return true;
+  }
 
   saveAnswers(String cvfId) async {
     bool isInternet = await Utility.isInternet();
-    if (isInternet) {
-      Utility.showLoaderDialog(context);
+    if(isFileUpload()){
 
+    }else if (isInternet) {
+      Utility.showLoaderDialog(context);
+      isOffline=false;
       String docXml = '<root>';
       for (int index = 0; index < mQuestionMaster.length; index++) {
-        for (int jIndex = 0; jIndex <
-            mQuestionMaster[index].allquestion.length; jIndex++) {
-          if (mQuestionMaster[index].allquestion[jIndex].answers[0].answerType=='YesNo' && (mQuestionMaster[index].allquestion[jIndex].userAnswers.isNotEmpty || mQuestionMaster[index].allquestion[jIndex].files.isNotEmpty) ) {
-
-            docXml = '${docXml}<tblPJPCVF_Answer><SubmissionDate>${Utility
-                .convertShortDate(DateTime
-                .now())}</SubmissionDate><Question_Id>${mQuestionMaster[index]
-                .allquestion[jIndex]
-                .Question_Id}</Question_Id><AnswerId>${
-                getAnswerId(mQuestionMaster[index].allquestion[jIndex].answers,
-                    mQuestionMaster[index].allquestion[jIndex].answers[0]
-                        .answerType,
-                    mQuestionMaster[index].allquestion[jIndex].userAnswers)
-            /* mQuestionMaster[index].allquestion[jIndex].answers[0].answerType == 'YesNo' ?
-                  mQuestionMaster[index].allquestion[jIndex].userAnswers : ''*/
-            }</AnswerId>'
-                '<Files>${encodeFile(mQuestionMaster[index]
-                .allquestion[jIndex]
-                .files)}</Files><Remarks>${mQuestionMaster[index]
-                .allquestion[jIndex].answers[0].answerType == 'YesNo'
-                ? ''
-                : mQuestionMaster[index].allquestion[jIndex].userAnswers
-                .isNotEmpty ? mQuestionMaster[index].allquestion[jIndex]
-                .userAnswers : '' }</Remarks></tblPJPCVF_Answer>';
-          } else if (mQuestionMaster[index].allquestion[jIndex].answers[0].answerType !='YesNo'
-              && (userAnswerMap[mQuestionMaster[index].allquestion[jIndex].Question_Id] != null
-                  && userAnswerMap[mQuestionMaster[index].allquestion[jIndex].Question_Id].toString()
-                  .isNotEmpty || mQuestionMaster[index].allquestion[jIndex].files.isNotEmpty)) {
+        for (int jIndex = 0;
+            jIndex < mQuestionMaster[index].allquestion.length;
+            jIndex++) {
+          if (mQuestionMaster[index]
+                      .allquestion[jIndex]
+                      .answers[0]
+                      .answerType ==
+                  'YesNo' &&
+              (mQuestionMaster[index]
+                      .allquestion[jIndex]
+                      .userAnswers
+                      .isNotEmpty ||
+                  mQuestionMaster[index]
+                      .allquestion[jIndex]
+                      .files
+                      .isNotEmpty)) {
             docXml =
-            '${docXml}<tblPJPCVF_Answer><SubmissionDate>${Utility
-                .convertShortDate(DateTime
-                .now())}</SubmissionDate><Question_Id>${mQuestionMaster[index]
-                .allquestion[jIndex]
-                .Question_Id}</Question_Id><Files>${encodeFile(mQuestionMaster[index]
-                .allquestion[jIndex]
-                .files)}</Files><AnswerId>${
-                getAnswerId(mQuestionMaster[index].allquestion[jIndex].answers,
-                    mQuestionMaster[index].allquestion[jIndex].answers[0]
-                        .answerType, userAnswerMap[mQuestionMaster[index]
-                        .allquestion[jIndex].Question_Id].toString())
-            /*mQuestionMaster[index]
+                '${docXml}<tblPJPCVF_Answer><SubmissionDate>${Utility.convertShortDate(DateTime.now())}</SubmissionDate><Question_Id>${mQuestionMaster[index].allquestion[jIndex].Question_Id}</Question_Id><AnswerId>${getAnswerId(mQuestionMaster[index].allquestion[jIndex].answers, mQuestionMaster[index].allquestion[jIndex].answers[0].answerType, mQuestionMaster[index].allquestion[jIndex].userAnswers)
+                /* mQuestionMaster[index].allquestion[jIndex].answers[0].answerType == 'YesNo' ?
+                  mQuestionMaster[index].allquestion[jIndex].userAnswers : ''*/
+                }</AnswerId>'
+                '<Files>${encodeFile(mQuestionMaster[index].allquestion[jIndex].files)}</Files><Remarks>${mQuestionMaster[index].allquestion[jIndex].answers[0].answerType == 'YesNo' ? '' : mQuestionMaster[index].allquestion[jIndex].userAnswers.isNotEmpty ? mQuestionMaster[index].allquestion[jIndex].userAnswers : ''}</Remarks></tblPJPCVF_Answer>';
+          } else if (mQuestionMaster[index]
+                      .allquestion[jIndex]
+                      .answers[0]
+                      .answerType !=
+                  'YesNo' &&
+              (userAnswerMap[mQuestionMaster[index]
+                              .allquestion[jIndex]
+                              .Question_Id] !=
+                          null &&
+                      userAnswerMap[mQuestionMaster[index]
+                              .allquestion[jIndex]
+                              .Question_Id]
+                          .toString()
+                          .isNotEmpty ||
+                  mQuestionMaster[index]
+                      .allquestion[jIndex]
+                      .files
+                      .isNotEmpty)) {
+            docXml =
+                '${docXml}<tblPJPCVF_Answer><SubmissionDate>${Utility.convertShortDate(DateTime.now())}</SubmissionDate><Question_Id>${mQuestionMaster[index].allquestion[jIndex].Question_Id}</Question_Id><Files>${encodeFile(mQuestionMaster[index].allquestion[jIndex].files)}</Files><AnswerId>${getAnswerId(mQuestionMaster[index].allquestion[jIndex].answers, mQuestionMaster[index].allquestion[jIndex].answers[0].answerType, userAnswerMap[mQuestionMaster[index].allquestion[jIndex].Question_Id].toString())
+                /*mQuestionMaster[index]
                 .allquestion[jIndex].answers[0].answerType == 'YesNo' ? userAnswerMap[mQuestionMaster[index]
                 .allquestion[jIndex].Question_Id].toString() : ''*/
-            }</AnswerId>'
-                '<Remarks>${userAnswerMap[mQuestionMaster[index].allquestion[jIndex].Question_Id].toString().isEmpty || userAnswerMap[mQuestionMaster[index].allquestion[jIndex].Question_Id].toString() =='null'
-                ? mQuestionMaster[index].allquestion[jIndex].Remarks
-                : userAnswerMap[mQuestionMaster[index].allquestion[jIndex].Question_Id].toString()}</Remarks></tblPJPCVF_Answer>';
-
-
+                }</AnswerId>'
+                '<Remarks>${userAnswerMap[mQuestionMaster[index].allquestion[jIndex].Question_Id].toString().isEmpty || userAnswerMap[mQuestionMaster[index].allquestion[jIndex].Question_Id].toString() == 'null' ? mQuestionMaster[index].allquestion[jIndex].Remarks : userAnswerMap[mQuestionMaster[index].allquestion[jIndex].Question_Id].toString()}</Remarks></tblPJPCVF_Answer>';
           }
         }
       }
       docXml = '${docXml} </root>';
+      print('API Is Calling....');
       SaveCVFAnswers request = SaveCVFAnswers(
           PJPCVF_Id: widget.PJPCVF_Id,
           DocXml: docXml,
@@ -415,8 +467,8 @@ class _QuestionListScreenState extends State<QuestionListScreen>
           } else if (value is CVFAnswersResponse) {
             CVFAnswersResponse response = value;
             if (cvfId.isNotEmpty) {
-              IntranetServiceHandler.updateCVFStatus(widget.employeeId, widget.cvfView,
-                  Utility.getDateTime(), 'Completed', this);
+              IntranetServiceHandler.updateCVFStatus(widget.employeeId,
+                  widget.cvfView, Utility.getDateTime(), 'Completed', this);
             } else {
               if (cvfId.isEmpty) {
                 Utility.showMessage(context, 'CVF Answers saved Successfully');
@@ -436,10 +488,11 @@ class _QuestionListScreenState extends State<QuestionListScreen>
     }
   }
 
-  decodeFile(String url){
+  decodeFile(String url) {
     return url.replaceAll('&amp;', '&');
   }
-  encodeFile(String url){
+
+  encodeFile(String url) {
     String link = url.replaceAll('___', '&');
     link = link.replaceAll('&', '&amp;');
     return link;
@@ -451,22 +504,24 @@ class _QuestionListScreenState extends State<QuestionListScreen>
     return Scaffold(
         appBar: AppBar(
           title: const Text('Questions'),
-          actions: !widget.isViewOnly ? [
-            IconButton(
-              icon: const Icon(Icons.done),
-              tooltip: 'Filter',
-              onPressed: () {
-                saveAnswers('');
-              },
-            ),
-          ] : null,
+          actions: !widget.isViewOnly
+              ? [
+                  IconButton(
+                    icon: const Icon(Icons.done),
+                    tooltip: 'Filter',
+                    onPressed: () {
+                      saveAnswers('');
+                    },
+                  ),
+                ]
+              : null,
         ),
         body: Stack(
           children: [
             getView(widget.cvfView),
             Container(
               margin:
-              const EdgeInsets.only(top: 100, left: 0, right: 0, bottom: 0),
+                  const EdgeInsets.only(top: 100, left: 0, right: 0, bottom: 0),
               /*child: getWidget(),*/
               child: SingleChildScrollView(
                 child: getWidget(),
@@ -487,7 +542,7 @@ class _QuestionListScreenState extends State<QuestionListScreen>
       /*return getCVFQuestions(); */
       return Column(
         children:
-        mQuestionMaster.map<Widget>((club) => showQuestions(club)).toList(),
+            mQuestionMaster.map<Widget>((club) => showQuestions(club)).toList(),
       );
     }
   }
@@ -504,31 +559,31 @@ class _QuestionListScreenState extends State<QuestionListScreen>
     } else {
       return Flexible(
           child: ListView.builder(
-            itemCount: mQuestionMaster.length,
-            shrinkWrap: true,
-            itemBuilder: (context, index) {
-              return Card(
-                child: Padding(
-                  padding: EdgeInsets.only(
-                      top: 36.0, left: 6.0, right: 6.0, bottom: 6.0),
-                  child: ExpansionTile(
-                    title: Text(mQuestionMaster[index].categoryName),
-                    children: <Widget>[
-                      Text('Parent'),
-                      ListView.builder(
-                          itemCount: mQuestionMaster[index].allquestion.length,
-                          physics: ClampingScrollPhysics(),
-                          shrinkWrap: true,
-                          itemBuilder: (BuildContext context, int jindex) {
-                            return generateQuestionView(
-                                mQuestionMaster[index].allquestion[jindex]);
-                          }),
-                    ],
-                  ),
-                ),
-              );
-            },
-          ));
+        itemCount: mQuestionMaster.length,
+        shrinkWrap: true,
+        itemBuilder: (context, index) {
+          return Card(
+            child: Padding(
+              padding: EdgeInsets.only(
+                  top: 36.0, left: 6.0, right: 6.0, bottom: 6.0),
+              child: ExpansionTile(
+                title: Text(mQuestionMaster[index].categoryName),
+                children: <Widget>[
+                  Text('Parent'),
+                  ListView.builder(
+                      itemCount: mQuestionMaster[index].allquestion.length,
+                      physics: ClampingScrollPhysics(),
+                      shrinkWrap: true,
+                      itemBuilder: (BuildContext context, int jindex) {
+                        return generateQuestionView(
+                            mQuestionMaster[index].allquestion[jindex]);
+                      }),
+                ],
+              ),
+            ),
+          );
+        },
+      ));
     }
   }
 
@@ -619,9 +674,9 @@ class _QuestionListScreenState extends State<QuestionListScreen>
     );
   }
 
-  List<Widget> getCategoryList(GetDetailedPJP cvfView){
+  List<Widget> getCategoryList(GetDetailedPJP cvfView) {
     List<Widget> list = [];
-    for(int index=0;index<widget.cvfView.purpose!.length;index++){
+    for (int index = 0; index < widget.cvfView.purpose!.length; index++) {
       list.add(getTextCategory(cvfView, cvfView.purpose![index].categoryName,
           cvfView.purpose![index].categoryId));
     }
@@ -774,10 +829,8 @@ class _QuestionListScreenState extends State<QuestionListScreen>
     return GestureDetector(
       onTap: () {
         if (widget.isViewOnly) {
-
         } else if (cvfView.Status == 'Completed') {
-          Utility.showMessages(
-              context, 'CVF Already submitted and not able to update');
+          Utility.showMessages(context, 'CVF Already submitted and not able to update');
         } else if (isComplete() && isAllCategoryQuestionsCompleted()) {
           saveAnswers(cvfView.PJPCVF_Id);
         } else {
@@ -788,7 +841,8 @@ class _QuestionListScreenState extends State<QuestionListScreen>
             Utility.showMessage(
                 context,
                 /*'Please Fill all questions / feedback \n\n'
-                    'Incomplete Questions Categoty are - \n */'${pendingQuestion}');
+                    'Incomplete Questions Categoty are - \n */
+                '${pendingQuestion}');
           }
         }
       },
@@ -823,7 +877,7 @@ class _QuestionListScreenState extends State<QuestionListScreen>
 
   List<Widget> _buildRowList(GetDetailedPJP cvfView) {
     List<Widget> _rowWidget =
-    []; // this will hold Rows according to available lines
+        []; // this will hold Rows according to available lines
     for (int index = 0; index < cvfView.purpose!.length; index++) {
       _rowWidget.add(getTextCategory(
           cvfView,
@@ -833,8 +887,8 @@ class _QuestionListScreenState extends State<QuestionListScreen>
     return _rowWidget;
   }
 
-  getTextCategory(GetDetailedPJP cvfView, String categoryname,
-      String categoryId) {
+  getTextCategory(
+      GetDetailedPJP cvfView, String categoryname, String categoryId) {
     return GestureDetector(
       onTap: () {
         widget.mCategoryId = categoryId;
@@ -889,8 +943,8 @@ class _QuestionListScreenState extends State<QuestionListScreen>
     }
     for (int index = 0; index < mQuestionMaster.length; index++) {
       for (int jIndex = 0;
-      jIndex < mQuestionMaster[index].allquestion.length;
-      jIndex++) {
+          jIndex < mQuestionMaster[index].allquestion.length;
+          jIndex++) {
         if (mQuestionMaster[index].allquestion[jIndex].Question_Id ==
             questions.Question_Id) {
           mQuestionMaster[index].allquestion[jIndex].SelectedAnswer = answers;
@@ -920,17 +974,18 @@ class _QuestionListScreenState extends State<QuestionListScreen>
             Divider(
               height: 2,
             ),
-            Padding(padding: EdgeInsets.only(left: 10,right: 10,top: 3,bottom: 3),
-            child:
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Text(player.isCompulsory == '1'
-                  ? '* ${index}. ${player.question}'
-                  : '${index}. ${player.question}', style: Theme
-                  .of(context)
-                  .textTheme
-                  .bodyMedium,),
-            ),),
+            Padding(
+              padding: EdgeInsets.only(left: 10, right: 10, top: 3, bottom: 3),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  player.isCompulsory == '1'
+                      ? '* ${index}. ${player.question}'
+                      : '${index}. ${player.question}',
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+              ),
+            ),
             _getAnswerWidget(player)
           ],
         ));
@@ -951,9 +1006,9 @@ class _QuestionListScreenState extends State<QuestionListScreen>
             flex: 1,
             child: CheckboxListTile(
               value: (!userAnswerMap.containsKey(questions.Question_Id) &&
-                  questions.SelectedAnswer == '1') ||
-                  (userAnswerMap.containsKey(questions.Question_Id) &&
-                      userAnswerMap[questions.Question_Id] == '1')
+                          questions.SelectedAnswer == '1') ||
+                      (userAnswerMap.containsKey(questions.Question_Id) &&
+                          userAnswerMap[questions.Question_Id] == '1')
                   ? true
                   : false,
               title: const Text(
@@ -963,7 +1018,6 @@ class _QuestionListScreenState extends State<QuestionListScreen>
               controlAffinity: ListTileControlAffinity.leading,
               onChanged: (checked) {
                 if (widget.isViewOnly) {
-
                 } else if (_Status == 'Completed') {
                   Utility.showMessages(
                       context, 'CVF Already submitted and not able to update');
@@ -981,9 +1035,9 @@ class _QuestionListScreenState extends State<QuestionListScreen>
             flex: 1,
             child: CheckboxListTile(
               value: (!userAnswerMap.containsKey(questions.Question_Id) &&
-                  questions.SelectedAnswer == '2') ||
-                  (userAnswerMap.containsKey(questions.Question_Id) &&
-                      userAnswerMap[questions.Question_Id] == '2')
+                          questions.SelectedAnswer == '2') ||
+                      (userAnswerMap.containsKey(questions.Question_Id) &&
+                          userAnswerMap[questions.Question_Id] == '2')
                   ? true
                   : false,
               title: const Text(
@@ -994,7 +1048,6 @@ class _QuestionListScreenState extends State<QuestionListScreen>
               controlAffinity: ListTileControlAffinity.leading,
               onChanged: (checked) {
                 if (widget.isViewOnly) {
-
                 } else if (_Status == 'Completed') {
                   Utility.showMessages(
                       context, 'CVF Already submitted and not able to update');
@@ -1018,8 +1071,7 @@ class _QuestionListScreenState extends State<QuestionListScreen>
                           imageUrl: getImageUrl(questions.files),
                           question: questions,
                           listener: this,
-                          isViewOnly: widget.isViewOnly
-                      );
+                          isViewOnly: widget.isViewOnly);
                     }));
                   } else {
                     openFile(questions);
@@ -1037,8 +1089,7 @@ class _QuestionListScreenState extends State<QuestionListScreen>
                         imageUrl: getImageUrl(questions.files),
                         question: questions,
                         listener: this,
-                        isViewOnly: widget.isViewOnly
-                    );
+                        isViewOnly: widget.isViewOnly);
                   }));
                 } else {
                   openFile(questions);
@@ -1047,41 +1098,45 @@ class _QuestionListScreenState extends State<QuestionListScreen>
                 showImageOption(questions);
               }
             },
-
             child: Padding(
               padding: EdgeInsets.all(8.0),
-              child:  questions.files.isNotEmpty &&
-                  questions.files != null ? isImage(questions.files) ? getIcon(
-                  questions.files) : getIcon(questions.files)
-                  : (getImagePath(questions)).isNotEmpty ?
-              !isImage(questions.files) ? getIcon(questions.files) : Image
-                  .network(getImageUrl((getImagePath(questions))),
-                  // width: 300,
-                  height: 80,
-                  fit: BoxFit.fill)
-                  : questions.files.isEmpty
-                  ? Icon(
-                Icons.photo,
-                size: 20,
-              )
-                  : Image.network(getImageUrl(questions.files),
-                  // width: 300,
-                  height: 80,
-                  fit: BoxFit.fill),
+              child: questions.files.isNotEmpty && questions.files != null
+                  ? isImage(questions.files) && questions.files.contains('data/user')
+                  ? Image.file(File(questions.files),height: 30,width: 30,) : isImage(questions.files)
+                      ? getIcon(questions.files)
+                      : getIcon(questions.files)
+                  : (getImagePath(questions)).isNotEmpty
+                      ? !isImage(questions.files)
+                          ? getIcon(questions.files)
+                          : Image.network(
+                              getImageUrl((getImagePath(questions))),
+                              // width: 300,
+                              height: 80,
+                              fit: BoxFit.fill)
+                      : questions.files.isEmpty
+                          ? Icon(
+                              Icons.photo,
+                              size: 20,
+                            )
+                          : Image.network(getImageUrl(questions.files),
+                              // width: 300,
+                              height: 80,
+                              fit: BoxFit.fill),
             ),
           )
         ],
       );
     } else {
       return Column(
-        children:  getDescriptionWidget(questions),
+        children: getDescriptionWidget(questions),
       );
     }
   }
 
   isImage(String file) {
     bool isImage = false;
-    if (file.contains('.png') || file.contains('.jpg') ||
+    if (file.contains('.png') ||
+        file.contains('.jpg') ||
         file.contains('.jpeg')) {
       isImage = true;
     }
@@ -1091,11 +1146,21 @@ class _QuestionListScreenState extends State<QuestionListScreen>
   getIcon(String file) {
     //print('file is ${file}');
     if (file.contains('.xls') || file.contains('.xlsx')) {
-      return Image.asset('assets/icons/sheets.png', width: 24,);
+      return Image.asset(
+        'assets/icons/sheets.png',
+        width: 24,
+      );
     } else if (file.contains('.pdf')) {
-      return Image.asset('assets/icons/pdf.png', width: 24,);
+      return Image.asset(
+        'assets/icons/pdf.png',
+        width: 24,
+      );
     }
-    return Image.asset('assets/icons/file.png', width: 24,);;
+    return Image.asset(
+      'assets/icons/file.png',
+      width: 24,
+    );
+    ;
   }
 
   getDescriptionWidget(Allquestion questions) {
@@ -1105,9 +1170,7 @@ class _QuestionListScreenState extends State<QuestionListScreen>
       updateImage(questions, path);
     }
     //print(getImageUrl(questions.files));
-    final size = MediaQuery
-        .of(context)
-        .size;
+    final size = MediaQuery.of(context).size;
     List<Widget> _rowWidget = [];
     for (int index = 0; index < questions.answers.length; index++) {
       _rowWidget.add(ListTile(
@@ -1116,10 +1179,10 @@ class _QuestionListScreenState extends State<QuestionListScreen>
             if (_Status == 'Completed') {
               Utility.showMessages(
                   context, 'CVF Already submitted and not able to update');
-            } else if(widget.isViewOnly){
+            } else if (widget.isViewOnly) {
               Utility.showMessages(
                   context, 'Manager cannot update the CVF answers');
-            }else
+            } else
               showBottomSheet(questions, questions.answers[index].answerName);
           },
           child: Container(
@@ -1132,13 +1195,16 @@ class _QuestionListScreenState extends State<QuestionListScreen>
               border: Border.all(color: Colors.grey),
             ),
             child: Center(
-                child: Text(
-                 (userAnswerMap.containsKey(questions.Question_Id) && userAnswerMap[questions.Question_Id].toString().isNotEmpty && userAnswerMap[questions.Question_Id].toString() !=null)
-                          ? userAnswerMap[questions.Question_Id].toString()
-                          : questions.Remarks.isNotEmpty && questions.Remarks !='null'
-                     ? questions.Remarks : ''
-                  )
-                ),
+                child: Text((userAnswerMap.containsKey(questions.Question_Id) &&
+                        userAnswerMap[questions.Question_Id]
+                            .toString()
+                            .isNotEmpty &&
+                        userAnswerMap[questions.Question_Id].toString() != null)
+                    ? userAnswerMap[questions.Question_Id].toString()
+                    : questions.Remarks.isNotEmpty &&
+                            questions.Remarks != 'null'
+                        ? questions.Remarks
+                        : '')),
           ),
         ),
         trailing: GestureDetector(
@@ -1152,17 +1218,18 @@ class _QuestionListScreenState extends State<QuestionListScreen>
                         imageUrl: getImageUrl(questions.files),
                         question: questions,
                         listener: this,
-                        isViewOnly: widget.isViewOnly
-                    );
+                        isViewOnly: widget.isViewOnly);
                   }));
                 } else {
                   openFile(questions);
                 }
               }
-            } /*else if (_Status == 'Completed') {
+            }
+            /*else if (_Status == 'Completed') {
               Utility.showMessages(
                   context, 'CVF Already submitted and not able to update');
-            } */else if (questions.files.isNotEmpty) {
+            } */
+            else if (questions.files.isNotEmpty) {
               if (questions.files.contains('.jpg') ||
                   questions.files.contains('png')) {
                 Navigator.push(context, MaterialPageRoute(builder: (_) {
@@ -1170,7 +1237,8 @@ class _QuestionListScreenState extends State<QuestionListScreen>
                     imageUrl: getImageUrl(questions.files),
                     question: questions,
                     listener: this,
-                    isViewOnly: _Status == 'Completed' ? true : widget.isViewOnly,
+                    isViewOnly:
+                        _Status == 'Completed' ? true : widget.isViewOnly,
                   );
                 }));
               } else if (_Status != 'Completed') {
@@ -1181,21 +1249,22 @@ class _QuestionListScreenState extends State<QuestionListScreen>
           },
           child: Padding(
             padding: EdgeInsets.all(8.0),
-            child: questions.files.isNotEmpty ?
-            !isImage(questions.files) ? getIcon(questions.files) : Image
-                .network(getImageUrl(decodeFile(questions.files)),
-                // width: 300,
-                height: 80,
-                fit: BoxFit.fill)
+            child: isImage(questions.files) && questions.files.contains('data/user') ? Image.file(File(questions.files)) : questions.files.isNotEmpty
+                ? !isImage(questions.files)
+                    ?  getIcon(questions.files)
+                    : Image.network(getImageUrl(decodeFile(questions.files)),
+                        // width: 300,
+                        height: 80,
+                        fit: BoxFit.fill)
                 : questions.files.isEmpty
-                ? Icon(
-              Icons.photo,
-              size: 20,
-            )
-                : Image.network(getImageUrl(questions.files),
-                // width: 300,
-                height: 80,
-                fit: BoxFit.fill),
+                    ? Icon(
+                        Icons.photo,
+                        size: 20,
+                      )
+                    : Image.network(getImageUrl(questions.files),
+                        // width: 300,
+                        height: 80,
+                        fit: BoxFit.fill),
           ),
         ),
       ));
@@ -1204,16 +1273,19 @@ class _QuestionListScreenState extends State<QuestionListScreen>
   }
 
   getImageUrl(String url) {
-    String weburl = url/*.replaceAll('___', '&')*/;
+    String weburl = url /*.replaceAll('___', '&')*/;
     weburl = weburl;
-    if(weburl.contains('%'))
-      weburl = weburl;
-    print('ImageUrl '+weburl);
+    if (weburl.contains('%')) weburl = weburl;
+    print('ImageUrl ' + weburl);
     return weburl;
   }
 
   showBottomSheet(Allquestion question, String hint) {
-    _textEditingController.text = question.userAnswers.isNotEmpty ? question.userAnswers : question.Remarks.isNotEmpty && question.Remarks !='null' ? question.Remarks : '';
+    _textEditingController.text = question.userAnswers.isNotEmpty
+        ? question.userAnswers
+        : question.Remarks.isNotEmpty && question.Remarks != 'null'
+            ? question.Remarks
+            : '';
     showModalBottomSheet(
       isScrollControlled: true,
       backgroundColor: Colors.white,
@@ -1241,9 +1313,7 @@ class _QuestionListScreenState extends State<QuestionListScreen>
                   children: [
                     TextFormField(
                       controller: _textEditingController,
-                      cursorColor: Theme
-                          .of(context)
-                          .primaryColor,
+                      cursorColor: Theme.of(context).primaryColor,
                       minLines: 3,
                       maxLines: 7,
                       maxLength: 600,
@@ -1263,7 +1333,8 @@ class _QuestionListScreenState extends State<QuestionListScreen>
                             if (_textEditingController.text
                                 .toString()
                                 .isNotEmpty) {
-                              updateAnswers(question,_textEditingController.text.toString());
+                              updateAnswers(question,
+                                  _textEditingController.text.toString());
                               Navigator.of(context).pop();
                             }
                           },
@@ -1324,16 +1395,15 @@ class _QuestionListScreenState extends State<QuestionListScreen>
         ),
         const Expanded(
             child: Padding(
-              padding: EdgeInsets.all(8.0),
-              child: Icon(
-                Icons.photo,
-                size: 20,
-              ),
-            )),
+          padding: EdgeInsets.all(8.0),
+          child: Icon(
+            Icons.photo,
+            size: 20,
+          ),
+        )),
       ],
     );
   }
-
 
   _generateYesNoAnswers(Allquestion question, String Answer_Name, bool value) {
     return Expanded(
@@ -1359,8 +1429,8 @@ class _QuestionListScreenState extends State<QuestionListScreen>
     bool isBreak = false;
     for (int index = 0; index < mQuestionMaster.length; index++) {
       for (int jIndex = 0;
-      jIndex < mQuestionMaster[index].allquestion.length;
-      jIndex++) {
+          jIndex < mQuestionMaster[index].allquestion.length;
+          jIndex++) {
         if (questions == mQuestionMaster[index].allquestion[jIndex].question) {
           isBreak = true;
           break;
@@ -1385,35 +1455,35 @@ class _QuestionListScreenState extends State<QuestionListScreen>
     pendingQuestion = '';
     for (int index = 0; index < mQuestionMaster.length; index++) {
       for (int jIndex = 0;
-      jIndex < mQuestionMaster[index].allquestion.length;
-      jIndex++) {
+          jIndex < mQuestionMaster[index].allquestion.length;
+          jIndex++) {
         String userAnswer = mQuestionMaster[index]
-            .allquestion[jIndex]
-            .SelectedAnswer
-            .isNotEmpty
+                .allquestion[jIndex]
+                .SelectedAnswer
+                .isNotEmpty
             ? mQuestionMaster[index].allquestion[jIndex].SelectedAnswer
             : (userAnswerMap.containsKey(mQuestionMaster[index]
-            .allquestion[jIndex]
-            .Question_Id) &&
-            userAnswerMap[mQuestionMaster[index]
-                .allquestion[jIndex]
-                .Question_Id]
-                .toString()
-                .isNotEmpty)
-            ? userAnswerMap[
-        mQuestionMaster[index].allquestion[jIndex].Question_Id]
-            .toString()
-            : '';
+                        .allquestion[jIndex]
+                        .Question_Id) &&
+                    userAnswerMap[mQuestionMaster[index]
+                            .allquestion[jIndex]
+                            .Question_Id]
+                        .toString()
+                        .isNotEmpty)
+                ? userAnswerMap[
+                        mQuestionMaster[index].allquestion[jIndex].Question_Id]
+                    .toString()
+                : '';
         if (mQuestionMaster[index].allquestion[jIndex].isCompulsory == '1' &&
             (userAnswer.isEmpty || userAnswer == 'null')) {
           inCompleteQuestions =
-          'Please complete all Required answers, Questions in Category ${mQuestionMaster[index]
-              .allquestion[jIndex].categoryName} is pending';
+              'Please complete all Required answers, Questions in Category ${mQuestionMaster[index].allquestion[jIndex].categoryName} is pending';
           if (pendingQuestion.isEmpty) {
-            pendingQuestion =
-                'Please submit the below observation \n\n - ' + mQuestionMaster[index].allquestion[jIndex].categoryName;
+            pendingQuestion = 'Please submit the below observation \n\n - ' +
+                mQuestionMaster[index].allquestion[jIndex].categoryName;
           } else {
-            pendingQuestion = pendingQuestion + ' \n - ' +
+            pendingQuestion = pendingQuestion +
+                ' \n - ' +
                 mQuestionMaster[index].allquestion[jIndex].categoryName;
           }
           print(pendingQuestion);
@@ -1489,8 +1559,8 @@ class _QuestionListScreenState extends State<QuestionListScreen>
                       index == 0
                           ? Icons.image
                           : index == 1
-                          ? Icons.camera
-                          : Icons.image_search,
+                              ? Icons.camera
+                              : Icons.image_search,
                       size: 25,
                     ),
                     onTap: () {
@@ -1518,9 +1588,9 @@ class _QuestionListScreenState extends State<QuestionListScreen>
     print('image action ${action}');
     if (action != 3) {
       if (action == 0) {
-          pickImage(question, ImageSource.gallery);
+        pickImage(question, ImageSource.gallery);
       } else if (action == 1) {
-          pickImage(question, ImageSource.camera);
+        pickImage(question, ImageSource.camera);
       } else if (action == 2) {
         pickFile(question);
       }
@@ -1543,280 +1613,259 @@ class _QuestionListScreenState extends State<QuestionListScreen>
   openFile(Allquestion question) async {
     if (question.files.contains('.pdf')) {
       File file = File(decodeUrl(question.files));
-      var filePath =file.path.split('?');
+      var filePath = file.path.split('?');
       //print('FilePath : ${filePath[0]}');
       var fileExt = filePath[0].split('/');
-      String title = fileExt[fileExt.length-1].toString();
+      String title = fileExt[fileExt.length - 1].toString();
 
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) =>
-              MyPdfApp(worksheetUrl: question.files,
-                title: title,
-                filename: title,
-                module: '',),
+          builder: (context) => MyPdfApp(
+            worksheetUrl: question.files,
+            title: title,
+            filename: title,
+            module: '',
+          ),
         ),
       );
     } else {
       File file = File(decodeUrl(question.files));
-      var filePath =file.path.split('?');
+      var filePath = file.path.split('?');
       //print('FilePath : ${filePath[0]}');
       var fileExt = filePath[0].split('/');
-      String fileName = fileExt[fileExt.length-1].toString();
+      String fileName = fileExt[fileExt.length - 1].toString();
       print('fileExt : ${fileName}');
 
-      (await Utility.isFileExists(fileName)) ? Utility.shareFile(fileName) :
-      setState(() {
-        isLoading = true;
-      });
-      Utility.downloadFile(question.files, fileName).then((
-          value) {
+      (await Utility.isFileExists(fileName))
+          ? Utility.shareFile(fileName)
+          : setState(() {
+              isLoading = true;
+            });
+      Utility.downloadFile(question.files, fileName).then((value) {
         isLoading = false;
-        setState(() {
-
-        });
+        setState(() {});
       });
     }
   }
 
-  decodeUrl(String url){
+  decodeUrl(String url) {
     url = Uri.decodeFull(url);
-    if(url.contains('%2F')){
+    if (url.contains('%2F')) {
       url = Uri.decodeFull(url);
     }
-    if(url.contains('%2F')){
+    if (url.contains('%2F')) {
       url = Uri.decodeFull(url);
     }
     print('decoe file ${url}');
     return url;
   }
 
-  launchMyUrl(String weburl) async{
+  launchMyUrl(String weburl) async {
     final Uri url = Uri.parse(weburl);
     if (!await launchUrl(url)) {
-    throw Exception('Could not launch $weburl');
+      throw Exception('Could not launch $weburl');
     }
   }
 
-    void pickImage(Allquestion player, ImageSource source) async {
-      try {
-        final XFile? pickedFileList = await _picker.pickImage(
-            source: source, maxHeight: 800, imageQuality: 100);
-        print('File upload gallery');
-        setState(() {
-          _imageFileList = pickedFileList;
-          print(_imageFileList!.path);
-          //player.files = pickedFileList![0].path;
+  void pickImage(Allquestion player, ImageSource source) async {
+    try {
+      final XFile? pickedFileList = await _picker.pickImage(
+          source: source, maxHeight: 800, imageQuality: 100);
+      print('File upload gallery');
+      setState(() async {
+        _imageFileList = pickedFileList;
+        updateImage(player, player.files);
+        String name = widget.employeeId.toString() +'_c' +widget.PJPCVF_Id.toString() +'_q' +player.Question_Id;
+        if (await Utility.isInternet())
+          FirebaseStorageUtil().uploadFile(player, _imageFileList!.path, name, this);
+        else {
+          updateImage(player, _imageFileList!.path);
+        }
+      });
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  void pickFile(Allquestion player) async {
+    try {
+      FilePickerResult? result = await FilePicker.platform.pickFiles();
+
+      if (result != null) {
+        File file = File(result.files.single.path!);
+        var fileExt = file.path.split('/');
+        print('File path ${fileExt[fileExt.length - 1]}');
+        setState(() async {
           updateImage(player, player.files);
-          String name = widget.employeeId.toString() +
-              '_c' +
-              widget.PJPCVF_Id.toString() +
-              '_q' +
-              player.Question_Id;
-          FirebaseStorageUtil()
-              .uploadFile(player, _imageFileList!.path, name, this);
-        });
-      } catch (e) {
-        print(e);
-      }
-    }
-
-    void pickFile(Allquestion player) async {
-      try {
-        FilePickerResult? result = await FilePicker.platform.pickFiles();
-
-        if (result != null) {
-          File file = File(result.files.single.path!);
-          var fileExt = file.path.split('/');
-          print('File path ${fileExt[fileExt.length - 1]}');
-          setState(() {
-            updateImage(player, player.files);
-            String name = widget.employeeId.toString() +
-                '_c' +
-                widget.PJPCVF_Id.toString() +
-                '_q' +
-                player.Question_Id;
-            FirebaseStorageUtil()
-                .uploadAnyFile(
-                player, file!.path, fileExt[fileExt.length - 1], this);
-          });
-        } else {
-          // User canceled the picker
-
-        }
-      } catch (e) {
-        print(e);
-        /*setState(() {
-        _pickImageError = e;
-      });*/
-      }
-    }
-
-    updateImage(Allquestion questions, String path) {
-      for (int index = 0; index < mQuestionMaster.length; index++) {
-        for (int jIndex = 0;
-        jIndex < mQuestionMaster[index].allquestion.length;
-        jIndex++) {
-          if (mQuestionMaster[index].allquestion[jIndex].Question_Id ==
-              questions.Question_Id) {
-            mQuestionMaster[index].allquestion[jIndex].files = path;
-            updateImageOffline(questions, path);
+          if (await Utility.isInternet()){
+            FirebaseStorageUtil().uploadAnyFile(player, file!.path, fileExt[fileExt.length - 1], this);
+          }else{
+            print(file!.path);
+            updateImage(player, file!.path);
           }
-        }
+        });
       }
-    }
-
-    @override
-    void onStart() {
-      Utility.showLoaderDialog(context);
-    }
-
-    @override
-    void onUploadError(value) {
-      Navigator.of(context).pop();
-    }
-
-    @override
-    void onUploadProgress(int value) {
-      print(value);
-    }
-
-    @override
-    void onUploadSuccess(value) {
-      Navigator.of(context).pop();
-      if (value is Allquestion) {
-        Allquestion question = value;
-        updateImage(question, question.files);
-      }
-      setState(() {});
-    }
-
-    @override
-    void onError(value) {
-      Navigator.of(context).pop();
-    }
-
-    @override
-    void onSuccess(value) {
-      Navigator.of(context).pop();
-      if (value is UpdateCVFStatusResponse) {
-        UpdateCVFStatusResponse response = value;
-        Utility.showMessageSingleButton(
-            context, 'Thank you for submitting the CVF', this);
-      }
-    }
-
-    @override
-    void onClick(int action, value) {
-      //print('onclick called ${action}');
-      if (action == ACTION_ADD_NEW_IMAGE) {
-        showImageOption(value);
-      } else if (action == ACTION_DELETE_IMAGE) {} else
-      if (action == Utility.ACTION_OK) {
-        Navigator.of(context).pop();
-        Navigator.of(context).pop();
-      }
+    } catch (e) {
+      print(e);
     }
   }
 
-  class MyBottomSheet extends StatelessWidget {
+  updateImage(Allquestion questions, String path) {
+    for (int index = 0; index < mQuestionMaster.length; index++) {
+      for (int jIndex = 0;
+          jIndex < mQuestionMaster[index].allquestion.length;
+          jIndex++) {
+        if (mQuestionMaster[index].allquestion[jIndex].Question_Id == questions.Question_Id) {
+          mQuestionMaster[index].allquestion[jIndex].files = path;
+          updateImageOffline(questions, path);
+        }
+      }
+    }
+    setState(() {
+
+    });
+  }
+
+  @override
+  void onStart() {
+    Utility.showLoaderDialog(context);
+  }
+
+  @override
+  void onUploadError(value) {
+    Navigator.of(context).pop();
+  }
+
+  @override
+  void onUploadProgress(int value) {
+    print(value);
+  }
+
+  @override
+  void onUploadSuccess(value) {
+    if(!isOffline)
+      Navigator.of(context).pop();
+    if (value is Allquestion) {
+      Allquestion question = value;
+      updateImage(question, question.files);
+      if(isOffline){
+        saveAnswers(widget.cvfView.PJPCVF_Id);
+      }
+    }
+    setState(() {});
+  }
+
+  @override
+  void onError(value) {
+    Navigator.of(context).pop();
+  }
+
+  @override
+  void onSuccess(value) {
+    Navigator.of(context).pop();
+    if (value is UpdateCVFStatusResponse) {
+      UpdateCVFStatusResponse response = value;
+      Utility.showMessageSingleButton(
+          context, 'Thank you for submitting the CVF', this);
+    }
+  }
+
+  @override
+  void onClick(int action, value) {
+    //print('onclick called ${action}');
+    if (action == ACTION_ADD_NEW_IMAGE) {
+      showImageOption(value);
+    } else if (action == ACTION_DELETE_IMAGE) {
+    } else if (action == Utility.ACTION_OK) {
+      Navigator.of(context).pop();
+      Navigator.of(context).pop();
+    }
+  }
+}
+
+class MyBottomSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-  return Scaffold(
-  body: Container(
-  color: Colors.white,
-  child: Column(
-  children: [
-  TextField(
-  autofocus: true,
-  ),
-  TextButton(
-  child: Text('Next'),
-  onPressed: () {},
-  ),
-  ],
-  ),
-  ),
-  );
+    return Scaffold(
+      body: Container(
+        color: Colors.white,
+        child: Column(
+          children: [
+            TextField(
+              autofocus: true,
+            ),
+            TextButton(
+              child: Text('Next'),
+              onPressed: () {},
+            ),
+          ],
+        ),
+      ),
+    );
   }
-  }
+}
 
-  class DetailScreen extends StatelessWidget {
+class DetailScreen extends StatelessWidget {
   late String imageUrl;
   late Allquestion question;
   late onClickListener listener;
   bool isViewOnly;
 
   DetailScreen(
-  {Key? key,
-  required this.imageUrl,
-  required this.question,
-  required this.listener,
-  required this.isViewOnly})
+      {Key? key,
+      required this.imageUrl,
+      required this.question,
+      required this.listener,
+      required this.isViewOnly})
       : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-  return Scaffold(
-  appBar: AppBar(
-  backgroundColor: kPrimaryLightColor,
-  centerTitle: true,
-  title: Text(
-  'Intranet',
-  style:
-  TextStyle(fontSize: 17, color: Colors.white, letterSpacing: 0.53),
-  ),
-  actions: !isViewOnly ? [
-  InkWell(
-  onTap: () {
-  Navigator.of(context).pop();
-  listener.onClick(ACTION_ADD_NEW_IMAGE, question);
-  },
-  child: Padding(
-  padding: const EdgeInsets.all(8.0),
-  child: Icon(
-  Icons.add,
-  size: 20,
-  ),
-  ),
-  ),
-  /*InkWell(
-            onTap: () {
-              listener.onClick(ACTION_DELETE_IMAGE, question);
-              */ /*Navigator.push(
-                context, MaterialPageRoute(builder: (context) => UserNotification()));*/ /*
-            },
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Icon(
-                Icons.delete,
-                size: 20,
-              ),
-            ),
-          ),*/
-  ] : null,
-  ),
-  body: GestureDetector(
-  child: PinchZoom(
-  child: Image.network(imageUrl),
-  resetDuration: const Duration(milliseconds: 100),
-  maxScale: 2.5,
-  onZoomStart: (){print('Start zooming');},
-  onZoomEnd: (){print('Stop zooming');},
-  ),
-  /*Center(
-          child: Hero(
-            tag: 'imageHero',
-            child: Image.network(
-              imageUrl,
-            ),
-          ),
-        ),*/
-  onTap: () {
-  Navigator.pop(context);
-  },
-  ),
-  );
+    print(imageUrl);
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: kPrimaryLightColor,
+        centerTitle: true,
+        title: Text(
+          'Intranet',
+          style:
+              TextStyle(fontSize: 17, color: Colors.white, letterSpacing: 0.53),
+        ),
+        actions: !isViewOnly
+            ? [
+                InkWell(
+                  onTap: () {
+                    Navigator.of(context).pop();
+                    listener.onClick(ACTION_ADD_NEW_IMAGE, question);
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Icon(
+                      Icons.add,
+                      size: 20,
+                    ),
+                  ),
+                ),
+              ]
+            : null,
+      ),
+      body: GestureDetector(
+        child: PinchZoom(
+          child:  imageUrl.contains('data/user') ? Image.file(File(imageUrl)) : Image.network(imageUrl),
+          resetDuration: const Duration(milliseconds: 100),
+          maxScale: 2.5,
+          onZoomStart: () {
+            print('Start zooming');
+          },
+          onZoomEnd: () {
+            print('Stop zooming');
+          },
+        ),
+        onTap: () {
+          Navigator.pop(context);
+        },
+      ),
+    );
   }
-  }
+}

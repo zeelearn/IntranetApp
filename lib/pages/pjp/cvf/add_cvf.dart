@@ -1101,7 +1101,7 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener{
             DBHelper dbHelper = DBHelper();
             print('data saved ....');
             dbHelper.insertCVFQuestions(
-                cvfId.toString(), json.encode(questionResponse.toJson()), 0);
+                cvfId.toString(),categotyId, json.encode(questionResponse.toJson()), 0);
             setState(() {});
           }
         } else {
@@ -1144,7 +1144,7 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener{
             //mQuestionMaster.addAll(questionResponse.responseData);
             DBHelper dbHelper = DBHelper();
             print('data saved ....');
-            dbHelper.insertCVFQuestions(cvfId.toString(),
+            dbHelper.insertCVFQuestions(cvfId.toString(),category,
                 json.encode(questionResponse.toJson()), 0);
             //insertQuestions();
             Utility.showMessageSingleButton(context, "CVF added successfully", this);

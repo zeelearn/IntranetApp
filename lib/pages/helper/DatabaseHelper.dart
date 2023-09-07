@@ -138,6 +138,7 @@ class DBHelper {
       '(${DBConstant.ID} INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, '
       '${DBConstant.CVF_ID} INT, '
       '${DBConstant.QUESTION} TEXT, '
+      '${DBConstant.CATEGORY_ID} TEXT, '
       '${DBConstant.IS_SYNC} INT, '
       '${DBConstant.MODIFIED_DATE} INT, '
       '${DBConstant.CREATED_DATE} TEXT)';
@@ -221,8 +222,11 @@ class DBHelper {
             if(old<=7){
               //db.execute(CREATE_TABLE_CVF_FRANCHISEE);
               db.execute("ALTER TABLE ${LocalConstant.TABLE_CVF_FRANCHISEE} ADD COLUMN ${DBConstant.BUSINESS_ID} int;");
+            }if(old<=10){
+              //db.execute(CREATE_TABLE_CVF_FRANCHISEE);
+              db.execute("ALTER TABLE ${LocalConstant.TABLE_CVF_QUESTION_JSON} ADD COLUMN ${DBConstant.CATEGORY_ID} TEXT;");
             }
-        }, version: 8);
+        }, version: 11);
   }
 
   /// insert data to db
@@ -284,6 +288,11 @@ class DBHelper {
   Future<List<Map<String, dynamic>>> getData(String table) async {
     final dbClient = await db;
     return await dbClient.query(table);
+  }
+
+  Future<List<Map<String, dynamic>>> getQuestionMasterList(String table,String categoryId) async {
+    final dbClient = await db;
+    return await dbClient.rawQuery('Select * from ${LocalConstant.TABLE_CVF_QUESTION_JSON} where ${DBConstant.CATEGORY_ID}=${categoryId}');
   }
 
   Future<List<Map<String, dynamic>>> getOrderedData(String table,String ordebytable,String orderby) async {
@@ -362,11 +371,14 @@ class DBHelper {
   }
 
 
-  Future<void> insertCVFQuestions(String cvfid,String json,int isSync) async{
+  Future<void> insertCVFQuestions(String cvfid,String categoryId,String json,int isSync) async{
+    print('insert question=================');
+    print(json);
     var dbclient = await db;
     Map<String, Object> data = {
       '${DBConstant.CVF_ID}': cvfid,
       '${DBConstant.QUESTION}': json,
+      '${DBConstant.CATEGORY_ID}': categoryId,
       '${DBConstant.IS_SYNC}': isSync,
       '${DBConstant.MODIFIED_DATE}': Utility.parseDate(DateTime.now()),
       '${DBConstant.CREATED_DATE}': Utility.parseDate(DateTime.now()),
@@ -374,13 +386,13 @@ class DBHelper {
     await dbclient.insert(LocalConstant.TABLE_CVF_QUESTION_JSON, data);
   }
 
-  Future<void> updateCVFQuestions(String cvfId,String json,int isSync) async{
+  Future<void> updateCVFQuestions(String cvfId,String categoryId,String json,int isSync) async{
     var dbclient = await db;
     try {
       await dbclient.rawUpdate('update ${LocalConstant
           .TABLE_CVF_QUESTION_JSON} set is_sync = \'${json}\' ,${DBConstant
           .IS_SYNC} = \'${isSync}\' ,${DBConstant.MODIFIED_DATE} = \'${Utility
-          .parseDate(DateTime.now())}\'   where ${DBConstant.CVF_ID}=${cvfId}');
+          .parseDate(DateTime.now())}\'   where ${DBConstant.CVF_ID}=${cvfId} and ${DBConstant.CATEGORY_ID}=${categoryId}');
     }catch(e){
       print(e.toString());
     }
@@ -391,19 +403,59 @@ class DBHelper {
     await dbclient.rawUpdate('update ${LocalConstant.TABLE_CHECKIN} set ${DBConstant.IS_SYNC} = \'${isSync}\'  where id=${id}');
   }
 
-  Future<QuestionResponse> getQuestionsList(String cvfId) async {
+  Future<QuestionResponse> getQuestions(String cvfId,String categoryName,String categoryId) async {
+    QuestionResponse response = QuestionResponse(responseMessage: '', statusCode: 200, responseData: []);
+    List<Map<String, dynamic>> list = await  DBHelper().getQuestionMasterList(LocalConstant.TABLE_CVF_QUESTION_JSON,categoryId);
+    print('${categoryId} getQuestinos ${list}');
+    if(list !=null){
+      for(int index=0;index<list.length;index++) {
+        Map<String, dynamic> map = list[index];
+        //if(cvfId==map[DBConstant.CVF_ID].toString().trim()){
+          print('trying to decode ${json.decode(map[DBConstant.QUESTION])}');
+          try {
+            response = QuestionResponse.fromJson(
+              json.decode(map[DBConstant.QUESTION].toString()),
+            );
+          }catch(e){
+            var obj =  json.decode(map[DBConstant.QUESTION].toString());
+            response = QuestionResponse.fromJson(
+              json.decode(obj),
+            );
+          }
+
+          print('decode123123 ${response.toJson()}');
+          //notificaitonList.add(NotificationDataModel(message: map['data'], title: map['title'], image: map['imageurl'], URL: '', type: map['type'],time:time));
+        /*}else{
+          print('not match');
+        }*/
+
+      }
+    }else{
+      print('getQuestionsList list is null');
+    }
+    return response;
+  }
+
+  Future<QuestionResponse> getQuestionsListTemp(String cvfId) async {
     QuestionResponse response = QuestionResponse(responseMessage: '', statusCode: 200, responseData: []);
     List<Map<String, dynamic>> list = await  DBHelper().getData(LocalConstant.TABLE_CVF_QUESTION_JSON);
     if(list !=null){
       for(int index=0;index<list.length;index++) {
         Map<String, dynamic> map = list[index];
         if(cvfId==map[DBConstant.CVF_ID].toString().trim()){
-          //print('trying to decode');
-          response = QuestionResponse.fromJson(
-            json.decode(map[DBConstant.QUESTION]),
-          );
+          print('trying to decode ${json.decode(map[DBConstant.QUESTION])}');
+          try {
+            response = QuestionResponse.fromJson(
+              json.decode(map[DBConstant.QUESTION].toString()),
+            );
+          }catch(e){
+            var obj =  json.decode(map[DBConstant.QUESTION].toString());
+            response = QuestionResponse.fromJson(
+              json.decode(obj),
+            );
+          }
 
-          //print('decode ${response.toJson()}');
+          print('decode123123 ${response.toJson()}');
           //notificaitonList.add(NotificationDataModel(message: map['data'], title: map['title'], image: map['imageurl'], URL: '', type: map['type'],time:time));
         }else{
           print('not match');

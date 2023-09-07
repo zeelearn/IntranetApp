@@ -96,6 +96,10 @@ class FastChoiceChip
   @override
   // TODO: implement surfaceTintColor
   Color? get surfaceTintColor => throw UnimplementedError();
+
+  @override
+  // TODO: implement color
+  MaterialStateProperty<Color?>? get color => throw UnimplementedError();
 }
 
 typedef FastChoiceChipBuilder = Widget Function(

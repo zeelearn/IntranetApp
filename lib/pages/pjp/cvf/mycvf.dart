@@ -225,7 +225,7 @@ class _MyCVFListScreen extends State<MyCVFListScreen> implements onResponse,onCl
   List<Widget> getCategoryList(GetDetailedPJP cvfView){
     List<Widget> list = [];
     for(int index=0;index<cvfView.purpose!.length;index++){
-      list.add(getTextCategory(cvfView, cvfView.purpose![0].categoryName,index==0?true : false));
+      list.add(getTextCategory(cvfView, cvfView.purpose![index].categoryName,index==0?true : false));
       if(index>=1){
         list.add(getTextCategory(cvfView, 'more..',index==0?true : false));
         break;
@@ -508,7 +508,7 @@ class _MyCVFListScreen extends State<MyCVFListScreen> implements onResponse,onCl
     );
   }*/
 
-  getCategoryView(GetDetailedPJP cvfView) {
+  /*getCategoryView(GetDetailedPJP cvfView) {
     if (cvfView.purpose!.isEmpty) {
       return Text('No Category Found');
     } else {
@@ -519,7 +519,7 @@ class _MyCVFListScreen extends State<MyCVFListScreen> implements onResponse,onCl
             shrinkWrap: false,
             physics: const NeverScrollableScrollPhysics(),
             itemBuilder: (context, index) {
-              return Text('${cvfView.purpose![0].categoryName} ',
+              return Text('${cvfView.purpose![index].categoryName} ',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     background: Paint()
@@ -533,7 +533,7 @@ class _MyCVFListScreen extends State<MyCVFListScreen> implements onResponse,onCl
             },
           ));
     }
-  }
+  }*/
 
   getTextCategory(GetDetailedPJP cvfView, String categoryname,bool isfirst) {
     return

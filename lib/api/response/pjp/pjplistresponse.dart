@@ -18,12 +18,11 @@ class PjpListResponse {
       statusCode = json['statusCode'];
       responseData = <PJPInfo>[];
       if (json['responseData'] is List) {
-        //print('at line 21');
         json['responseData'].forEach((v) {
           try {
             responseData.add(new PJPInfo.fromJson(v));
           } catch (e) {
-            //print('at line 21 ${v.toString()}');
+            print('at line 21 ${v.toString()}');
             //print(e.toString());
           }
         });
@@ -118,17 +117,17 @@ class PJPInfo {
 }
 
 class GetDetailedPJP implements Comparable<GetDetailedPJP>{
-  late String PJPCVF_Id;
+  late String PJPCVF_Id='';
 
-  late String visitDate;
-  late String visitTime;
-  late String franchiseeCode;
-  late String franchiseeName;
-  late double Latitude;
-  late double Longitude;
-  late String Address;
-  late String ActivityTitle;
-  late String Status;
+  late String visitDate='';
+  late String visitTime='';
+  late String franchiseeCode='';
+  late String franchiseeName='';
+  late double Latitude=0.0;
+  late double Longitude=0.0;
+  late String Address='';
+  late String ActivityTitle='';
+  late String Status='';
   late List<Purpose>? purpose = [];
 
   late bool isSync = false;
@@ -170,21 +169,19 @@ class GetDetailedPJP implements Comparable<GetDetailedPJP>{
 
   GetDetailedPJP.fromJson(Map<String, dynamic> json) {
     try {
-      //pjpId = json['pjpId'];
       PJPCVF_Id = json['PJPCVF_Id'] ?? '0';
       visitDate = json['Visit_Date'] ?? ' NA';
       visitTime = json['Visit_Time'] ?? ' NA';
       Status = json['Status'] ?? ' Check In';
       franchiseeCode = json['Franchisee_Code'] ?? 'NA';
       franchiseeName = json['Franchisee_Name'] ?? 'NA';
-      Latitude = double.parse(json['Latitude']) ?? 0.0;
-      Longitude = double.parse(json['Longitude']) ?? 0.0;
       Address = json['Address'] ?? ' NA';
+      Latitude = double.parse(json['Latitude'].toString() ?? "0.0") ;
+      Longitude = double.parse(json['Longitude'].toString() ?? "0.0") ?? 0.0;
       ActivityTitle = json['ActivityTitle'] ?? 'NA';
       purpose = <Purpose>[];
       if(json.containsKey('Purpose')) {
         if (json['Purpose'] is List) {
-         // print('is array ${json['Purpose']}');
           if (json['Purpose'] != null) {
             json['Purpose'].forEach((v) {
               bool isExists = false;
@@ -199,12 +196,12 @@ class GetDetailedPJP implements Comparable<GetDetailedPJP>{
             });
           }
         } else {
-          //print('is object ${json['Purpose']}');
+          print('is object ${json['Purpose']}');
           purpose!.add(Purpose.fromJson(json['Purpose']));
         }
       }
     } catch (e) {
-      print('at line 138');
+      print('at line 138 ${e.toString()}');
       print(e.toString());
       print(json);
     }

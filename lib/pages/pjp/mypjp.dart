@@ -52,6 +52,7 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse,onCli
       this.getUserInfo();
 
     });
+    print('initPJPadadasd');
   }
 
   Future<void> getUserInfo() async {
@@ -65,12 +66,17 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse,onCli
     if(isInternet){
       IntranetServiceHandler.loadPjpSummery(employeeId, 0,businessId, this);
     }else{
+      print('key ${getId()}');
       var pjpList = hiveBox.get(getId());
+      print('OFLINE--------');
+      print(pjpList);
+      print('-----------------');
       try {
         isLoading = false;
         PjpListResponse response = PjpListResponse.fromJson(
           json.decode(pjpList),
         );
+
         if (response != null && response.responseData != null)
           mPjpList.addAll(response.responseData);
         _isChecked = List<bool>.filled(mPjpList.length, false);
@@ -624,13 +630,15 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse,onCli
   }
 
   String getId(){
-    return '${employeeId.toString()}_${LocalConstant.KEY_MY_PJP}';
+    return '${businessId}${employeeId.toString()}${LocalConstant.KEY_MY_PJP}';
   }
 
   savePJPLocally(String json) async{
     if(hiveBox==null){
       hiveBox = await Hive.openBox(LocalConstant.KidzeeDB);
     }
+    print('save data');
+    print(json);
     hiveBox.put(getId(), json);
   }
 

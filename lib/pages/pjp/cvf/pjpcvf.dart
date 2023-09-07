@@ -56,7 +56,7 @@ class _MyCVFListScreen extends State<CVFListScreen> implements onResponse,onClic
   void initState() {
     // TODO: implement initState
     super.initState();
-    print('int init state');
+    print('int init state PJPCVF');
     Future.delayed(Duration.zero, () {
       this.getUserInfo();
 
@@ -119,7 +119,6 @@ class _MyCVFListScreen extends State<CVFListScreen> implements onResponse,onClic
   }
 
   saveCVFLocally(String json) async{
-
     hiveBox.put(getId(), json);
   }
 
@@ -443,7 +442,8 @@ class _MyCVFListScreen extends State<CVFListScreen> implements onResponse,onClic
   }
 
   getCvfView(GetDetailedPJP cvfView) {
-
+    print('FranchiseeName ${cvfView.franchiseeName}');
+    print('Address ${cvfView.Address}');
     if(cvfView.Status.trim()=='NA'){
       cvfView.Status = 'Check In';
     }
@@ -585,7 +585,7 @@ class _MyCVFListScreen extends State<CVFListScreen> implements onResponse,onClic
                 title: Padding(
                   padding: EdgeInsetsDirectional.all(0),
                   child: Text(
-                      cvfView.ActivityTitle=='NA' ? cvfView.franchiseeName : cvfView.ActivityTitle,
+                    cvfView.ActivityTitle.isEmpty || cvfView.ActivityTitle=='NA' ? cvfView.franchiseeName : cvfView.ActivityTitle,
                     style: const TextStyle(
                       fontFamily: 'Lexend Deca',
                       color: Color(0xFF090F13),
@@ -649,8 +649,9 @@ class _MyCVFListScreen extends State<CVFListScreen> implements onResponse,onClic
   List<Widget> getCategoryList(GetDetailedPJP cvfView){
     List<Widget> list = [];
     for(int index=0;index<cvfView.purpose!.length;index++){
-      list.add(getTextCategory(cvfView, cvfView.purpose![0].categoryName,index==0?true : false));
-      if(index>=1){
+      print('cvf list ${cvfView.PJPCVF_Id} ${cvfView.purpose![index].categoryName}');
+      list.add(getTextCategory(cvfView, cvfView.purpose![index].categoryName,index==0?true : false));
+      if(index>=2){
         list.add(getTextCategory(cvfView, 'more..',index==0?true : false));
         break;
       }
@@ -750,7 +751,7 @@ class _MyCVFListScreen extends State<CVFListScreen> implements onResponse,onClic
             shrinkWrap: false,
             physics: const NeverScrollableScrollPhysics(),
             itemBuilder: (context, index) {
-              return Text('${cvfView.purpose![0].categoryName} ',
+              return Text('${cvfView.purpose![index].categoryName} ',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     background: Paint()

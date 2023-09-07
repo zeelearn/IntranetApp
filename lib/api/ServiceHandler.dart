@@ -30,11 +30,7 @@ class IntranetServiceHandler{
     apiService.getPJPList(request).then((value) {
       //print(value.toString());
       if (value != null) {
-        /*String data = value.toString().replaceAll('null', '\"NA\"');
-        PjpListResponse response = PjpListResponse.fromJson(
-          json.decode(data),
-        );
-        onResponse.onSuccess(response);*/
+
         if (value == null || value.responseData == null) {
           onResponse.onError('PJP List not avaliable ');
         } else if (value is PjpListResponse) {
