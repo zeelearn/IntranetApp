@@ -10,10 +10,8 @@ import 'package:intranet/api/request/cvf/questions_request.dart';
 import 'package:intranet/api/request/cvf/save_cvfquestions_request.dart';
 import 'package:intranet/pages/firebase/storageutil.dart';
 import 'package:intranet/pages/helper/DatabaseHelper.dart';
-import 'package:intranet/pages/helper/LightColor.dart';
 import 'package:intranet/pages/helper/LocalConstant.dart';
 import 'package:intranet/pages/iface/onResponse.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:pinch_zoom/pinch_zoom.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -30,7 +28,6 @@ import '../../helper/utils.dart';
 import '../../iface/onClick.dart';
 import '../../iface/onUploadResponse.dart';
 import '../../utils/theme/colors/light_colors.dart';
-import '../../widget/MyWebSiteView.dart';
 import '../../widget/pdfviewer.dart';
 
 class QuestionListScreen extends StatefulWidget {
@@ -379,25 +376,26 @@ class _QuestionListScreenState extends State<QuestionListScreen>
   }
 bool isOffline=false;
   isFileUpload() {
-    isOffline=true;
+    isOffline=false;
     for (int index = 0; index < mQuestionMaster.length; index++) {
       for (int jIndex = 0;jIndex < mQuestionMaster[index].allquestion.length;jIndex++) {
         if(mQuestionMaster[index].allquestion[jIndex].files.isNotEmpty && mQuestionMaster[index].allquestion[jIndex].files.contains('data/user')){
           String name = widget.employeeId.toString() +'_c' +widget.PJPCVF_Id.toString() +'_q' +mQuestionMaster[index].allquestion[jIndex].Question_Id;
           FirebaseStorageUtil().uploadFile(mQuestionMaster[index].allquestion[jIndex], mQuestionMaster[index].allquestion[jIndex].files, name, this);
-          return false;
+          return true;
         }
       }
     }
-    isOffline=false;
-    return true;
+    //isOffline=false;
+    return isOffline;
   }
 
   saveAnswers(String cvfId) async {
     bool isInternet = await Utility.isInternet();
     if(isFileUpload()){
-
+      print('isFile upload');
     }else if (isInternet) {
+      print('saving data');
       Utility.showLoaderDialog(context);
       isOffline=false;
       String docXml = '<root>';
@@ -405,6 +403,7 @@ bool isOffline=false;
         for (int jIndex = 0;
             jIndex < mQuestionMaster[index].allquestion.length;
             jIndex++) {
+          print('YES NO....');
           if (mQuestionMaster[index]
                       .allquestion[jIndex]
                       .answers[0]
@@ -424,11 +423,11 @@ bool isOffline=false;
                   mQuestionMaster[index].allquestion[jIndex].userAnswers : ''*/
                 }</AnswerId>'
                 '<Files>${encodeFile(mQuestionMaster[index].allquestion[jIndex].files)}</Files><Remarks>${mQuestionMaster[index].allquestion[jIndex].answers[0].answerType == 'YesNo' ? '' : mQuestionMaster[index].allquestion[jIndex].userAnswers.isNotEmpty ? mQuestionMaster[index].allquestion[jIndex].userAnswers : ''}</Remarks></tblPJPCVF_Answer>';
-          } else if (mQuestionMaster[index]
+          } else if (/*mQuestionMaster[index]
                       .allquestion[jIndex]
                       .answers[0]
                       .answerType !=
-                  'YesNo' &&
+                  'YesNo' &&*/
               (userAnswerMap[mQuestionMaster[index]
                               .allquestion[jIndex]
                               .Question_Id] !=

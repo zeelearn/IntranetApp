@@ -69,6 +69,7 @@ class _PJPManagerScreen extends State<PJPManagerScreen>
 
   @override
   void initState() {
+    print('MyManager screen');
     _tabController = TabController(length: 2, vsync: this);
     super.initState();
     getUserInfo();

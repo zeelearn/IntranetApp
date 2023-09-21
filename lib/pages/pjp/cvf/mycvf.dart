@@ -49,7 +49,7 @@ class _MyCVFListScreen extends State<MyCVFListScreen> implements onResponse,onCl
   void initState() {
     // TODO: implement initState
     super.initState();
-    print('int init state My CVF');
+    //print('int init state My CVF');
     Future.delayed(Duration.zero, () {
       this.getUserInfo();
 
@@ -826,7 +826,7 @@ class _MyCVFListScreen extends State<MyCVFListScreen> implements onResponse,onCl
 
   }
 
-  Future<void> _showMyDialog(GetDetailedPJP cvfView) async {
+/*  Future<void> _showMyDialog(GetDetailedPJP cvfView) async {
     return showDialog<void>(
       context: context,
       barrierDismissible: false, // user must tap button!
@@ -836,7 +836,7 @@ class _MyCVFListScreen extends State<MyCVFListScreen> implements onResponse,onCl
           content: SingleChildScrollView(
             child: Column(
               children: <Widget>[
-                /*Text('This is a demo alert dialog.'),*/
+                *//*Text('This is a demo alert dialog.'),*//*
                 Text('Would you like to Check In CVF?'),
               ],
             ),
@@ -847,12 +847,12 @@ class _MyCVFListScreen extends State<MyCVFListScreen> implements onResponse,onCl
               onPressed: () {
                 Navigator.of(context).pop();
                 updateCVF(cvfView);
-                /*IntranetServiceHandler.updateCVFStatus(
+                *//*IntranetServiceHandler.updateCVFStatus(
                     employeeId,
                     cvfView.PJPCVF_Id,
                     Utility.getDateTime(),
                     getNextStatus(cvfView.Status),
-                    this);*/
+                    this);*//*
               },
             ),
             TextButton(
@@ -865,7 +865,7 @@ class _MyCVFListScreen extends State<MyCVFListScreen> implements onResponse,onCl
         );
       },
     );
-  }
+  }*/
 
 
   String getNextStatus(String key) {

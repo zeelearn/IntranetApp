@@ -67,7 +67,7 @@ dependencies:
   flutter_icons_null_safety: ^1.1.0
   flutter_google_places: ^0.3.0
   geocoding: ^2.1.0
-  syncfusion_flutter_datepicker: ^21.2.8
+  syncfusion_flutter_datepicker: ^22.2.12
   image_picker: ^0.8.7+5
   material_dialogs: ^1.1.4
   geolocator: ^9.0.2
@@ -92,7 +92,7 @@ dependencies:
   custom_date_range_picker: ^1.0.10
   file_picker: ^5.3.2
   flutter_webview_pro: ^3.0.1+4
-  syncfusion_flutter_pdfviewer: ^21.2.8
+  syncfusion_flutter_pdfviewer: ^22.2.12
   location_geocoder: ^1.0.5
   #overlay_support: ^2.0.1
 

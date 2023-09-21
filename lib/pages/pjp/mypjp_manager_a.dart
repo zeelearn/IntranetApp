@@ -60,7 +60,6 @@ class _MyPjpListState extends State<MyPjpManAListScreen> implements onResponse,o
     await Hive.openBox(LocalConstant.KidzeeDB);
     employeeId = int.parse(hiveBox.get(LocalConstant.KEY_EMPLOYEE_ID) as String);
     businessId = hiveBox.get(LocalConstant.KEY_BUSINESS_ID);
-
     isInternet = await Utility.isInternet();
     if(isInternet){
       IntranetServiceHandler.loadPjpSummery(employeeId, 0,businessId, this);
@@ -590,7 +589,7 @@ class _MyPjpListState extends State<MyPjpManAListScreen> implements onResponse,o
   void onSuccess(value) {
     Navigator.of(context).pop();
     isLoading = false;
-    //print('PJP List onSuccess ');
+    print('PJP List onSuccess ');
     if(value is String){
       IntranetServiceHandler.loadPjpSummery(employeeId, 0,businessId, this);
     }else if(value is UpdatePJPStatusResponse){
@@ -615,7 +614,7 @@ class _MyPjpListState extends State<MyPjpManAListScreen> implements onResponse,o
       if(response.responseData!=null && response.responseData.length>0){
         if (response != null && response.responseData != null) {
           if (widget.mFilterSelection == null ||widget.mFilterSelection.type == FILTERStatus.MYTEAM) {
-            //print(('FOR MY TEAM'));
+            print(('FOR MY TEAM'));
             //mPjpList.addAll(response.responseData);
             for (int index = 0;
             index < response.responseData.length;
@@ -631,7 +630,7 @@ class _MyPjpListState extends State<MyPjpManAListScreen> implements onResponse,o
               }
             }
           } else if (widget.mFilterSelection.type == FILTERStatus.MYSELF) {
-            //print(('FOR MY SELF'));
+            print(('FOR MY SELF'));
             for (int index = 0;index < response.responseData.length;index++) {
               if (response.responseData[index].isSelfPJP == '1') {
                 if(response.responseData[index].ApprovalStatus=='Approved' || response.responseData[index].ApprovalStatus!='Pending')
@@ -639,7 +638,7 @@ class _MyPjpListState extends State<MyPjpManAListScreen> implements onResponse,o
               }
             }
           } else if (widget.mFilterSelection.type == FILTERStatus.NONE) {
-            //print(('FOR MY CUSTOM TEAM'));
+            print(('FOR MY CUSTOM TEAM'));
             for (int index = 0;index < response.responseData.length;index++) {
               if (response.responseData[index].isSelfPJP == '0') {
                 if(response.responseData[index].ApprovalStatus=='Approved' || response.responseData[index].ApprovalStatus!='Pending')

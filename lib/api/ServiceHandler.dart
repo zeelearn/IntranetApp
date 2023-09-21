@@ -22,7 +22,7 @@ class IntranetServiceHandler{
 
   static loadPjpSummery(int employeeId,int pjpId,int bid,onResponse onResponse) {
     List<PJPInfo> pjpList = [];
-    //print('IntranetServiceHandler');
+    print('IntranetServiceHandler ${employeeId}');
     onResponse.onStart();
     PJPListRequest request = PJPListRequest(Employee_id: employeeId,PJP_id: pjpId, Business_id: bid);
     //print(request.toJson());
@@ -35,7 +35,7 @@ class IntranetServiceHandler{
           onResponse.onError('PJP List not avaliable ');
         } else if (value is PjpListResponse) {
           PjpListResponse response = value;
-          print(value);
+          //print(value);
           onResponse.onSuccess(response);
         } else {
           onResponse.onError('PJP List not avaliable ');
@@ -105,8 +105,11 @@ class IntranetServiceHandler{
         Status: status, Employee_id: employeeId,
         Latitude: cvfView.Status=='FILL CVF' ? cvfView.Latitude : latitude,
         Longitude: cvfView.Status=='FILL CVF' ? cvfView.Longitude : longitude,
-        CheckOutLatitude: status=='Completed' ? latitude : 0.0, CheckOutLongitude: status=='Completed' ? longitude : 0.0, CheckOutAddress: status=='Completed' ? address : '', Address: cvfView.Status=='FILL CVF' ? address : cvfView.Address);
+        CheckOutLatitude: status=='Completed' ? latitude : 0.0, CheckOutLongitude: status=='Completed' ? longitude : 0.0, CheckOutAddress: status.trim()=='Check In' ? '' : address , Address: cvfView.Status.trim()=='Check In' ? address : cvfView.Address);
     print(request.toJson());
+    print(cvfView.Status.trim());
+    print('local Address ${address}');
+    print(cvfView.Status.trim()=='Check In' ? address : cvfView.Address);
     APIService apiService = APIService();
     apiService.updateCVFStatus(request).then((value) {
       print(value.toString());

@@ -59,7 +59,7 @@ class _MyPjpListState extends State<MyPjpManPListScreen> implements onResponse,o
   Future<void> getUserInfo() async {
     hiveBox = await Utility.openBox();
     await Hive.openBox(LocalConstant.KidzeeDB);
-    employeeId = int.parse(hiveBox.get(LocalConstant.KEY_EMPLOYEE_ID) as String);
+    employeeId =int.parse(hiveBox.get(LocalConstant.KEY_EMPLOYEE_ID) as String);
     businessId = hiveBox.get(LocalConstant.KEY_BUSINESS_ID);
 
     isInternet = await Utility.isInternet();
@@ -270,11 +270,12 @@ class _MyPjpListState extends State<MyPjpManPListScreen> implements onResponse,o
   }
 
   bool isValid(){
-    bool isValid = true;
+    bool isValid = false;
     if (_isChecked != null && _isChecked.length > 0) {
+      print('length ${_isChecked.length}');
       for (int index = 0; index < _isChecked.length; index++) {
-        if(_isChecked[index]==false) {
-          isValid = false;
+        if(_isChecked[index]==true) {
+          isValid = true;
           break;
         }
       }
@@ -709,7 +710,7 @@ class _MyPjpListState extends State<MyPjpManPListScreen> implements onResponse,o
   void onSuccess(value) {
     Navigator.of(context).pop();
     isLoading = false;
-    //print('PJP List onSuccess ');
+    print('PJP List onSuccess ');
     if(value is String){
       IntranetServiceHandler.loadPjpSummery(employeeId, 0,businessId, this);
     }else if(value is UpdatePJPStatusResponse){
@@ -734,7 +735,7 @@ class _MyPjpListState extends State<MyPjpManPListScreen> implements onResponse,o
       if(response.responseData!=null && response.responseData.length>0){
         if (response != null && response.responseData != null) {
           if (widget.mFilterSelection == null ||widget.mFilterSelection.type == FILTERStatus.MYTEAM) {
-            //print(('FOR MY TEAM'));
+            print(('FOR MY TEAM'));
             //mPjpList.addAll(response.responseData);
             for (int index = 0;
             index < response.responseData.length;
@@ -750,7 +751,7 @@ class _MyPjpListState extends State<MyPjpManPListScreen> implements onResponse,o
               }
             }
           } else if (widget.mFilterSelection.type == FILTERStatus.MYSELF) {
-            //print(('FOR MY SELF'));
+            print(('FOR MY SELF'));
             for (int index = 0;index < response.responseData.length;index++) {
               if (response.responseData[index].isSelfPJP == '1') {
                 if(widget.isApproved && response.responseData[index].ApprovalStatus=='Approved' || !widget.isApproved && response.responseData[index].ApprovalStatus=='Pending')
@@ -758,15 +759,15 @@ class _MyPjpListState extends State<MyPjpManPListScreen> implements onResponse,o
               }
             }
           } else if (widget.mFilterSelection.type == FILTERStatus.NONE) {
-            //print(('FOR MY CUSTOM TEAM'));
+            print(('FOR MY CUSTOM TEAM'));
             for (int index = 0;index < response.responseData.length;index++) {
               if (response.responseData[index].isSelfPJP == '0') {
-                if(widget.isApproved && response.responseData[index].ApprovalStatus=='Approved' || !widget.isApproved && response.responseData[index].ApprovalStatus=='Pending')
+                if( widget.isApproved && response.responseData[index].ApprovalStatus=='Approved' || !widget.isApproved && response.responseData[index].ApprovalStatus=='Pending')
                   mPjpList.add(response.responseData[index]);
               }
             }
           } else {
-            //print('In else');
+            print('In else');
             for (int index = 0;index < response.responseData.length;index++) {
               for (int jIndex = 0;jIndex < widget.mFilterSelection.filters.length;jIndex++) {
                 if (response.responseData[index].displayName == widget.mFilterSelection.filters[jIndex].name) {

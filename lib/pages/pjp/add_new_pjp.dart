@@ -1,15 +1,13 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_icons_null_safety/flutter_icons_null_safety.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
-import 'package:intranet/api/ServiceHandler.dart';
 import 'package:intranet/api/response/pjp/pjplistresponse.dart';
+import 'package:intranet/pages/helper/LightColor.dart';
 import 'package:intranet/pages/helper/constants.dart';
 import 'package:intranet/pages/helper/utils.dart';
 import 'package:intranet/pages/pjp/cvf/mypjpcvf.dart';
-import 'package:intranet/pages/widget/input_widget.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 
 import '../../api/APIService.dart';
@@ -20,7 +18,6 @@ import '../helper/DatabaseHelper.dart';
 import '../helper/LocalConstant.dart';
 import '../iface/onClick.dart';
 import '../iface/onResponse.dart';
-import '../utils/theme/colors/light_colors.dart';
 import '../widget/primary_button.dart';
 import 'models/PjpModel.dart';
 
@@ -107,11 +104,17 @@ class _AddNewPJPState extends State<AddNewPJPScreen> implements onResponse,onCli
                   selectionMode: DateRangePickerSelectionMode.range,
                   minDate: DateTime(DateTime.now().year, DateTime.now().month - 3, 1),
                   maxDate: DateTime.now().add(const Duration(days: 30)),
+                  todayHighlightColor: Colors.white,
                   initialSelectedRange: PickerDateRange(
                       widget.currentDate,
                       widget.currentDate),
                   onSelectionChanged: _onSelectionChanged,
-                  headerStyle: DateRangePickerHeaderStyle(
+                  enableMultiView: false,
+                startRangeSelectionColor: LightColor.lightBlue,
+                endRangeSelectionColor: LightColor.lightBlue,
+                showTodayButton: false,
+                selectionShape: DateRangePickerSelectionShape.rectangle,
+                headerStyle: DateRangePickerHeaderStyle(
                     textAlign: TextAlign.center,
                   ),
                 ),

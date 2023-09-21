@@ -168,7 +168,7 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse,onCli
                 SizedBox(
                   height: 10,
                 ),
-            Row(
+            /*Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Padding(
@@ -215,7 +215,7 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse,onCli
                   ),
                 ),
               ],
-            ),
+            ),*/
                 SizedBox(
                   height: 10,
                 ),
@@ -403,7 +403,7 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse,onCli
                     ),
                   ),
                 //),
-                trailing: pjpInfo.isSelfPJP=='0' && pjpInfo.ApprovalStatus =='Pending'? OutlinedButton(
+                trailing: /*pjpInfo.isSelfPJP=='0' && pjpInfo.ApprovalStatus =='Pending'? OutlinedButton(
                   onPressed: () {
                     if (pjpInfo.isSelfPJP=='0' || widget.mFilterSelection.type == FILTERStatus.MYSELF && pjpInfo.ApprovalStatus =='Approved') {
                       Utility.showMessageMultiButton(context,'Approve','Reject', 'PJP : ${pjpInfo.PJP_Id}', 'Are you sure to approve the PJP, created by ${pjpInfo.displayName}',pjpInfo, this);
@@ -421,7 +421,7 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse,onCli
                         //singleSelection(position);
                       });
                     },
-                  ) /*Text(
+                  ) *//*Text(
                     'Approve',
                     style: TextStyle(
                       fontFamily: 'Lexend Deca',
@@ -429,8 +429,8 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse,onCli
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
                     ),
-                  )*/,
-                ) : pjpInfo.ApprovalStatus=='Approved' ? Image.asset(
+                  )*//*,
+                ) : */ pjpInfo.ApprovalStatus=='Approved' ? Image.asset(
                 'assets/icons/ic_checked.png',
                 height: 50,
               ) : Text(
