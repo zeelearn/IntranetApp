@@ -22,13 +22,12 @@ class IntranetServiceHandler{
 
   static loadPjpSummery(int employeeId,int pjpId,int bid,onResponse onResponse) {
     List<PJPInfo> pjpList = [];
-    print('IntranetServiceHandler ${employeeId}');
     onResponse.onStart();
     PJPListRequest request = PJPListRequest(Employee_id: employeeId,PJP_id: pjpId, Business_id: bid);
-    //print(request.toJson());
+    print(request.toJson());
     APIService apiService = APIService();
     apiService.getPJPList(request).then((value) {
-      //print(value.toString());
+      print(value.toString());
       if (value != null) {
 
         if (value == null || value.responseData == null) {
@@ -107,9 +106,6 @@ class IntranetServiceHandler{
         Longitude: cvfView.Status=='FILL CVF' ? cvfView.Longitude : longitude,
         CheckOutLatitude: status=='Completed' ? latitude : 0.0, CheckOutLongitude: status=='Completed' ? longitude : 0.0, CheckOutAddress: status.trim()=='Check In' ? '' : address , Address: cvfView.Status.trim()=='Check In' ? address : cvfView.Address);
     print(request.toJson());
-    print(cvfView.Status.trim());
-    print('local Address ${address}');
-    print(cvfView.Status.trim()=='Check In' ? address : cvfView.Address);
     APIService apiService = APIService();
     apiService.updateCVFStatus(request).then((value) {
       print(value.toString());

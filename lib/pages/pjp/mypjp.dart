@@ -2,9 +2,12 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:hive/hive.dart';
 import 'package:intranet/api/ServiceHandler.dart';
 import 'package:intranet/api/request/pjp/update_pjpstatus_request.dart';
+import 'package:order_tracker_zen/order_tracker_zen.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 import '../../api/request/pjp/update_pjpstatuslist_request.dart';
 import '../../api/response/pjp/pjplistresponse.dart';
@@ -53,7 +56,29 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse,onCli
 
     });
     print('initPJPadadasd');
+    //getAddress();
   }
+  getAddress() async{
+    print('getAddress');
+    if (await Permission.location.request().isGranted) {
+
+    Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.medium);
+    print('getAddress ${position.latitude} ${position.longitude}');
+    String address = await Utility.getAddress(position.latitude, position.longitude);
+    }else{
+    Map<Permission, PermissionStatus> statuses = await [
+    Permission.location,
+    ].request();
+    if (await Permission.location.isPermanentlyDenied) {
+    openAppSettings();
+    // The user opted to never again see the permission request dialog for this
+    // app. The only way to change the permission's status now is to let the
+    // user manually enable it in the system settings.
+    }
+    }
+
+  }
+
 
   Future<void> getUserInfo() async {
     hiveBox = await Utility.openBox();
@@ -323,7 +348,6 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse,onCli
         padding: EdgeInsetsDirectional.fromSTEB(16, 0, 16, 8),
         child: Container(
           width: double.infinity,
-          height: 130,
           decoration: BoxDecoration(
             color: Colors.white,
             boxShadow: [

@@ -7,8 +7,7 @@ class LocalStrings {
   static var stepTwoContent =
       "PJP Planning and approval for manager";
   static var stepThreeTitle = "Center Visit Form";
-  static var stepThreeContent =
-      "";
+  static var stepThreeContent = "";
 
   static const String productionBaseUrl = "http://app.ekidzee.com";
   static const String developmentBaseUrl = "http://intranetapi.zeelearn.com";

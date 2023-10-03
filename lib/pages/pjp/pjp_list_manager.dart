@@ -2,14 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hive/hive.dart';
 import 'package:intl/intl.dart';
-import 'package:intranet/api/request/leavelist_request_man.dart';
 import 'package:intranet/main.dart';
 import 'package:intranet/pages/iface/onClick.dart';
 import 'package:intranet/pages/widget/MyWidget.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../api/APIService.dart';
-import '../../api/ServiceHandler.dart';
 import '../../api/response/leave_list_manager.dart';
 import '../../api/response/pjp/pjplistresponse.dart';
 import '../firebase/notification_service.dart';
@@ -17,7 +13,6 @@ import '../helper/DatabaseHelper.dart';
 import '../helper/LocalConstant.dart';
 import '../helper/constants.dart';
 import '../helper/utils.dart';
-import '../iface/onResponse.dart';
 import '../model/filter.dart';
 import '../utils/theme/colors/light_colors.dart';
 import 'filters.dart';
@@ -109,17 +104,6 @@ class _PJPManagerScreen extends State<PJPManagerScreen>
     return Scaffold(
         appBar: AppBar(
           title: const Text("My PJP"),
-          /*actions: <Widget>[
-            //IconButton
-            IconButton(
-              icon: const Icon(Icons.filter_list),
-              tooltip: 'Filter',
-              onPressed: () {
-                openFilters();
-              },
-            ), //IconButton
-          ],*/
-          //<Widget>[]
           backgroundColor: kPrimaryLightColor,
           elevation: 50.0,
           leading: IconButton(
@@ -339,7 +323,7 @@ class _PJPManagerScreen extends State<PJPManagerScreen>
         "assets/images/loading.gif",
       ),);
     }else if (requisitionList == null || requisitionList.length <= 0) {
-      String message = _tabController.index==0 ? "No pending Leave Requisition Approvals" : "Leave Requisition requests are not available";
+      String message = _tabController.index==0 ? "No pending List Requisition Approvals" : "Requests are not available";
       return Utility.emptyDataSet(context,message);
     } else {
       return Column(
@@ -361,7 +345,7 @@ class _PJPManagerScreen extends State<PJPManagerScreen>
     }
   }
 
-  loadAcquisition() {
+  /*loadAcquisition() {
     //Utility.showLoaderDialog(context);
     isLoading = true;
     setState(() {
@@ -414,7 +398,7 @@ class _PJPManagerScreen extends State<PJPManagerScreen>
       setState(() {});
     });
   }
-
+*/
   void _showDialog(LeaveInfoMan model) {
     // flutter defined function
     showDialog(

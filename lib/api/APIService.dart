@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:http/http.dart' as http;
-import 'package:intranet/api/request/ApproveAttendanceMarking.dart';
 import 'package:intranet/api/request/apply_leave_request.dart';
 import 'package:intranet/api/request/approve_leave_request.dart';
 import 'package:intranet/api/request/attendance_marking_man_request.dart';
@@ -84,7 +83,6 @@ class APIService {
             "Access-Control-Allow-Methods": "POST, OPTIONS"
           },
           body:body);
-      print(response.body);
       if (response.statusCode == 200 || response.statusCode == 400) {
         if(response.body is LoginResponseInvalid){
           return LoginResponseInvalid.fromJson(
@@ -99,15 +97,12 @@ class APIService {
         return null; //LoginResponseModel(token:"",Status:"Invalid/Wrong Login Details");
       }
     } catch (e) {
-      print(e.toString());
       e.toString();
     }
   }
 
   Future<dynamic> attendanceSummery(AttendanceSummeryRequestModel requestModel) async {
     try {
-      print(requestModel.toJson());
-
       var body = jsonEncode( {
         'Employee_Id': requestModel.Employee_Id,
         'PayrollFromMonth': requestModel.PayrollFromMonth,
@@ -116,15 +111,12 @@ class APIService {
         'PayrollToYear': requestModel.PayrollToYear,
         'AppType' :Platform.isAndroid ? 'Android' : Platform.isIOS ? 'IOS' : 'unknown'
       });
-
-      print(Uri.parse(url + LocalStrings.GET_ATTENDANCE_SUMMERY));
       final response = await http.post(Uri.parse(url + LocalStrings.GET_ATTENDANCE_SUMMERY),
           headers: {
             "Accept": "application/json",
             "content-type": "application/json"
           },
           body:body);
-      print(response.body);
       if (response.statusCode == 200 || response.statusCode == 400) {
         if(response.body is AttendanceSummeryResponse){
           return AttendanceSummeryResponse.fromJson(
@@ -139,30 +131,24 @@ class APIService {
         return null; //LoginResponseModel(token:"",Status:"Invalid/Wrong Login Details");
       }
     } catch (e) {
-      print(e.toString());
       e.toString();
     }
   }
 
   Future<dynamic> LeaveBalance(LeaveBalanceRequest requestModel) async {
     try {
-      print(requestModel.toJson());
-
       var body = jsonEncode( {
         'Employee_Id': requestModel.Employee_Id,
         'FDay': requestModel.FDay,
         'TDay': requestModel.TDay,
         'AppType' :Platform.isAndroid ? 'Android' : Platform.isIOS ? 'IOS' : 'unknown'
       });
-
-      print(Uri.parse(url + LocalStrings.GET_LEAVE_SUMMERY));
       final response = await http.post(Uri.parse(url + LocalStrings.GET_LEAVE_SUMMERY),
           headers: {
             "Accept": "application/json",
             "content-type": "application/json"
           },
           body:body);
-      print(response.body);
       if (response.statusCode == 200 || response.statusCode == 400) {
         if(response.body is AttendanceSummeryResponse){
           return LeaveBalanceResponse.fromJson(
@@ -705,7 +691,6 @@ class APIService {
             "content-type": "application/json"
           },
           body:requestModel.getJson());
-      //print(response.body);
       if (response.statusCode == 200 || response.statusCode == 400) {
         String data = response.body.replaceAll('null', '\"NA\"');
         return PjpListResponse.fromJson(
@@ -736,18 +721,8 @@ class APIService {
         return PjpListResponse.fromJson(
           json.decode(data),
         );
-        /*if(response.body is PjpListResponse){
-
-          return PjpListResponse.fromJson(
-            json.decode(data),
-          );
-        }else {
-          return PjpListResponse.fromJson(
-            json.decode(data),
-          );
-        }*/
       } else {
-        return null; //LoginResponseModel(token:"",Status:"Invalid/Wrong Login Details");
+        return null;
       }
     } catch (e) {
       print(e.toString());

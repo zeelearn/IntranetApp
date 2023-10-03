@@ -94,6 +94,7 @@ dependencies:
   flutter_webview_pro: ^3.0.1+4
   syncfusion_flutter_pdfviewer: ^22.2.12
   location_geocoder: ^1.0.5
+  order_tracker_zen: ^1.0.0+4
   #overlay_support: ^2.0.1
 
   #flutter_background_service: ^2.4.3
