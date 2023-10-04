@@ -93,6 +93,7 @@ dependencies:
   file_picker: ^5.3.2
   flutter_webview_pro: ^3.0.1+4
   syncfusion_flutter_pdfviewer: ^21.2.8
+  app_version_update: ^4.0.1
   #overlay_support: ^2.0.1
 
   #flutter_background_service: ^2.4.3
