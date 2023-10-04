@@ -1,6 +1,4 @@
-import 'dart:convert';
 
-import 'package:get/get.dart';
 
 class PjpListResponse {
   late String responseMessage;
@@ -18,22 +16,16 @@ class PjpListResponse {
       statusCode = json['statusCode'];
       responseData = <PJPInfo>[];
       if (json['responseData'] is List) {
-        //print('at line 21');
         json['responseData'].forEach((v) {
           try {
             responseData.add(new PJPInfo.fromJson(v));
           } catch (e) {
-            //print('at line 21 ${v.toString()}');
-            //print(e.toString());
           }
         });
       }else{
-        print('at line 30');
         responseData.add(PJPInfo.fromJson(json['responseData']));
       }
     } catch (e) {
-      print(json['responseData']);
-      print('at line 28--');
       print(e.toString());
     }
   }
@@ -71,7 +63,6 @@ class PJPInfo {
 
   PJPInfo.fromJson(Map<String, dynamic> json) {
     try {
-      print('${json}');
       PJP_Id = json['PJP_Id'];
       displayName = json['DisplayName'] ?? ' NA';
       fromDate = json['FromDate'] ?? ' NA';
@@ -92,11 +83,7 @@ class PJPInfo {
           getDetailedPJP!.add(GetDetailedPJP.fromJson(json['GetDetailedPJP']));
         }
       }
-      //print('at 76${getDetailedPJP.toString()}');
     } catch (e) {
-      print('===================DATA ERROR=====71');
-      print(e.toString());
-      print(json);
     }
   }
 
@@ -118,17 +105,21 @@ class PJPInfo {
 }
 
 class GetDetailedPJP implements Comparable<GetDetailedPJP>{
-  late String PJPCVF_Id;
+  late String PJPCVF_Id='';
 
-  late String visitDate;
-  late String visitTime;
-  late String franchiseeCode;
-  late String franchiseeName;
-  late String Latitude;
-  late String Longitude;
-  late String Address;
-  late String ActivityTitle;
-  late String Status;
+  late String visitDate='';
+  late String visitTime='';
+  late String franchiseeCode='';
+  late String franchiseeName='';
+  late double Latitude=0.0;
+  late double Longitude=0.0;
+  late String Address='';
+  late String CheckInAddress='';
+  late String CheckOutAddress='';
+  late String DateTimeIn='';
+  late String DateTimeOut='';
+  late String ActivityTitle='';
+  late String Status='';
   late List<Purpose>? purpose = [];
 
   late bool isSync = false;
@@ -148,6 +139,10 @@ class GetDetailedPJP implements Comparable<GetDetailedPJP>{
     required this.Latitude,
     required this.Longitude,
     required this.Address,
+    required this.CheckInAddress,
+    required this.CheckOutAddress,
+    required this.DateTimeOut,
+    required this.DateTimeIn,
     required this.Status,
     required this.ActivityTitle,
     required this.purpose,
@@ -170,21 +165,23 @@ class GetDetailedPJP implements Comparable<GetDetailedPJP>{
 
   GetDetailedPJP.fromJson(Map<String, dynamic> json) {
     try {
-      //pjpId = json['pjpId'];
       PJPCVF_Id = json['PJPCVF_Id'] ?? '0';
       visitDate = json['Visit_Date'] ?? ' NA';
       visitTime = json['Visit_Time'] ?? ' NA';
       Status = json['Status'] ?? ' Check In';
       franchiseeCode = json['Franchisee_Code'] ?? 'NA';
       franchiseeName = json['Franchisee_Name'] ?? 'NA';
-      Latitude = json['Latitude'] ?? ' NA';
-      Longitude = json['Longitude'] ?? ' NA';
       Address = json['Address'] ?? ' NA';
+      CheckOutAddress = json['CheckOutAddress'] ?? ' NA';
+      CheckInAddress = json['CheckinAddress'] ?? ' NA';
+      DateTimeOut = json['DateTimeOut'] ?? ' NA';
+      DateTimeIn = json['DateTimeIn'] ?? ' NA';
+      Latitude = double.parse(json['Latitude'].toString() ?? "0.0") ;
+      Longitude = double.parse(json['Longitude'].toString() ?? "0.0") ?? 0.0;
       ActivityTitle = json['ActivityTitle'] ?? 'NA';
       purpose = <Purpose>[];
       if(json.containsKey('Purpose')) {
         if (json['Purpose'] is List) {
-         // print('is array ${json['Purpose']}');
           if (json['Purpose'] != null) {
             json['Purpose'].forEach((v) {
               bool isExists = false;
@@ -194,19 +191,17 @@ class GetDetailedPJP implements Comparable<GetDetailedPJP>{
                   isExists=true;
                 }
               }
-              if(!isExists)
+              if(!isExists) {
                 purpose!.add(Purpose.fromJson(v));
+              }
             });
           }
         } else {
-          //print('is object ${json['Purpose']}');
           purpose!.add(Purpose.fromJson(json['Purpose']));
         }
       }
     } catch (e) {
-      print('at line 138');
       print(e.toString());
-      print(json);
     }
   }
 
@@ -222,8 +217,11 @@ class GetDetailedPJP implements Comparable<GetDetailedPJP>{
     data['Latitude'] = this.Latitude;
     data['Longitude'] = this.Longitude;
     data['Address'] = this.Address;
+    data['CheckInAddress'] = this.CheckInAddress;
+    data['CheckOutAddress'] = this.CheckOutAddress;
+    data['DateTimeIn'] = this.DateTimeIn;
+    data['CheckOutAddress'] = this.CheckOutAddress;
     data['ActivityTitle'] = this.ActivityTitle;
-
     if (this.purpose != null) {
       data['Purpose'] = this.purpose!.map((v) => v.toJson()).toList();
     } else {

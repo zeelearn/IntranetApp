@@ -1,20 +1,15 @@
 import 'dart:convert';
 
-import 'package:custom_date_range_picker/custom_date_range_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:hive/hive.dart';
-import 'package:intl/intl.dart';
 import 'package:intranet/api/ServiceHandler.dart';
-import 'package:intranet/api/request/pjp/get_pjp_report_request.dart';
 import 'package:intranet/api/request/pjp/update_pjpstatus_request.dart';
-import 'package:timeline_tile/timeline_tile.dart';
 
+import '../../api/request/pjp/update_pjpstatuslist_request.dart';
 import '../../api/response/pjp/pjplistresponse.dart';
 import '../../api/response/pjp/update_pjpstatus_response.dart';
 import '../firebase/anylatics.dart';
-import '../firebase/indicator.dart';
 import '../helper/LocalConstant.dart';
 import '../helper/constants.dart';
 import '../helper/utils.dart';
@@ -22,34 +17,32 @@ import '../iface/onClick.dart';
 import '../iface/onResponse.dart';
 import '../model/filter.dart';
 import '../utils/theme/colors/light_colors.dart';
+import '../widget/MyWidget.dart';
 import 'add_new_pjp.dart';
-import 'cvf/cvf_questions.dart';
 import 'cvf/pjpcvf.dart';
 import 'filters.dart';
 
-class MyPjpReportScreen extends StatefulWidget {
+class MyPjpManAListScreen extends StatefulWidget {
   FilterSelection mFilterSelection;
-
-  MyPjpReportScreen({Key? key, required this.mFilterSelection}) : super(key: key);
+  List<PJPInfo> mPjpList;
+  bool isApproved;
+  MyPjpManAListScreen({Key? key, required this.mFilterSelection,required this.mPjpList,required this.isApproved}) : super(key: key);
 
   @override
-  _MyPjpReportListState createState() => _MyPjpReportListState();
+  _MyPjpListState createState() => _MyPjpListState();
 }
 
-class _MyPjpReportListState extends State<MyPjpReportScreen> implements onResponse,onClickListener{
+class _MyPjpListState extends State<MyPjpManAListScreen> implements onResponse,onClickListener{
   List<PJPInfo> mPjpList = [];
   int employeeId = 0;
   int businessId = 0;
-  String employeeCode='';
   var hiveBox;
   bool isLoading=true;
   //FilterSelection mFilterSelection = FilterSelection(filters: [], type: FILTERStatus.MYSELF);
   final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey =
       GlobalKey<RefreshIndicatorState>();
   bool isInternet=true;
-
-  DateTime fromDate = DateTime.now().subtract(const Duration(days: 30));
-  DateTime toDate = DateTime.now();
+  List<bool> _isChecked = [];
 
   @override
   void initState() {
@@ -62,62 +55,14 @@ class _MyPjpReportListState extends State<MyPjpReportScreen> implements onRespon
     });
   }
 
-  Widget datePicker(TextEditingController controller) {
-    return Container(
-        decoration:
-        BoxDecoration(border: Border.all(color: LightColors.kLightGray1)),
-        height: 45,
-        child: Center(
-            child: TextField(
-              //editing controller of this TextField
-              decoration: InputDecoration(
-                icon: Icon(Icons.calendar_today), //icon of text field
-                //label text of field
-              ),
-              controller: controller,
-              readOnly: true,
-              //set it true, so that user will not able to edit text
-              onTap: () async {
-                _showDatePicker(controller);
-              },
-            )));
-  }
-  final DateTime initialDate = DateTime.now();
-  _showDatePicker(TextEditingController controller) async {
-    DateTime? pickedDate = await showDatePicker(
-        context: context,
-        initialDate: initialDate,
-      firstDate: DateTime(DateTime.now().year - 1, 5),
-      lastDate: DateTime(DateTime.now().year + 1, 9));
-
-    if (pickedDate != null) {
-      setState(() {
-        //print(pickedDate); //pickedDate output format => 2021-03-10 00:00:00.000
-        String formattedDate = DateFormat('dd-MMM-yyyy').format(pickedDate);
-        //print(formattedDate); //formatted date output using intl package =>  2021-03-16
-        controller.text = formattedDate;
-      });
-    } else {}
-  }
-
-  loadPjpReport() async{
-    PJPReportRequest request = PJPReportRequest(employeeCode: employeeCode, fromDate: Utility.convertShortDate(fromDate), toDate: Utility.convertShortDate(toDate));
-    isInternet = await Utility.isInternet();
-    if(isInternet){
-      IntranetServiceHandler.loadPjpReport(request,this);
-    }
-  }
-
   Future<void> getUserInfo() async {
     hiveBox = await Utility.openBox();
     await Hive.openBox(LocalConstant.KidzeeDB);
     employeeId = int.parse(hiveBox.get(LocalConstant.KEY_EMPLOYEE_ID) as String);
     businessId = hiveBox.get(LocalConstant.KEY_BUSINESS_ID);
-    employeeCode = hiveBox.get(LocalConstant.KEY_EMPLOYEE_CODE) as String;
-
     isInternet = await Utility.isInternet();
     if(isInternet){
-      loadPjpReport();
+      IntranetServiceHandler.loadPjpSummery(employeeId, 0,businessId, this);
     }else{
       var pjpList = hiveBox.get(getId());
       try {
@@ -127,9 +72,10 @@ class _MyPjpReportListState extends State<MyPjpReportScreen> implements onRespon
         );
         if (response != null && response.responseData != null)
           mPjpList.addAll(response.responseData);
+        _isChecked = List<bool>.filled(mPjpList.length, false);
         setState(() {});
       }catch(e){
-        loadPjpReport();
+        IntranetServiceHandler.loadPjpSummery(employeeId, 0,businessId, this);
       }
     }
   }
@@ -149,6 +95,7 @@ class _MyPjpReportListState extends State<MyPjpReportScreen> implements onRespon
           return DateTime.parse(a.fromDate).compareTo(DateTime.parse(b.fromDate));
         });
       }
+      _isChecked = List<bool>.filled(mPjpList.length, false);
       setState(() {});
       isLoad = true;
     }catch(e){
@@ -158,123 +105,86 @@ class _MyPjpReportListState extends State<MyPjpReportScreen> implements onRespon
   }
 
 
-  openDateRange() async{
-    final picked = await showDateRangePicker(
-      context: context,
-      lastDate: DateTime.now(),
-      firstDate: DateTime.now().subtract(const Duration(days: 180)),
-    );
-    if (picked != null && picked != null) {
-      print(picked);
-      setState(() {
-        fromDate = picked.start;
-        toDate = picked.end;
-//below have methods that runs once a date range is picked
-        loadPjpReport();
-      });
-    }
-    /*showCustomDateRangePicker(
-      context,
-      dismissible: true,
-      minimumDate: DateTime.now().subtract(const Duration(days: 180)),
-      maximumDate: DateTime.now(),
-      endDate: toDate,
-      startDate: fromDate,
-      backgroundColor: Colors.white,
-      primaryColor: Colors.blueAccent,
-
-      onApplyClick: (start, end) {
-
-          toDate = end;
-          fromDate = start;
-          setState(() {
-            isLoading = true;
-          });
-          loadPjpReport();
-      },
-      onCancelClick: () {
-        setState(() {
-          //endDate = null;
-          //startDate = null;
-        });
-      },
-    );*/
-  }
+  bool _isSelectAll=false;
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-
-
-      home: Scaffold(
-          extendBodyBehindAppBar: true,
-          backgroundColor: Colors.white,
-          appBar: AppBar(
-            title: const Text("PJP Report"),
-            actions: <Widget>[
-              //IconButton
-              IconButton(
-                icon: const Icon(Icons.date_range),
-                tooltip: 'Date Range',
-                onPressed: () {
-                  openDateRange();
-                },
-              ),
-              /*IconButton(
-                icon: const Icon(Icons.add_box),
-                tooltip: 'Filter',
-                onPressed: () {
-                  openNewPjp();
-                },
-              ),*/
-              IconButton(
-                icon: const Icon(Icons.filter_list),
-                tooltip: 'Filter',
-                onPressed: () {
-                  openFilters();
-                },
-              ), //IconButton
-            ],
-            //<Widget>[]
-            backgroundColor: kPrimaryLightColor,
-            elevation: 50.0,
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back),
-              tooltip: 'Menu Icon',
+    return Scaffold(
+        extendBodyBehindAppBar: true,
+        backgroundColor: Colors.white,
+        /*appBar: AppBar(
+          title: const Text("My PJP"),
+          actions: <Widget>[
+            //IconButton
+            IconButton(
+              icon: const Icon(Icons.add_box),
+              tooltip: 'Filter',
               onPressed: () {
-                Navigator.of(context).pop();
+                openNewPjp();
               },
             ),
-            systemOverlayStyle: SystemUiOverlayStyle.light,
+            IconButton(
+              icon: const Icon(Icons.filter_list),
+              tooltip: 'Filter',
+              onPressed: () {
+                openFilters();
+              },
+            ), //IconButton
+          ],
+          //<Widget>[]
+          backgroundColor: kPrimaryLightColor,
+          elevation: 50.0,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            tooltip: 'Menu Icon',
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
           ),
-          body: SafeArea(
-            child: RefreshIndicator(
-              key: _refreshIndicatorKey,
-              color: Colors.white,
-              backgroundColor: Colors.blue,
-              strokeWidth: 4.0,
-              onRefresh: () async {
-                // Replace this delay with the code to be executed during refresh
-                // and return a Future when code finishs execution.
-                loadPjpReport();
-                return Future<void>.delayed(const Duration(seconds: 3));
-              },
-              // Pull from top to show refresh indicator.
-              child: Column(
-                children: [
-                  SizedBox(
-                    height: 10,
-                  ),
-                  Text('${Utility.convertShortDate(fromDate)} to ${Utility.convertShortDate(toDate)}'),
-                  SizedBox(
-                    height: 10,
-                  ),
-                  getPjpListView(),
-                ],
-              ),
+          systemOverlayStyle: SystemUiOverlayStyle.light,
+        ),*/
+        body: SafeArea(
+          child: RefreshIndicator(
+            key: _refreshIndicatorKey,
+            color: Colors.white,
+            backgroundColor: Colors.blue,
+            strokeWidth: 4.0,
+            onRefresh: () async {
+              // Replace this delay with the code to be executed during refresh
+              // and return a Future when code finishs execution.
+              IntranetServiceHandler.loadPjpSummery(employeeId, 0,businessId, this);
+              return Future<void>.delayed(const Duration(seconds: 3));
+            },
+            // Pull from top to show refresh indicator.
+            child: Column(
+              children: [
+                SizedBox(
+                  height: 10,
+                ),
+                SizedBox(
+                  height: 10,
+                ),
+                getPjpListView(),
+              ],
             ),
-          )),
-    );
+          ),
+        ));
+  }
+
+  updateSelection() {
+    //ApproveLeaveRequsitionRequest request = ApproveLeaveRequsitionRequest();
+    late var jsonValue="[";
+    if (_isChecked != null && _isChecked.length > 0) {
+
+      for (int index = 0; index < _isChecked.length; index++) {
+        _isChecked[index] = _isSelectAll;
+      }
+    }
+    mPjpList.sort((a,b) {
+      var adate = a.fromDate; //before -> var adate = a.expiry;
+      var bdate = b.fromDate; //var bdate = b.expiry;
+      return -bdate.compareTo(adate);
+    });
   }
 
   void openNewPjp() async{
@@ -285,7 +195,7 @@ class _MyPjpReportListState extends State<MyPjpReportScreen> implements onRespon
     );
     //print('Response Received');
 
-    loadPjpReport();
+    IntranetServiceHandler.loadPjpSummery(employeeId, 0,businessId, this);
   }
 
   void goToSecondScreen(BuildContext context) async {
@@ -311,46 +221,9 @@ class _MyPjpReportListState extends State<MyPjpReportScreen> implements onRespon
           }
         }
         //print(filter.filters.toList());
-      loadPjpReport();
+        IntranetServiceHandler.loadPjpSummery(employeeId, 0,businessId, this);
       }
     //Scaffold.of(context).showSnackBar(SnackBar(content: Text("$result"),duration: Duration(seconds: 3),));
-  }
-
-  getTimeLine(PJPInfo pjpInfo,List<GetDetailedPJP> cvfList){
-    List<Widget> list = [];
-    for(int index=0;index<cvfList.length;index++){
-      list.add(GestureDetector(
-        onTap: (){
-          if(pjpInfo.ApprovalStatus =='Approved') {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (context) => QuestionListScreen(
-                    cvfView: cvfList[index],
-                    mCategory: 'All',
-                    PJPCVF_Id: int.parse(cvfList[index].PJPCVF_Id),
-                    employeeId: employeeId,
-                    mCategoryId: cvfList[index].purpose![0].categoryId,
-                    isViewOnly: true,
-                  )),
-            );
-          }
-        },
-        child: _buildTimelineTile(
-          indicator: const IconIndicator(
-            iconData: Icons.location_pin,
-            size: 18,
-          ),
-          pjp:pjpInfo,
-          cvf:cvfList[index],
-          hour: cvfList[index].visitTime,
-          weather: cvfList[index].ActivityTitle =='NA' ? cvfList[index].franchiseeName : cvfList[index].ActivityTitle,
-          temperature: cvfList[index].ActivityTitle !='NA' ? cvfList[index].Address : cvfList[index].franchiseeCode,
-          phrase: cvfList[index].Status,
-        ),
-      ));
-    }
-    return list;
   }
 
   getPjpListView() {
@@ -371,24 +244,16 @@ class _MyPjpReportListState extends State<MyPjpReportScreen> implements onRespon
         itemCount: mPjpList.length,
         shrinkWrap: true,
         itemBuilder: (context, index) {
-          return mPjpList[index].getDetailedPJP!.length==0 ? getView(mPjpList[index]) : ExpansionTile(
-            leading: null,
-            trailing: null,
-            tilePadding: EdgeInsets.all(5),
-            title: getView(mPjpList[index]),
-            children: getTimeLine(mPjpList[index],mPjpList[index].getDetailedPJP!),
-          );
-          /*return getView(mPjpList[index]);*/
+          return getView(mPjpList[index],index);
         },
       ));
     }
   }
 
-  getView(PJPInfo pjpInfo) {
+  getView(PJPInfo pjpInfo,int index) {
     return GestureDetector(
       onTap: () {
         if(pjpInfo.ApprovalStatus =='Approved') {
-          pjpInfo.isSelfPJP='0';
           Navigator.push(
               context,
               MaterialPageRoute(
@@ -403,7 +268,7 @@ class _MyPjpReportListState extends State<MyPjpReportScreen> implements onRespon
         padding: EdgeInsetsDirectional.fromSTEB(16, 0, 16, 8),
         child: Container(
           width: double.infinity,
-
+          height: 130,
           decoration: BoxDecoration(
             color: Colors.white,
             boxShadow: [
@@ -417,60 +282,59 @@ class _MyPjpReportListState extends State<MyPjpReportScreen> implements onRespon
           ),
           child: Column(
             mainAxisSize: MainAxisSize.max,
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-
-              ListTile(
-                minLeadingWidth: 0,
-                title: Column(
+              Padding(
+                padding: EdgeInsetsDirectional.fromSTEB(12, 4, 12, 4),
+                child: Row(
+                  mainAxisSize: MainAxisSize.max,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Padding(
-                      padding: EdgeInsetsDirectional.fromSTEB(0, 4, 12, 2),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.max,
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Padding(
-                            padding: EdgeInsetsDirectional.fromSTEB(0, 0, 0, 0),
-                            child: Text(
-                              'Created By : ${pjpInfo.displayName}',
-                              style: TextStyle(
-                                fontFamily: 'Lexend Deca',
-                                color: Color(0xFF4B39EF),
-                                fontSize: 10,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                          Padding(
-                            padding: EdgeInsetsDirectional.fromSTEB(0, 4, 0, 0),
-                            child: Text(
-                              'Ref Id : P-${pjpInfo.PJP_Id}',
-                              style: TextStyle(
-                                fontFamily: 'Lexend Deca',
-                                color: Color(0xFF4B39EF),
-                                fontSize: 10,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                        ],
+                      padding: EdgeInsetsDirectional.fromSTEB(0, 4, 0, 0),
+                      child: Text(
+                        'Created By : ${pjpInfo.displayName}',
+                        style: TextStyle(
+                          fontFamily: 'Lexend Deca',
+                          color: Color(0xFF4B39EF),
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
-                    Align(
-                      alignment: Alignment.centerLeft,
+                    Padding(
+                      padding: EdgeInsetsDirectional.fromSTEB(0, 4, 0, 0),
                       child: Text(
-                        'Date : ${Utility.getShortDate(pjpInfo.fromDate)} to ${Utility.getShortDate(pjpInfo.toDate)}',
-                        style: const TextStyle(
+                        'Ref Id : P-${pjpInfo.PJP_Id}',
+                        style: TextStyle(
                           fontFamily: 'Lexend Deca',
-                          color: Color(0xFF090F13),
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
+                          color: Color(0xFF4B39EF),
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ),
                   ],
+                ),
+              ),
+              /*Container(
+                width: MediaQuery.of(context).size.width * 0.85,
+                height: 1,
+                decoration: BoxDecoration(
+                  color: Color(0xFFF1F4F8),
+                ),
+              ),*/
+              ListTile(
+                title: Padding(
+                  padding: EdgeInsetsDirectional.all(0),
+                  child: Text(
+                    'Date : ${Utility.getShortDate(pjpInfo.fromDate)} to ${Utility.getShortDate(pjpInfo.toDate)}',
+                    style: const TextStyle(
+                      fontFamily: 'Lexend Deca',
+                      color: Color(0xFF090F13),
+                      fontSize: 18,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
                 ),
                 subtitle: /*Expanded(
                   flex: 1,
@@ -478,31 +342,42 @@ class _MyPjpReportListState extends State<MyPjpReportScreen> implements onRespon
                     'Remark : ${pjpInfo.remarks}',
                     style: const TextStyle(
                       fontFamily: 'Lexend Deca',
-                      color: Colors.black54,
-                      fontSize: 12,
+                      color: Color(0xFF95A1AC),
+                      fontSize: 14,
                       fontWeight: FontWeight.normal,
                     ),
                   ),
                 //),
-                trailing: pjpInfo.ApprovalStatus =='Pending' ? Text('') : pjpInfo.isSelfPJP=='0' && pjpInfo.ApprovalStatus =='Pending'? OutlinedButton(
+                trailing: pjpInfo.isSelfPJP=='0' && pjpInfo.ApprovalStatus =='Pending'? OutlinedButton(
                   onPressed: () {
                     if (pjpInfo.isSelfPJP=='0' || widget.mFilterSelection.type == FILTERStatus.MYSELF && pjpInfo.ApprovalStatus =='Approved') {
-                      Utility.showMessageMultiButton(context,'Approve','Reject', 'PJP : ${pjpInfo.PJP_Id}', 'Are you sure to approve the PJP, created by ${pjpInfo.displayName}',pjpInfo, this);                    }else{
+                      Utility.showMessageMultiButton(context,'Approve','Reject', 'PJP : ${pjpInfo.PJP_Id}', 'Are you sure to approve the PJP, created by ${pjpInfo.displayName}',pjpInfo, this);
+                    }else{
                       Utility.showMessages(context, 'Please wait Your manager need to approve the PJP');
                     }
                   },
-                  child: Text(
-                    'Pending Approval',
+                  child: Checkbox(
+                    checkColor: Colors.black,
+                    activeColor: LightColors.kLavender,
+                    value: _isChecked[index],
+                    onChanged: (bool? value) {
+                      setState(() {
+                        _isChecked[index] = value!;
+                        //singleSelection(position);
+                      });
+                    },
+                  ) /*Text(
+                    'Approve',
                     style: TextStyle(
                       fontFamily: 'Lexend Deca',
                       color: Color(0xFF4B39EF)  ,
-                      fontSize: 12,
+                      fontSize: 14,
                       fontWeight: FontWeight.w500,
                     ),
-                  ),
+                  )*/,
                 ) : pjpInfo.ApprovalStatus=='Approved' ? Image.asset(
                 'assets/icons/ic_checked.png',
-                height: 30,
+                height: 50,
               ) : Text(
                   pjpInfo.ApprovalStatus,
                   style: TextStyle(
@@ -678,7 +553,7 @@ class _MyPjpReportListState extends State<MyPjpReportScreen> implements onRespon
         }
       }
       //print(filter.filters.toList());
-      loadPjpReport();
+      IntranetServiceHandler.loadPjpSummery(employeeId, 0,businessId, this);
     } else {
       //print('Object not found ${result}');
     }
@@ -710,88 +585,13 @@ class _MyPjpReportListState extends State<MyPjpReportScreen> implements onRespon
     hiveBox.put(getId(), json);
   }
 
-
-  TimelineTile _buildTimelineTile({
-    required IconIndicator indicator,
-    required String hour,
-    required String weather,
-    required String temperature,
-    required GetDetailedPJP cvf,
-    required PJPInfo pjp,
-    required String phrase,
-    bool isLast = false,
-  }) {
-    return TimelineTile(
-      alignment: TimelineAlign.manual,
-      lineXY: 0.3,
-      beforeLineStyle: LineStyle(color: Colors.white.withOpacity(0.7)),
-      indicatorStyle: IndicatorStyle(
-        indicatorXY: 0.3,
-        drawGap: true,
-        width: 30,
-        height: 30,
-        indicator: indicator,
-      ),
-      isLast: isLast,
-      startChild: Center(
-        child: Container(
-            alignment: const Alignment(0.0, -0.50),
-            child: Text(
-              hour,
-              style: GoogleFonts.lato(
-                fontSize: 18,
-                color: Colors.black87,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-        ) ,
-      ),
-      endChild: Padding(
-        padding:
-        const EdgeInsets.only(left: 16, right: 10, top: 10, bottom: 10),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Text(
-              weather,
-              style: GoogleFonts.lato(
-                fontSize: 18,
-                color: Colors.black87,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              temperature,
-              style: GoogleFonts.lato(
-                fontSize: 16,
-                color: Colors.black87,
-                fontWeight: FontWeight.normal,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              phrase,
-              style: GoogleFonts.lato(
-                fontSize: 14,
-                color: Colors.black87,
-                fontWeight: FontWeight.normal,
-              ),
-            )
-          ],
-        ),
-      ),
-    );
-  }
-
   @override
   void onSuccess(value) {
     Navigator.of(context).pop();
     isLoading = false;
     print('PJP List onSuccess ');
     if(value is String){
-      PJPReportRequest request = PJPReportRequest(employeeCode: employeeCode, fromDate: Utility.convertShortDate(fromDate), toDate: Utility.convertShortDate(toDate));
-      IntranetServiceHandler.loadPjpReport(request,this);
+      IntranetServiceHandler.loadPjpSummery(employeeId, 0,businessId, this);
     }else if(value is UpdatePJPStatusResponse){
       UpdatePJPStatusResponse val = value;
       //print(val.toJson());
@@ -802,7 +602,7 @@ class _MyPjpReportListState extends State<MyPjpReportScreen> implements onRespon
         Utility.getConfirmationDialog(context, this);
       }
     }else if(value is PjpListResponse){
-      print('PJP List onSuccess PjpListResponse');
+      //print('PJP List onSuccess PjpListResponse');
       PjpListResponse response = value;
       //print(response.toString());
       String json = jsonEncode(response);
@@ -810,44 +610,48 @@ class _MyPjpReportListState extends State<MyPjpReportScreen> implements onRespon
       //print('onResponse in if ${widget.mFilterSelection.type}');
       isLoading = false;
       mPjpList.clear();
-      print('PJP List onSuccess ${response.responseData.toString()}');
+      //print('PJP List onSuccess ${response.responseData.toString()}');
       if(response.responseData!=null && response.responseData.length>0){
         if (response != null && response.responseData != null) {
-          if (widget.mFilterSelection == null || widget.mFilterSelection.type == FILTERStatus.MYTEAM) {
+          if (widget.mFilterSelection == null ||widget.mFilterSelection.type == FILTERStatus.MYTEAM) {
             print(('FOR MY TEAM'));
             //mPjpList.addAll(response.responseData);
             for (int index = 0;
             index < response.responseData.length;
             index++) {
-              mPjpList.addAll(response.responseData);
-
+              if (response.responseData[index].isSelfPJP == '0') {
+                //mPjpList.add(response.responseData[index]);
+                for(int jIndex=0;jIndex<widget.mFilterSelection.filters.length;jIndex++){
+                  if(widget.mFilterSelection.filters[jIndex].isSelected && response.responseData[index].displayName==widget.mFilterSelection.filters[jIndex].name){
+                    if(response.responseData[index].ApprovalStatus=='Approved' || response.responseData[index].ApprovalStatus!='Pending')
+                      mPjpList.add(response.responseData[index]);
+                  }
+                }
+              }
             }
           } else if (widget.mFilterSelection.type == FILTERStatus.MYSELF) {
             print(('FOR MY SELF'));
-            for (int index = 0;
-            index < response.responseData.length;
-            index++) {
+            for (int index = 0;index < response.responseData.length;index++) {
               if (response.responseData[index].isSelfPJP == '1') {
-                mPjpList.add(response.responseData[index]);
+                if(response.responseData[index].ApprovalStatus=='Approved' || response.responseData[index].ApprovalStatus!='Pending')
+                  mPjpList.add(response.responseData[index]);
               }
             }
           } else if (widget.mFilterSelection.type == FILTERStatus.NONE) {
             print(('FOR MY CUSTOM TEAM'));
-            for (int index = 0; index < response.responseData.length; index++) {
+            for (int index = 0;index < response.responseData.length;index++) {
               if (response.responseData[index].isSelfPJP == '0') {
-                mPjpList.add(response.responseData[index]);
+                if(response.responseData[index].ApprovalStatus=='Approved' || response.responseData[index].ApprovalStatus!='Pending')
+                  mPjpList.add(response.responseData[index]);
               }
             }
           } else {
             //print('In else');
-            for (int index = 0;
-            index < response.responseData.length;
-            index++) {
-              for (int jIndex = 0;
-              jIndex < widget.mFilterSelection.filters.length;
-              jIndex++) {
+            for (int index = 0;index < response.responseData.length;index++) {
+              for (int jIndex = 0;jIndex < widget.mFilterSelection.filters.length;jIndex++) {
                 if (response.responseData[index].displayName == widget.mFilterSelection.filters[jIndex].name) {
-                  mPjpList.add(response.responseData[index]);
+                  if(response.responseData[index].ApprovalStatus=='Approved' || response.responseData[index].ApprovalStatus!='Pending')
+                    mPjpList.add(response.responseData[index]);
                 }
               }
             }
@@ -858,16 +662,18 @@ class _MyPjpReportListState extends State<MyPjpReportScreen> implements onRespon
             var bdate = b.fromDate; //var bdate = b.expiry;
             return -bdate.compareTo(adate);
           });
+          _isChecked = List<bool>.filled(mPjpList.length, false);
           //mPjpList.addAll(response.responseData);
-          print('========================${mPjpList.length}');
+          //print('========================${mPjpList.length}');
           //print(response.toJson());
           //mPjpList = mPjpList.reversed.toList();
 
         }
       }else{
-        print('onResponse in if else');
+        //print('onResponse in if else');
       }
     }
+    print('length ${mPjpList.length}');
     setState(() {
       //mPjpList.addAll(response.responseData);
     });
@@ -878,6 +684,17 @@ class _MyPjpReportListState extends State<MyPjpReportScreen> implements onRespon
         Is_Approved: isApprove, Workflow_user: employeeId.toString());
     IntranetServiceHandler.updatePJPStatus(request, this);
   }
+
+/*  void approvePjpList() {
+    StringBuffer DocXML = new StringBuffer("<root>");
+    for(int index=0;index<mPjpList.length;index++){
+      if(mPjpList[index].ApprovalStatus)
+    //<subroot><PJP_id>135</PJP_id><Is_Approved>0</Is_Approved></subroot><subroot><PJP_id>136</PJP_id><Is_Approved>1</Is_Approved></subroot>
+    }
+    DocXML.write("</root>");
+    UpdatePJPStatusListRequest request = UpdatePJPStatusListRequest(DocXML: DocXML, Workflow_user: Workflow_user)
+    IntranetServiceHandler.updatePJPStatusList(request, this);
+  }*/
 
   @override
   void onClick(int action, value) {
@@ -890,6 +707,5 @@ class _MyPjpReportListState extends State<MyPjpReportScreen> implements onRespon
         approvePjp(pjpInfo, 0);
       }
     }
-
   }
 }

@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
+import 'package:geocoding/geocoding.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hive/hive.dart';
 import 'package:intl/intl.dart';
+import 'package:intranet/pages/helper/LocalStrings.dart';
 import 'package:intranet/pages/iface/onClick.dart';
 import 'package:intranet/pages/iface/onResponse.dart';
+import 'package:location_geocoder/geocoder.dart';
+import 'package:location_geocoder/location_geocoder.dart';
 import 'package:lottie/lottie.dart';
 import 'package:material_dialogs/material_dialogs.dart';
 import 'package:material_dialogs/widgets/buttons/icon_button.dart';
@@ -15,6 +19,7 @@ import 'LightColor.dart';
 import 'LocalConstant.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
+
 
 enum TaskPageStatus {
   all,
@@ -360,6 +365,10 @@ class Utility{
     return shortDate(convertDate(value));
   }
 
+  static getShortDateTime(String value){
+    return shortDateTime(convertDate(value));
+  }
+
   static DateTime convertDate(String value) {
     DateTime dt = DateTime.now();
     //2022-07-18T00:00:00
@@ -425,6 +434,16 @@ class Utility{
     }
     return value;
   }
+  static String shortDateTime(DateTime date) {
+    String value='';
+    //2022-07-18T00:00:00
+    try {
+      value = new DateFormat('d-MMM, hh:mm a').format(date);
+    } catch (e) {
+      e.toString();
+    }
+    return value;
+  }
 
   static String shortTime(DateTime date) {
     String value='';
@@ -460,7 +479,7 @@ class Utility{
 
     int difference = 1;
     int days = end.difference(start).inDays;
-    print('${Utility.shortDate(start)} to ${Utility.shortDate(end)} : days ${days}');
+    //print('${Utility.shortDate(start)} to ${Utility.shortDate(end)} : days ${days}');
     if(days>1){
       difference = days;
     }
@@ -472,7 +491,7 @@ class Utility{
   }
 
   static getDateTime(){
-    return DateFormat('yyyy-MM-dd hh:mm').format(DateTime.now());
+    return DateFormat('yyyy-MM-dd HH:mm').format(DateTime.now());
   }
 
   static getConfirmationDialog(BuildContext context,onResponse response){
@@ -766,6 +785,44 @@ class Utility{
         ),
       ],
     );
+  }
+
+  static getAddress(double latitude, double longitude) async {
+    List<Placemark> placemarks = await placemarkFromCoordinates(latitude, longitude);
+    if (placemarks.isEmpty) {
+      return 'Unknown address';
+    }
+
+    Placemark placemark = placemarks.first;
+    String address = '';
+    print(placemark.toString());
+    if (placemark.subLocality != null) {
+      address += '${placemark.subLocality}  , ';
+    }
+    if (placemark.locality != null) {
+      address += '${placemark.locality}  , ';
+    }
+    if (placemark.administrativeArea != null) {
+      address += '${placemark.administrativeArea}  , ';
+    }
+    if (placemark.country != null) {
+      address += '${placemark.country}';
+    }
+    if (placemark.postalCode != null) {
+      address += '${placemark.postalCode}  , ';
+    }
+    print('Address: ${address}');
+    return address;
+  }
+
+  static getAddress1(double latitude,double longitude) async
+  {
+    final LocatitonGeocoder geocoder = LocatitonGeocoder(LocalStrings.kGoogleApiKey);
+    final address = await geocoder.findAddressesFromCoordinates(Coordinates(latitude, longitude));
+    print('${latitude},${longitude}');
+    print(address);
+    print(address.first.addressLine);
+    return address.first.addressLine;
   }
 
 }

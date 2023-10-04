@@ -2,10 +2,14 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:hive/hive.dart';
 import 'package:intranet/api/ServiceHandler.dart';
 import 'package:intranet/api/request/pjp/update_pjpstatus_request.dart';
+import 'package:order_tracker_zen/order_tracker_zen.dart';
+import 'package:permission_handler/permission_handler.dart';
 
+import '../../api/request/pjp/update_pjpstatuslist_request.dart';
 import '../../api/response/pjp/pjplistresponse.dart';
 import '../../api/response/pjp/update_pjpstatus_response.dart';
 import '../firebase/anylatics.dart';
@@ -16,6 +20,7 @@ import '../iface/onClick.dart';
 import '../iface/onResponse.dart';
 import '../model/filter.dart';
 import '../utils/theme/colors/light_colors.dart';
+import '../widget/MyWidget.dart';
 import 'add_new_pjp.dart';
 import 'cvf/pjpcvf.dart';
 import 'filters.dart';
@@ -39,6 +44,7 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse,onCli
   final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey =
       GlobalKey<RefreshIndicatorState>();
   bool isInternet=true;
+  List<bool> _isChecked = [];
 
   @override
   void initState() {
@@ -49,7 +55,30 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse,onCli
       this.getUserInfo();
 
     });
+    print('initPJPadadasd');
+    //getAddress();
   }
+  getAddress() async{
+    print('getAddress');
+    if (await Permission.location.request().isGranted) {
+
+    Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.medium);
+    print('getAddress ${position.latitude} ${position.longitude}');
+    String address = await Utility.getAddress(position.latitude, position.longitude);
+    }else{
+    Map<Permission, PermissionStatus> statuses = await [
+    Permission.location,
+    ].request();
+    if (await Permission.location.isPermanentlyDenied) {
+    openAppSettings();
+    // The user opted to never again see the permission request dialog for this
+    // app. The only way to change the permission's status now is to let the
+    // user manually enable it in the system settings.
+    }
+    }
+
+  }
+
 
   Future<void> getUserInfo() async {
     hiveBox = await Utility.openBox();
@@ -62,14 +91,20 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse,onCli
     if(isInternet){
       IntranetServiceHandler.loadPjpSummery(employeeId, 0,businessId, this);
     }else{
+      print('key ${getId()}');
       var pjpList = hiveBox.get(getId());
+      print('OFLINE--------');
+      print(pjpList);
+      print('-----------------');
       try {
         isLoading = false;
         PjpListResponse response = PjpListResponse.fromJson(
           json.decode(pjpList),
         );
+
         if (response != null && response.responseData != null)
           mPjpList.addAll(response.responseData);
+        _isChecked = List<bool>.filled(mPjpList.length, false);
         setState(() {});
       }catch(e){
         IntranetServiceHandler.loadPjpSummery(employeeId, 0,businessId, this);
@@ -92,6 +127,7 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse,onCli
           return DateTime.parse(a.fromDate).compareTo(DateTime.parse(b.fromDate));
         });
       }
+      _isChecked = List<bool>.filled(mPjpList.length, false);
       setState(() {});
       isLoad = true;
     }catch(e){
@@ -101,6 +137,7 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse,onCli
   }
 
 
+  bool _isSelectAll=false;
 
   @override
   Widget build(BuildContext context) {
@@ -156,6 +193,54 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse,onCli
                 SizedBox(
                   height: 10,
                 ),
+            /*Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Padding(
+                  padding: EdgeInsets.only(left: 10),
+                  child: Row(
+                    children: [
+                      Checkbox(
+                        checkColor: Colors.black,
+                        activeColor: LightColors.kLavender,
+                        value: _isSelectAll,
+                        onChanged: (bool? value) {
+                          setState(() {
+                            _isSelectAll = value!;
+                            updateSelection();
+                          });
+                        },
+                      ),
+                      Text(
+                        'Select All',
+                        style: TextStyle(fontSize: 12),
+                      ),
+                    ],
+
+                  ),
+                ),
+                Padding(
+                  padding: EdgeInsets.only(right: 30),
+                  child: Container(
+                    alignment: Alignment.center,
+                    child: Padding(
+                      padding: MyWidget().MyButtonPadding(),
+                      child: ElevatedButton(
+                        onPressed: () {
+                          //approveAcquisitinoSingle();
+                        },
+                        // style: ButtonStyle(elevation: MaterialStateProperty(12.0 )),
+                        style: ElevatedButton.styleFrom(
+                            elevation: 12.0,
+                            textStyle:
+                            const TextStyle(color: LightColors.kLightGreen)),
+                        child: const Text('Submit'),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),*/
                 SizedBox(
                   height: 10,
                 ),
@@ -164,6 +249,22 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse,onCli
             ),
           ),
         ));
+  }
+
+  updateSelection() {
+    //ApproveLeaveRequsitionRequest request = ApproveLeaveRequsitionRequest();
+    late var jsonValue="[";
+    if (_isChecked != null && _isChecked.length > 0) {
+
+      for (int index = 0; index < _isChecked.length; index++) {
+        _isChecked[index] = _isSelectAll;
+      }
+    }
+    mPjpList.sort((a,b) {
+      var adate = a.fromDate; //before -> var adate = a.expiry;
+      var bdate = b.fromDate; //var bdate = b.expiry;
+      return -bdate.compareTo(adate);
+    });
   }
 
   void openNewPjp() async{
@@ -223,13 +324,13 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse,onCli
         itemCount: mPjpList.length,
         shrinkWrap: true,
         itemBuilder: (context, index) {
-          return getView(mPjpList[index]);
+          return getView(mPjpList[index],index);
         },
       ));
     }
   }
 
-  getView(PJPInfo pjpInfo) {
+  getView(PJPInfo pjpInfo,int index) {
     return GestureDetector(
       onTap: () {
         if(pjpInfo.ApprovalStatus =='Approved') {
@@ -247,7 +348,6 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse,onCli
         padding: EdgeInsetsDirectional.fromSTEB(16, 0, 16, 8),
         child: Container(
           width: double.infinity,
-          height: 130,
           decoration: BoxDecoration(
             color: Colors.white,
             boxShadow: [
@@ -327,7 +427,7 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse,onCli
                     ),
                   ),
                 //),
-                trailing: pjpInfo.isSelfPJP=='0' && pjpInfo.ApprovalStatus =='Pending'? OutlinedButton(
+                trailing: /*pjpInfo.isSelfPJP=='0' && pjpInfo.ApprovalStatus =='Pending'? OutlinedButton(
                   onPressed: () {
                     if (pjpInfo.isSelfPJP=='0' || widget.mFilterSelection.type == FILTERStatus.MYSELF && pjpInfo.ApprovalStatus =='Approved') {
                       Utility.showMessageMultiButton(context,'Approve','Reject', 'PJP : ${pjpInfo.PJP_Id}', 'Are you sure to approve the PJP, created by ${pjpInfo.displayName}',pjpInfo, this);
@@ -335,7 +435,17 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse,onCli
                       Utility.showMessages(context, 'Please wait Your manager need to approve the PJP');
                     }
                   },
-                  child: Text(
+                  child: Checkbox(
+                    checkColor: Colors.black,
+                    activeColor: LightColors.kLavender,
+                    value: _isChecked[index],
+                    onChanged: (bool? value) {
+                      setState(() {
+                        _isChecked[index] = value!;
+                        //singleSelection(position);
+                      });
+                    },
+                  ) *//*Text(
                     'Approve',
                     style: TextStyle(
                       fontFamily: 'Lexend Deca',
@@ -343,8 +453,8 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse,onCli
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
                     ),
-                  ),
-                ) : pjpInfo.ApprovalStatus=='Approved' ? Image.asset(
+                  )*//*,
+                ) : */ pjpInfo.ApprovalStatus=='Approved' ? Image.asset(
                 'assets/icons/ic_checked.png',
                 height: 50,
               ) : Text(
@@ -544,13 +654,15 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse,onCli
   }
 
   String getId(){
-    return '${employeeId.toString()}_${LocalConstant.KEY_MY_PJP}';
+    return '${businessId}${employeeId.toString()}${LocalConstant.KEY_MY_PJP}';
   }
 
   savePJPLocally(String json) async{
     if(hiveBox==null){
       hiveBox = await Hive.openBox(LocalConstant.KidzeeDB);
     }
+    print('save data');
+    print(json);
     hiveBox.put(getId(), json);
   }
 
@@ -639,6 +751,7 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse,onCli
             var bdate = b.fromDate; //var bdate = b.expiry;
             return -bdate.compareTo(adate);
           });
+          _isChecked = List<bool>.filled(mPjpList.length, false);
           //mPjpList.addAll(response.responseData);
           //print('========================${mPjpList.length}');
           //print(response.toJson());
@@ -660,6 +773,17 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse,onCli
     IntranetServiceHandler.updatePJPStatus(request, this);
   }
 
+/*  void approvePjpList() {
+    StringBuffer DocXML = new StringBuffer("<root>");
+    for(int index=0;index<mPjpList.length;index++){
+      if(mPjpList[index].ApprovalStatus)
+    //<subroot><PJP_id>135</PJP_id><Is_Approved>0</Is_Approved></subroot><subroot><PJP_id>136</PJP_id><Is_Approved>1</Is_Approved></subroot>
+    }
+    DocXML.write("</root>");
+    UpdatePJPStatusListRequest request = UpdatePJPStatusListRequest(DocXML: DocXML, Workflow_user: Workflow_user)
+    IntranetServiceHandler.updatePJPStatusList(request, this);
+  }*/
+
   @override
   void onClick(int action, value) {
     //print('onClick called ${value}');
@@ -671,6 +795,5 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse,onCli
         approvePjp(pjpInfo, 0);
       }
     }
-
   }
 }

@@ -8,6 +8,7 @@ import 'package:app_version_update/data/models/app_version_result.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
@@ -44,6 +45,7 @@ import '../notification.dart';
 import '../outdoor/outdoor_requisition_manager.dart';
 import '../pjp/IntranetEvents.dart';
 import '../pjp/cvf/mycvf.dart';
+import '../pjp/pjp_list_manager.dart';
 import '../utils/theme/colors/light_colors.dart';
 import 'home_page_menus.dart';
 import 'package:app_version_update/app_version_update.dart';
@@ -310,8 +312,8 @@ class _IntranetHomePageState extends State<IntranetHomePage>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      if (Platform.isAndroid) {
-        checkForUpdate();
+      if (!kDebugMode && Platform.isAndroid) {
+          checkForUpdate();
       }
     }
   }
@@ -505,7 +507,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
     if (Platform.isIOS) { // import 'dart:io'
       var iosDeviceInfo = await deviceInfo.iosInfo;
       id= iosDeviceInfo.identifierForVendor; // unique ID on iOS
-      useragent='IOS_${iosDeviceInfo.name}';
+      useragent='IOS_${iosDeviceInfo.model}_${appVersion}';
     } else if(Platform.isAndroid) {
       var androidDeviceInfo = await deviceInfo.androidInfo;
       id= androidDeviceInfo.id; // unique ID on Android
@@ -1281,10 +1283,10 @@ class _IntranetHomePageState extends State<IntranetHomePage>
             Navigator.push(
                 context,
                 MaterialPageRoute(
-                    builder: (context) => MyPjpListScreen(
+                    builder: (context) => PJPManagerScreen(employeeId: employeeId) /*MyPjpListScreen(
                           mFilterSelection: FilterSelection(
                               filters: [], type: FILTERStatus.NONE),
-                        )));
+                        )*/));
           },
         ),),
         Divider(),

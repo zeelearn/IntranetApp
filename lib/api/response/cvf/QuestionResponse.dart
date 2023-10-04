@@ -8,17 +8,20 @@ class QuestionResponse {
   QuestionResponse({required this.responseMessage,required this.statusCode,required this.responseData});
 
   QuestionResponse.fromJson(Map<String, dynamic> json) {
-    print('in QuestionResponse fromjson.....');
+    print('decoding....${json}');
     responseMessage = json['responseMessage'];
     statusCode = json['statusCode'];
     responseData = <QuestionMaster>[];
-    if (json['responseData'] is List) {
-      json['responseData'].forEach((v) {
-        responseData.add(new QuestionMaster.fromJson(v));
-      });
-    }else{
-      print('asdkasbdjk');
-      responseData.add(new QuestionMaster.fromJson(json['responseData']));
+    try {
+      if (json['responseData'] is List) {
+        json['responseData'].forEach((v) {
+          responseData.add(new QuestionMaster.fromJson(v));
+        });
+      } else {
+        responseData.add(new QuestionMaster.fromJson(json['responseData']));
+      }
+    }catch(e){
+      print(e.toString());
     }
   }
 
@@ -54,9 +57,13 @@ class QuestionMaster {
     allquestion = <Allquestion>[];
     if (json.containsKey('allquestion')) {
       if( json['allquestion'] is List) {
-        json['allquestion'].forEach((v) {
-          allquestion.add(new Allquestion.fromJson(v));
-        });
+        try {
+          json['allquestion'].forEach((v) {
+            allquestion.add(new Allquestion.fromJson(v));
+          });
+        }catch(e){
+          print('error ${e.toString()}');
+        }
       }else{
         allquestion.add(new Allquestion.fromJson(json['allquestion']));
       }
@@ -90,38 +97,27 @@ class Allquestion {
       {required this.Question_Id, required this.question,required this.businessId,required this.isCompulsory,required this.SelectedAnswer,required this.files, required this.categoryName,required this.answers, required this.Remarks});
 
   Allquestion.fromJson(Map<String, dynamic> json) {
-    Question_Id = json['Question_Id'];
-    question = json['Question'];
-    businessId = json['Business_Id'];
-    categoryName = json['Category_Name'];
-    isCompulsory = json['isCompulsory'] ?? '';
-    SelectedAnswer = json['SelectedAnswer'] ?? '';
-    files = json['files'] ?? '';
-    Remarks = json['Remarks'] ?? '';
-    /*if (json['answers'] != null) {
+    try {
+      Question_Id = json['Question_Id'];
+      question = json['Question'];
+      businessId = json['Business_Id'];
+      categoryName = json['Category_Name'];
+      isCompulsory = json['isCompulsory'] ?? '';
+      SelectedAnswer = json['SelectedAnswer'] ?? '';
+      files = json['files'] ?? '';
+      Remarks = json['Remarks'] ?? '';
       answers = <Answers>[];
-      *//*if(json['answers'].toString().contains('[')) {
-        json['answers'].forEach((v) {
-          answers.add(new Answers.fromJson(v));
-        });
-      }else{
-        answers.add(new Answers.fromJson(json['answers']));
-      }*//*
-    }*/
-    //print('Data from model');
-    //print(json['answers']);
-    answers = <Answers>[];
-    if (json.containsKey('answers')) {
-      //print('key found');
-      if( json['answers'] is List) {
-        //print('key found -- list');
-        json['answers'].forEach((v) {
-          answers.add(new Answers.fromJson(v));
-        });
-      }else{
-        //print('key found Object');
-        answers.add(new Answers.fromJson(json['answers']));
+      if (json.containsKey('answers')) {
+        if (json['answers'] is List) {
+          json['answers'].forEach((v) {
+            answers.add(new Answers.fromJson(v));
+          });
+        } else {
+          answers.add(new Answers.fromJson(json['answers']));
+        }
       }
+    }catch(e){
+      print(e.toString());
     }
   }
 

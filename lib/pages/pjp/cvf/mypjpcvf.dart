@@ -40,7 +40,7 @@ class _MyCVFListScreen extends State<MyPJPCVFListScreen> implements onResponse {
   void initState() {
     // TODO: implement initState
     super.initState();
-
+    print('mupjpcvf--------------------------');
     Future.delayed(Duration.zero, () {
       this.getUserInfo();
     });
@@ -519,7 +519,7 @@ class _MyCVFListScreen extends State<MyPJPCVFListScreen> implements onResponse {
 
                 IntranetServiceHandler.updateCVFStatus(
                     employeeId,
-                    cvfView.PJPCVF_Id,
+                    cvfView,
                     Utility.getDateTime(),
                     getNextStatus(cvfView.Status),
                     this);
