@@ -4,7 +4,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:hive/hive.dart';
-import 'package:intranet/api/APIService.dart';
+import 'package:Intranet/api/APIService.dart';
 
 import '../../api/request/fcm_request.dart';
 import '../helper/LocalConstant.dart';

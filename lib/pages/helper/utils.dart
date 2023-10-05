@@ -5,9 +5,9 @@ import 'package:geocoding/geocoding.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hive/hive.dart';
 import 'package:intl/intl.dart';
-import 'package:intranet/pages/helper/LocalStrings.dart';
-import 'package:intranet/pages/iface/onClick.dart';
-import 'package:intranet/pages/iface/onResponse.dart';
+import 'package:Intranet/pages/helper/LocalStrings.dart';
+import 'package:Intranet/pages/iface/onClick.dart';
+import 'package:Intranet/pages/iface/onResponse.dart';
 import 'package:location_geocoder/geocoder.dart';
 import 'package:location_geocoder/location_geocoder.dart';
 import 'package:lottie/lottie.dart';
@@ -769,20 +769,27 @@ class Utility{
 
     Placemark placemark = placemarks.first;
     String address = '';
+    print(placemark.toString());
+    if (placemark.street != null) {
+      address += '${placemark.street}  , ';
+    }else if (placemark.thoroughfare !=null){
+      address += '${placemark.thoroughfare}, ';
+    }
+
     if (placemark.subLocality != null) {
-      address += '${placemark.subLocality}  , ';
+      address += '${placemark.subLocality}, ';
     }
     if (placemark.locality != null) {
-      address += '${placemark.locality}  , ';
+      address += '${placemark.locality}, ';
     }
     if (placemark.administrativeArea != null) {
-      address += '${placemark.administrativeArea}  , ';
+      address += '${placemark.administrativeArea}, ';
     }
     if (placemark.country != null) {
       address += '${placemark.country}';
     }
     if (placemark.postalCode != null) {
-      address += '${placemark.postalCode}  , ';
+      address += ', ${placemark.postalCode}';
     }
     return address;
   }

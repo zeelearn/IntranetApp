@@ -1,28 +1,25 @@
-import 'dart:convert';
-
 import 'package:flutter/cupertino.dart';
-import 'package:geolocator/geolocator.dart';
-import 'package:intranet/api/request/cvf/update_cvf_status_request.dart';
-import 'package:intranet/api/request/pjp/get_pjp_list_request.dart';
-import 'package:intranet/api/request/pjp/get_pjp_report_request.dart';
-import 'package:intranet/api/request/pjp/update_pjpstatus_request.dart';
-import 'package:intranet/api/request/pjp/update_pjpstatuslist_request.dart';
-import 'package:intranet/api/request/report/myreport_request.dart';
-import 'package:intranet/api/response/cvf/update_status_response.dart';
-import 'package:intranet/api/response/general_response.dart';
-import 'package:intranet/api/response/pjp/pjplistresponse.dart';
-import 'package:intranet/api/response/pjp/update_pjpstatus_response.dart';
-import 'package:intranet/api/response/report/my_report.dart';
-import 'package:intranet/pages/helper/utils.dart';
-import 'package:permission_handler/permission_handler.dart';
+import 'package:Intranet/api/request/cvf/update_cvf_status_request.dart';
+import 'package:Intranet/api/request/pjp/get_pjp_list_request.dart';
+import 'package:Intranet/api/request/pjp/get_pjp_report_request.dart';
+import 'package:Intranet/api/request/pjp/update_pjpstatus_request.dart';
+import 'package:Intranet/api/request/pjp/update_pjpstatuslist_request.dart';
+import 'package:Intranet/api/request/report/myreport_request.dart';
+import 'package:Intranet/api/response/cvf/update_status_response.dart';
+import 'package:Intranet/api/response/general_response.dart';
+import 'package:Intranet/api/response/pjp/pjplistresponse.dart';
+import 'package:Intranet/api/response/pjp/update_pjpstatus_response.dart';
+import 'package:Intranet/api/response/report/my_report.dart';
+import 'package:Intranet/pages/helper/utils.dart';
+import 'package:location/location.dart';
 
+import '../pages/helper/LocationHelper.dart';
 import '../pages/iface/onResponse.dart';
 import 'APIService.dart';
 
 class IntranetServiceHandler{
 
   static loadPjpSummery(int employeeId,int pjpId,int bid,onResponse onResponse) {
-    List<PJPInfo> pjpList = [];
     onResponse.onStart();
     PJPListRequest request = PJPListRequest(Employee_id: employeeId,PJP_id: pjpId, Business_id: bid);
     debugPrint(request.toJson().toString());
@@ -30,12 +27,10 @@ class IntranetServiceHandler{
     apiService.getPJPList(request).then((value) {
       debugPrint(value.toString());
       if (value != null) {
-
         if (value == null || value.responseData == null) {
           onResponse.onError('PJP List not avaliable ');
         } else if (value is PjpListResponse) {
           PjpListResponse response = value;
-          //debugPrint(value);
           onResponse.onSuccess(response);
         } else {
           onResponse.onError('PJP List not avaliable ');
@@ -48,8 +43,6 @@ class IntranetServiceHandler{
   }
 
   static loadPjpReport(PJPReportRequest request,onResponse onResponse) {
-    List<PJPInfo> pjpList = [];
-    //debugPrint('IntranetServiceHandler');
     onResponse.onStart();
     debugPrint(request.toJson().toString());
     APIService apiService = APIService();
@@ -80,9 +73,16 @@ class IntranetServiceHandler{
 
     double latitude=0.0;
     double longitude=0.0;
+    LocationData location = await LocationHelper.getLocation();
+    if(location!=null){
+      latitude = location.latitude!;
+      longitude = location.longitude!;
+      print('Location is ${latitude} ${longitude}');
+    }else{
+      print('location data not found');
+    }
 
-
-    if (await Permission.location.request().isGranted) {
+    /*if (await Permission.location.request().isGranted) {
 
       Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.medium);
       longitude = position.longitude;
@@ -97,7 +97,7 @@ class IntranetServiceHandler{
         // app. The only way to change the permission's status now is to let the
         // user manually enable it in the system settings.
       }
-    }
+    }*/
     String address = await Utility.getAddress(latitude, longitude);
       // Either the permission was already granted before or the user just granted it.
     onResponse.onStart();

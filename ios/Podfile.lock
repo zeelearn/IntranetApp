@@ -1,7 +1,7 @@
 PODS:
-  - awesome_notifications (0.7.6):
+  - awesome_notifications (0.8.1):
     - Flutter
-    - IosAwnCore (~> 0.7.6)
+    - IosAwnCore (~> 0.8.0)
   - device_info_plus (0.0.1):
     - Flutter
   - DKImagePickerController/Core (4.3.4):
@@ -202,7 +202,7 @@ PODS:
   - GTMSessionFetcher/Core (3.1.1)
   - image_picker_ios (0.0.1):
     - Flutter
-  - IosAwnCore (0.7.7)
+  - IosAwnCore (0.8.0)
   - libwebp (1.3.2):
     - libwebp/demux (= 1.3.2)
     - libwebp/mux (= 1.3.2)
@@ -215,6 +215,8 @@ PODS:
   - libwebp/sharpyuv (1.3.2)
   - libwebp/webp (1.3.2):
     - libwebp/sharpyuv
+  - location (0.0.1):
+    - Flutter
   - Mantle (2.2.0):
     - Mantle/extobjc (= 2.2.0)
   - Mantle/extobjc (2.2.0)
@@ -272,6 +274,7 @@ DEPENDENCIES:
   - geocoding_ios (from `.symlinks/plugins/geocoding_ios/ios`)
   - geolocator_apple (from `.symlinks/plugins/geolocator_apple/ios`)
   - image_picker_ios (from `.symlinks/plugins/image_picker_ios/ios`)
+  - location (from `.symlinks/plugins/location/ios`)
   - package_info_plus (from `.symlinks/plugins/package_info_plus/ios`)
   - path_provider_foundation (from `.symlinks/plugins/path_provider_foundation/darwin`)
   - permission_handler_apple (from `.symlinks/plugins/permission_handler_apple/ios`)
@@ -346,6 +349,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/geolocator_apple/ios"
   image_picker_ios:
     :path: ".symlinks/plugins/image_picker_ios/ios"
+  location:
+    :path: ".symlinks/plugins/location/ios"
   package_info_plus:
     :path: ".symlinks/plugins/package_info_plus/ios"
   path_provider_foundation:
@@ -366,8 +371,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/webview_pro_wkwebview/ios"
 
 SPEC CHECKSUMS:
-  awesome_notifications: ed4a1fc51472a08eb14849d03ba0b27dd170e7a2
-  device_info_plus: e5c5da33f982a436e103237c0c85f9031142abed
+  awesome_notifications: db394d2e061e4583ba0f738ddea611e3986cc3fb
+  device_info_plus: 7545d84d8d1b896cb16a4ff98c19f07ec4b298ea
   DKImagePickerController: b512c28220a2b8ac7419f21c491fc8534b7601ac
   DKPhotoGallery: fdfad5125a9fdda9cc57df834d49df790dbb4179
   file_picker: ce3938a0df3cc1ef404671531facef740d03f920
@@ -401,8 +406,9 @@ SPEC CHECKSUMS:
   GoogleUtilities: 13e2c67ede716b8741c7989e26893d151b2b2084
   GTMSessionFetcher: e8647203b65cee28c5f73d0f473d096653945e72
   image_picker_ios: 4a8aadfbb6dc30ad5141a2ce3832af9214a705b5
-  IosAwnCore: e80c4c73e642d0ee37ec1db5b8341a3a73a5217f
+  IosAwnCore: ed1b2b6d84962a758354dbacd9ce525c72ce28a9
   libwebp: 1786c9f4ff8a279e4dac1e8f385004d5fc253009
+  location: d5cf8598915965547c3f36761ae9cc4f4e87d22e
   Mantle: c5aa8794a29a022dfbbfc9799af95f477a69b62d
   nanopb: b552cce312b6c8484180ef47159bc0f65a1f0431
   package_info_plus: fd030dabf36271f146f1f3beacd48f564b0f17f7
@@ -422,4 +428,4 @@ SPEC CHECKSUMS:
 
 PODFILE CHECKSUM: 040411a7777b6cce318202a26d8379c8dd9637fc
 
-COCOAPODS: 1.12.1
+COCOAPODS: 1.13.0

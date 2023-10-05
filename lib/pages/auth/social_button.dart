@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:intranet/pages/helper/LightColor.dart';
+import 'package:Intranet/pages/helper/LightColor.dart';
 
 class SignInOneSocialButton extends StatelessWidget {
   SignInOneSocialButton(

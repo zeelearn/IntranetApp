@@ -2,13 +2,12 @@ import 'dart:convert';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:hive/hive.dart';
-import 'package:intranet/api/request/cvf/get_cvf_request.dart';
-import 'package:intranet/pages/helper/DatabaseHelper.dart';
-import 'package:intranet/pages/pjp/cvf/cvf_questions.dart';
+import 'package:Intranet/api/request/cvf/get_cvf_request.dart';
+import 'package:Intranet/pages/helper/DatabaseHelper.dart';
+import 'package:Intranet/pages/pjp/cvf/cvf_questions.dart';
+import 'package:location/location.dart';
 import 'package:order_tracker_zen/order_tracker_zen.dart';
-import 'package:permission_handler/permission_handler.dart';
 
 import '../../../api/APIService.dart';
 import '../../../api/ServiceHandler.dart';
@@ -19,6 +18,7 @@ import '../../../api/response/pjp/pjplistresponse.dart';
 import '../../firebase/anylatics.dart';
 import '../../helper/LightColor.dart';
 import '../../helper/LocalConstant.dart';
+import '../../helper/LocationHelper.dart';
 import '../../helper/constants.dart';
 import '../../helper/utils.dart';
 import '../../iface/onClick.dart';
@@ -703,27 +703,25 @@ class _MyCVFListScreen extends State<MyCVFListScreen> implements onResponse,onCl
   }
 
   saveDataOffline(GetDetailedPJP cvfView) async {
-    double latitude=0.0;
-    double longitude=0.0;
-    if (await Permission.location.request().isGranted) {
-      Position position = await Geolocator.getCurrentPosition(
-          desiredAccuracy: LocationAccuracy.medium);
+    /*if (await Permission.location.request().isGranted) {
+      Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.medium);
       latitude= position.latitude;
       longitude= position.longitude;
-    }
-
+    }*/
+    print('saveDataOffline');
+      LocationData location = LocationHelper.getLocation();
       debugPrint('Status is ${cvfView.Status}');
-      String address = Utility.getAddress(latitude, longitude);
+      String address = await Utility.getAddress(location.latitude!, location.longitude!);
       UpdateCVFStatusRequest request = UpdateCVFStatusRequest(
           PJPCVF_id: cvfView.PJPCVF_Id,
           DateTime: Utility.getDateTime(),
           Status: cvfView.Status,
           Employee_id: employeeId,
-          Latitude: cvfView.Status!='FILL CVF' ? cvfView.Latitude : latitude,
-          Longitude: cvfView.Status!='FILL CVF' ? cvfView.Longitude : longitude,
+          Latitude: cvfView.Status!='FILL CVF' ? cvfView.Latitude : location.latitude!,
+          Longitude: cvfView.Status!='FILL CVF' ? cvfView.Longitude : location.longitude!,
           Address: address,
-          CheckOutLatitude: cvfView.Status=='FILL CVF' ? latitude : 0.0,
-          CheckOutLongitude: cvfView.Status=='FILL CVF' ? longitude : 0.0,
+          CheckOutLatitude: cvfView.Status=='FILL CVF' ? location.latitude! : 0.0,
+          CheckOutLongitude: cvfView.Status=='FILL CVF' ? location.longitude! : 0.0,
           CheckOutAddress: cvfView.Status=='FILL CVF' ? address : '');
       debugPrint('Data saved locally....');
       debugPrint(request.toJson().toString());

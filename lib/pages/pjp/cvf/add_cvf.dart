@@ -10,7 +10,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:google_maps_webservice/places.dart';
 import 'package:hive/hive.dart';
 import 'package:intl/intl.dart';
-import 'package:intranet/api/response/pjp/pjplistresponse.dart';
+import 'package:Intranet/api/response/pjp/pjplistresponse.dart';
+import 'package:location/location.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
 
@@ -28,6 +29,7 @@ import '../../helper/DatabaseHelper.dart';
 import '../../helper/LightColor.dart';
 import '../../helper/LocalConstant.dart';
 import '../../helper/LocalStrings.dart';
+import '../../helper/LocationHelper.dart';
 import '../../helper/constants.dart';
 import '../../helper/utils.dart';
 import '../../iface/onClick.dart';
@@ -428,11 +430,19 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener{
       /*String xml =
         '<root><tblPJPCVF><Employee_Id>${employeeId}</Employee_Id><Franchisee_Id>${getFrichanseeId()}</Franchisee_Id><Visit_Date>${Utility.convertShortDate(cvfDate)}</Visit_Date><Visit_Time>${vistitDateTime?.hour}:${vistitDateTime?.minute}</Visit_Time><Category_Id>${getCategoryId()}</Category_Id></tblPJPCVF></root>';
     */
-      if (await Permission.location.request().isGranted) {
+      LocationData deviceLocation = await LocationHelper.getLocation();
+      if(deviceLocation!=null){
+        double latitude = deviceLocation.latitude!;
+        double longitude = deviceLocation.longitude!;
+        print('Location is ${latitude} ${longitude}');
+      }else{
+        print('location data not found');
+      }
+      /*if (await Permission.location.request().isGranted) {
         Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.medium);
         latitude=position.latitude;
         longitude=position.longitude;
-      }
+      }*/
       String xml = '<root><tblPJPCVF><Business_Id>${businessId}</Business_Id><Employee_Id>${employeeId}</Employee_Id><Franchisee_Id>${getFrichanseeId()}</Franchisee_Id><Visit_Date>${Utility
           .convertShortDate(cvfDate)}</Visit_Date><Visit_Time>${vistitDateTime
           ?.hour}:${vistitDateTime
@@ -444,6 +454,7 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener{
       debugPrint(request.toJson().toString());
       APIService apiService = APIService();
       apiService.saveCVF(request).then((value) {
+        print(value);
         Navigator.of(context).pop();
         if (value != null) {
           if (value == null || value.responseData == null) {
@@ -1047,7 +1058,6 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener{
     var category = _categoryController.text.toString().split(',');
     for (int index = 0; index < mCategoryList.length; index++) {
       for(int jIndex=0;jIndex<category.length;jIndex++) {
-        debugPrint('jIndex ${category[jIndex].toString().trim()}');
         if (category[jIndex].toString().trim() == mCategoryList[index].categoryName.trim()) {
           debugPrint(mCategoryList[index].categoryName);
           id = id + token + mCategoryList[index].categoryId.toString();

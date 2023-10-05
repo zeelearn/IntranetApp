@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hive/hive.dart';
 import 'package:intl/intl.dart';
-import 'package:intranet/main.dart';
-import 'package:intranet/pages/iface/onClick.dart';
-import 'package:intranet/pages/widget/MyWidget.dart';
+import 'package:Intranet/main.dart';
+import 'package:Intranet/pages/iface/onClick.dart';
+import 'package:Intranet/pages/widget/MyWidget.dart';
 
 import '../../api/response/leave_list_manager.dart';
 import '../../api/response/pjp/pjplistresponse.dart';

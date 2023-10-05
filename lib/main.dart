@@ -3,23 +3,24 @@ import 'dart:convert';
 import 'dart:io' show Directory, Platform;
 import 'dart:math';
 import 'dart:ui';
+import 'package:Intranet/pages/firebase/notification_service.dart';
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:intranet/pages/firebase/firebase_options.dart';
-import 'package:intranet/pages/firebase/notification_service.dart';
-import 'package:intranet/pages/helper/DatabaseHelper.dart';
-import 'package:intranet/pages/helper/LightColor.dart';
-import 'package:intranet/pages/helper/LocalConstant.dart';
-import 'package:intranet/pages/helper/utils.dart';
-import 'package:intranet/pages/intro/splash.dart';
+import 'package:Intranet/pages/firebase/firebase_options.dart';
+import 'package:Intranet/pages/helper/DatabaseHelper.dart';
+import 'package:Intranet/pages/helper/LightColor.dart';
+import 'package:Intranet/pages/helper/LocalConstant.dart';
+import 'package:Intranet/pages/helper/utils.dart';
+import 'package:Intranet/pages/intro/splash.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter/foundation.dart';
-import 'package:intranet/pages/model/NotificationDataModel.dart';
-import 'package:intranet/pages/pjp/cvf/CheckInModel.dart';
+import 'package:Intranet/pages/model/NotificationDataModel.dart';
+import 'package:Intranet/pages/pjp/cvf/CheckInModel.dart';
+import 'package:location/location.dart';
 import 'api/APIService.dart';
 import 'api/request/cvf/update_cvf_status_request.dart';
 import 'api/request/leave/leave_approve_request.dart';
@@ -46,10 +47,6 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
       String body = "";
       try {
         String mData = message.data.toString();
-        /*mData = mData.replaceAll("{", "{\"");
-      mData = mData.replaceAll("}", "\"}");
-      mData = mData.replaceAll(":", "\":\"");
-      mData = mData.replaceAll(", ", "\",\"");*/
         if (!message.data.containsKey("URL")) {
           NotificationActionModel model = NotificationActionModel.fromJson(
             json.decode(mData),
@@ -234,6 +231,7 @@ Future<void> main() async {
     await notificationService.init();
     await notificationService.requestIOSPermissions();
 
+
     await FirebaseMessaging.instance
         .setForegroundNotificationPresentationOptions(
       alert: true,
@@ -241,10 +239,39 @@ Future<void> main() async {
       sound: true,
     );
   }
+  _requestPermission();
   await FirebaseMessaging.instance.setAutoInitEnabled(true);
 
   //await initializeService();
   runApp(const MyApp());
+}
+
+_requestPermission() async {
+  Location location = new Location();
+
+  bool _serviceEnabled;
+  PermissionStatus _permissionGranted;
+  LocationData _locationData;
+
+  _serviceEnabled = await location.serviceEnabled();
+  if (!_serviceEnabled) {
+    _serviceEnabled = await location.requestService();
+    if (!_serviceEnabled) {
+      return;
+    }
+  }
+
+  _permissionGranted = await location.hasPermission();
+  if (_permissionGranted == PermissionStatus.denied) {
+    _permissionGranted = await location.requestPermission();
+    if (_permissionGranted != PermissionStatus.granted) {
+      return;
+    }
+  }
+
+  _locationData = await location.getLocation();
+  print(_locationData.latitude);
+  print(_locationData.longitude);
 }
 
 Future<void> initializeService() async {

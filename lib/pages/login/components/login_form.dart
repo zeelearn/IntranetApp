@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
-import 'package:intranet/pages/home/IntranetHomePage.dart';
+import 'package:Intranet/pages/home/IntranetHomePage.dart';
 
 import '../../../api/APIService.dart';
 import '../../../api/request/login_request.dart';

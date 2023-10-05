@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:intranet/pages/login/login_screen.dart';
+import 'package:Intranet/pages/login/login_screen.dart';
 
 import '../auth/login.dart';
 import '../helper/ColorsSys.dart';

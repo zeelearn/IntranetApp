@@ -4,9 +4,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hive/hive.dart';
-import 'package:intranet/pages/auth/social_button.dart';
-import 'package:intranet/pages/firebase/anylatics.dart';
-import 'package:intranet/pages/widget/MyWidget.dart';
+import 'package:Intranet/pages/auth/social_button.dart';
+import 'package:Intranet/pages/firebase/anylatics.dart';
+import 'package:Intranet/pages/widget/MyWidget.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 import 'package:url_launcher/url_launcher.dart';

@@ -79,7 +79,7 @@ dependencies:
   in_app_update: ^4.0.1
 
   flutter_launcher_icons: ^0.13.1
-  package_info_plus: ^4.0.2
+  package_info_plus: ^4.1.0
   equatable: ^2.0.5
 
   firebase_core_platform_interface: ^4.8.0
@@ -96,6 +96,7 @@ dependencies:
   location_geocoder: ^1.0.5
   order_tracker_zen: ^1.0.0+4
   app_version_update: ^4.0.1
+  location: ^5.0.3
   #overlay_support: ^2.0.1
 
   #flutter_background_service: ^2.4.3
@@ -104,10 +105,10 @@ dependencies:
 dependency_overrides:
   intl: ^0.17.0
   http: ^1.0.0
-  device_info_plus: ^8.1.0
-  share_plus: ^7.0.2
+  device_info_plus: ^9.0.3
+  share_plus: ^7.1.0
   package_info_plus: ^4.0.0
-  win32: ^5.0.2
+  win32: ^5.0.9
 
 
 dev_dependencies:

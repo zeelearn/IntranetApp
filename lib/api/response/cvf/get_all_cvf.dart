@@ -1,4 +1,4 @@
-import 'package:intranet/api/response/pjp/pjplistresponse.dart';
+import 'package:Intranet/api/response/pjp/pjplistresponse.dart';
 
 class GetAllCVFResponse {
   late String responseMessage;

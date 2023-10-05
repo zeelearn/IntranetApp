@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:intl/intl.dart';
-import 'package:intranet/api/request/attendance_marking_man_request.dart';
-import 'package:intranet/pages/widget/MyWidget.dart';
+import 'package:Intranet/api/request/attendance_marking_man_request.dart';
+import 'package:Intranet/pages/widget/MyWidget.dart';
 
 import '../../api/APIService.dart';
 import '../../api/response/attendance_marking_man.dart';

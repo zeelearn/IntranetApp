@@ -6,12 +6,12 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:intranet/api/request/cvf/questions_request.dart';
-import 'package:intranet/api/request/cvf/save_cvfquestions_request.dart';
-import 'package:intranet/pages/firebase/storageutil.dart';
-import 'package:intranet/pages/helper/DatabaseHelper.dart';
-import 'package:intranet/pages/helper/LocalConstant.dart';
-import 'package:intranet/pages/iface/onResponse.dart';
+import 'package:Intranet/api/request/cvf/questions_request.dart';
+import 'package:Intranet/api/request/cvf/save_cvfquestions_request.dart';
+import 'package:Intranet/pages/firebase/storageutil.dart';
+import 'package:Intranet/pages/helper/DatabaseHelper.dart';
+import 'package:Intranet/pages/helper/LocalConstant.dart';
+import 'package:Intranet/pages/iface/onResponse.dart';
 import 'package:pinch_zoom/pinch_zoom.dart';
 import 'package:url_launcher/url_launcher.dart';
 

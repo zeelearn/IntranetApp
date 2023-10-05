@@ -1,9 +1,9 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:intranet/api/ServiceHandler.dart';
-import 'package:intranet/api/request/report/myreport_request.dart';
-import 'package:intranet/pages/iface/onResponse.dart';
-import 'package:intranet/pages/reports.dart';
+import 'package:Intranet/api/ServiceHandler.dart';
+import 'package:Intranet/api/request/report/myreport_request.dart';
+import 'package:Intranet/pages/iface/onResponse.dart';
+import 'package:Intranet/pages/reports.dart';
 
 import '../../api/response/report/my_report.dart';
 import '../helper/constants.dart';
