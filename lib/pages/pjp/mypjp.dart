@@ -1,15 +1,13 @@
 import 'dart:convert';
 
+import 'package:Intranet/pages/helper/LocationHelper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:hive/hive.dart';
 import 'package:Intranet/api/ServiceHandler.dart';
 import 'package:Intranet/api/request/pjp/update_pjpstatus_request.dart';
-import 'package:order_tracker_zen/order_tracker_zen.dart';
-import 'package:permission_handler/permission_handler.dart';
+import 'package:location/location.dart';
 
-import '../../api/request/pjp/update_pjpstatuslist_request.dart';
 import '../../api/response/pjp/pjplistresponse.dart';
 import '../../api/response/pjp/update_pjpstatus_response.dart';
 import '../firebase/anylatics.dart';
@@ -20,7 +18,6 @@ import '../iface/onClick.dart';
 import '../iface/onResponse.dart';
 import '../model/filter.dart';
 import '../utils/theme/colors/light_colors.dart';
-import '../widget/MyWidget.dart';
 import 'add_new_pjp.dart';
 import 'cvf/pjpcvf.dart';
 import 'filters.dart';
@@ -56,6 +53,17 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse,onCli
     });
   }
 
+  getAddress() async{
+    LocationData location = await LocationHelper.getLocation();
+    if(location!=null){
+      double latitude = location.latitude!;
+      double longitude = location.longitude!;
+      print('Location is ${latitude} ${longitude}');
+      print('Address is ${Utility.getAddress(latitude, longitude)}');
+    }else{
+      print('location data not found');
+    }
+  }
 
   Future<void> getUserInfo() async {
     hiveBox = await Utility.openBox();

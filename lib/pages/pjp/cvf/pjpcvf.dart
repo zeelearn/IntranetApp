@@ -7,6 +7,7 @@ import 'package:hive/hive.dart';
 import 'package:Intranet/pages/helper/DatabaseHelper.dart';
 import 'package:Intranet/pages/helper/LightColor.dart';
 import 'package:Intranet/pages/pjp/cvf/cvf_questions.dart';
+import 'package:location/location.dart';
 import 'package:order_tracker_zen/order_tracker_zen.dart';
 import 'package:permission_handler/permission_handler.dart';
 
@@ -16,6 +17,7 @@ import '../../../api/response/cvf/update_status_response.dart';
 import '../../../api/response/pjp/pjplistresponse.dart';
 import '../../firebase/anylatics.dart';
 import '../../helper/LocalConstant.dart';
+import '../../helper/LocationHelper.dart';
 import '../../helper/constants.dart';
 import '../../helper/utils.dart';
 import '../../iface/onClick.dart';
@@ -1053,17 +1055,14 @@ class _MyCVFListScreen extends State<CVFListScreen> implements onResponse,onClic
   saveDataOffline(GetDetailedPJP cvfView) async {
     double latitude=0.0;
     double longitude=0.0;
-    if (await Permission.location.request().isGranted) {
-      Position position = await Geolocator.getCurrentPosition(
-          desiredAccuracy: LocationAccuracy.medium);
-      latitude= position.latitude;
-      longitude= position.longitude;
-    }else{
-      Map<Permission, PermissionStatus> statuses = await [
-      Permission.location,
-      ].request();
+    LocationData location = await LocationHelper.getLocation();
+    if(location!=null){
+      latitude = location.latitude!;
+      longitude = location.longitude!;
     }
-    String address = Utility.getAddress(latitude, longitude);
+    print('pjpcvf ');
+    String address = await Utility.getAddress(latitude, longitude);
+    print('pjpcvf ${address}');
       UpdateCVFStatusRequest request = UpdateCVFStatusRequest(
           PJPCVF_id: cvfView.PJPCVF_Id,
           DateTime: Utility.getDateTime(),

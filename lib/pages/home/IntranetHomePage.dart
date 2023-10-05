@@ -1,7 +1,7 @@
 import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
-
+import 'package:app_version_update/app_version_update.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -45,6 +45,7 @@ import '../pjp/cvf/mycvf.dart';
 import '../pjp/pjp_list_manager.dart';
 import '../utils/theme/colors/light_colors.dart';
 import 'home_page_menus.dart';
+import 'package:app_version_update/app_version_update.dart';
 
 class IntranetHomePage extends StatefulWidget {
   String userId;
@@ -294,6 +295,8 @@ class _IntranetHomePageState extends State<IntranetHomePage>
     //_listenForMessages();
     if (Platform.isAndroid) {
       checkForUpdate();
+    }else if(Platform.isIOS){
+      _verifyVersion();
     }
   }
 
@@ -310,6 +313,54 @@ class _IntranetHomePageState extends State<IntranetHomePage>
           checkForUpdate();
       }
     }
+  }
+  void _verifyVersion() async {
+    await AppVersionUpdate.checkForUpdates(
+      appleId: '6443464060',
+      playStoreId: 'com.zeelearn.intranet',
+      country: 'in',
+    ).then((result) async {
+      if (result.canUpdate!) {
+        await AppVersionUpdate.showBottomSheetUpdate(context: context, appVersionResult: result,mandatory: true,title: 'App Update Avaliable',
+        content: Text('New version of our Intranet application is now available, and we highly recommend that you install it to benefit from its enhanced features and improved security.'));
+         //await AppVersionUpdate.showPageUpdate(context: context, appVersionResult: result,mandatory: true);
+        // or use your own widget with information received from AppVersionResult
+
+        //##############################################################################################
+        /*await AppVersionUpdate.showAlertUpdate(
+          appVersionResult: result,
+          context: context,
+          mandatory: true,
+          backgroundColor: Colors.grey[200],
+          title: 'App Update Avaliable',
+          titleTextStyle: const TextStyle(
+              color: Colors.black, fontWeight: FontWeight.w600, fontSize: 24.0),
+          content:
+          'New version of our Intranet application is now available, and we highly recommend that you install it to benefit from its enhanced features and improved security.',
+          contentTextStyle: const TextStyle(
+            color: Colors.black,
+            fontWeight: FontWeight.w400,
+          ),
+          updateButtonText: 'Update',
+          cancelButtonText: 'Cancel',
+        );*/
+
+        //## AppVersionUpdate.showBottomSheetUpdate ##
+        // await AppVersionUpdate.showBottomSheetUpdate(
+        //   context: context,
+        //   mandatory: true,
+        //   appVersionResult: result,
+        // );
+
+        //## AppVersionUpdate.showPageUpdate ##
+
+        // await AppVersionUpdate.showPageUpdate(
+        //   context: context,
+        //   appVersionResult: result,
+        // );
+      }
+    });
+    // TODO: implement initState
   }
 
   // It is assumed that all messages contain a data field with the key 'type'
