@@ -170,7 +170,7 @@ class _QuestionListScreenState extends State<QuestionListScreen>
                 " Please Fill ${widget.cvfView.purpose![jkIndex].categoryName} and try again";
           }
         } catch (e) {
-          print(e);
+          debugPrint(e.toString());
         }
       }
     }
@@ -182,33 +182,33 @@ class _QuestionListScreenState extends State<QuestionListScreen>
     businessId = hiveBox.get(LocalConstant.KEY_BUSINESS_ID);
     await Hive.openBox(LocalConstant.KidzeeDB);
 
-    //print('in pref questions');
+    //debugPrint('in pref questions');
     try {
       var cvfQuestions = hiveBox.get(widget.PJPCVF_Id.toString() +
           categoryid +
           LocalConstant.KEY_CVF_QUESTIONS);
-      print(
+      debugPrint(
           'cvfQES --- ${widget.PJPCVF_Id.toString() + categoryid + LocalConstant.KEY_CVF_QUESTIONS}');
       /*if (cvfQuestions is QuestionResponse) {
-        print('localdata');
+        debugPrint('localdata');
         QuestionResponse response = cvfQuestions as QuestionResponse;
         loadData();
       } else */
       if (true || cvfQuestions.toString().isEmpty) {
-        //print('empty');
+        //debugPrint('empty');
         loadData();
       } else {
-        print('in else');
+        debugPrint('in else');
         try {
           QuestionResponse cvfQuestionsModel = QuestionResponse.fromJson(
             json.decode(cvfQuestions.toString()),
           );
-          print('Data from the Preference ${cvfQuestionsModel}');
+          debugPrint('Data from the Preference ${cvfQuestionsModel}');
           mQuestionMaster.addAll(cvfQuestionsModel.responseData);
           isLoading = false;
           setState(() {});
         } catch (e) {
-          print('captured in catch $e');
+          debugPrint('captured in catch $e');
           loadData();
         }
       }
@@ -242,23 +242,12 @@ class _QuestionListScreenState extends State<QuestionListScreen>
         widget.PJPCVF_Id.toString(), widget.mCategory, widget.mCategoryId);
     bool isInternet = await Utility.isInternet();
 
-    if (!isInternet &&
-        (questionResponse != null &&
-            questionResponse!.responseData.length > 0)) {
-      print(
-          'NO  INTERNET-----------------${questionResponse!.responseData.length}');
-      print('N${questionResponse!.responseData}');
+    if (!isInternet && (questionResponse != null && questionResponse!.responseData.length > 0)) {
       isLoading = true;
       mQuestionMaster.clear();
-      for (int index = 0;
-          index < questionResponse!.responseData.length;
-          index++) {
-        print(
-            'Category ID ${questionResponse!.responseData[index].categoryId}  and ${widget.mCategoryId}');
-        //if(questionResponse!.responseData[index].categoryId == widget.mCategoryId)
+      for (int index = 0; index < questionResponse!.responseData.length;index++) {
         mQuestionMaster.add(questionResponse!.responseData[index]);
       }
-      print(mQuestionMaster.length);
       isLoading = false;
       setState(() {});
     } else {
@@ -393,9 +382,9 @@ bool isOffline=false;
   saveAnswers(String cvfId) async {
     bool isInternet = await Utility.isInternet();
     if(isFileUpload()){
-      print('isFile upload');
+      debugPrint('isFile upload');
     }else if (isInternet) {
-      print('saving data');
+      debugPrint('saving data');
       Utility.showLoaderDialog(context);
       isOffline=false;
       String docXml = '<root>';
@@ -403,7 +392,7 @@ bool isOffline=false;
         for (int jIndex = 0;
             jIndex < mQuestionMaster[index].allquestion.length;
             jIndex++) {
-          print('YES NO....');
+          debugPrint('YES NO....');
           if (mQuestionMaster[index]
                       .allquestion[jIndex]
                       .answers[0]
@@ -452,7 +441,7 @@ bool isOffline=false;
         }
       }
       docXml = '${docXml} </root>';
-      print('API Is Calling....');
+      debugPrint('API Is Calling....');
       SaveCVFAnswers request = SaveCVFAnswers(
           PJPCVF_Id: widget.PJPCVF_Id,
           DocXml: docXml,
@@ -997,7 +986,7 @@ bool isOffline=false;
         questions.files = path;
         updateImage(questions, path);
       }
-      //print('${questions.Question_Id}  : SelectedAnswer ${questions.SelectedAnswer} map ${userAnswerMap[questions.Question_Id]}');
+      //debugPrint('${questions.Question_Id}  : SelectedAnswer ${questions.SelectedAnswer} map ${userAnswerMap[questions.Question_Id]}');
       return Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
@@ -1143,7 +1132,7 @@ bool isOffline=false;
   }
 
   getIcon(String file) {
-    //print('file is ${file}');
+    //debugPrint('file is ${file}');
     if (file.contains('.xls') || file.contains('.xlsx')) {
       return Image.asset(
         'assets/icons/sheets.png',
@@ -1168,7 +1157,7 @@ bool isOffline=false;
       questions.files = path;
       updateImage(questions, path);
     }
-    //print(getImageUrl(questions.files));
+    //debugPrint(getImageUrl(questions.files));
     final size = MediaQuery.of(context).size;
     List<Widget> _rowWidget = [];
     for (int index = 0; index < questions.answers.length; index++) {
@@ -1275,7 +1264,7 @@ bool isOffline=false;
     String weburl = url /*.replaceAll('___', '&')*/;
     weburl = weburl;
     if (weburl.contains('%')) weburl = weburl;
-    print('ImageUrl ' + weburl);
+    debugPrint('ImageUrl ' + weburl);
     return weburl;
   }
 
@@ -1440,7 +1429,7 @@ bool isOffline=false;
         break;
       }
     }
-    //print('counter is ${counter}');
+    //debugPrint('counter is ${counter}');
     return counter;
   }
 
@@ -1485,13 +1474,13 @@ bool isOffline=false;
                 ' \n - ' +
                 mQuestionMaster[index].allquestion[jIndex].categoryName;
           }
-          print(pendingQuestion);
+          debugPrint(pendingQuestion);
           token = ',';
           inCompleteCounts = inCompleteCounts + 1;
           isCompleted = false;
           break;
         } /*else {
-          print(mQuestionMaster[index].allquestion[jIndex].Question_Id +
+          debugPrint(mQuestionMaster[index].allquestion[jIndex].Question_Id +
               ' NC ' +
               mQuestionMaster[index].allquestion[jIndex].SelectedAnswer);
         }*/
@@ -1502,7 +1491,7 @@ bool isOffline=false;
     } else {
       //pendingQuestion = '';
     }
-    print('isComplete ${isCompleted}');
+    debugPrint('isComplete ${isCompleted}');
     return isCompleted;
   }
 
@@ -1521,16 +1510,16 @@ bool isOffline=false;
     DBHelper helper = DBHelper();
     helper.getPjpList();
     mQuestionMaster = mQuestionMaster;
-    //print('data updated');
+    //debugPrint('data updated');
 
-    //print('data updated');
+    //debugPrint('data updated');
   }
 
   void onItemChanged(bool? checked) {
     //ischeck[getCheckboxIndex(player.question)] = false;
     //player.userAnswers = '1';
     setState() {
-      //print('data updated');
+      //debugPrint('data updated');
       //player.userAnswers = '1';
     }
   }
@@ -1584,7 +1573,7 @@ bool isOffline=false;
   }
 
   showImagePicker(int action, Allquestion question) async {
-    print('image action ${action}');
+    debugPrint('image action ${action}');
     if (action != 3) {
       if (action == 0) {
         pickImage(question, ImageSource.gallery);
@@ -1613,7 +1602,7 @@ bool isOffline=false;
     if (question.files.contains('.pdf')) {
       File file = File(decodeUrl(question.files));
       var filePath = file.path.split('?');
-      //print('FilePath : ${filePath[0]}');
+      //debugPrint('FilePath : ${filePath[0]}');
       var fileExt = filePath[0].split('/');
       String title = fileExt[fileExt.length - 1].toString();
 
@@ -1631,10 +1620,10 @@ bool isOffline=false;
     } else {
       File file = File(decodeUrl(question.files));
       var filePath = file.path.split('?');
-      //print('FilePath : ${filePath[0]}');
+      //debugPrint('FilePath : ${filePath[0]}');
       var fileExt = filePath[0].split('/');
       String fileName = fileExt[fileExt.length - 1].toString();
-      print('fileExt : ${fileName}');
+      debugPrint('fileExt : ${fileName}');
 
       (await Utility.isFileExists(fileName))
           ? Utility.shareFile(fileName)
@@ -1656,7 +1645,7 @@ bool isOffline=false;
     if (url.contains('%2F')) {
       url = Uri.decodeFull(url);
     }
-    print('decoe file ${url}');
+    debugPrint('decoe file ${url}');
     return url;
   }
 
@@ -1671,7 +1660,7 @@ bool isOffline=false;
     try {
       final XFile? pickedFileList = await _picker.pickImage(
           source: source, maxHeight: 800, imageQuality: 100);
-      print('File upload gallery');
+      debugPrint('File upload gallery');
       setState(() async {
         _imageFileList = pickedFileList;
         updateImage(player, player.files);
@@ -1683,7 +1672,7 @@ bool isOffline=false;
         }
       });
     } catch (e) {
-      print(e);
+      debugPrint(e.toString());
     }
   }
 
@@ -1694,19 +1683,19 @@ bool isOffline=false;
       if (result != null) {
         File file = File(result.files.single.path!);
         var fileExt = file.path.split('/');
-        print('File path ${fileExt[fileExt.length - 1]}');
+        debugPrint('File path ${fileExt[fileExt.length - 1]}');
         setState(() async {
           updateImage(player, player.files);
           if (await Utility.isInternet()){
             FirebaseStorageUtil().uploadAnyFile(player, file!.path, fileExt[fileExt.length - 1], this);
           }else{
-            print(file!.path);
+            debugPrint(file!.path);
             updateImage(player, file!.path);
           }
         });
       }
     } catch (e) {
-      print(e);
+      debugPrint(e.toString());
     }
   }
 
@@ -1738,7 +1727,7 @@ bool isOffline=false;
 
   @override
   void onUploadProgress(int value) {
-    print(value);
+    debugPrint(value.toString());
   }
 
   @override
@@ -1772,7 +1761,7 @@ bool isOffline=false;
 
   @override
   void onClick(int action, value) {
-    //print('onclick called ${action}');
+    //debugPrint('onclick called ${action}');
     if (action == ACTION_ADD_NEW_IMAGE) {
       showImageOption(value);
     } else if (action == ACTION_DELETE_IMAGE) {
@@ -1821,7 +1810,7 @@ class DetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    print(imageUrl);
+    debugPrint(imageUrl);
     return Scaffold(
       appBar: AppBar(
         backgroundColor: kPrimaryLightColor,
@@ -1855,10 +1844,10 @@ class DetailScreen extends StatelessWidget {
           resetDuration: const Duration(milliseconds: 100),
           maxScale: 2.5,
           onZoomStart: () {
-            print('Start zooming');
+            debugPrint('Start zooming');
           },
           onZoomEnd: () {
-            print('Stop zooming');
+            debugPrint('Stop zooming');
           },
         ),
         onTap: () {

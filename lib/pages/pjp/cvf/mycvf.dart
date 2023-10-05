@@ -50,7 +50,7 @@ class _MyCVFListScreen extends State<MyCVFListScreen> implements onResponse,onCl
   void initState() {
     // TODO: implement initState
     super.initState();
-    //print('int init state My CVF');
+    //debugPrint('int init state My CVF');
     Future.delayed(Duration.zero, () {
       this.getUserInfo();
 
@@ -85,7 +85,7 @@ class _MyCVFListScreen extends State<MyCVFListScreen> implements onResponse,onCl
     try {
       var attendanceList = hiveBox.get(getId());
       isLoading = false;
-      print(attendanceList.toString());
+      debugPrint(attendanceList.toString());
       GetAllCVFResponse response = GetAllCVFResponse.fromJson(
         json.decode(attendanceList!),
       );
@@ -129,7 +129,7 @@ class _MyCVFListScreen extends State<MyCVFListScreen> implements onResponse,onCl
               return DateTime.parse(a.visitDate).compareTo(DateTime.parse(b.visitDate));
             });
           }
-          print('pjp list ${response.responseData.length}');
+          debugPrint('pjp list ${response.responseData.length}');
         } else {
           Utility.showMessage(context, 'data not found');
         }
@@ -486,21 +486,21 @@ class _MyCVFListScreen extends State<MyCVFListScreen> implements onResponse,onCl
 
     if(offlineStatus.containsKey(cvfView.PJPCVF_Id.toString())){
       cvfView.Status = offlineStatus[cvfView.PJPCVF_Id].toString();
-      print('Status get it from Offline ${cvfView.Status}  ${cvfView.PJPCVF_Id}');
+      debugPrint('Status get it from Offline ${cvfView.Status}  ${cvfView.PJPCVF_Id}');
     }else{
-      print(' ${cvfView.PJPCVF_Id} key not found');
+      debugPrint(' ${cvfView.PJPCVF_Id} key not found');
     }
 
     return GestureDetector(
       onTap: () {
-        print('GestureDetector====');
+        debugPrint('GestureDetector====');
         if(cvfView.Status =='Completed'){
           Utility.showMessageSingleButton(context, 'The PJP is Already Completed', this);
         }else if(cvfView.Status =='Check Out'){
           selectCategory(context, cvfView);
           Utility.showMessageSingleButton(context, 'Please Fill All questions and check out', this);
         }else if (cvfView.Status == 'FILL CVF') {
-          print('selectCategory');
+          debugPrint('selectCategory');
           selectCategory(context,cvfView) ;
         } else {
           Utility.onConfirmationBox(context,'Check In','Cancel', 'PJP Status Update?', 'Would you like to Check In?',cvfView, this);
@@ -660,7 +660,7 @@ class _MyCVFListScreen extends State<MyCVFListScreen> implements onResponse,onCl
       McvfView = cvfView;
 
     }else{
-      print('internet not avaliabnle');
+      debugPrint('internet not avaliabnle');
       //offline
       saveOffline(cvfView);
 
@@ -712,7 +712,7 @@ class _MyCVFListScreen extends State<MyCVFListScreen> implements onResponse,onCl
       longitude= position.longitude;
     }
 
-      print('Status is ${cvfView.Status}');
+      debugPrint('Status is ${cvfView.Status}');
       String address = Utility.getAddress(latitude, longitude);
       UpdateCVFStatusRequest request = UpdateCVFStatusRequest(
           PJPCVF_id: cvfView.PJPCVF_Id,
@@ -725,8 +725,8 @@ class _MyCVFListScreen extends State<MyCVFListScreen> implements onResponse,onCl
           CheckOutLatitude: cvfView.Status=='FILL CVF' ? latitude : 0.0,
           CheckOutLongitude: cvfView.Status=='FILL CVF' ? longitude : 0.0,
           CheckOutAddress: cvfView.Status=='FILL CVF' ? address : '');
-      print('Data saved locally....');
-      print(request.toJson());
+      debugPrint('Data saved locally....');
+      debugPrint(request.toJson().toString());
       DBHelper helper = DBHelper();
       helper.insertCheckIn(
           cvfView.PJPCVF_Id, jsonEncode(request.toJson()), getNextStatus(cvfView.Status), 0);
@@ -834,12 +834,12 @@ class _MyCVFListScreen extends State<MyCVFListScreen> implements onResponse,onCl
       Utility.onSuccessMessage(context,'Status Updated','Thanks for updating the CVF status', this);
     } else if (value is PjpListResponse) {
       PjpListResponse response = value;
-      print('onResponse in if ');
+      debugPrint('onResponse in if ');
       if (response.responseData != null && response.responseData.length > 0) {
         saveDataOffline(McvfView);
         loadData();
       } else {
-        print('onResponse in if else');
+        debugPrint('onResponse in if else');
       }
     }else if(value is String){
       this.loadData();
@@ -851,7 +851,7 @@ class _MyCVFListScreen extends State<MyCVFListScreen> implements onResponse,onCl
 
   @override
   void onClick(int action, value) {
-    print('click functions not implemented......');
+    debugPrint('click functions not implemented......');
     if(value is GetDetailedPJP) {
       Navigator.of(context).pop();
       GetDetailedPJP cvfView = value;
@@ -861,7 +861,7 @@ class _MyCVFListScreen extends State<MyCVFListScreen> implements onResponse,onCl
 
       }
     }else{
-      print('click functions not implemented......');
+      debugPrint('click functions not implemented......');
     }
   }
 

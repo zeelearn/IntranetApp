@@ -36,15 +36,15 @@ class FirebaseStorageUtil{
         case TaskState.running:
           final progress =
               100.0 * (taskSnapshot.bytesTransferred / taskSnapshot.totalBytes);
-          print("Upload is $progress% complete.");
+          debugPrint("Upload is $progress% complete.");
           response.onUploadProgress(progress.toInt());
           break;
         case TaskState.paused:
-          print("Upload is paused.");
+          debugPrint("Upload is paused.");
           response.onUploadError('Upload Paused');
           break;
         case TaskState.canceled:
-          print("Upload was canceled");
+          debugPrint("Upload was canceled");
           response.onUploadError('Upload canceled');
           break;
         case TaskState.error:
@@ -56,7 +56,7 @@ class FirebaseStorageUtil{
           dynamic imageUrl= await taskSnapshot.ref.getDownloadURL();
           player.files = imageUrl as String;
           //player.files = player.files.replaceAll('&', '___');
-          print('FILEUPLOAD---- ${player.files}');
+          debugPrint('FILEUPLOAD---- ${player.files}');
           response.onUploadSuccess(player);
           break;
       }
@@ -122,15 +122,15 @@ class FirebaseStorageUtil{
         case TaskState.running:
           final progress =
               100.0 * (taskSnapshot.bytesTransferred / taskSnapshot.totalBytes);
-          print("Upload is $progress% complete.");
+          debugPrint("Upload is $progress% complete.");
           response.onUploadProgress(progress.toInt());
           break;
         case TaskState.paused:
-          print("Upload is paused.");
+          debugPrint("Upload is paused.");
           response.onUploadError('Upload Paused');
           break;
         case TaskState.canceled:
-          print("Upload was canceled");
+          debugPrint("Upload was canceled");
           response.onUploadError('Upload canceled');
           break;
         case TaskState.error:
@@ -142,7 +142,7 @@ class FirebaseStorageUtil{
           dynamic imageUrl= await taskSnapshot.ref.getDownloadURL();
           player.files = imageUrl as String;
           //player.files = player.files.replaceAll('&', '___');
-          print(player.files);
+          debugPrint(player.files);
           response.onUploadSuccess(player);
           break;
       }
@@ -157,7 +157,7 @@ class FirebaseStorageUtil{
     final imageUploadRef = storageRef.child(imagePath);
     imageUploadRef.getData(10000000).then((data) =>
           response.onUploadSuccess(data)).
-    catchError((e) =>  print('error'));
+    catchError((e) =>  debugPrint('error'));
   }
 
   uploadAvtar(String filePath,String employeeId,onUploadResponse response)async{
@@ -183,15 +183,15 @@ class FirebaseStorageUtil{
         case TaskState.running:
           final progress =
               100.0 * (taskSnapshot.bytesTransferred / taskSnapshot.totalBytes);
-          print("Upload is $progress% complete.");
+          debugPrint("Upload is $progress% complete.");
           response.onUploadProgress(progress.toInt());
           break;
         case TaskState.paused:
-          print("Upload is paused.");
+          debugPrint("Upload is paused.");
           response.onUploadError('Upload Paused');
           break;
         case TaskState.canceled:
-          print("Upload was canceled");
+          debugPrint("Upload was canceled");
           response.onUploadError('Upload canceled');
           break;
         case TaskState.error:
@@ -204,8 +204,8 @@ class FirebaseStorageUtil{
           imageUrl = Uri.encodeFull(imageUrl as String);
           imageUrl = imageUrl.replaceAll('&', '___');
 
-          print('-----------------------------');
-          print(imageUrl);
+          debugPrint('-----------------------------');
+          debugPrint(imageUrl);
           response.onUploadSuccess(imageUrl);
           break;
       }
@@ -222,10 +222,6 @@ class FirebaseStorageUtil{
         minHeight: 800,
         quality: 100
     );
-
-    print(file.lengthSync());
-    //print(result.lengthSync());
-
     return result!.path;
   }
 

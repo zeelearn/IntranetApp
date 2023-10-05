@@ -143,7 +143,7 @@ class _OutdoorReqManagerScreen extends State<OutdoorReqManagerScreen>
     late var jsonValue="[";
     if (_isChecked != null && _isChecked.length > 0) {
       String token="";
-      print(status);
+      debugPrint(status);
       for (int index = start; index < _isChecked.length; index++) {
         if(_isChecked[index]) {
           String data = "{'Requisition_Id': ${requisitionList[index]
@@ -389,7 +389,7 @@ class _OutdoorReqManagerScreen extends State<OutdoorReqManagerScreen>
 
     DBHelper dbHelper = DBHelper();
     for(int index=0;index<_isChecked.length;index++) {
-      print('Data inserting  ${index}');
+      debugPrint('Data inserting  ${index}');
       var list = getSelectedModels(status, (index * 50));
       if(list!=null && list.toString().trim().isNotEmpty && list.toString()!='[]') {
         String xml = "{'root': {'subroot': ${list}}";
@@ -406,13 +406,13 @@ class _OutdoorReqManagerScreen extends State<OutdoorReqManagerScreen>
     Utility.showLoaderDialog(context);
     var list = getSelectedModels(status);
     //String xml ="{'root': {'subroot': [{'Requisition_Id': 1102411,'WorkflowTypeCode': 'LV1','RequisitionTypeCode': 'LVREQ','Requistion_Status_Code': '','Is_Approved': 1,'Workflow_UserType': 'MAN','Workflow_Remark': 'approved'}]}}";
-    //print(xml);
+    //debugPrint(xml);
     String xml ="{'root': {'subroot': ${list}}";
     ApproveLeaveRequestManager request = ApproveLeaveRequestManager(xml: xml, userId: widget.employeeId.toString(), index: 0,);
-    print('request'+request.toJson().toString());
+    debugPrint('request'+request.toJson().toString());
     APIService apiService = APIService();
     apiService.approveLeaveManager(request).then((value) {
-      print(value.toString());
+      debugPrint(value.toString());
       Navigator.of(context).pop();
       if (value != null) {
         if (value == null || value.responseData == null) {
@@ -420,7 +420,7 @@ class _OutdoorReqManagerScreen extends State<OutdoorReqManagerScreen>
         } else if (value is ApplyLeaveResponse) {
           ApplyLeaveResponse response = value;
           if (response != null) {
-          print(response.responseMessage);
+          debugPrint(response.responseMessage);
             Utility.showMessageSingleButton(context, response.responseMessage,this);
           }
         } else {
@@ -593,7 +593,7 @@ class _OutdoorReqManagerScreen extends State<OutdoorReqManagerScreen>
     //2022-07-18T00:00:00
     try {
       dt = new DateFormat('yyyy-MM-dd\'T\'HH:mm:ss').parse(value);
-      //print('asasdi   ' + dt.day.toString());
+      //debugPrint('asasdi   ' + dt.day.toString());
     } catch (e) {
       e.toString();
     }

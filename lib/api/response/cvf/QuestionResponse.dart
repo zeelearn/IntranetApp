@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:flutter/cupertino.dart';
+
 class QuestionResponse {
   late String responseMessage;
   late int statusCode;
@@ -8,7 +10,6 @@ class QuestionResponse {
   QuestionResponse({required this.responseMessage,required this.statusCode,required this.responseData});
 
   QuestionResponse.fromJson(Map<String, dynamic> json) {
-    print('decoding....${json}');
     responseMessage = json['responseMessage'];
     statusCode = json['statusCode'];
     responseData = <QuestionMaster>[];
@@ -21,7 +22,7 @@ class QuestionResponse {
         responseData.add(new QuestionMaster.fromJson(json['responseData']));
       }
     }catch(e){
-      print(e.toString());
+      debugPrint(e.toString());
     }
   }
 
@@ -62,7 +63,7 @@ class QuestionMaster {
             allquestion.add(new Allquestion.fromJson(v));
           });
         }catch(e){
-          print('error ${e.toString()}');
+          debugPrint('error ${e.toString()}');
         }
       }else{
         allquestion.add(new Allquestion.fromJson(json['allquestion']));
@@ -117,7 +118,7 @@ class Allquestion {
         }
       }
     }catch(e){
-      print(e.toString());
+      debugPrint(e.toString());
     }
   }
 

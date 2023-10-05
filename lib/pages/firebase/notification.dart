@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:hive/hive.dart';
 import 'package:intranet/api/APIService.dart';
 
@@ -35,7 +36,7 @@ class FCM {
     FirebaseMessaging.onBackgroundMessage(onBackgroundMessage);
     FirebaseMessaging.onMessage.listen(
           (message) async {
-            print(message.toString());
+            debugPrint(message.toString());
         if (message.data.containsKey('data')) {
           // Handle data message
           streamCtlr.sink.add(message.data['data']);
@@ -55,7 +56,7 @@ class FCM {
     var hiveBox = Hive.box(LocalConstant.KidzeeDB);
     await Hive.openBox(LocalConstant.KidzeeDB);
     var oldoken = hiveBox.get(LocalConstant.KEY_FCM_ID);
-    print(token);
+    debugPrint(token);
     if(oldoken==null || oldoken != token) {
       hiveBox.put(LocalConstant.KEY_FCM_ID, token);
       APIService service = APIService();
@@ -66,7 +67,7 @@ class FCM {
           User_Agent: userAgent);
       service.updateFCM(model);
     }else{
-      print('in else notification id not change');
+      debugPrint('in else notification id not change');
     }
   }
 

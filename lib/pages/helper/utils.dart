@@ -42,7 +42,7 @@ class Utility{
   }
 
   static shareFile(String filename) async{
-    print('shareFile ${filename}');
+    debugPrint('shareFile ${filename}');
     String dir = (await getTemporaryDirectory()).path;
     String path = '${dir}/${filename}';
     //Share.shareXFiles([XFile(path)], text: model.ContentDescription);
@@ -54,41 +54,41 @@ class Utility{
     String dir = (await getTemporaryDirectory()).path;
     String path = '${dir}/${fileName}';
     if(await File(path).exists()){
-      print('exists');
+      debugPrint('exists');
       isFileExists=true;
     }else{
-      print('NOT exists');
+      debugPrint('NOT exists');
       isFileExists=false;
     }
     return isFileExists;
   }
 
   static Future<dynamic> downloadFile(String url, String filename) async {
-    print('download url  59 ${url}');
+    debugPrint('download url  59 ${url}');
     var httpClient = new HttpClient();
     String dir = (await getTemporaryDirectory()).path;
-    print(dir.toString());
+    debugPrint(dir.toString());
     File file = new File('$dir/$filename');
-    print(file.path.toString());
+    debugPrint(file.path.toString());
     try {
-      print('in Download file ${Uri.parse(url)} ${filename}');
+      debugPrint('in Download file ${Uri.parse(url)} ${filename}');
       var request = await httpClient.getUrl(Uri.parse(url));
       var response = await request.close();
       var bytes = await consolidateHttpClientResponseBytes(response);
       await file.writeAsBytes(bytes);
-      print('in Download file completed...');
+      debugPrint('in Download file completed...');
       return file;
     }catch(e){
-      print(e.toString());
+      debugPrint(e.toString());
     }
-    print('in Download file completed...');
+    debugPrint('in Download file completed...');
   }
 
   static Future<dynamic> downloadContent(String url, String filename) async {
     //String dir = (await getTemporaryDirectory()).path;
     var httpClient = new HttpClient();
     File file = new File(filename);
-    print(filename);
+    debugPrint(filename);
     try {
       var request = await httpClient.getUrl(Uri.parse(url));
       var response = await request.close();
@@ -96,10 +96,10 @@ class Utility{
       await file.writeAsBytes(bytes);
       return file;
     }catch(e){
-      print('error ');
-      print(e.toString());
+      debugPrint('error ');
+      debugPrint(e.toString());
     }
-    print('in Download file completed...');
+    debugPrint('in Download file completed...');
   }
 
   static Future<bool> isInternet() async{
@@ -107,41 +107,15 @@ class Utility{
     try {
       final result = await InternetAddress.lookup('example.com');
       if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
-        print('connected');
+        debugPrint('connected');
       }
     } on SocketException catch (_) {
-      print('not connected');
+      debugPrint('not connected');
       isConnected = false;
     }
     return isConnected;
   }
 
-  // static Future<String> getDeviceIdentifier() async {
-  //   String? deviceIdentifier = "unknown";
-  //   DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
-  //
-  //   if (Platform.isAndroid) {
-  //     AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
-  //     print("Android device Info");
-  //     if(androidInfo==null){
-  //       print("----NULL");
-  //     }
-  //     print("Android device Info ${androidInfo.androidId}");
-  //     deviceIdentifier = androidInfo.androidId;
-  //   } else if (Platform.isIOS) {
-  //     IosDeviceInfo iosInfo = await deviceInfo.iosInfo;
-  //     deviceIdentifier = iosInfo.identifierForVendor;
-  //   } else if (kIsWeb) {
-  //     // The web doesnt have a device UID, so use a combination fingerprint as an example
-  //     WebBrowserInfo webInfo = await deviceInfo.webBrowserInfo;
-  //     String? userAgent = webInfo.userAgent;
-  //     deviceIdentifier = "${webInfo.vendor} ${userAgent as String}";
-  //   } else if (Platform.isLinux) {
-  //     LinuxDeviceInfo linuxInfo = await deviceInfo.linuxInfo;
-  //     deviceIdentifier = linuxInfo.machineId;
-  //   }
-  //   return deviceIdentifier as String;
-  // }
 
   static Container noInternetDataSet(BuildContext context) {
     return Container(
@@ -215,7 +189,7 @@ class Utility{
   static String getPercentage(int value1, int total){
 
     int percentage =  ((value1/total)*100).round();
-    print('value ${value1} and ${total} ${percentage}');
+    debugPrint('value ${value1} and ${total} ${percentage}');
     if(percentage==0){
       return '';
     }
@@ -479,7 +453,7 @@ class Utility{
 
     int difference = 1;
     int days = end.difference(start).inDays;
-    //print('${Utility.shortDate(start)} to ${Utility.shortDate(end)} : days ${days}');
+    //debugPrint('${Utility.shortDate(start)} to ${Utility.shortDate(end)} : days ${days}');
     if(days>1){
       difference = days;
     }
@@ -604,7 +578,7 @@ class Utility{
       actions: [
         IconsButton(
           onPressed: () {
-            print('click functions listener......');
+            debugPrint('click functions listener......');
             response.onClick(ACTION_OK, action);
             /*Future.delayed(Duration(milliseconds: 50)).then((_) {
 
@@ -795,7 +769,6 @@ class Utility{
 
     Placemark placemark = placemarks.first;
     String address = '';
-    print(placemark.toString());
     if (placemark.subLocality != null) {
       address += '${placemark.subLocality}  , ';
     }
@@ -811,7 +784,6 @@ class Utility{
     if (placemark.postalCode != null) {
       address += '${placemark.postalCode}  , ';
     }
-    print('Address: ${address}');
     return address;
   }
 
@@ -819,9 +791,6 @@ class Utility{
   {
     final LocatitonGeocoder geocoder = LocatitonGeocoder(LocalStrings.kGoogleApiKey);
     final address = await geocoder.findAddressesFromCoordinates(Coordinates(latitude, longitude));
-    print('${latitude},${longitude}');
-    print(address);
-    print(address.first.addressLine);
     return address.first.addressLine;
   }
 

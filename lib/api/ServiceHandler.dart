@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/cupertino.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:intranet/api/request/cvf/update_cvf_status_request.dart';
 import 'package:intranet/api/request/pjp/get_pjp_list_request.dart';
@@ -24,17 +25,17 @@ class IntranetServiceHandler{
     List<PJPInfo> pjpList = [];
     onResponse.onStart();
     PJPListRequest request = PJPListRequest(Employee_id: employeeId,PJP_id: pjpId, Business_id: bid);
-    print(request.toJson());
+    debugPrint(request.toJson().toString());
     APIService apiService = APIService();
     apiService.getPJPList(request).then((value) {
-      print(value.toString());
+      debugPrint(value.toString());
       if (value != null) {
 
         if (value == null || value.responseData == null) {
           onResponse.onError('PJP List not avaliable ');
         } else if (value is PjpListResponse) {
           PjpListResponse response = value;
-          //print(value);
+          //debugPrint(value);
           onResponse.onSuccess(response);
         } else {
           onResponse.onError('PJP List not avaliable ');
@@ -48,12 +49,12 @@ class IntranetServiceHandler{
 
   static loadPjpReport(PJPReportRequest request,onResponse onResponse) {
     List<PJPInfo> pjpList = [];
-    //print('IntranetServiceHandler');
+    //debugPrint('IntranetServiceHandler');
     onResponse.onStart();
-    print(request.toJson());
+    debugPrint(request.toJson().toString());
     APIService apiService = APIService();
     apiService.getPJPReport(request).then((value) {
-      print(value.toString());
+      debugPrint(value.toString());
       if (value != null) {
         /*String data = value.toString().replaceAll('null', '\"NA\"');
         PjpListResponse response = PjpListResponse.fromJson(
@@ -105,10 +106,9 @@ class IntranetServiceHandler{
         Latitude: cvfView.Status=='FILL CVF' ? cvfView.Latitude : latitude,
         Longitude: cvfView.Status=='FILL CVF' ? cvfView.Longitude : longitude,
         CheckOutLatitude: status=='Completed' ? latitude : 0.0, CheckOutLongitude: status=='Completed' ? longitude : 0.0, CheckOutAddress: status.trim()=='Check In' ? '' : address , Address: cvfView.Status.trim()=='Check In' ? address : cvfView.Address);
-    print(request.toJson());
     APIService apiService = APIService();
     apiService.updateCVFStatus(request).then((value) {
-      print(value.toString());
+      debugPrint(value.toString());
       if (value != null) {
         if (value == null || value.responseData == null) {
           onResponse.onError('Unable to update the status');
@@ -129,7 +129,7 @@ class IntranetServiceHandler{
 
       APIService apiService = APIService();
       apiService.updateCVFStatus(request).then((value) {
-        print(value.toString());
+        debugPrint(value.toString());
         if (value != null) {
           if (value == null || value.responseData == null) {
             onResponse.onError('Unable to update the status');
@@ -152,7 +152,7 @@ class IntranetServiceHandler{
     onResponse.onStart();
     APIService apiService = APIService();
     apiService.getMyReports(request).then((value) {
-      print(value.toString());
+      debugPrint(value.toString());
       if (value != null) {
         if (value == null || value.responseData == null) {
           onResponse.onError('Unable to get Reports');
@@ -172,7 +172,7 @@ class IntranetServiceHandler{
     onResponse.onStart();
     APIService apiService = APIService();
     apiService.updatePjpStatusList(request).then((value) {
-      print(value.toString());
+      debugPrint(value.toString());
       if (value != null) {
         if (value == null || value.responseData == null) {
           onResponse.onError('Unable to get Reports');
@@ -193,7 +193,7 @@ class IntranetServiceHandler{
     onResponse.onStart();
     APIService apiService = APIService();
     apiService.updatePjpStatus(request).then((value) {
-      print(value.toString());
+      debugPrint(value.toString());
       if (value != null) {
         if (value == null || value.responseData == null) {
           onResponse.onError('Unable to get Reports');

@@ -218,7 +218,7 @@ class _CategotyScreenState extends State<CVfCategotyScreen> {
   categoryListWidget() {
     double width = MediaQuery.of(context).size.width;
     if (mCategoryList == null || mCategoryList.length <= 0) {
-      //print('data not found');
+      //debugPrint('data not found');
       return Utility.emptyDataSet(context,"CVF Categories are not available");
     } else {
       return Flexible(
@@ -359,7 +359,7 @@ class _CategotyScreenState extends State<CVfCategotyScreen> {
 
     List<Map<String, dynamic>> list = await  DBHelper().getData(LocalConstant.TABLE_CVF_CATEGORY);
     if(list !=null){
-      print('----${list.length}');
+      debugPrint('----${list.length}');
       for(int index=0;index<list.length;index++) {
         Map<String, dynamic> map = list[index];
         categoryList.add(CategotyInfo(categoryId: map[DBConstant.CATEGORY_ID], categoryName: map[DBConstant.CATEGORY_NAME]));
@@ -374,7 +374,7 @@ class _CategotyScreenState extends State<CVfCategotyScreen> {
     CVFCategoryRequest request = CVFCategoryRequest(Category_Id: "1", Business_id: 0);
     APIService apiService = APIService();
     apiService.getCVFCategoties(request).then((value) {
-      print(value.toString());
+      debugPrint(value.toString());
       if (value != null) {
         if (value == null || value.responseData == null) {
           Utility.showMessage(context, 'data not found');
@@ -384,7 +384,7 @@ class _CategotyScreenState extends State<CVfCategotyScreen> {
             mCategoryList.addAll(response.responseData);
           }
           setState(() {});
-          print('summery list ${response.responseData.length}');
+          debugPrint('summery list ${response.responseData.length}');
         } else {
           Utility.showMessage(context, 'data not found');
         }

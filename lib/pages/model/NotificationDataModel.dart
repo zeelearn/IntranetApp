@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:intranet/pages/helper/utils.dart';
 
 class NotificationDataModel {
@@ -11,19 +12,12 @@ class NotificationDataModel {
   NotificationDataModel({required this.message,required this.title,required this.image,required this.URL,required this.type,required this.time});
 
   NotificationDataModel.fromJson(Map<String, dynamic> json) {
-    print('in from json...');
     message = json['message'] ?? "";
-    print('in from json...$message');
     title = json['title'] ?? "";
-    print('in from json...$title');
     image = json['image'] ?? "";
-    print('in from json...$image');
     URL = json['URL'] ?? "";
-    print('in from json...$URL');
     type = json['type'] ?? "";
-    print('in from json...$type');
     time = json['time'] ?? Utility.shortDate(DateTime.now());
-    print('in from json...$time');
   }
 
   Map<String, dynamic> toJson() {
@@ -48,13 +42,13 @@ class NotificationActionModel {
   NotificationActionModel({required this.type,required this.message,required this.title});
 
   NotificationActionModel.fromJson(Map<String, dynamic> json) {
-    print('in from json...tt $json');
+    debugPrint('in from json...tt $json');
     type = json['type'] ?? "";
-    print('in from json...$type');
+    debugPrint('in from json...$type');
     message = json['message'] ?? "";
-    print('in from json...$message');
+    debugPrint('in from json...$message');
     title = json['title'] ?? "";
-    print('in from json...$title');
+    debugPrint('in from json...$title');
   }
 
   Map<String, dynamic> toJson() {

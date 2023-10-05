@@ -11,7 +11,7 @@ class LocalStrings {
 
   static const String productionBaseUrl = "http://app.ekidzee.com";
   static const String developmentBaseUrl = "http://intranetapi.zeelearn.com";
-  static const kGoogleApiKey = "AIzaSyCGdPtCq-KbVIJ_3iAKlSep0B0DgNhyLAM";
+  static const kGoogleApiKey = "AIzaSyD-x4HqYO1O0kwDpkxIc128nM4f1bZ3oDM";
   static const String GET_TOKEN = "/snltoken";
   static const String GET_LOGIN = '/api/Account/Login';
   static const String GET_ATTENDANCE_SUMMERY = '/api/EmployeeInfo/GetAttendance';

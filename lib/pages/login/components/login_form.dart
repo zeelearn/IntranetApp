@@ -218,8 +218,8 @@ class _LoginFormState extends State<LoginForm> implements changePasswordInterfac
               hiveBox.put(LocalConstant.KEY_LOCATION, info.employeeLocation as String);
 
               hiveBox.put(LocalConstant.KEY_LOGIN_RESPONSE, jsonEncode(value.responseData));
-              print('-------------------------LOGINFORM');
-              print(jsonEncode(value.responseData));
+              debugPrint('-------------------------LOGINFORM');
+              debugPrint(jsonEncode(value.responseData));
               Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -233,7 +233,7 @@ class _LoginFormState extends State<LoginForm> implements changePasswordInterfac
         } else {
           Navigator.pop(context);
           Utility.showMessage(context, "Invalid User Name and Password");
-          print("null value");
+          debugPrint("null value");
         }
       });
 

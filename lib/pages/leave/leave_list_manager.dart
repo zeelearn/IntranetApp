@@ -58,7 +58,7 @@ class _LeaveManagerScreen extends State<LeaveManagerScreen>
     super.initState();
     getUserInfo();
     _tabController.addListener(() {
-      print('my index is' + _tabController.index.toString());
+      debugPrint('my index is' + _tabController.index.toString());
       setState(() {
         loadAcquisition();
       });
@@ -208,7 +208,7 @@ class _LeaveManagerScreen extends State<LeaveManagerScreen>
     late var jsonValue="[";
     if (_isChecked != null && _isChecked.length > 0) {
       String token="";
-      print(status);
+      debugPrint(status);
       for (int index = start; index < _isChecked.length; index++) {
         if(_isChecked[index]) {
           String data = "{'Requisition_Id': ${requisitionList[index]
@@ -307,7 +307,7 @@ class _LeaveManagerScreen extends State<LeaveManagerScreen>
   }
 
   getAttendanceListView() {
-    print('getAttendanceListView');
+    debugPrint('getAttendanceListView');
     if(isLoading){
       return Center(child: Image.asset(
         "assets/images/loading.gif",
@@ -341,7 +341,7 @@ class _LeaveManagerScreen extends State<LeaveManagerScreen>
     setState(() {
 
     });
-    print('loadAcquisition leave man');
+    debugPrint('loadAcquisition leave man');
     DateTime selectedDate = DateTime.now();
     DateTime _from = DateTime(selectedDate.year, selectedDate.month - 3, selectedDate.day);
     DateTime _to = DateTime(selectedDate.year, selectedDate.month + 1, selectedDate.day);
@@ -351,7 +351,7 @@ class _LeaveManagerScreen extends State<LeaveManagerScreen>
         Role: 'Man',
         FromDate: DateFormat("yyyy-MM-dd'T'hh:mm:ss").format(_from),
         ToDate: DateFormat("yyyy-MM-dd'T'hh:mm:ss").format(_to));
-    print('request ${request.toString()}');
+    debugPrint('request ${request.toString()}');
     APIService apiService = APIService();
     apiService.leaveRequisitionManager(request).then((value) {
       isLoading=false;
@@ -368,8 +368,8 @@ class _LeaveManagerScreen extends State<LeaveManagerScreen>
                 if(response.responseData[index].status=='Pending'){
                     requisitionList.add(response.responseData[index]);
                 }else{
-                  print(response.responseData[index].employeeName);
-                  print(response.responseData[index].leaveType);
+                  debugPrint(response.responseData[index].employeeName);
+                  debugPrint(response.responseData[index].leaveType);
                 }
               }else{
                 //approve
@@ -433,7 +433,7 @@ class _LeaveManagerScreen extends State<LeaveManagerScreen>
     //Utility.showLoaderDialog(context);
     DBHelper dbHelper = DBHelper();
     for(int index=0;index<_isChecked.length;index++) {
-      //print('Data isnerting ${index}');
+      //debugPrint('Data isnerting ${index}');
       var list = getSelectedModels(status, (index * 50));
       if(list!=null && list.toString().trim().isNotEmpty && list.toString()!='[]') {
         String xml = "{'root': {'subroot': ${list}}";
@@ -449,13 +449,13 @@ class _LeaveManagerScreen extends State<LeaveManagerScreen>
 
     //var list = getSelectedModels(status);
     //String xml ="{'root': {'subroot': [{'Requisition_Id': 1102411,'WorkflowTypeCode': 'LV1','RequisitionTypeCode': 'LVREQ','Requistion_Status_Code': '','Is_Approved': 1,'Workflow_UserType': 'MAN','Workflow_Remark': 'approved'}]}}";
-    //print(xml);
+    //debugPrint(xml);
 
     //String xml ="{'root': {'subroot': ${list}}";
     /*ApproveLeaveRequestManager request = ApproveLeaveRequestManager(xml: xml, userId: widget.employeeId.toString(),);
     APIService apiService = APIService();
     apiService.approveLeaveManager(request).then((value) {
-      print(value.toString());
+      debugPrint(value.toString());
       Navigator.of(context).pop();
       if (value != null) {
         if (value == null || value.responseData == null) {
@@ -463,7 +463,7 @@ class _LeaveManagerScreen extends State<LeaveManagerScreen>
         } else if (value is ApplyLeaveResponse) {
           ApplyLeaveResponse response = value;
           if (response != null) {
-          print(response.responseMessage);
+          debugPrint(response.responseMessage);
             Utility.showMessageSingleButton(context, response.responseMessage,this);
           }
         } else {
@@ -640,7 +640,7 @@ class _LeaveManagerScreen extends State<LeaveManagerScreen>
     //2022-07-18T00:00:00
     try {
       dt = new DateFormat('yyyy-MM-dd\'T\'HH:mm:ss').parse(value);
-      //print('asasdi   ' + dt.day.toString());
+      //debugPrint('asasdi   ' + dt.day.toString());
     } catch (e) {
       e.toString();
     }

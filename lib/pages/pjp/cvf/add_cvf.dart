@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_google_places/flutter_google_places.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:google_api_headers/google_api_headers.dart';
@@ -78,7 +77,7 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener{
     await Hive.openBox(LocalConstant.KidzeeDB);
     employeeId = int.parse(hiveBox.get(LocalConstant.KEY_EMPLOYEE_ID) as String);
     businessId = hiveBox.get(LocalConstant.KEY_BUSINESS_ID);
-    print('Business Id ${businessId}');
+    debugPrint('Business Id ${businessId}');
     PackageInfo.fromPlatform().then((PackageInfo packageInfo) {
       String appName = packageInfo.appName;
       String packageName = packageInfo.packageName;
@@ -91,11 +90,11 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener{
   fetchCategory() {
     Utility.showLoaderDialog(context);
     mCategoryList.clear();
-    print('categoty');
+    debugPrint('categoty');
     CVFCategoryRequest request = CVFCategoryRequest(Category_Id: "0", Business_id: businessId);
     APIService apiService = APIService();
     apiService.getCVFCategoties(request).then((value) {
-      print(value.toString());
+      debugPrint(value.toString());
       if (value != null) {
         if (value == null || value.responseData == null) {
           Utility.showMessage(context, 'data not found');
@@ -105,7 +104,7 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener{
             mCategoryList.addAll(response.responseData);
           }
           setState(() {});
-          print('category list ${response.responseData.length}');
+          debugPrint('category list ${response.responseData.length}');
         } else {
           Utility.showMessage(context, 'data not found');
         }
@@ -121,12 +120,12 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener{
     List<FranchiseeInfo> franchiseeList = await helper.getFranchiseeList(businessId);
 
     if (franchiseeList == null || franchiseeList.length == 0) {
-      print('data load ssss');
+      debugPrint('data load ssss');
       loadCenterList();
     } else {
       mFrianchiseeList.clear();
       mFrianchiseeList.addAll(franchiseeList);
-      print('data ssss');
+      debugPrint('data ssss');
     }
   }
 
@@ -139,7 +138,7 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener{
         CentersRequestModel(EmployeeId: employeeId, Brand: businessId);
     APIService apiService = APIService();
     apiService.getCVFCenters(requestModel).then((value) {
-      print(value.toString());
+      debugPrint(value.toString());
       if (value != null) {
         if (value == null || value.responseData == null) {
           Utility.showMessage(context, 'data not found');
@@ -150,7 +149,7 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener{
             addCentersinDB(businessId);
             setState(() {});
           }
-          print('summery list ${response.responseData.length}');
+          debugPrint('summery list ${response.responseData.length}');
         } else {
           Utility.showMessage(context, 'data not found');
         }
@@ -181,7 +180,7 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener{
   void initState() {
     // TODO: implement initState
     super.initState();
-    print('cvf list ');
+    debugPrint('cvf list ');
     Future.delayed(Duration.zero, () {
       this.loadUserData();
     });
@@ -221,15 +220,15 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener{
 
   List<GetDetailedPJP> _getEventsForDay(DateTime day) {
     // Implementation example
-    print('day is ' + day.day.toString());
+    debugPrint('day is ' + day.day.toString());
     return getCurrentEvents(day); //kEvents[day] ?? [];
   }
 
   getCurrentEvents(DateTime date) {
     List<GetDetailedPJP> list = [];
-    print('getEvent----${mCVFList.length}');
+    debugPrint('getEvent----${mCVFList.length}');
     for (int index = 0; index < mCVFList.length; index++) {
-      print(
+      debugPrint(
           '${Utility.shortDate(date)}  -- ${Utility.shortDate(Utility.convertDate(mCVFList[index].visitDate))}');
       if (Utility.shortDate(date) ==
           Utility.shortDate(Utility.convertDate(mCVFList[index].visitDate))) {
@@ -394,10 +393,10 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener{
   }
 
   bool validate(){
-    print("Validating the CVF Form");
+    debugPrint("Validating the CVF Form");
     String purpose =  getCategoryList();
-    print('Purpose ${_purposeMultiSelect}');
-    print(_dateController.text);
+    debugPrint('Purpose ${_purposeMultiSelect}');
+    debugPrint(_dateController.text);
     if(_purposeMultiSelect.isEmpty){
       Utility.showMessages(context, "Please Select Purpose");
       return false;
@@ -425,7 +424,7 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener{
   addNewCVF() async {
     if(validate()) {
       Utility.showLoaderDialog(context);
-      print('categoty');
+      debugPrint('categoty');
       /*String xml =
         '<root><tblPJPCVF><Employee_Id>${employeeId}</Employee_Id><Franchisee_Id>${getFrichanseeId()}</Franchisee_Id><Visit_Date>${Utility.convertShortDate(cvfDate)}</Visit_Date><Visit_Time>${vistitDateTime?.hour}:${vistitDateTime?.minute}</Visit_Time><Category_Id>${getCategoryId()}</Category_Id></tblPJPCVF></root>';
     */
@@ -442,7 +441,7 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener{
           PJP_Id: int.parse(widget.mPjpModel.PJP_Id),
           DocXml: xml,
           UserId: employeeId);
-      print(request.toJson());
+      debugPrint(request.toJson().toString());
       APIService apiService = APIService();
       apiService.saveCVF(request).then((value) {
         Navigator.of(context).pop();
@@ -451,7 +450,7 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener{
             Utility.showMessage(context, 'data not found');
           } else if (value is NewCVFResponse) {
             NewCVFResponse response = value;
-            print(response.toString());
+            debugPrint(response.toString());
             if (response != null) {
               //mPjpModel.pjpId=response.responseData;
             }
@@ -461,7 +460,7 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener{
             Navigator.of(context).pop();
             //Utility.showMessage(context, 'CVF Saved in server');
             setState(() {});
-            //print('category list ${response.responseData.length}');
+            //debugPrint('category list ${response.responseData.length}');
           } else {
             Utility.showMessage(context, 'data not found');
           }
@@ -470,7 +469,7 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener{
         setState(() {});
       });
     }else{
-      print("unable to Validate");
+      debugPrint("unable to Validate");
     }
   }
 
@@ -498,7 +497,7 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener{
                 value: _CenterName.isNotEmpty ? _CenterName : null,
                 underline: SizedBox(),
                 onChanged: (String? value) {
-                  print(value);
+                  debugPrint(value);
                   setState(() {
                     _CenterName = value!;
                   });
@@ -670,7 +669,7 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener{
                     components: [Component(Component.country, 'in')],
                     //google_map_webservice package
                     onError: (err){
-                      print(err);
+                      debugPrint(err.toString());
                     }
                 );
 
@@ -781,7 +780,7 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener{
       ),
       components: [Component(Component.country, "in")],
     );
-    print('p is ${p!.description!}');
+    debugPrint('p is ${p!.description!}');
     displayPrediction(p);
   }
 
@@ -860,11 +859,8 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener{
 
     if (pickedDate != null) {
       setState(() {
-        print(pickedDate); //pickedDate output format => 2021-03-10 00:00:00.000
         cvfDate = pickedDate;
         String formattedDate = DateFormat('dd-MMM-yyyy').format(pickedDate);
-        print(
-            formattedDate); //formatted date output using intl package =>  2021-03-16
         _dateController.text = formattedDate;
       });
     } else {}
@@ -874,7 +870,7 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener{
     if (mCategoryList == null || mCategoryList.length == 0) {
       fetchCategory();
     } else {
-      print('category length ${mCategoryList.length}');
+      debugPrint('category length ${mCategoryList.length}');
     }
 
     // a list of selectable items
@@ -1033,33 +1029,33 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener{
 
   getCategory() {
     int id = 0;
-    print(_categoryController.text.toString());
+    debugPrint(_categoryController.text.toString());
     for (int index = 0; index < mCategoryList.length; index++) {
-      print(mCategoryList[index].categoryName);
+      debugPrint(mCategoryList[index].categoryName);
       if (_categoryController.text.toString() == mCategoryList[index].categoryName) {
         id = mCategoryList[index].categoryId;
       }
     }
-    print('Category is ${id}');
+    debugPrint('Category is ${id}');
     return id;
   }
   getCategoryList() {
     String id = '';
     String token = '';
-    print('controller is ${_categoryController.text.toString()}');
-    print(_categoryController.text.toString());
+    debugPrint('controller is ${_categoryController.text.toString()}');
+    debugPrint(_categoryController.text.toString());
     var category = _categoryController.text.toString().split(',');
     for (int index = 0; index < mCategoryList.length; index++) {
       for(int jIndex=0;jIndex<category.length;jIndex++) {
-        print('jIndex ${category[jIndex].toString().trim()}');
+        debugPrint('jIndex ${category[jIndex].toString().trim()}');
         if (category[jIndex].toString().trim() == mCategoryList[index].categoryName.trim()) {
-          print(mCategoryList[index].categoryName);
+          debugPrint(mCategoryList[index].categoryName);
           id = id + token + mCategoryList[index].categoryId.toString();
           token = ',';
         }
       }
     }
-    print('Category is ${id}');
+    debugPrint('Category is ${id}');
     return id;
   }
 
@@ -1099,7 +1095,7 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener{
 
           if (questionResponse != null && questionResponse.responseData != null) {
             DBHelper dbHelper = DBHelper();
-            print('data saved ....');
+            debugPrint('data saved ....');
             dbHelper.insertCVFQuestions(
                 cvfId.toString(),categotyId, json.encode(questionResponse.toJson()), 0);
             setState(() {});
@@ -1143,7 +1139,7 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener{
 
             //mQuestionMaster.addAll(questionResponse.responseData);
             DBHelper dbHelper = DBHelper();
-            print('data saved ....');
+            debugPrint('data saved ....');
             dbHelper.insertCVFQuestions(cvfId.toString(),category,
                 json.encode(questionResponse.toJson()), 0);
             //insertQuestions();

@@ -169,37 +169,11 @@ class MyWidget{
               lastDate: maxDate);
 
           if (pickedDate != null) {
-            print(
-                pickedDate); //pickedDate output format => 2021-03-10 00:00:00.000
             String formattedDate = DateFormat('dd-MMM-yyyy').format(pickedDate);
             controller.text = formattedDate;
-            print(formattedDate); //formatted date output using intl package =>  2021-03-16
-            /*setState(() {
-              dateInput.text =
-                  formattedDate; //set output date to TextField value.
-            });*/
-          } else {}
+            debugPrint(formattedDate); //formatted date output using intl package =>  2021-03-16
 
-          /*DatePicker.showDatePicker(context,
-              showTitleActions: true,
-              minTime: minDate,
-              maxTime: maxDate,
-              theme: DatePickerTheme(
-                  headerColor: LightColors.kLightYellow,
-                  backgroundColor: LightColors.kLightBlue,
-                  itemStyle: TextStyle(
-                      color: Colors.black,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18),
-                  doneStyle: TextStyle(color: Colors.black, fontSize: 16)),
-              onChanged: (date) {
-                String formattedDate = DateFormat('yyyy-MM-dd').format(date);
-                controller.text = formattedDate;
-                print('change $date in time zone ' +
-                    date.timeZoneOffset.inHours.toString());
-              }, onConfirm: (date) {
-                print('confirm $date');
-              }, currentTime: DateTime.now(), locale: LocaleType.en);*/
+          }
         });
   }
 

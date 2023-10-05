@@ -36,10 +36,10 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   try {
     await Firebase.initializeApp(
         name: "Intranet", options: DefaultFirebaseOptions.currentPlatform);
-    print('Handling a background message');
+    debugPrint('Handling a background message');
     DBHelper helper = new DBHelper();
     if (message.data != null) {
-      print(message.data.toString());
+      debugPrint(message.data.toString());
       String type = "";
       String title = "";
       String imageUrl = "";
@@ -71,7 +71,7 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
           helper.insertNotification(message.messageId as String,
               json.decode(mData), type, '', json.decode(mData), 0, imageUrl);
         } else {
-          print('in else data ${mData}');
+          debugPrint('in else data ${mData}');
           NotificationDataModel model = NotificationDataModel.fromJson(
             json.decode(mData),
           );
@@ -84,11 +84,11 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
         }
         _showNotificationWithDefaultSound(message, title, body);
       } catch (e) {
-        print(e);
+        debugPrint(e.toString());
       }
     }
     if (message.notification != null) {
-      print(message.notification.toString());
+      debugPrint(message.notification.toString());
       helper.insertNotification(
           message.messageId as String,
           message.notification!.title as String,
@@ -130,26 +130,26 @@ Future<void> main() async {
   // Set the background messaging handler early on, as a named top-level function
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
   FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-    print('Got a message whilst in the foreground! main');
-    print('Message data 12: ${message.data}');
+    debugPrint('Got a message whilst in the foreground! main');
+    debugPrint('Message data 12: ${message.data}');
     try {
       if (message.notification != null) {
-        print('Message also contained a notification: ${message.notification}');
+        debugPrint('Message also contained a notification: ${message.notification}');
       } else {
-        print('data ${message.data}');
+        debugPrint('data ${message.data}');
       }
       DBHelper helper = new DBHelper();
       if (message.data != null) {
-        print(message.data.toString());
+        debugPrint(message.data.toString());
         String type = "";
         String title = "";
         String imageUrl = "";
         String body = "";
         try {
           String mData = message.data.toString();
-          print('in 149' + mData);
+          debugPrint('in 149' + mData);
           if (!message.data.containsKey("URL")) {
-            print('json decode--');
+            debugPrint('json decode--');
             String jsonencodeValue = '';
             try{
               jsonencodeValue = json.decode(mData);
@@ -159,7 +159,7 @@ Future<void> main() async {
               jsonencodeValue = jsonencodeValue.replaceAll(":", "\":\"");
               jsonencodeValue = jsonencodeValue.replaceAll(",", "\",\"");
               jsonencodeValue = jsonencodeValue.replaceAll("}", "\"}");
-              print('in catch....4 $jsonencodeValue');
+              debugPrint('in catch....4 $jsonencodeValue');
             }
             NotificationActionModel model = NotificationActionModel.fromJson(
               json.decode(jsonencodeValue),
@@ -169,7 +169,7 @@ Future<void> main() async {
             imageUrl = '';
             body = model.message;
           } else {
-            print('in else ');
+            debugPrint('in else ');
             NotificationDataModel model = NotificationDataModel.fromJson(
               json.decode(mData),
             );
@@ -180,7 +180,7 @@ Future<void> main() async {
           }
           _showNotificationWithDefaultSound(message, title, body);
         } catch (e) {
-          print(e);
+          debugPrint(e.toString());
         }
         helper.insertNotification(
             message.messageId as String,
@@ -192,7 +192,7 @@ Future<void> main() async {
             imageUrl);
       }
       if (message.notification != null) {
-        print('in notification '+message.notification.toString());
+        debugPrint('in notification '+message.notification.toString());
         helper.insertNotification(
             message.messageId as String,
             message.notification!.title as String,
@@ -207,7 +207,7 @@ Future<void> main() async {
             message.notification!.body as String);
       }
     }catch(e){
-      print(e.toString());
+      debugPrint(e.toString());
     }
   });
 
@@ -375,14 +375,14 @@ Future<bool> onIosBackground(ServiceInstance service) async {
 @pragma('vm:entry-point')
 void onStart(ServiceInstance service) async {
   // Only available for flutter 3.0.0 and later
-  print('onStart Service');
+  debugPrint('onStart Service');
   DartPluginRegistrant.ensureInitialized();
   mService = service;
   // For flutter prior to version 3.0.0
   final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
   service.on('stopService').listen((event) {
-    print('onStart Service onStop');
+    debugPrint('onStart Service onStop');
     service.stopSelf();
   });
 
@@ -473,18 +473,18 @@ syncLeaveApproval(ApproveLeaveRequestManager model) {
   if(request.xml.contains('[]')){
     if (model.index != null) {
       DBHelper helper = DBHelper();
-      //print('DELTE ID ${model.index!.toString()}');
+      //debugPrint('DELTE ID ${model.index!.toString()}');
       helper.delete(LocalConstant.TABLE_DATA_SYNC, model.index!.toString());
     }
     checkPendingLeaveApprovals(2);
   }else if (model.actionType.isNotEmpty && model.actionType == 'ATTENDANCE_MAN') {
-    //print('ATTENDANCE_MAN request');
+    //debugPrint('ATTENDANCE_MAN request');
     APIService apiService = APIService();
     apiService.approveAttendance(request).then((value) {
-      //print('approveAttendance response ${value}');
+      //debugPrint('approveAttendance response ${value}');
       if (value != null) {
         if (value == null || value.responseData == null) {
-          //print('Serviceclosed NULL....................');
+          //debugPrint('Serviceclosed NULL....................');
           if (mService != null) mService.stopSelf();
         } else if (value is ApproveAttendanceResponse) {
           ApproveAttendanceResponse response = value;
@@ -492,13 +492,13 @@ syncLeaveApproval(ApproveLeaveRequestManager model) {
             if(response.statusCode==200){
               if (model.index != null) {
                 DBHelper helper = DBHelper();
-                //print('DELTE ID ${model.index!.toString()}');
+                //debugPrint('DELTE ID ${model.index!.toString()}');
                 helper.delete(LocalConstant.TABLE_DATA_SYNC, model.index!.toString());
               }
             }else{
               if (model.index != null) {
                 DBHelper helper = DBHelper();
-                //print('DELTE ID ${model.index!.toString()}');
+                //debugPrint('DELTE ID ${model.index!.toString()}');
                 helper.delete(LocalConstant.TABLE_DATA_SYNC, model.index!.toString());
               }
             }
@@ -506,23 +506,23 @@ syncLeaveApproval(ApproveLeaveRequestManager model) {
           }else{
             if (model.index != null) {
               DBHelper helper = DBHelper();
-              //print('DELTE ID ${model.index!.toString()}');
+              //debugPrint('DELTE ID ${model.index!.toString()}');
               helper.delete(LocalConstant.TABLE_DATA_SYNC, model.index!.toString());
             }
             checkPendingLeaveApprovals(2);
           }
         }else if(value.toString().contains('Failed host lookup')){
-          //print('Serviceclosed....................');
+          //debugPrint('Serviceclosed....................');
           if (mService != null) mService.stopSelf();
         }else{
-          //print('Serviceclosed NULL.ELSE...................');
+          //debugPrint('Serviceclosed NULL.ELSE...................');
           if (mService != null) mService.stopSelf();
         }
       }
 
     });
   } else {
-    //print('approveLeaveManager request');
+    //debugPrint('approveLeaveManager request');
     APIService apiService = APIService();
     apiService.approveLeaveManager(request).then((value) {
       if (value != null) {
@@ -530,19 +530,19 @@ syncLeaveApproval(ApproveLeaveRequestManager model) {
           if (mService != null) mService.stopSelf();
         } else if (value is ApplyLeaveResponse) {
           ApplyLeaveResponse response = value;
-          //print(response.responseMessage);
+          //debugPrint(response.responseMessage);
           if (response != null) {
-            //print('Serviceclosed NULL....523...........');
-            print(response.responseMessage);
+            //debugPrint('Serviceclosed NULL....523...........');
+            debugPrint(response.responseMessage);
               if (model.index != null) {
                 DBHelper helper = DBHelper();
-                //print('DELTE ID ${model.index!.toString()}');
+                //debugPrint('DELTE ID ${model.index!.toString()}');
                 helper.delete(LocalConstant.TABLE_DATA_SYNC, model.index!.toString());
               }
           }else if(value.toString().contains('Failed host lookup')){
             if (model.index != null) {
               DBHelper helper = DBHelper();
-              //print('DELTE ID ${model.index!.toString()}');
+              //debugPrint('DELTE ID ${model.index!.toString()}');
               helper.delete(LocalConstant.TABLE_DATA_SYNC, model.index!.toString());
             }
             if (mService != null) mService.stopSelf();
@@ -558,27 +558,27 @@ syncLeaveApproval(ApproveLeaveRequestManager model) {
 }
 
 apicall(List<CheckInModel> list) async {
-  //print('api calling...');
+  //debugPrint('api calling...');
 
-  //print('Offline Data found ${list.length}');
+  //debugPrint('Offline Data found ${list.length}');
   if (list.length > 0) {
-    print('Offline Data found ${list.length}');
-    print(list[0].body);
+    debugPrint('Offline Data found ${list.length}');
+    debugPrint(list[0].body);
     UpdateCVFStatusRequest request = UpdateCVFStatusRequest.fromJson(
       json.decode(list[0].body),
     );
-    //print('json decode ');
-    //print(request.toString());
+    //debugPrint('json decode ');
+    //debugPrint(request.toString());
     APIService apiService = APIService();
     apiService.updateCVFStatus(request).then((value) {
-      //print('response received...');
-      //print(value.toString());
+      //debugPrint('response received...');
+      //debugPrint(value.toString());
       if (value != null) {
         if (value == null || value.responseData == null) {
           //onResponse.onError('Unable to update the status');
         } else if (value is UpdateCVFStatusResponse) {
           UpdateCVFStatusResponse response = value;
-          //print(response.toString());
+          //debugPrint(response.toString());
           //onResponse.onSuccess(response);
           DBHelper helper = DBHelper();
           helper.updateCheckInStatus(list[0].id, 1);
@@ -618,7 +618,7 @@ Future _showNotificationWithDefaultSound(
             considerWhiteSpaceAsEmpty: true) ||
         !AwesomeStringUtils.isNullOrEmpty(messageData,
             considerWhiteSpaceAsEmpty: true)) {
-      print('message also contained a notification: ${message}');
+      debugPrint('message also contained a notification: ${message}');
 
       String? imageUrl;
       try {
@@ -652,7 +652,7 @@ Future _showNotificationWithDefaultSound(
     NotificationService notificationService = NotificationService();
     notificationService.showNotification(12, title, messageData, messageData);
   }
-  print('Send Notification');
+  debugPrint('Send Notification');
 }
 
 final GlobalKey<NavigatorState> navigatorKey = new GlobalKey<NavigatorState>();

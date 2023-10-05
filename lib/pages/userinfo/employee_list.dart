@@ -43,7 +43,7 @@ class _EmployeeListScreenState extends State<EmployeeListScreen>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    print('didChangeAppLifecycleState ${state} ');
+    debugPrint('didChangeAppLifecycleState ${state} ');
     if (state == AppLifecycleState.resumed) {
       loadEmployeeList();
     }
@@ -62,7 +62,7 @@ class _EmployeeListScreenState extends State<EmployeeListScreen>
     masterEmployeeList.clear();
     APIService apiService = APIService();
     apiService.getEmployeeList().then((value) {
-      print(value.toString());
+      debugPrint(value.toString());
       if (value != null) {
         if (value == null || value.responseData == null) {
           Utility.showMessage(context, 'data not found');
@@ -74,7 +74,7 @@ class _EmployeeListScreenState extends State<EmployeeListScreen>
             masterEmployeeList.addAll(response.responseData);
             setState(() {});
           }
-          print('summery list ${response.responseData.length}');
+          debugPrint('summery list ${response.responseData.length}');
         } else {
           Utility.showMessage(context, 'data not found');
         }
@@ -100,7 +100,7 @@ class _EmployeeListScreenState extends State<EmployeeListScreen>
     }else{
       employeeList.addAll(masterEmployeeList);
     }
-    print('${_search}  ${employeeList.length}');
+    debugPrint('${_search}  ${employeeList.length}');
     setState(() {
 
     });
@@ -223,7 +223,7 @@ class _EmployeeListScreenState extends State<EmployeeListScreen>
 
   getLeaveListView() {
     if (employeeList == null || employeeList.length <= 0) {
-      print('data not found');
+      debugPrint('data not found');
       return Utility.emptyDataSet(context,"Employee List are not avaliable, Please try again later");
     } else {
       return Flexible(

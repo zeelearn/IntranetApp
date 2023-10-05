@@ -47,7 +47,6 @@ class _AddNewPJPState extends State<AddNewPJPScreen> implements onResponse,onCli
   void initState() {
     // TODO: implement initState
     super.initState();
-    print(widget.currentDate);
     _fromDate=widget.currentDate;
     _toDate=widget.currentDate;
     mPjpModel = PJPModel(
@@ -195,23 +194,23 @@ class _AddNewPJPState extends State<AddNewPJPScreen> implements onResponse,onCli
     /// multi range.
     setState(() {
       if (args.value is PickerDateRange) {
-        print('range');
-        print(args.value.toString());
+        debugPrint('range');
+        debugPrint(args.value.toString());
         _fromDate = args.value.startDate;
         _toDate = args.value.endDate ?? args.value.startDate;
 
         _range = '${DateFormat('dd/MM/yyyy').format(args.value.startDate)} -'
         // ignore: lines_longer_than_80_chars
             ' ${DateFormat('dd/MM/yyyy').format(args.value.endDate ?? args.value.startDate)}';
-        print(_range);
+        debugPrint(_range);
       } else if (args.value is DateTime) {
-        print('dateTime');
+        debugPrint('dateTime');
         _selectedDate = args.value.toString();
       } else if (args.value is List<DateTime>) {
-        print('datetime lise');
+        debugPrint('datetime lise');
         _dateCount = args.value.length.toString();
       } else {
-        print('else');
+        debugPrint('else');
         _rangeCount = args.value.length.toString();
       }
     });
@@ -332,7 +331,7 @@ class _AddNewPJPState extends State<AddNewPJPScreen> implements onResponse,onCli
     if(isValidate()) {
       Utility.showLoaderDialog(context);
       //mCategoryList.clear();
-      //print('categoty');
+      //debugPrint('categoty');
       mPjpModel.fromDate = _fromDate;
       mPjpModel.toDate = _toDate;
       AddPJPRequest request = AddPJPRequest(
@@ -341,10 +340,10 @@ class _AddNewPJPState extends State<AddNewPJPScreen> implements onResponse,onCli
           ToDate: Utility.convertShortDate(mPjpModel.toDate),
           ByEmployee_Id: widget.employeeId.toString(),
           remarks: _remarkController.text.toString());
-      print(request.toJson());
+      debugPrint(request.toJson().toString());
       APIService apiService = APIService();
       apiService.addNewPJP(request).then((value) {
-        print(value.toString());
+        debugPrint(value.toString());
         Navigator.of(context).pop();
         if (value != null) {
           if (value == null || value.responseData == null) {
@@ -358,7 +357,7 @@ class _AddNewPJPState extends State<AddNewPJPScreen> implements onResponse,onCli
             mPjpModel.isSync = true;
             //mPjpModel.isActive = true;
             mPjpModel.remark = _remarkController.text.toString();
-            print('New PJP ID ${mPjpModel.pjpId} ');
+            debugPrint('New PJP ID ${mPjpModel.pjpId} ');
 
             addPJPinDB(1);
             Utility.showMessageSingleButton(
@@ -377,7 +376,7 @@ class _AddNewPJPState extends State<AddNewPJPScreen> implements onResponse,onCli
   }
 
   onsetp2(PJPInfo infoModel) {
-    print('onStep 2');
+    debugPrint('onStep 2');
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
@@ -407,7 +406,7 @@ class _AddNewPJPState extends State<AddNewPJPScreen> implements onResponse,onCli
       DBConstant.CREATED_DATE: Utility.parseDate(DateTime.now()),
     };
     dbHelper.insert(LocalConstant.TABLE_PJP_INFO, data);
-    print('db update');
+    debugPrint('db update');
 
   }
 
@@ -423,19 +422,19 @@ class _AddNewPJPState extends State<AddNewPJPScreen> implements onResponse,onCli
 
   @override
   void onSuccess(value) {
-    print('onResponse');
+    debugPrint('onResponse');
     Navigator.of(context).pop();
     if(value is PjpListResponse){
       PjpListResponse response = value;
-      print('onResponse in if ');
+      debugPrint('onResponse in if ');
       if(response.responseData!=null && response.responseData.length>0){
-        print('onResponse ${response.responseData.length}');
+        debugPrint('onResponse ${response.responseData.length}');
         onsetp2(response.responseData[0]);
       }else{
-        print('onResponse in if else');
+        debugPrint('onResponse in if else');
       }
     }else{
-      print('onResponse in else');
+      debugPrint('onResponse in else');
     }
   }
 
