@@ -1,9 +1,9 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intranet/pages/login/components/password_event.dart';
-import 'package:intranet/pages/login/components/password_repository.dart';
-import 'package:intranet/pages/login/components/password_state.dart';
+import 'package:Intranet/pages/login/components/password_event.dart';
+import 'package:Intranet/pages/login/components/password_repository.dart';
+import 'package:Intranet/pages/login/components/password_state.dart';
 
 class PasswordBloc extends Bloc<PasswordEvent, PasswordState> {
   final PasswordRepository passwordRepository;

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:intranet/pages/pjp/cvf/question_controller.dart';
+import 'package:Intranet/pages/pjp/cvf/question_controller.dart';
 
 import '../../utils/theme/colors/light_colors.dart';
 import '../../utils/widgets/top_container.dart';

@@ -1,5 +1,5 @@
 import 'package:flutter/cupertino.dart';
-import 'package:intranet/pages/helper/utils.dart';
+import 'package:Intranet/pages/helper/utils.dart';
 
 class NotificationDataModel {
   late String message;

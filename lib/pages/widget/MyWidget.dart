@@ -2,8 +2,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
-import 'package:intranet/pages/helper/LightColor.dart';
-import 'package:intranet/pages/utils/theme/colors/light_colors.dart';
+import 'package:Intranet/pages/helper/LightColor.dart';
+import 'package:Intranet/pages/utils/theme/colors/light_colors.dart';
 
 class MyWidget{
 

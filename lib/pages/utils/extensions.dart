@@ -2,7 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:intranet/pages/utils/theme/theme.dart';
+import 'package:Intranet/pages/utils/theme/theme.dart';
 
 
 extension Gradient on LinearGradient {

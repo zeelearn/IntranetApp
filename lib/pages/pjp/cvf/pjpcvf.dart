@@ -4,9 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:hive/hive.dart';
-import 'package:intranet/pages/helper/DatabaseHelper.dart';
-import 'package:intranet/pages/helper/LightColor.dart';
-import 'package:intranet/pages/pjp/cvf/cvf_questions.dart';
+import 'package:Intranet/pages/helper/DatabaseHelper.dart';
+import 'package:Intranet/pages/helper/LightColor.dart';
+import 'package:Intranet/pages/pjp/cvf/cvf_questions.dart';
 import 'package:order_tracker_zen/order_tracker_zen.dart';
 import 'package:permission_handler/permission_handler.dart';
 

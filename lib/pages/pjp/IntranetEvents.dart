@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:intranet/pages/helper/DatabaseHelper.dart';
-import 'package:intranet/pages/helper/utils.dart';
-import 'package:intranet/pages/utils/theme/colors/light_colors.dart';
+import 'package:Intranet/pages/helper/DatabaseHelper.dart';
+import 'package:Intranet/pages/helper/utils.dart';
+import 'package:Intranet/pages/utils/theme/colors/light_colors.dart';
 
 import '../helper/DBConstant.dart';
 import '../helper/LocalConstant.dart';

@@ -1,8 +1,8 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:intranet/pages/home/task_category_entity.dart';
-import 'package:intranet/pages/pjp/cvf/mycvf.dart';
+import 'package:Intranet/pages/home/task_category_entity.dart';
+import 'package:Intranet/pages/pjp/cvf/mycvf.dart';
 
 import '../model/filter.dart';
 import '../pjp/mypjp.dart';

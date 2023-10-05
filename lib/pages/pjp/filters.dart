@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:intranet/api/request/pjp/employee_request.dart';
+import 'package:Intranet/api/request/pjp/employee_request.dart';
 
 import '../../api/APIService.dart';
 import '../../api/response/pjp/employee_response.dart';

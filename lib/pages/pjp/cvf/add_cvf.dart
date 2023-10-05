@@ -10,7 +10,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:google_maps_webservice/places.dart';
 import 'package:hive/hive.dart';
 import 'package:intl/intl.dart';
-import 'package:intranet/api/response/pjp/pjplistresponse.dart';
+import 'package:Intranet/api/response/pjp/pjplistresponse.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
 

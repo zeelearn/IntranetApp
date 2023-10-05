@@ -3,8 +3,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hive/hive.dart';
-import 'package:intranet/api/ServiceHandler.dart';
-import 'package:intranet/api/request/pjp/update_pjpstatus_request.dart';
+import 'package:Intranet/api/ServiceHandler.dart';
+import 'package:Intranet/api/request/pjp/update_pjpstatus_request.dart';
 
 import '../../api/request/pjp/update_pjpstatuslist_request.dart';
 import '../../api/response/general_response.dart';

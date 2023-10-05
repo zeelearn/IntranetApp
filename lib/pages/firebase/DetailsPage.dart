@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:intranet/pages/helper/utils.dart';
+import 'package:Intranet/pages/helper/utils.dart';
 
 class DetailsPage extends StatelessWidget {
   const DetailsPage({

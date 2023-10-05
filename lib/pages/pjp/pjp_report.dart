@@ -6,9 +6,9 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hive/hive.dart';
 import 'package:intl/intl.dart';
-import 'package:intranet/api/ServiceHandler.dart';
-import 'package:intranet/api/request/pjp/get_pjp_report_request.dart';
-import 'package:intranet/api/request/pjp/update_pjpstatus_request.dart';
+import 'package:Intranet/api/ServiceHandler.dart';
+import 'package:Intranet/api/request/pjp/get_pjp_report_request.dart';
+import 'package:Intranet/api/request/pjp/update_pjpstatus_request.dart';
 import 'package:timeline_tile/timeline_tile.dart';
 
 import '../../api/response/pjp/pjplistresponse.dart';

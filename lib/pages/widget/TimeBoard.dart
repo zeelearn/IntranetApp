@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:intranet/pages/utils/theme/colors/light_colors.dart';
+import 'package:Intranet/pages/utils/theme/colors/light_colors.dart';
 
 import '../helper/utils.dart';
 

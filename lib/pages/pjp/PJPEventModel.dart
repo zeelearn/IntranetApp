@@ -1,6 +1,6 @@
 import 'dart:ui';
 
-import 'package:intranet/pages/auth/config.dart';
+import 'package:Intranet/pages/auth/config.dart';
 
 class PJPEventModel{
   final String title;
