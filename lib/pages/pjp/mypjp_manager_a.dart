@@ -85,7 +85,7 @@ class _MyPjpListState extends State<MyPjpManAListScreen> implements onResponse,o
     try {
       var attendanceList = hiveBox.get(getId());
       isLoading = false;
-      //print(attendanceList.toString());
+      //debugPrint(attendanceList.toString());
       PjpListResponse response = PjpListResponse.fromJson(
         json.decode(attendanceList!),
       );
@@ -193,7 +193,7 @@ class _MyPjpListState extends State<MyPjpManAListScreen> implements onResponse,o
       MaterialPageRoute(
           builder: (context) => AddNewPJPScreen(employeeId: employeeId, businessId: businessId, currentDate: DateTime.now(),)),
     );
-    //print('Response Received');
+    //debugPrint('Response Received');
 
     IntranetServiceHandler.loadPjpSummery(employeeId, 0,businessId, this);
   }
@@ -217,10 +217,10 @@ class _MyPjpListState extends State<MyPjpManAListScreen> implements onResponse,o
         for(int index=0;index<filter.filters.length;index++){
           if(filter.filters[index].isSelected){
             widget.mFilterSelection.filters.add(filter.filters[index]);
-            //print('--${filter.filters[index].name}');
+            //debugPrint('--${filter.filters[index].name}');
           }
         }
-        //print(filter.filters.toList());
+        //debugPrint(filter.filters.toList());
         IntranetServiceHandler.loadPjpSummery(employeeId, 0,businessId, this);
       }
     //Scaffold.of(context).showSnackBar(SnackBar(content: Text("$result"),duration: Duration(seconds: 3),));
@@ -232,7 +232,7 @@ class _MyPjpListState extends State<MyPjpManAListScreen> implements onResponse,o
         "assets/images/loading.gif",
       ),);
     }else  if (mPjpList.isEmpty) {
-      //print('PJP List not avaliable');
+      //debugPrint('PJP List not avaliable');
       return Utility.emptyDataSet(context,"your PJP list is Empty, Please plan your journey");
     }else  if (mPjpList.isEmpty && isInternet) {
 
@@ -549,13 +549,13 @@ class _MyPjpListState extends State<MyPjpManAListScreen> implements onResponse,o
       for(int index=0;index<filter.filters.length;index++){
         if(filter.filters[index].isSelected){
           widget.mFilterSelection.filters.add(filter.filters[index]);
-          //print(filter.filters[index].name);
+          //debugPrint(filter.filters[index].name);
         }
       }
-      //print(filter.filters.toList());
+      //debugPrint(filter.filters.toList());
       IntranetServiceHandler.loadPjpSummery(employeeId, 0,businessId, this);
     } else {
-      //print('Object not found ${result}');
+      //debugPrint('Object not found ${result}');
     }
   }
 
@@ -589,12 +589,12 @@ class _MyPjpListState extends State<MyPjpManAListScreen> implements onResponse,o
   void onSuccess(value) {
     Navigator.of(context).pop();
     isLoading = false;
-    print('PJP List onSuccess ');
+    debugPrint('PJP List onSuccess ');
     if(value is String){
       IntranetServiceHandler.loadPjpSummery(employeeId, 0,businessId, this);
     }else if(value is UpdatePJPStatusResponse){
       UpdatePJPStatusResponse val = value;
-      //print(val.toJson());
+      //debugPrint(val.toJson());
       if(val.responseData==0){
         //rejected
         Utility.getRejectionDialog(context, 'Rejected', 'The Pjp is rejected by you..', this);
@@ -602,19 +602,19 @@ class _MyPjpListState extends State<MyPjpManAListScreen> implements onResponse,o
         Utility.getConfirmationDialog(context, this);
       }
     }else if(value is PjpListResponse){
-      //print('PJP List onSuccess PjpListResponse');
+      //debugPrint('PJP List onSuccess PjpListResponse');
       PjpListResponse response = value;
-      //print(response.toString());
+      //debugPrint(response.toString());
       String json = jsonEncode(response);
       savePJPLocally(json);
-      //print('onResponse in if ${widget.mFilterSelection.type}');
+      //debugPrint('onResponse in if ${widget.mFilterSelection.type}');
       isLoading = false;
       mPjpList.clear();
-      //print('PJP List onSuccess ${response.responseData.toString()}');
+      //debugPrint('PJP List onSuccess ${response.responseData.toString()}');
       if(response.responseData!=null && response.responseData.length>0){
         if (response != null && response.responseData != null) {
           if (widget.mFilterSelection == null ||widget.mFilterSelection.type == FILTERStatus.MYTEAM) {
-            print(('FOR MY TEAM'));
+            debugPrint('FOR MY TEAM');
             //mPjpList.addAll(response.responseData);
             for (int index = 0;
             index < response.responseData.length;
@@ -630,7 +630,7 @@ class _MyPjpListState extends State<MyPjpManAListScreen> implements onResponse,o
               }
             }
           } else if (widget.mFilterSelection.type == FILTERStatus.MYSELF) {
-            print(('FOR MY SELF'));
+            debugPrint('FOR MY SELF');
             for (int index = 0;index < response.responseData.length;index++) {
               if (response.responseData[index].isSelfPJP == '1') {
                 if(response.responseData[index].ApprovalStatus=='Approved' || response.responseData[index].ApprovalStatus!='Pending')
@@ -638,7 +638,7 @@ class _MyPjpListState extends State<MyPjpManAListScreen> implements onResponse,o
               }
             }
           } else if (widget.mFilterSelection.type == FILTERStatus.NONE) {
-            print(('FOR MY CUSTOM TEAM'));
+            debugPrint('FOR MY CUSTOM TEAM');
             for (int index = 0;index < response.responseData.length;index++) {
               if (response.responseData[index].isSelfPJP == '0') {
                 if(response.responseData[index].ApprovalStatus=='Approved' || response.responseData[index].ApprovalStatus!='Pending')
@@ -646,7 +646,7 @@ class _MyPjpListState extends State<MyPjpManAListScreen> implements onResponse,o
               }
             }
           } else {
-            //print('In else');
+            //debugPrint('In else');
             for (int index = 0;index < response.responseData.length;index++) {
               for (int jIndex = 0;jIndex < widget.mFilterSelection.filters.length;jIndex++) {
                 if (response.responseData[index].displayName == widget.mFilterSelection.filters[jIndex].name) {
@@ -664,16 +664,16 @@ class _MyPjpListState extends State<MyPjpManAListScreen> implements onResponse,o
           });
           _isChecked = List<bool>.filled(mPjpList.length, false);
           //mPjpList.addAll(response.responseData);
-          //print('========================${mPjpList.length}');
-          //print(response.toJson());
+          //debugPrint('========================${mPjpList.length}');
+          //debugPrint(response.toJson());
           //mPjpList = mPjpList.reversed.toList();
 
         }
       }else{
-        //print('onResponse in if else');
+        //debugPrint('onResponse in if else');
       }
     }
-    print('length ${mPjpList.length}');
+    debugPrint('length ${mPjpList.length}');
     setState(() {
       //mPjpList.addAll(response.responseData);
     });
@@ -698,7 +698,7 @@ class _MyPjpListState extends State<MyPjpManAListScreen> implements onResponse,o
 
   @override
   void onClick(int action, value) {
-    //print('onClick called ${value}');
+    //debugPrint('onClick called ${value}');
     if(value is PJPInfo){
       PJPInfo pjpInfo = value;
       if(action==Utility.ACTION_OK){

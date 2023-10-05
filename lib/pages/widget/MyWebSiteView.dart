@@ -25,7 +25,7 @@ class MyWebsiteViewState extends State<MyWebsiteView> {
         name: 'Download',
         onMessageReceived: (JavascriptMessage message) {
           // ignore: deprecated_member_use
-          print('Download method calles........');
+          debugPrint('Download method calles........');
           /*Scaffold.of(context).showSnackBar(
             SnackBar(content: Text(message.message)),
           );*/
@@ -35,7 +35,7 @@ class MyWebsiteViewState extends State<MyWebsiteView> {
   @override
   void initState() {
     super.initState();
-    print(Uri.decodeFull(widget.url));
+    debugPrint(Uri.decodeFull(widget.url));
     // Enable hybrid composition.
     //if (Platform.isAndroid) WebView.platform = SurfaceAndroidWebView();
   }
@@ -69,12 +69,12 @@ class MyWebsiteViewState extends State<MyWebsiteView> {
             initialUrl: Uri.decodeFull(widget.url),
             javascriptMode: JavascriptMode.unrestricted,
             onWebViewCreated: (WebViewController webViewController) {
-              //print('FLWEB webview created....');
+              //debugPrint('FLWEB webview created....');
               _controller = webViewController;
               //_controller.complete(webViewController);
             },
             onProgress: (int progress) {
-              //print('FLWEB- WebView is loading (onProgress : $progress%)');
+              //debugPrint('FLWEB- WebView is loading (onProgress : $progress%)');
               if (progress >= 100 && !isUrlLoadingCompleted) {
                 setState(() {
                   isUrlLoadingCompleted = true;
@@ -89,20 +89,20 @@ class MyWebsiteViewState extends State<MyWebsiteView> {
               _toasterJavascriptChannel(context),
             },
             navigationDelegate: (NavigationRequest request) {
-              //print('FLWEB-allowing navigation to $request');
+              //debugPrint('FLWEB-allowing navigation to $request');
               return NavigationDecision.navigate;
             },
             onPageStarted: (String url) {
               //isUrlLoadingCompleted = false;
               //showLoaderDialog(context);
-              //print('FLWEB-Page started loading: $url');
+              //debugPrint('FLWEB-Page started loading: $url');
             },
             onPageFinished: (String url) {
-              //print('FLWEB-Page onPageFinished loading: $url');
+              //debugPrint('FLWEB-Page onPageFinished loading: $url');
             },
             onWebResourceError: (WebResourceError error) {
-              //print(error.toString());
-              //print('======');
+              //debugPrint(error.toString());
+              //debugPrint('======');
             },
             gestureNavigationEnabled: true,
             geolocationEnabled: true, // set geolocationEnable true or not

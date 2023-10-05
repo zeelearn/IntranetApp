@@ -277,11 +277,11 @@ class _AttendanceMarkingScreen extends State<AttendanceMarkingScreen> implements
         FromDT: DateFormat('yyyy-MM-ddTHH:mm:ss').format(parseDateTime('${_startDateController.text} ${_fromTimeController.text}')),
         ToDT: DateFormat('yyyy-MM-ddTHH:mm:ss').format(parseDateTime('${_startDateController.text} ${_toTimeController.text}')));
 
-  print(request.getJson());
+  debugPrint(request.getJson());
     APIService apiService = APIService();
     apiService.attendanceMarking(request).then((value) {
       Navigator.of(context).pop();
-      print(value);
+      debugPrint(value);
       if (value != null) {
         if (value == null ) {
           Utility.showMessage(context, 'Unable to Process your Request');
@@ -297,7 +297,7 @@ class _AttendanceMarkingScreen extends State<AttendanceMarkingScreen> implements
       } else {
         Navigator.pop(context);
         Utility.showMessage(context, "Unable to Apply Attendance Request");
-        print("null value");
+        debugPrint("null value");
       }
     });
   }
@@ -308,7 +308,7 @@ class _AttendanceMarkingScreen extends State<AttendanceMarkingScreen> implements
     //2022-07-18T00:00:00
     try {
       dt = new DateFormat('yyyy-MM-dd').parse(value);
-      //print('asasdi   ' + dt.day.toString());
+      //debugPrint('asasdi   ' + dt.day.toString());
     } catch (e) {
       e.toString();
     }
@@ -319,7 +319,7 @@ class _AttendanceMarkingScreen extends State<AttendanceMarkingScreen> implements
     //2022-07-18T00:00:00
     try {
       dt = new DateFormat('dd-MMM-yyyy hh:mm a').parse(value);
-      //print('asasdi   ' + dt.day.toString());
+      //debugPrint('asasdi   ' + dt.day.toString());
     } catch (e) {
       e.toString();
     }

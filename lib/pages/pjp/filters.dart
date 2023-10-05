@@ -40,13 +40,13 @@ class _FiltersScreenState extends State<FiltersScreen> {
     EmployeeListRequest request = EmployeeListRequest(SuperiorId: widget.employeeId);
     APIService apiService = APIService();
     apiService.getEmployeeListPJP(request).then((value) {
-      print(' value is ${value.toString()}');
+      debugPrint(' value is ${value.toString()}');
       if (value != null) {
         if (value == null || value.responseData == null) {
-          print('value is nill');
+          debugPrint('value is nill');
           Utility.showMessage(context, 'data not found');
         } else if (value is EmployeeListPJPResponse) {
-          print('value is in object');
+          debugPrint('value is in object');
           EmployeeListPJPResponse response = value;
           if (response != null && response.responseData != null) {
             _selection.filters.clear();
@@ -55,9 +55,9 @@ class _FiltersScreenState extends State<FiltersScreen> {
             }
             setState(() {});
           }
-          print('summery list ${_selection.filters.length}');
+          debugPrint('summery list ${_selection.filters.length}');
         } else {
-          print('value is null');
+          debugPrint('value is null');
           Utility.showMessage(context, 'data not found');
         }
       }
@@ -162,7 +162,7 @@ class _FiltersScreenState extends State<FiltersScreen> {
 
   getFilterListView() {
     if (_selection.filters.isEmpty) {
-      print('PJP List not available');
+      debugPrint('PJP List not available');
       return Utility.emptyDataSet(context,"Filters are not avaliable");
     } else {
       return getListView();
@@ -203,7 +203,7 @@ class _FiltersScreenState extends State<FiltersScreen> {
   }
 
   void itemChange(bool val, int index) {
-    print('INDEX ${index}');
+    debugPrint('INDEX ${index}');
     setState(() {
       if(index==-1){
         _selection.type = FILTERStatus.MYSELF;
@@ -223,7 +223,7 @@ class _FiltersScreenState extends State<FiltersScreen> {
             _selection.filters[index].isSelected = val;
           }
       }else {
-        print('in else');
+        debugPrint('in else');
         _selection.type = FILTERStatus.CUSTOM;
         _selection.filters[index].isSelected = val;
       }

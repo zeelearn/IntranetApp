@@ -44,7 +44,7 @@ class _NotificationListScreenState extends State<NotificationListScreen>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    print('didChangeAppLifecycleState ${state} ');
+    debugPrint('didChangeAppLifecycleState ${state} ');
     if (state == AppLifecycleState.resumed) {
       getNotifications();
     }
@@ -62,7 +62,7 @@ class _NotificationListScreenState extends State<NotificationListScreen>
           message = message.replaceAll("}", "\"}");
           message = message.replaceAll(":", "\":\"");
           message = message.replaceAll(", ", "\",\"");
-          //print(message);
+          //debugPrint(message);
           var json = jsonDecode(message);
           notificationList[index].type=json['type'];
         }
@@ -72,12 +72,12 @@ class _NotificationListScreenState extends State<NotificationListScreen>
             notificationList[index].type.trim() == 'Leave' ||
             notificationList[index].type.trim() == 'LVREQ') {
           String message = notificationList[index].message;
-          //print(message);
+          //debugPrint(message);
           message = message.replaceAll("{", "{\"");
           message = message.replaceAll("}", "\"}");
           message = message.replaceAll(":", "\":\"");
           message = message.replaceAll(", ", "\",\"");
-          //print(message);
+          //debugPrint(message);
           try {
             var json = jsonDecode(message);
             String time = notificationList[index].time == '' ||
@@ -85,7 +85,7 @@ class _NotificationListScreenState extends State<NotificationListScreen>
                 ? 'NA'
                 : getParsedShortDate(notificationList[index].time);
 
-            //print('decode ${json}');
+            //debugPrint('decode ${json}');
             mNotificationList.add(
                 NotificationDataModel(message: json['message'],
                     title: json['title'],
@@ -99,7 +99,7 @@ class _NotificationListScreenState extends State<NotificationListScreen>
                 ? 'NA'
                 : getParsedShortDate(notificationList[index].time);
 
-            //print('decode ${json}');
+            //debugPrint('decode ${json}');
             mNotificationList.add(
                 NotificationDataModel(message: notificationList[index].message,
                     title: notificationList[index].title,
@@ -109,20 +109,20 @@ class _NotificationListScreenState extends State<NotificationListScreen>
                     time: time));
           }
 
-          //print(json['message']);
+          //debugPrint(json['message']);
         } else if (notificationList[index].type.trim() == 'promo' ||
             notificationList[index].title.contains('URL')) {
           String message = notificationList[index].message;
-          print('message is '+message);
+          debugPrint('message is '+message);
           message = message.replaceAll("{", "{\"");
           message = message.replaceAll("}", "\"}");
           message = message.replaceAll(":", "\":\"");
           message = message.replaceAll(", ", "\",\"");
           message = message.replaceAll("\"", "");
           //message = message.replaceAll("https://", "____");
-          print('message was '+message);
+          debugPrint('message was '+message);
           var json = jsonDecode(message);
-          print(mNotificationList[index].image);
+          debugPrint(mNotificationList[index].image);
           String time = notificationList[index].time=='' || notificationList[index].time ==null ? 'NA' :  getParsedShortDate(notificationList[index].time);
           mNotificationList.add(NotificationDataModel(message: json['message'],
               title: json['title'],
@@ -134,7 +134,7 @@ class _NotificationListScreenState extends State<NotificationListScreen>
           mNotificationList.add(notificationList[index]);
         }
       }catch(e){
-        print(e.toString());
+        debugPrint(e.toString());
       }
     }
 
@@ -152,7 +152,7 @@ class _NotificationListScreenState extends State<NotificationListScreen>
     //2022-09-27T32:12:02
     try {
       dt = new DateFormat('yyyy-MM-dd\'T\'HH:mm:ss').parse(value);
-      //print('asasdi   ' + dt.day.toString());
+      //debugPrint('asasdi   ' + dt.day.toString());
     } catch (e) {
       e.toString();
     }
@@ -225,7 +225,7 @@ class _NotificationListScreenState extends State<NotificationListScreen>
 
   getNotificationListView() {
     if (mNotificationList == null || mNotificationList.length <= 0) {
-      print('data not found');
+      debugPrint('data not found');
       return Utility.emptyDataSet(context,"Notification tray is Empty");
     } else {
       mNotificationList = mNotificationList.reversed.toList();

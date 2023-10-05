@@ -291,7 +291,7 @@ class _LoginPage extends State<LoginPage> {
               onPressed: () {
                 setState(
                       () {
-                        print('password visibility ${passwordVisible}');
+                        debugPrint('password visibility ${passwordVisible}');
                     passwordVisible = !passwordVisible;
                   },
                 );
@@ -357,7 +357,7 @@ class _LoginPage extends State<LoginPage> {
       //loginRequestModel.User_Password = 'Niharika#123';
       APIService apiService = APIService();
       apiService.login(loginRequestModel).then((value) {
-        print(value.toString());
+        debugPrint(value.toString());
         if (value != null) {
           setState(() {
             isApiCallProcess = false;
@@ -409,7 +409,7 @@ class _LoginPage extends State<LoginPage> {
 
               FirebaseAnalyticsUtils.sendEvent(info.userName);
               hive.put(LocalConstant.KEY_LOGIN_RESPONSE, jsonEncode(value));
-              print('========Login Form ====== ${jsonEncode(value)}');
+              debugPrint('========Login Form ====== ${jsonEncode(value)}');
               Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -423,7 +423,7 @@ class _LoginPage extends State<LoginPage> {
         } else {
           Navigator.pop(context);
           Utility.showMessage(context, "Invalid User Name and Password");
-          print("null value");
+          debugPrint("null value");
         }
       });
 

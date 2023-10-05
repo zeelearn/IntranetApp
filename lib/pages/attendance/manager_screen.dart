@@ -54,7 +54,7 @@ class _AttendanceManagerScreen extends State<AttendanceManagerScreen>
     super.initState();
     getUserInfo();
     _tabController.addListener(() {
-      print('my index is' + _tabController.index.toString());
+      debugPrint('my index is' + _tabController.index.toString());
       setState(() {
         loadAcquisition();
       });
@@ -221,13 +221,13 @@ class _AttendanceManagerScreen extends State<AttendanceManagerScreen>
   }
 
   getAttendanceListView() {
-    print('getAttenadnceView');
+    debugPrint('getAttenadnceView');
     if(isLoading){
       return Center(child: Image.asset(
         "assets/images/loading.gif",
       ),);
     }else if (requisitionList == null || requisitionList.length <= 0) {
-      print('data not found');
+      debugPrint('data not found');
       return Utility.emptyDataSet(context,"Attendance Requisition request are not available");
     } else {
       return Column(
@@ -250,7 +250,7 @@ class _AttendanceManagerScreen extends State<AttendanceManagerScreen>
   }
 
   loadAcquisition() {
-    print('loadAcquisition');
+    debugPrint('loadAcquisition');
     isLoading =true;
     //Utility.showLoaderDialog(context);
     DateTime selectedDate = DateTime.now();
@@ -301,18 +301,15 @@ class _AttendanceManagerScreen extends State<AttendanceManagerScreen>
   }
 
   getSelectedModels(int isApprove,int start) {
-    //ApproveLeaveRequsitionRequest request = ApproveLeaveRequsitionRequest();
     late var jsonValue="[";
     if (_isChecked != null && _isChecked.length > 0) {
       String token="";
-      print(isApprove);
       for (int index = start; index < _isChecked.length; index++) {
         if(_isChecked[index]) {
           String data = "{'Requisition_Id': ${requisitionList[index]
               .requisitionId.toInt()
               .toString()},'Is_Approved': ${isApprove}}";
           jsonValue = jsonValue + token + ' ' + data;
-          //list.add(request);
           token = ",";
         }
 
@@ -366,7 +363,7 @@ class _AttendanceManagerScreen extends State<AttendanceManagerScreen>
 
     DBHelper dbHelper = DBHelper();
     for(int index=0;index<_isChecked.length;index++) {
-      print('Data isnerting ${index}');
+      debugPrint('Data isnerting ${index}');
       var list = getSelectedModels(isApprove, (index * 50));
       if(list!=null && list.toString().trim().isNotEmpty && list.toString()!='[]') {
         String xml = "{'root': {'subroot': ${list}}";
@@ -385,7 +382,7 @@ class _AttendanceManagerScreen extends State<AttendanceManagerScreen>
 
     String xml ="{'root': {'subroot': ${list}}";
     ApproveLeaveRequestManager request = ApproveLeaveRequestManager(xml: xml, userId: widget.employeeId.toString(), index: 0, actionType: 'ATTAN_MAN',);
-    print('request'+request.toJson().toString());
+    debugPrint('request'+request.toJson().toString());
 
     *//*ApproveAttendanceMarking request = new ApproveAttendanceMarking(
         Requisition_Id: reqid.toString(),
@@ -393,7 +390,7 @@ class _AttendanceManagerScreen extends State<AttendanceManagerScreen>
         Is_Approved: isApprove.toString());*//*
     APIService apiService = APIService();
     apiService.approveAttendance(request).then((value) {
-      print(value.toString());
+      debugPrint(value.toString());
       Navigator.of(context).pop();
       if (value != null) {
         if (value == null || value.responseData == null) {
@@ -571,7 +568,7 @@ class _AttendanceManagerScreen extends State<AttendanceManagerScreen>
 
     try {
       dt = new DateFormat('yyyy-MM-dd\'T\'HH:mm:ss').parse(value);
-      //print('${value}   ' + dt.day.toString());
+      //debugPrint('${value}   ' + dt.day.toString());
     } catch (e) {
       e.toString();
     }
@@ -580,9 +577,9 @@ class _AttendanceManagerScreen extends State<AttendanceManagerScreen>
 
   String getParsedShortDate(String value) {
     DateTime dateTime = parseDate(value);
-    //print(value);
+    //debugPrint(value);
     String parsedDate =  DateFormat("MMM-dd").format(dateTime);
-    //print('Original ${value} parsed ${parsedDate}');
+    //debugPrint('Original ${value} parsed ${parsedDate}');
     return parsedDate;
   }
 

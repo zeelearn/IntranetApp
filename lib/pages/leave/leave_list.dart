@@ -59,7 +59,7 @@ class _LeaveSummeryScreenState extends State<LeaveSummeryScreen>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    print('didChangeAppLifecycleState ${state} ');
+    debugPrint('didChangeAppLifecycleState ${state} ');
     if (state == AppLifecycleState.resumed) {
       getUserInfo();
     }
@@ -88,9 +88,9 @@ class _LeaveSummeryScreenState extends State<LeaveSummeryScreen>
     bool isLoad = false;
     try {
       isLoading = false;
-      print(data.toString());
+      debugPrint(data.toString());
       Map<String,dynamic> jsonObject  = json.decode(data.toString());
-      print('json decode');
+      debugPrint('json decode');
       LeaveBalanceResponse response = LeaveBalanceResponse.fromJson(
         json.decode(data!),
       );
@@ -115,10 +115,10 @@ class _LeaveSummeryScreenState extends State<LeaveSummeryScreen>
     bool isLoad = false;
     try {
       isLoading = false;
-      print(data.toString());
+      debugPrint(data.toString());
       leaveRequisitionList.clear();
       Map<String,dynamic> jsonObject  = json.decode(data.toString());
-      print('json decode');
+      debugPrint('json decode');
       LeaveRequisitionResponse response = LeaveRequisitionResponse.fromJson(
         json.decode(data!),
       );
@@ -148,7 +148,7 @@ class _LeaveSummeryScreenState extends State<LeaveSummeryScreen>
     //loginRequestModel.User_Password = 'Niharika#123';
     APIService apiService = APIService();
     apiService.LeaveBalance(request).then((value) {
-      print(value.toString());
+      debugPrint(value.toString());
       isLoading = false;
       if (value != null) {
         if (value == null || value.responseData == null) {
@@ -171,7 +171,7 @@ class _LeaveSummeryScreenState extends State<LeaveSummeryScreen>
             widget._totalLeaveBalance = info.leaveBalance.toInt().toString();
             setState(() {});
           }
-          print('summery list ${response.responseData.length}');
+          debugPrint('summery list ${response.responseData.length}');
         } else {
           Utility.showMessage(context, 'data not found');
         }
@@ -213,7 +213,7 @@ class _LeaveSummeryScreenState extends State<LeaveSummeryScreen>
 
     APIService apiService = APIService();
     apiService.LeaveRequisition(request).then((value) {
-      //print(value.toString());
+      //debugPrint(value.toString());
       isLoading = false;
       if (value != null) {
         if (value == null || value.responseData == null) {
@@ -226,7 +226,7 @@ class _LeaveSummeryScreenState extends State<LeaveSummeryScreen>
             leaveRequisitionList.addAll(response.responseData);
             setState(() {});
           }
-          print('leave list ${response.responseData.length}');
+          debugPrint('leave list ${response.responseData.length}');
         } else {
           Utility.showMessage(context, 'data not found');
         }
@@ -351,7 +351,7 @@ class _LeaveSummeryScreenState extends State<LeaveSummeryScreen>
         "assets/images/loading.gif",
       ),);
     }else if (leaveRequisitionList == null || leaveRequisitionList.length <= 0) {
-      print('data not found');
+      debugPrint('data not found');
       return Utility.emptyDataSet(context,"Leave Requisition are not available");
     } else {
       return Flexible(
@@ -489,7 +489,7 @@ class _LeaveSummeryScreenState extends State<LeaveSummeryScreen>
     //2022-07-18T00:00:00
     try {
       dt = new DateFormat('yyyy-MM-dd\'T\'HH:mm:ss').parse(value);
-      //print('asasdi   ' + dt.day.toString());
+      //debugPrint('asasdi   ' + dt.day.toString());
     } catch (e) {
       e.toString();
     }

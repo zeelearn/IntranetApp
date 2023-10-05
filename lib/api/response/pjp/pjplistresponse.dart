@@ -1,5 +1,7 @@
 
 
+import 'package:flutter/cupertino.dart';
+
 class PjpListResponse {
   late String responseMessage;
   late int statusCode;
@@ -26,7 +28,7 @@ class PjpListResponse {
         responseData.add(PJPInfo.fromJson(json['responseData']));
       }
     } catch (e) {
-      print(e.toString());
+      debugPrint(e.toString());
     }
   }
 
@@ -201,7 +203,7 @@ class GetDetailedPJP implements Comparable<GetDetailedPJP>{
         }
       }
     } catch (e) {
-      print(e.toString());
+      debugPrint(e.toString());
     }
   }
 

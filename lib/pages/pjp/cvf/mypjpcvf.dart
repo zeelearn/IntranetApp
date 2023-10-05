@@ -40,7 +40,7 @@ class _MyCVFListScreen extends State<MyPJPCVFListScreen> implements onResponse {
   void initState() {
     // TODO: implement initState
     super.initState();
-    print('mupjpcvf--------------------------');
+    debugPrint('mupjpcvf--------------------------');
     Future.delayed(Duration.zero, () {
       this.getUserInfo();
     });
@@ -122,7 +122,7 @@ class _MyCVFListScreen extends State<MyPJPCVFListScreen> implements onResponse {
   }
 
   getCVFListView() {
-    //print(widget.mPjpInfo.toJson());
+    //debugPrint(widget.mPjpInfo.toJson());
     if (widget.mPjpInfo.getDetailedPJP!.isEmpty) {
       return GestureDetector(
         onTap: () {
@@ -171,7 +171,7 @@ class _MyCVFListScreen extends State<MyPJPCVFListScreen> implements onResponse {
   getView(GetDetailedPJP cvfView) {
     return GestureDetector(
       onTap: () {
-        //print('status clicked ${cvfView.Status}');
+        //debugPrint('status clicked ${cvfView.Status}');
         if (cvfView.Status == 'Check In' || cvfView.Status == ' Check In' || cvfView.Status == 'NA') {
           Utility.showMessage(context, 'Please Click on Check In button');
         } else {
@@ -288,7 +288,7 @@ class _MyCVFListScreen extends State<MyPJPCVFListScreen> implements onResponse {
   }
 
   getview(final GetDetailedPJP cvfView) {
-    //print(cvfView.Status);
+    //debugPrint(cvfView.Status);
     return Column(
       mainAxisSize: MainAxisSize.max,
       children: [
@@ -513,7 +513,7 @@ class _MyCVFListScreen extends State<MyPJPCVFListScreen> implements onResponse {
             TextButton(
               child: Text('Confirm'),
               onPressed: () {
-                //print('Confirmed');
+                //debugPrint('Confirmed');
 
                 Navigator.of(context).pop();
 
@@ -643,15 +643,15 @@ class _MyCVFListScreen extends State<MyPJPCVFListScreen> implements onResponse {
   }
 
   loadPjpSummery() {
-    print('loadPjpSummery mycvf 642');
+    debugPrint('loadPjpSummery mycvf 642');
     Utility.showLoaderDialog(context);
     List<PJPInfo> pjpList = [];
     PJPListRequest request = PJPListRequest(
         Employee_id: employeeId, PJP_id: int.parse(widget.mPjpInfo.PJP_Id), Business_id: businessId);
     APIService apiService = APIService();
-    //print(request.toJson());
+    //debugPrint(request.toJson());
     apiService.getPJPList(request).then((value) {
-      //print(value.toString());
+      //debugPrint(value.toString());
       if (value != null) {
         if (value == null || value.responseData == null) {
           Utility.showMessage(context, 'data not found');
@@ -687,7 +687,7 @@ class _MyCVFListScreen extends State<MyPJPCVFListScreen> implements onResponse {
                 mPjpModel: widget.mPjpInfo,
               )),
     );
-    print('Response Received');
+    debugPrint('Response Received');
     //loadPjpSummery();
     isNavigate = true;
     IntranetServiceHandler.loadPjpSummery(
@@ -714,7 +714,7 @@ class _MyCVFListScreen extends State<MyPJPCVFListScreen> implements onResponse {
           employeeId, int.parse(widget.mPjpInfo.PJP_Id),businessId, this);
     } else if (value is PjpListResponse) {
       PjpListResponse response = value;
-      print('onResponse in if ');
+      debugPrint('onResponse in if ');
       if (response.responseData != null && response.responseData.length > 0) {
         widget.mPjpInfo.getDetailedPJP!.clear();
         for (int index = 0; index < response.responseData.length; index++) {
@@ -728,7 +728,7 @@ class _MyCVFListScreen extends State<MyPJPCVFListScreen> implements onResponse {
           isNavigate=false;
         }
       } else {
-        print('onResponse in if else');
+        debugPrint('onResponse in if else');
       }
     }
   }

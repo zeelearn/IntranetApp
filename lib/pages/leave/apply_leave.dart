@@ -319,7 +319,7 @@ int _groupValue=0;
     //2022-07-18T00:00:00
     try {
       dt = new DateFormat('dd-MMM-yyyy').parse(value);
-      //print('asasdi   ' + dt.day.toString());
+      //debugPrint('asasdi   ' + dt.day.toString());
     } catch (e) {
       e.toString();
     }
@@ -343,7 +343,7 @@ int _groupValue=0;
         noofChildren: "0",
         AppType :Platform.isAndroid ? 'Android' : Platform.isIOS ? 'IOS' : 'unknown',
         WorkLocation: "",IsHappinessLeave: isHappinessLeave);
-    print(request.toJson());
+    debugPrint(request.toJson().toString());
     APIService apiService = APIService();
     apiService.applyLeave(request).then((value) {
       Navigator.of(context).pop();
@@ -358,7 +358,7 @@ int _groupValue=0;
       } else {
         Navigator.pop(context);
         Utility.showMessage(context, "Unable to Apply Leave Request");
-        print("null value");
+        debugPrint("null value");
       }
     });
   }
@@ -368,7 +368,7 @@ int _groupValue=0;
     //2022-07-18T00:00:00
     try {
       dt = new DateFormat('yyyy-MM-dd').parse(value);
-      //print('asasdi   ' + dt.day.toString());
+      //debugPrint('asasdi   ' + dt.day.toString());
     } catch (e) {
       e.toString();
     }

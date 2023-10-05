@@ -76,7 +76,7 @@ class _MyReportScreenState extends State<MyReportsScreen>
 
   getListView() {
     if (mReportList == null || mReportList.length <= 0) {
-      print('data not found');
+      debugPrint('data not found');
       return Utility.emptyDataSet(context,"Reports are not avaliable");
     } else {
       return ListView.builder(

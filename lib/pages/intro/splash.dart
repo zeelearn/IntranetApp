@@ -34,14 +34,14 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   void navigate() async{
-    print("-------init---=-=-=-=-=-=-");
+    debugPrint("-------init---=-=-=-=-=-=-");
     var box = await Utility.openBox();
 
     String displayName = '';
     String userName = '';
     String mobileNumber = '';
     String currentBusinessName = '';
-    print('navigate');
+    debugPrint('navigate');
     if(box.get(LocalConstant.KEY_FIRST_NAME)!=null) {
       displayName = box.get(LocalConstant.KEY_FIRST_NAME) as String;
       userName = box.get(LocalConstant.KEY_FIRST_NAME) as String;
@@ -50,8 +50,8 @@ class _SplashScreenState extends State<SplashScreen> {
     if(box.get(LocalConstant.KEY_BUSINESS_NAME)!=null) {
       currentBusinessName = box.get(LocalConstant.KEY_BUSINESS_NAME).toString();
     }
-    print(userName);
-    print(currentBusinessName);
+    debugPrint(userName);
+    debugPrint(currentBusinessName);
       if(displayName != '') {
           Timer(
               Duration(seconds: 4),
@@ -62,13 +62,13 @@ class _SplashScreenState extends State<SplashScreen> {
                         currentBusinessName==null || currentBusinessName.isEmpty ? LoginPage(isAutoLogin: true,) : IntranetHomePage(userId: '',)),
                   ));
       }else {
-        print(' in else');
+        debugPrint(' in else');
         if (kIsWeb) {
           Navigator.of(context).pushReplacement(MaterialPageRoute(
               builder: (BuildContext context) => LoginPage(isAutoLogin: false,)));
         } else {
           //IntroPage
-          print('intro');
+          debugPrint('intro');
           Timer(
               Duration(seconds: 4),
                   () =>

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:flutter/cupertino.dart';
 import 'package:intranet/pages/helper/utils.dart';
 import 'package:intranet/pages/model/NotificationDataModel.dart';
 import 'package:intranet/pages/pjp/models/PJPCenterDetails.dart';
@@ -208,7 +209,7 @@ class DBHelper {
           db.execute(CREATE_TABLE_BACKGROUND_SYNC);
         },
         onUpgrade: (db,old,newversion){
-            print('Database Upgrade-------------------');
+            debugPrint('Database Upgrade-------------------');
             if(old<=3)
               db.execute(CREATE_TABLE_NOTIFICATION);
             if(old==4){
@@ -303,7 +304,7 @@ class DBHelper {
   //Update Data
   Future<int> updateData(String table,Map<String, Object> data,String condition,List<Object?>? whereArgs) async {
     final dbClient = await db;
-    print(condition + whereArgs.toString());
+    debugPrint(condition + whereArgs.toString());
     return dbClient.update(table, data,where: condition,whereArgs: whereArgs);
 
   }
@@ -354,7 +355,7 @@ class DBHelper {
       DBConstant.IS_SYNC: isSync,
       'date': Utility.parseDate(DateTime.now()),
     };
-    print(data.toString());
+    debugPrint(data.toString());
     await dbclient.insert(LocalConstant.TABLE_CHECKIN, data);
   }
 
@@ -372,8 +373,8 @@ class DBHelper {
 
 
   Future<void> insertCVFQuestions(String cvfid,String categoryId,String json,int isSync) async{
-    print('insert question=================');
-    print(json);
+    debugPrint('insert question=================');
+    debugPrint(json);
     var dbclient = await db;
     Map<String, Object> data = {
       '${DBConstant.CVF_ID}': cvfid,
@@ -394,7 +395,7 @@ class DBHelper {
           .IS_SYNC} = \'${isSync}\' ,${DBConstant.MODIFIED_DATE} = \'${Utility
           .parseDate(DateTime.now())}\'   where ${DBConstant.CVF_ID}=${cvfId} and ${DBConstant.CATEGORY_ID}=${categoryId}');
     }catch(e){
-      print(e.toString());
+      debugPrint(e.toString());
     }
   }
 
@@ -406,12 +407,11 @@ class DBHelper {
   Future<QuestionResponse> getQuestions(String cvfId,String categoryName,String categoryId) async {
     QuestionResponse response = QuestionResponse(responseMessage: '', statusCode: 200, responseData: []);
     List<Map<String, dynamic>> list = await  DBHelper().getQuestionMasterList(LocalConstant.TABLE_CVF_QUESTION_JSON,categoryId);
-    print('${categoryId} getQuestinos ${list}');
+    debugPrint('${categoryId} getQuestinos ${list}');
     if(list !=null){
       for(int index=0;index<list.length;index++) {
         Map<String, dynamic> map = list[index];
         //if(cvfId==map[DBConstant.CVF_ID].toString().trim()){
-          print('trying to decode ${json.decode(map[DBConstant.QUESTION])}');
           try {
             response = QuestionResponse.fromJson(
               json.decode(map[DBConstant.QUESTION].toString()),
@@ -422,16 +422,14 @@ class DBHelper {
               json.decode(obj),
             );
           }
-
-          print('decode123123 ${response.toJson()}');
           //notificaitonList.add(NotificationDataModel(message: map['data'], title: map['title'], image: map['imageurl'], URL: '', type: map['type'],time:time));
         /*}else{
-          print('not match');
+          debugPrint('not match');
         }*/
 
       }
     }else{
-      print('getQuestionsList list is null');
+      debugPrint('getQuestionsList list is null');
     }
     return response;
   }
@@ -443,7 +441,6 @@ class DBHelper {
       for(int index=0;index<list.length;index++) {
         Map<String, dynamic> map = list[index];
         if(cvfId==map[DBConstant.CVF_ID].toString().trim()){
-          print('trying to decode ${json.decode(map[DBConstant.QUESTION])}');
           try {
             response = QuestionResponse.fromJson(
               json.decode(map[DBConstant.QUESTION].toString()),
@@ -454,16 +451,13 @@ class DBHelper {
               json.decode(obj),
             );
           }
-
-          print('decode123123 ${response.toJson()}');
-          //notificaitonList.add(NotificationDataModel(message: map['data'], title: map['title'], image: map['imageurl'], URL: '', type: map['type'],time:time));
         }else{
-          print('not match');
+          debugPrint('not match');
         }
 
       }
     }else{
-      print('getQuestionsList list is null');
+      debugPrint('getQuestionsList list is null');
     }
     return response;
   }
@@ -473,7 +467,6 @@ class DBHelper {
     List<ApproveLeaveRequestManager> unSyncList =[];
     List<Map<String, dynamic>> list = await  DBHelper().getData(LocalConstant.TABLE_DATA_SYNC);
     if(list !=null){
-      print('getQuestionsList list is not empty ${list.length}');
       for(int index=0;index<list.length;index++) {
         Map<String, dynamic> map = list[index];
         if(map[DBConstant.IS_SYNC]==0) {
@@ -482,7 +475,7 @@ class DBHelper {
         }
       }
     }else{
-      print('getQuestionsList list is null');
+      debugPrint('getQuestionsList list is null');
     }
     return unSyncList;
   }
@@ -495,10 +488,9 @@ class DBHelper {
       for(int index=0;index<list.length;index++) {
         Map<String, dynamic> map = list[index];
         mMap.putIfAbsent(map[DBConstant.CVF_ID].toString(), () => map[DBConstant.STATE]);
-        print('${map[DBConstant.CVF_ID]} '+map[DBConstant.STATE]);
       }
     }else{
-      print('offline status not found');
+      debugPrint('offline status not found');
     }
     return mMap;
   }
@@ -510,7 +502,6 @@ class DBHelper {
     if(list !=null){
       for(int index=0;index<list.length;index++) {
         Map<String, dynamic> map = list[index];
-        print(map[DBConstant.CVF_ID].toString()+'  '+map[DBConstant.IS_SYNC].toString());
         if(map[DBConstant.IS_SYNC]==0) {
           modelList.add(CheckInModel(id : map['id'],cvfId: map[DBConstant.CVF_ID].toString(),
               body: map['body'].toString(),
@@ -528,10 +519,9 @@ class DBHelper {
 
     List<Map<String, dynamic>> list = await  DBHelper().getData(LocalConstant.TABLE_NOTIFICATION);
     if(list !=null){
-      //print('----${list.length}');
       for(int index=0;index<list.length;index++) {
         Map<String, dynamic> map = list[index];
-        //print('date is  ${map['date']}');
+        //debugPrint('date is  ${map['date']}');
         String time = '';
         if(map['date'] != null){
           time = map['date'];
@@ -549,10 +539,8 @@ class DBHelper {
         await dbclient.rawQuery("SELECT COUNT(*) FROM ${LocalConstant.TABLE_CVF_USER_ANSWERAS} WHERE ${DBConstant.CVF_ID}=$cvfid and ${DBConstant.QUESTION_ID}=${quid}"));
     if(count!>0){
       //update
-      print('update');
       await dbclient.rawUpdate('update ${LocalConstant.TABLE_CVF_USER_ANSWERAS} set ${DBConstant.USER_ANSWER} = \'${useranswer}\'  where ${DBConstant.CVF_ID}=${cvfid} and ${DBConstant.QUESTION_ID}=${quid}');
     }else{
-      print('insert');
       //insert
       Map<String, Object> data = {
         DBConstant.CREATED_DATE: Utility.parseDate(DateTime.now()),
@@ -572,7 +560,6 @@ class DBHelper {
 
     List<Map<String, dynamic>> list = await  DBHelper().getData(LocalConstant.TABLE_PJP_INFO);
     if(list !=null){
-      print('----${list.length}');
       for(int index=0;index<list.length;index++) {
         Map<String, dynamic> map = list[index];
         pjpList.add(PJPModel(pjpId: map[DBConstant.ID],
@@ -601,7 +588,7 @@ class DBHelper {
 
     List<Map<String, dynamic>> list = await  DBHelper().getData(LocalConstant.TABLE_CVF_USER_ANSWERAS);
     if(list !=null){
-      print('----${list.length}');
+      debugPrint('----${list.length}');
       for(int index=0;index<list.length;index++) {
         Map<String, dynamic> map = list[index];
         if(map[DBConstant.CVF_ID] == cvfId)
@@ -632,7 +619,7 @@ class DBHelper {
             isNotify: map[DBConstant.IS_NOTIFY] ==1 ? true : false,
             isCompleted: map[DBConstant.IS_CVF_COMPLETED] ==1 ? true : false,
             createdDate: Utility.convertDate(map[DBConstant.CREATED_DATE]), modifiedDate: Utility.convertDate(map[DBConstant.MODIFIED_DATE])));*/
-        print(map.toString());
+        debugPrint(map.toString());
       }
 
     }
@@ -643,11 +630,11 @@ class DBHelper {
     List<FranchiseeInfo> frichiseeList = [];
 
     List<Map<String, dynamic>> list = await  DBHelper().getData(LocalConstant.TABLE_CVF_FRANCHISEE);
-    print('list franchisee ${list}');
+    debugPrint('list franchisee ${list}');
     if(list !=null){
       for(int index=0;index<list.length;index++) {
         Map<String, dynamic> map = list[index];
-        print(' NAME ${map[DBConstant.FRANCHISEE_NAME]} business ${map[DBConstant.BUSINESS_ID]}  ${businessId}');
+        debugPrint(' NAME ${map[DBConstant.FRANCHISEE_NAME]} business ${map[DBConstant.BUSINESS_ID]}  ${businessId}');
         if(map[DBConstant.BUSINESS_ID] == businessId) {
           frichiseeList.add(FranchiseeInfo(franchiseeId: double.parse(
               map[DBConstant.FRANCHISEE_ID].toString()),

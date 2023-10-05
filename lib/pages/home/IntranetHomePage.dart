@@ -130,7 +130,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
       );
       APIService apiService = APIService();
       apiService.login(loginRequestModel).then((value) {
-        print(value.toString());
+        debugPrint(value.toString());
         if (value != null) {
           setState(() {
             //isApiCallProcess = false;
@@ -186,7 +186,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
                 hive.put(LocalConstant.KEY_BUSINESS_ID,
                     value.responseData.businessApplications[0].businessID);
               }catch(e){}
-              print('========Login Form ====== ${jsonEncode(value)}');
+              debugPrint('========Login Form ====== ${jsonEncode(value)}');
               getLoginResponse();
             }
           }
@@ -197,7 +197,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
         } else {
           Navigator.pop(context);
           //Utility.showMessage(context, "Invalid User Name and Password");
-          print("null value");
+          debugPrint("null value");
         }
       });
 
@@ -207,17 +207,17 @@ class _IntranetHomePageState extends State<IntranetHomePage>
   }
 
   getLoginResponse() async {
-    print('in Login Response ================');
+    debugPrint('in Login Response ================');
     businessApplications.clear();
     hiveBox = await Utility.openBox();
     await Hive.openBox(LocalConstant.KidzeeDB);
     var loginresponse = hiveBox.get(LocalConstant.KEY_LOGIN_RESPONSE);
-      print('login Response is : '+loginresponse);
+      debugPrint('login Response is : '+loginresponse);
     try {
       LoginResponseModel response = LoginResponseModel.fromJson(
         json.decode(loginresponse),
       );
-      print('response received.....');
+      debugPrint('response received.....');
       if (response != null && response.responseData.businessApplications != null)
         businessApplications.addAll(response.responseData.businessApplications);
       if(_currentBusinessName.isNotEmpty && businessApplications!=null && businessApplications.length>0){
@@ -225,8 +225,8 @@ class _IntranetHomePageState extends State<IntranetHomePage>
       }
       setState(() {});
     }catch(e){
-      print('Error in getting login response');
-      print(e.toString());
+      debugPrint('Error in getting login response');
+      debugPrint(e.toString());
       //IntranetServiceHandler.loadPjpSummery(employeeId, 0, this);
     }
   }
@@ -280,11 +280,11 @@ class _IntranetHomePageState extends State<IntranetHomePage>
   void initState() {
     WidgetsBinding.instance?.addObserver(this);
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-      print('message received');
-      print(message.toString());
+      debugPrint('message received');
+      debugPrint(message.toString());
     });
     super.initState();
-    print('initstate ======================');
+    debugPrint('initstate ======================');
     _selectedDay = _focusedDay;
     _selectedEvents = ValueNotifier(_getEventsForDay(_selectedDay!));
     //addEvent();
@@ -383,7 +383,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
 
   void _handleMessage(RemoteMessage message) {
     if (message.data['type'] == 'chat') {
-      print('Handle Notification');
+      debugPrint('Handle Notification');
       /*Navigator.pushNamed(
         context,
         '/chat',
@@ -394,11 +394,11 @@ class _IntranetHomePageState extends State<IntranetHomePage>
 
   /*void _listenForMessages() {
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      print('Got a message whilst in the foreground! asd');
-      print('Message data: ${message.data}');
+      debugPrint('Got a message whilst in the foreground! asd');
+      debugPrint('Message data: ${message.data}');
 
       if (message.notification != null) {
-        print('Message also contained a notification: ${message.notification}');
+        debugPrint('Message also contained a notification: ${message.notification}');
         setState(() {
           String? body = message.notification?.body;
           if (body != null) {
@@ -417,9 +417,9 @@ class _IntranetHomePageState extends State<IntranetHomePage>
     message = message.replaceAll("}", "\"}");
     message = message.replaceAll(":", "\":\"");
     message = message.replaceAll(", ", "\",\"");
-    print(message);
+    debugPrint(message);
     var json = jsonDecode(message);
-    print(json);
+    debugPrint(json);
   }
 
   updateProfileImage() async{
@@ -466,18 +466,18 @@ class _IntranetHomePageState extends State<IntranetHomePage>
     try{
       var hiveBox = await Utility.openBox();
       await Hive.openBox(LocalConstant.KidzeeDB);
-      print('Avtar getProfileImaage-----');
+      debugPrint('Avtar getProfileImaage-----');
       var avtar = hiveBox.get(LocalConstant.KEY_EMPLOYEE_AVTAR_LIST);
-      print('Avtar ${avtar}');
+      debugPrint('Avtar ${avtar}');
       if(avtar!=null && avtar !='') {
-        print('getProfile pic decode');
+        debugPrint('getProfile pic decode');
         _profileAvtar = base64.decode(avtar);
       }else {
-        print('getProfile pic in else');
+        debugPrint('getProfile pic in else');
         FirebaseStorageUtil().getProfileImage(employeeId.toString(), this);
       }
     }catch(e){
-        print(e.toString());
+        debugPrint(e.toString());
     }
   }
 
@@ -517,9 +517,9 @@ class _IntranetHomePageState extends State<IntranetHomePage>
 
   getCurrentEvents(DateTime date, List<PJPModel> pjpListModels) {
     List<PJPModel> list = [];
-    print('getEvent----${pjpListModels.length}');
+    debugPrint('getEvent----${pjpListModels.length}');
     for (int index = 0; index < pjpListModels.length; index++) {
-      print(
+      debugPrint(
           '${Utility.shortDate(date)}  -- ${Utility.shortDate(pjpListModels[index].fromDate)}');
       if (Utility.shortDate(date) ==
           Utility.shortDate(pjpListModels[index].fromDate)) {
@@ -538,7 +538,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
     kEvents.clear();
     mPjpList.clear();
     mPjpList.addAll(pjpListModels);
-    print('data inserted');
+    debugPrint('data inserted');
     /*if(pjpListModels!=null){
       Map<DateTime,List<PJPModel>> data = {};
       if(start.isBefore(end)) {
@@ -554,20 +554,20 @@ class _IntranetHomePageState extends State<IntranetHomePage>
   }
 
   void addEvent() {
-    print('add event');
+    debugPrint('add event');
     //kEvents.addAll(_kEventSource);
     syncPjpList();
-    print('addEvent ');
+    debugPrint('addEvent ');
     setState(() {});
   }
 
   List<PJPModel> _getEventsForDay(DateTime day) {
     // Implementation example
-    print('add _getEventsForDay');
+    debugPrint('add _getEventsForDay');
     if (mPjpList == null || mPjpList.length == 0) {
       syncPjpList();
     }
-    print('day is ' + day.day.toString());
+    debugPrint('day is ' + day.day.toString());
     return getCurrentEvents(day, mPjpList); //kEvents[day] ?? [];
   }
 
@@ -599,7 +599,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
   List<PJPModel> _getEventsForRange(DateTime start, DateTime end) {
     // Implementation example
     final days = daysInRange(start, end);
-    print('_getEventsForRange');
+    debugPrint('_getEventsForRange');
     return [
       for (final d in days) ..._getEventsForDay(d),
     ];
@@ -614,7 +614,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
         _rangeEnd = null;
         _rangeSelectionMode = RangeSelectionMode.toggledOff;
       });
-      print('_onDaySelected');
+      debugPrint('_onDaySelected');
       _selectedEvents.value = _getEventsForDay(selectedDay);
     }
   }
@@ -627,7 +627,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
       _rangeEnd = end;
       _rangeSelectionMode = RangeSelectionMode.toggledOn;
     });
-    print('_onRangeSelected');
+    debugPrint('_onRangeSelected');
     // `start` or `end` could be null
     if (start != null && end != null) {
       _selectedEvents.value = _getEventsForRange(start, end);
@@ -639,7 +639,6 @@ class _IntranetHomePageState extends State<IntranetHomePage>
   }
 
   void onBackClickListener() {
-    print(('back  ${widget._selectedDestination}'));
     if (widget._selectedDestination == MENU_HOME) {
       // set up the buttons
       Widget cancelButton = TextButton(
@@ -822,7 +821,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
   }
 
   Widget getScreen() {
-    print('getscreen--------');
+    debugPrint('getscreen--------');
     switch (widget._selectedDestination) {
       case MENU_HOME:
         return HomePageMenu();
@@ -930,7 +929,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
               ),
               GestureDetector(
                 onTap: () {
-                  print('CVF CLICKED');
+                  debugPrint('CVF CLICKED');
                   Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -991,7 +990,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
   }
 
   Widget getNavigationalDrawar() {
-    //print(_profileImage);
+    //debugPrint(_profileImage);
     return Drawer(
       child: getMenu(),
     );
@@ -1001,7 +1000,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
   getImageUrl(String url) {
     String weburl = url.replaceAll('___', '&');
     weburl = Uri.decodeFull(weburl);
-    print(weburl);
+    debugPrint(weburl);
     return weburl;
   }
 
@@ -1328,7 +1327,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
   }
 
   Widget _homeScreen(BuildContext context) {
-    print('home screen');
+    debugPrint('home screen');
     double width = MediaQuery.of(context).size.width;
     return Scaffold(
         backgroundColor: LightColors.kLightYellow,
@@ -1386,7 +1385,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
             },
             onPageChanged: (focusedDay) {
               _focusedDay = focusedDay;
-              print('page changes');
+              debugPrint('page changes');
             },
           ),
           const SizedBox(height: 8.0),

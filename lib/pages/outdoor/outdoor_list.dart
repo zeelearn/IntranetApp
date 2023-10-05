@@ -49,7 +49,7 @@ class _OutdoorScreen extends State<OutdoorScreen>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    print('didChangeAppLifecycleState ${state} ');
+    debugPrint('didChangeAppLifecycleState ${state} ');
     if (state == AppLifecycleState.resumed) {
       loadOutdoorRequisition();
     }
@@ -114,7 +114,7 @@ class _OutdoorScreen extends State<OutdoorScreen>
 
     APIService apiService = APIService();
     apiService.outdoorRequisition(request).then((value) {
-      print(value.toString());
+      debugPrint(value.toString());
       isLoading=false;
       if (value != null) {
         if (value == null || value.responseData == null) {
@@ -127,7 +127,7 @@ class _OutdoorScreen extends State<OutdoorScreen>
             outdoorRequisitionList.addAll(response.responseData);
             setState(() {});
           }
-          print('leave list ${response.responseData.length}');
+          debugPrint('leave list ${response.responseData.length}');
         } else {
           Utility.showMessage(context, 'data not found');
         }
@@ -205,7 +205,7 @@ class _OutdoorScreen extends State<OutdoorScreen>
       MaterialPageRoute(
           builder: (context) => ApplyOutDoorScreen(employeeId: employeeId,displayName: '', businessId: widget.businessId,)),
     );
-    print('Response Received');
+    debugPrint('Response Received');
 
     this.loadOutdoorRequisition();
   }
@@ -216,7 +216,7 @@ class _OutdoorScreen extends State<OutdoorScreen>
         "assets/images/loading.gif",
       ),);
     }else if (outdoorRequisitionList == null || outdoorRequisitionList.length <= 0) {
-      print('data not found');
+      debugPrint('data not found');
       return Utility.emptyDataSet(context,"Outdoor Requisition are not avaliable");
     } else {
       return Flexible(
@@ -367,7 +367,7 @@ class _OutdoorScreen extends State<OutdoorScreen>
     //2022-07-18T00:00:00
     try {
       dt = new DateFormat('yyyy-MM-dd\'T\'HH:mm:ss').parse(value);
-      //print('asasdi   ' + dt.day.toString());
+      //debugPrint('asasdi   ' + dt.day.toString());
     } catch (e) {
       e.toString();
     }
@@ -379,7 +379,7 @@ class _OutdoorScreen extends State<OutdoorScreen>
     String date='';
     try {
       date = new DateFormat('dd').format(dt);
-      //print('asasdi   ' + dt.day.toString());
+      //debugPrint('asasdi   ' + dt.day.toString());
     } catch (e) {
       e.toString();
     }
@@ -391,7 +391,7 @@ class _OutdoorScreen extends State<OutdoorScreen>
     String date='';
     try {
       date = new DateFormat('MMM').format(dt);
-      //print('asasdi   ' + dt.day.toString());
+      //debugPrint('asasdi   ' + dt.day.toString());
     } catch (e) {
       e.toString();
     }

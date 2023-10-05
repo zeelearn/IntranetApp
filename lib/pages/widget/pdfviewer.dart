@@ -27,7 +27,7 @@ class _HomePage extends State<MyPdfApp> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    print('worksheet ${widget.worksheetUrl}');
+    debugPrint('worksheet ${widget.worksheetUrl}');
     checkFile();
   }
 
@@ -44,16 +44,16 @@ class _HomePage extends State<MyPdfApp> {
       }
       if(!await Directory('${dir}/${widget.module}').exists()){
         Directory myNewDir = await Directory('${dir}/${widget.module}').create(recursive: true);
-        print('directory created');
+        debugPrint('directory created');
       }
-      print('path is ${path}');
+      debugPrint('path is ${path}');
       if (await File(path).exists()) {
         mFile = File(path);
         setState(() {
           isLoading = false;
         });
       } else {
-        print('download starting...');
+        debugPrint('download starting...');
         setState(() {
           isLoading = true;
         });
@@ -69,7 +69,7 @@ class _HomePage extends State<MyPdfApp> {
 
   @override
   Widget build(BuildContext context) {
-    //print(widget.worksheetUrl);
+    //debugPrint(widget.worksheetUrl);
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),

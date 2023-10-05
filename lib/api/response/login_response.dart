@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:flutter/cupertino.dart';
+
 class LoginResponseModel {
   LoginResponseModel({
     required this.responseMessage,
@@ -36,8 +38,6 @@ class ResponseData {
   late final List<BusinessApplications> businessApplications;
 
   ResponseData.fromJson(Map<String, dynamic> json){
-    print('1111');
-    print(json);
     try {
       employeeDetails = List.from(json['employeeDetails']).map((e) =>
           EmployeeDetails.fromJson(e)).toList();
@@ -45,21 +45,21 @@ class ResponseData {
           .map((e) => EmployeeRoles.fromJson(e))
           .toList();
     }catch(e){
-      print(e.toString());
+      debugPrint(e.toString());
     }
     businessApplications = [];
     if (json['businessApplications'] is List) {
-      print('at line 21');
+      debugPrint('at line 21');
       json['businessApplications'].forEach((v) {
         try {
           businessApplications.add(new BusinessApplications.fromJson(v));
         } catch (e) {
-          print('at line 21 ${v.toString()}');
-          print(e.toString());
+          debugPrint('at line 21 ${v.toString()}');
+          debugPrint(e.toString());
         }
       });
     }else{
-      print('at line 30');
+      debugPrint('at line 30');
       businessApplications.add(BusinessApplications.fromJson(json['businessApplications']));
     }
     //businessApplications = List.from(json['businessApplications']).map((e)=>BusinessApplications.fromJson(e)).toList();
@@ -188,15 +188,15 @@ class EmployeeDetails {
     companyId = json['companyId'] ?? 0.0;
     employeeDateOfMarriage = json['employee_DateOfMarriage'] ?? "";
     gender = json['gender'] ?? "";
-    print('gender');
+    debugPrint('gender');
     employeeMiddleName = json['employeeMiddleName'] ?? "";
     employeeDateOfBirthActual = json['employeeDateOfBirthActual'] ?? "";
     employeeWorkRoleId = json['employee_WorkRoleId'] ?? "";
     employeeLocation = json['employee_Location'] ?? "";
-    print('location');
+    debugPrint('location');
     employeeQualification = json['employeeQualification'] ?? "";
     employeeMaritalStatus = json['employee_MaritalStatus'] ?? '';
-    print('marritial status');
+    debugPrint('marritial status');
     landingPage = json['landingPage'] ?? "";
     companyName = json['companyName'] ?? "";
   }
@@ -286,8 +286,6 @@ class BusinessApplications {
   late final String path;
 
   BusinessApplications.fromJson(Map<String, dynamic> json){
-    print('in fromjson');
-    print(json);
     businessID = json['business_ID'] ?? '';
     employeeId = json['employee_Id'] ?? 0;
     businessName = json['business_Name'] ?? '';

@@ -66,7 +66,7 @@ class _AttendanceSummeryState extends State<AttendanceSummeryManagerScreen> {
     //loginRequestModel.User_Password = 'Niharika#123';
     APIService apiService = APIService();
     apiService.attendanceSummery(request).then((value) {
-      print(value.toString());
+      debugPrint(value.toString());
       if (value != null) {
         if (value == null || value.responseData == null) {
           Utility.showMessage(context, 'data not found');
@@ -74,7 +74,7 @@ class _AttendanceSummeryState extends State<AttendanceSummeryManagerScreen> {
           AttendanceSummeryResponse response = value;
           if (response != null && response.responseData != null)
             summeryModleList.addAll(response.responseData);
-          print('summery list ${response.responseData.length}');
+          debugPrint('summery list ${response.responseData.length}');
         } else {
           Utility.showMessage(context, 'data not found');
         }
