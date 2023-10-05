@@ -1,10 +1,7 @@
 import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:io';
-
 import 'package:app_version_update/app_version_update.dart';
-import 'package:app_version_update/data/models/app_version_result.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
