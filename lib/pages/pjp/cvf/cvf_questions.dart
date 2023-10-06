@@ -349,18 +349,21 @@ class _QuestionListScreenState extends State<QuestionListScreen>
     }
   }
 
-  String getAnswerId(
-      List<Answers> answerList, String answerType, String answer) {
+  String getAnswerId(List<Answers> answerList, String answerType, String answer) {
     String answerId = answer;
     if (answerType == 'YesNo') {
+      print('Answer YesNo...${answer}');
       for (int index = 0; index < answerList.length; index++) {
         if (answer == answerList[index].answerName) {
           answerId = answerList[index].answerId;
+          print('Answer AnswerId...${answerId}');
         }
       }
     } else {
       answerId = answerList[0].answerId;
+      print('Answer AnswerId...else');
     }
+    print('Answer is ${answerId}');
     return answerId;
   }
 bool isOffline=false;
@@ -405,12 +408,14 @@ bool isOffline=false;
                       .allquestion[jIndex]
                       .files
                       .isNotEmpty)) {
+            print('===========IF YESNO ${mQuestionMaster[index].allquestion[jIndex].Question_Id} uid-${mQuestionMaster[index].allquestion[jIndex].userAnswers},${userAnswerMap[mQuestionMaster[index].allquestion[jIndex].Question_Id]}');
             docXml =
-                '${docXml}<tblPJPCVF_Answer><SubmissionDate>${Utility.convertShortDate(DateTime.now())}</SubmissionDate><Question_Id>${mQuestionMaster[index].allquestion[jIndex].Question_Id}</Question_Id><AnswerId>${getAnswerId(mQuestionMaster[index].allquestion[jIndex].answers, mQuestionMaster[index].allquestion[jIndex].answers[0].answerType, mQuestionMaster[index].allquestion[jIndex].userAnswers)
+                '${docXml}<tblPJPCVF_Answer><SubmissionDate>${Utility.convertShortDate(DateTime.now())}</SubmissionDate><Question_Id>${mQuestionMaster[index].allquestion[jIndex].Question_Id}</Question_Id><AnswerId>${getAnswerId(mQuestionMaster[index].allquestion[jIndex].answers, mQuestionMaster[index].allquestion[jIndex].answers[0].answerType, mQuestionMaster[index].allquestion[jIndex].userAnswers.isNotEmpty ? mQuestionMaster[index].allquestion[jIndex].userAnswers : userAnswerMap[mQuestionMaster[index].allquestion[jIndex].Question_Id].toString() )
                 /* mQuestionMaster[index].allquestion[jIndex].answers[0].answerType == 'YesNo' ?
                   mQuestionMaster[index].allquestion[jIndex].userAnswers : ''*/
                 }</AnswerId>'
                 '<Files>${encodeFile(mQuestionMaster[index].allquestion[jIndex].files)}</Files><Remarks>${mQuestionMaster[index].allquestion[jIndex].answers[0].answerType == 'YesNo' ? '' : mQuestionMaster[index].allquestion[jIndex].userAnswers.isNotEmpty ? mQuestionMaster[index].allquestion[jIndex].userAnswers : ''}</Remarks></tblPJPCVF_Answer>';
+
           } else if (/*mQuestionMaster[index]
                       .allquestion[jIndex]
                       .answers[0]
@@ -429,17 +434,16 @@ bool isOffline=false;
                       .allquestion[jIndex]
                       .files
                       .isNotEmpty)) {
+            //print('===========ELSE YESNO  ${mQuestionMaster[index].allquestion[jIndex].userAnswers},${userAnswerMap[mQuestionMaster[index].allquestion[jIndex].Question_Id]},${getAnswerId(mQuestionMaster[index].allquestion[jIndex].answers, mQuestionMaster[index].allquestion[jIndex].answers[0].answerType, userAnswerMap[mQuestionMaster[index].allquestion[jIndex].Question_Id].toString().isNotEmpty  ? userAnswerMap[mQuestionMaster[index].allquestion[jIndex].Question_Id].toString() : mQuestionMaster[index].allquestion[jIndex].SelectedAnswer)}');
             docXml =
-                '${docXml}<tblPJPCVF_Answer><SubmissionDate>${Utility.convertShortDate(DateTime.now())}</SubmissionDate><Question_Id>${mQuestionMaster[index].allquestion[jIndex].Question_Id}</Question_Id><Files>${encodeFile(mQuestionMaster[index].allquestion[jIndex].files)}</Files><AnswerId>${getAnswerId(mQuestionMaster[index].allquestion[jIndex].answers, mQuestionMaster[index].allquestion[jIndex].answers[0].answerType, userAnswerMap[mQuestionMaster[index].allquestion[jIndex].Question_Id].toString())
-                /*mQuestionMaster[index]
-                .allquestion[jIndex].answers[0].answerType == 'YesNo' ? userAnswerMap[mQuestionMaster[index]
-                .allquestion[jIndex].Question_Id].toString() : ''*/
+                '${docXml}<tblPJPCVF_Answer><SubmissionDate>${Utility.convertShortDate(DateTime.now())}</SubmissionDate><Question_Id>${mQuestionMaster[index].allquestion[jIndex].Question_Id}</Question_Id><Files>${encodeFile(mQuestionMaster[index].allquestion[jIndex].files)}</Files><AnswerId>${getAnswerId(mQuestionMaster[index].allquestion[jIndex].answers, mQuestionMaster[index].allquestion[jIndex].answers[0].answerType, userAnswerMap[mQuestionMaster[index].allquestion[jIndex].Question_Id].toString().isNotEmpty  ? userAnswerMap[mQuestionMaster[index].allquestion[jIndex].Question_Id].toString() : userAnswerMap[mQuestionMaster[index].allquestion[jIndex].Question_Id].toString())
                 }</AnswerId>'
                 '<Remarks>${ mQuestionMaster[index].allquestion[jIndex].answers[0].answerType == 'YesNo' ? '' : userAnswerMap[mQuestionMaster[index].allquestion[jIndex].Question_Id].toString().isEmpty || userAnswerMap[mQuestionMaster[index].allquestion[jIndex].Question_Id].toString() == 'null' ? mQuestionMaster[index].allquestion[jIndex].Remarks : userAnswerMap[mQuestionMaster[index].allquestion[jIndex].Question_Id].toString()}</Remarks></tblPJPCVF_Answer>';
           }
         }
       }
       docXml = '${docXml} </root>';
+      print(docXml);
       debugPrint('API Is Calling....');
       SaveCVFAnswers request = SaveCVFAnswers(
           PJPCVF_Id: widget.PJPCVF_Id,
@@ -921,21 +925,18 @@ bool isOffline=false;
   }
 
   updateAnswers(Allquestion questions, String answers) {
+    //mQuestionMaster[index].allquestion[jIndex].answers
     if (userAnswerMap.containsKey(questions.Question_Id.toString())) {
-      userAnswerMap.update(
-          questions.Question_Id.toString(), (value) => answers);
+      userAnswerMap.update(questions.Question_Id.toString(), (value) => answers);
     } else {
-      userAnswerMap.putIfAbsent(
-          questions.Question_Id.toString(), () => answers);
+      userAnswerMap.putIfAbsent(questions.Question_Id.toString(), () => answers);
     }
     for (int index = 0; index < mQuestionMaster.length; index++) {
-      for (int jIndex = 0;
-          jIndex < mQuestionMaster[index].allquestion.length;
-          jIndex++) {
-        if (mQuestionMaster[index].allquestion[jIndex].Question_Id ==
-            questions.Question_Id) {
+      for (int jIndex = 0;jIndex < mQuestionMaster[index].allquestion.length;jIndex++) {
+        if (mQuestionMaster[index].allquestion[jIndex].Question_Id ==questions.Question_Id) {
           mQuestionMaster[index].allquestion[jIndex].SelectedAnswer = answers;
           mQuestionMaster[index].allquestion[jIndex].userAnswers = answers;
+          debugPrint('Answer updated for ${questions.Question_Id} ${answers}');
           DBHelper helper = DBHelper();
           helper.updateUserAnswer(
               widget.PJPCVF_Id,
@@ -1736,9 +1737,9 @@ bool isOffline=false;
     if (value is Allquestion) {
       Allquestion question = value;
       updateImage(question, question.files);
-      if(isOffline){
-        saveAnswers(widget.cvfView.PJPCVF_Id);
-      }
+      //if(isOffline){
+        //saveAnswers('');
+      //}
     }
     setState(() {});
   }

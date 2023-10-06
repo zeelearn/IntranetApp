@@ -432,9 +432,8 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener{
     */
       LocationData deviceLocation = await LocationHelper.getLocation();
       if(deviceLocation!=null){
-        double latitude = deviceLocation.latitude!;
-        double longitude = deviceLocation.longitude!;
-        print('Location is ${latitude} ${longitude}');
+        latitude = deviceLocation.latitude!;
+        longitude = deviceLocation.longitude!;
       }else{
         print('location data not found');
       }
