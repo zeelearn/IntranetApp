@@ -105,11 +105,12 @@ class _IntranetHomePageState extends State<IntranetHomePage>
   String appVersion = '';
   List<BusinessApplications> businessApplications =[];
 
-  updateCurrentBusiness(int bid,String name) async {
+  updateCurrentBusiness(int bid,String name,int uid) async {
     hiveBox = await Utility.openBox();
     await Hive.openBox(LocalConstant.KidzeeDB);
     hiveBox.put(LocalConstant.KEY_BUSINESS_ID, bid);
     hiveBox.put(LocalConstant.KEY_BUSINESS_NAME, name);
+    //hiveBox.put(LocalConstant.KEY_FRANCHISEE_ID,uid);
     setState(() {
       _currentBusinessName = name;
     });
@@ -183,8 +184,14 @@ class _IntranetHomePageState extends State<IntranetHomePage>
               FirebaseAnalyticsUtils.sendEvent(info.userName);
               hive.put(LocalConstant.KEY_LOGIN_RESPONSE, jsonEncode(value));
               try {
-                hive.put(LocalConstant.KEY_BUSINESS_ID,
-                    value.responseData.businessApplications[0].businessID);
+                hive.put(LocalConstant.KEY_BUSINESS_ID,value.responseData.businessApplications[0].businessID);
+                List<BusinessApplications> businessApplications = value.responseData.businessApplications;
+                for(int index=0;index<businessApplications.length;index++){
+                  //BP Management
+                  if(businessApplications[index].businessName =='BP Management'){
+                    hive.put(LocalConstant.KEY_FRANCHISEE_ID,value.responseData.businessApplications[index].business_UserID);
+                  }
+                }
               }catch(e){}
               debugPrint('========Login Form ====== ${jsonEncode(value)}');
               getLoginResponse();
@@ -261,7 +268,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
                                 Navigator.pop(context);
                                 if(isFromDrawar)
                                   Navigator.pop(context);
-                                updateCurrentBusiness(businessApplications[index].businessID,businessApplications[index].businessName);
+                                updateCurrentBusiness(businessApplications[index].businessID,businessApplications[index].businessName,businessApplications[index].business_UserID);
                               },
                               child: ListTile(
                                 title: Text(businessApplications[index].businessName),

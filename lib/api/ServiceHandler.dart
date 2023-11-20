@@ -1,3 +1,9 @@
+import 'package:Intranet/api/request/bpms/get_task_comments.dart';
+import 'package:Intranet/api/request/bpms/insert_attachment.dart';
+import 'package:Intranet/api/request/bpms/update_task.dart';
+import 'package:Intranet/api/response/bpms/get_comments_response.dart';
+import 'package:Intranet/api/response/bpms/insert_attachment_response.dart';
+import 'package:Intranet/api/response/bpms/update_task_response.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:Intranet/api/request/cvf/update_cvf_status_request.dart';
 import 'package:Intranet/api/request/pjp/get_pjp_list_request.dart';
@@ -206,6 +212,70 @@ class IntranetServiceHandler{
         }
       }else{
         onResponse.onError('Unable to get Reports');
+      }
+    });
+  }
+
+  void updateTaskDetails(UpdateBpmsTaskRequest requestModel,
+      bool isLoadingRequired, onResponse response) {
+    APIService apiService = APIService();
+    if (isLoadingRequired) {
+      response.onStart();
+    }
+    print(requestModel.status);
+    apiService.updateTaskDetails(requestModel).then((value) {
+      if (value != null) {
+        print(value);
+        UpdateBpmsTaskResponse responseModel;
+        if (value != null) {
+          responseModel = value;
+          print('update bpms ${responseModel.toJson()}');
+          response.onSuccess(responseModel);
+        } else {
+          print('Unable to update Task');
+          response.onError('Unable to update the Task Details Please try again later');
+        }
+      } else {
+        print('Unable to update Task else');
+        response.onError('Unable to Update the Task Details Please try again later');
+      }
+    });
+  }
+
+  void insertTaskAttachment(
+      InsertTaskAttachmentRequest requestModel, onResponse response) {
+    APIService apiService = APIService();
+    response.onStart();
+    apiService.insertTaskAttachment(requestModel).then((value) {
+      if (value != null) {
+        InsertTaskAttachmentResponse responseModel;
+        if (value != null) {
+          responseModel = value;
+          response.onSuccess(responseModel);
+        } else {
+          response.onError('Unable to update the Task File Upload Please try again later');
+        }
+      } else {
+        response.onError('Unable to Update the Task File Upload Please try again later');
+      }
+    });
+  }
+
+  void getTaskComments(
+      GetTaskCommentRequest requestModel, onResponse response) {
+    APIService apiService = APIService();
+    response.onStart();
+    apiService.getTaskComments(requestModel).then((value) {
+      if (value != null) {
+        GetCommentResponse responseModel;
+        if (value != null) {
+          responseModel = value;
+          response.onSuccess(responseModel);
+        } else {
+          response.onError('Unable to update the Task Details Please try again later');
+        }
+      } else {
+        response.onError('Unable to Update the Task Details Please try again later');
       }
     });
   }

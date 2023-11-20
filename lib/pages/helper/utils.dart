@@ -19,6 +19,7 @@ import 'LightColor.dart';
 import 'LocalConstant.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 
 enum TaskPageStatus {
@@ -36,9 +37,234 @@ class Utility{
   static int ACTION_REJECT=100014;
   static int ACTION_CCNCEL=100013;
   static int ACTION_ADDPJP=100015;
+  static int ACTION_IMAGE_UPLOAD_RESPONSE_OK=100015;
+  static int ACTION_IMAGE_UPLOAD_RESPONSE_ERROR=100016;
+
+  static void showMessageCallback(BuildContext context,String title,String message,onClickListener listener) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        // return object of type Dialog
+        return AlertDialog(
+          title: new Text(title),
+          content: new Text(
+              message),
+          actions: <Widget>[
+            // usually buttons at the bottom of the dialog
+
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                listener.onClick(ACTION_OK, '');
+              },
+              // style: ButtonStyle(elevation: MaterialStateProperty(12.0 )),
+              style: ElevatedButton.styleFrom(
+                  elevation: 10.0,
+                  textStyle: const TextStyle(color: LightColors.kDarkBlue)),
+              child: const Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   static showLoader(){
     return Lottie.asset('assets/json/loading.json');
+  }
+
+  static String formatDate() {
+    String date='';
+    DateTime dt = DateTime.now();
+    try {
+      date = DateFormat('yyyy-MM-dd\'T\'HH:mm:ss.sss\'Z\'').format(dt);
+    } catch (e) {
+      e.toString();
+    }
+    return date;
+  }
+
+  static String getServerDate() {
+    String date ='';
+    DateTime dt = DateTime.now();
+    try {
+      date = DateFormat('yyyy-MM-dd\'T\'HH:mm:ss.sss\'Z\'').format(dt);
+    } catch (e) {
+      e.toString();
+    }
+    return date;
+  }
+
+  static getConfirmationDialogPJP(BuildContext context,onResponse response){
+    Dialogs.materialDialog(
+      color: Colors.white,
+      msg: 'Thank you for Approve the PJP',
+      title: 'Approved',
+      lottieBuilder: Lottie.asset(
+        'assets/json/85594-done.json',
+        fit: BoxFit.contain,
+      ),
+      dialogWidth: kIsWeb ? 0.3 : null,
+      context: context,
+      actions: [
+        IconsButton(
+          onPressed: () {
+            Future.delayed(Duration(milliseconds: 50)).then((_) {
+              response.onSuccess('SUCCESS');
+            });
+          },
+          text: 'OK',
+          iconData: Icons.done,
+          color: Colors.blue,
+          textStyle: TextStyle(color: Colors.white),
+          iconColor: Colors.white,
+        ),
+      ],
+    );
+  }
+
+  static getConfirmationDialog(BuildContext context,String title,String description,onClickListener response){
+    Dialogs.materialDialog(
+      color: Colors.white,
+      msg: description,
+      title: title,
+      lottieBuilder: Lottie.asset(
+        'assets/json/85594-done.json',
+        fit: BoxFit.contain,
+      ),
+      dialogWidth: kIsWeb ? 0.3 : null,
+      context: context,
+      actions: [
+        IconsButton(
+          onPressed: () {
+            Future.delayed(Duration(milliseconds: 50)).then((_) {
+              Navigator.of(context, rootNavigator: true).pop('dialog');
+              response.onClick(ACTION_OK,'SUCCESS');
+            });
+          },
+          text: 'OK',
+          iconData: Icons.done,
+          color: Colors.blue,
+          textStyle: TextStyle(color: Colors.white),
+          iconColor: Colors.white,
+        ),
+      ],
+    );
+  }
+
+
+  static String parseShortTime(String value) {
+    String date =value;
+    DateTime dt = DateTime.now();
+    //print('value ${value}');
+    try {
+
+      dt = new DateFormat('yyyy-MM-dd\'T\'HH:mm:ss.sss\'Z\'').parse(value);
+      //print('dt ${dt.day}');
+      date = DateFormat("hh:mm a").format(dt);
+      //print('date ${date}');
+    } catch (e) {
+      e.toString();
+    }
+    return date;
+  }
+
+
+  static getConfirmation(BuildContext context,String title,String description,onClickListener response){
+    Dialogs.materialDialog(
+      color: Colors.white,
+      msg: description,
+      title: title,
+      titleStyle: GoogleFonts.roboto(
+        fontSize: 16.0,
+        height: 1,
+      ),
+      lottieBuilder: Lottie.asset(
+        'assets/json/85594-done.json',
+        fit: BoxFit.contain,
+      ),
+      dialogWidth: kIsWeb ? 0.3 : null,
+      context: context,
+      actions: [
+        IconsButton(
+          onPressed: () {
+            Future.delayed(Duration(milliseconds: 50)).then((_) {
+              Navigator.of(context, rootNavigator: true).pop('dialog');
+              response.onClick(ACTION_OK,'SUCCESS');
+            });
+          },
+          text: 'Cancel',
+          iconData: Icons.cancel,
+          color: LightColors.kRed,
+          textStyle: TextStyle(color: Colors.white),
+          iconColor: Colors.white,
+        ),
+        IconsButton(
+          onPressed: () {
+            Future.delayed(Duration(milliseconds: 50)).then((_) {
+              Navigator.of(context, rootNavigator: true).pop('dialog');
+              response.onClick(ACTION_CONFIRM,'SUCCESS');
+            });
+          },
+          text: 'Confirm',
+          iconData: Icons.done,
+          color: Colors.blue,
+          textStyle: TextStyle(color: Colors.white),
+          iconColor: Colors.white,
+        ),
+      ],
+    );
+  }
+
+  static Future<bool> isOfflineEligble(BuildContext context,String value) async {
+    final prefs = await SharedPreferences.getInstance();
+    int _currentSelection=prefs.containsKey(LocalConstant.KEY_SYNC_INTERVAL) ? prefs.getInt(LocalConstant.KEY_SYNC_INTERVAL) as int : 4;
+    print('Current Selection is ${_currentSelection}');
+    bool isOfflineEligble = false;
+    if(_currentSelection==0){
+      return false;
+    }
+    if(value.isEmpty)
+      return false;
+    try {
+      DateTime from = parseStringDate(value);
+      //from = DateTime(from.year, from.month, from.day);
+      int numberOfHour =  (DateTime.now().difference(from).inHours).round();
+      int numberOfMinutes =  (DateTime.now().difference(from).inMinutes).round();
+      if(numberOfHour<=_currentSelection){
+        isOfflineEligble = true;
+      }
+      print('is Offline ${isOfflineEligble}');
+    }catch(e){}
+    return isOfflineEligble;
+  }
+
+  static DateTime parseStringDate(String value) {
+    DateTime dt = DateTime.now();
+    //print('value ${value}');
+    try {
+
+      dt = new DateFormat('yyyy-MM-dd\'T\'HH:mm:ss.sss\'Z\'').parse(value);
+    } catch (e) {
+      e.toString();
+    }
+    return dt;
+  }
+
+  static String parseShortDate(String value) {
+    String date =value;
+    DateTime dt = DateTime.now();
+    //print('value ${value}');
+    try {
+
+      dt = new DateFormat('yyyy-MM-dd\'T\'HH:mm:ss.sss\'Z\'').parse(value);
+      //print('dt ${dt.day}');
+      date = DateFormat("dd MMM").format(dt);
+      //print('date ${date}');
+    } catch (e) {
+      e.toString();
+    }
+    return date;
   }
 
   static shareFile(String filename) async{
@@ -468,33 +694,6 @@ class Utility{
     return DateFormat('yyyy-MM-dd HH:mm').format(DateTime.now());
   }
 
-  static getConfirmationDialog(BuildContext context,onResponse response){
-    Dialogs.materialDialog(
-      color: Colors.white,
-      msg: 'Thank you for Approve the PJP',
-      title: 'Approved',
-      lottieBuilder: Lottie.asset(
-        'assets/json/85594-done.json',
-        fit: BoxFit.contain,
-      ),
-      dialogWidth: kIsWeb ? 0.3 : null,
-      context: context,
-      actions: [
-        IconsButton(
-          onPressed: () {
-            Future.delayed(Duration(milliseconds: 50)).then((_) {
-              response.onSuccess('SUCCESS');
-            });
-          },
-          text: 'OK',
-          iconData: Icons.done,
-          color: Colors.blue,
-          textStyle: TextStyle(color: Colors.white),
-          iconColor: Colors.white,
-        ),
-      ],
-    );
-  }
 
   static getAlertDialog(BuildContext context,String message,onClickListener response){
     Dialogs.materialDialog(

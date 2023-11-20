@@ -6,10 +6,18 @@ class LocalConstant {
 
   static const kDefaultSpacing = 20.0;
 
+  static const String ACTION_PDF = 'pdf';
+  static const String ACTION_GALLERY = 'Gallery';
+  static const String ACTION_CAMERA = 'Camera';
+  static const String ACTION_UPDATE_STATUS = 'Update Status';
+  static const int ACTION_USER_EVENT = 100;
+
   static const String KidzeeDB = "kidzeepref";
   static const String DEF_AVTAR = 'https://cdn-icons-png.flaticon.com/128/847/847969.png';
 
   static const String KEY_ISLOGGEDIN = "islogin";
+  static const String KEY_UID = "uid";
+  static const String KEY_FRANCHISEE_ID = "franid";
   static const String KEY_IS_OTP_VERIFIED = "isotpverified";
   static const String KEY_USER_NAME = "uname";
   static const String KEY_USER_PASSWORD = "password";
@@ -38,6 +46,7 @@ class LocalConstant {
   static const String KEY_LOGIN_RESPONSE ="loginresponse";
   static const String KEY_BUSINESS_ID ="bid";
   static const String KEY_BUSINESS_NAME ="bname";
+  static const String KEY_SYNC_INTERVAL = "syncinterval";
 
   static const String KEY_CVF_QUESTIONS = "_cvfques";
   static const String KEY_MY_ATTENDANCE = "attend";
@@ -88,5 +97,12 @@ class LocalConstant {
   static String TABLE_DATA_SYNC ="data_sync";
 
 
+  // storage keys
+  static const authStorageKey = 'auth';
+  static const communicationKey = 'commu';
+  static const taskKey = 'task';
+  static const indent = 'indent';
+  static const projects = 'projects';
+  static const projecttask = 'projectstask';
 
 }

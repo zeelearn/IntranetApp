@@ -57,6 +57,13 @@ class MyWidget{
     return const EdgeInsets.only(left: 15,right: 15);
   }
 
+  Widget richTextBox(String value, TextStyle style) {
+    return Text(
+      value,
+      style: style,
+    );
+  }
+
   Widget richText(double fontSize,String value) {
     return Text.rich(
       TextSpan(

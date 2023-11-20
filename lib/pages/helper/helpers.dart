@@ -1,11 +1,157 @@
 import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
+
+import '../iface/onClick.dart';
+import '../utils/theme/colors/light_colors.dart';
 
 class Helpers{
   void nextScreen(BuildContext context, String route) {
     Navigator.of(context).pushNamed(route);
   }
+}
+
+Widget buildTextAreaField(
+    GlobalKey<FormState> key,
+    TextEditingController controller,
+    String hintText,
+    IconData icon,
+    size,
+    double width,
+    bool isDarkMode,
+
+    ) {
+  return Padding(
+    padding: EdgeInsets.only(top: size.height * 0.025,bottom: 15),
+    child: Container(
+      width: width,
+      height: size.height * 0.1,
+      decoration: BoxDecoration(
+        color: isDarkMode ? Colors.black : const Color(0xffF7F8F8),
+        borderRadius: const BorderRadius.all(Radius.circular(10)),
+      ),
+      child: Form(
+        key: key,
+        child: TextFormField(
+          maxLines: 4,
+          controller: controller,
+          inputFormatters: [
+            FilteringTextInputFormatter.deny(
+                RegExp(r'\s')),
+          ],
+          style: LightColors.textHeaderStyle13,
+          textInputAction: TextInputAction.next,
+          decoration: InputDecoration(
+            fillColor: const Color(0xffF7F8F8),
+            errorStyle: const TextStyle(height: 0),
+            hintStyle: const TextStyle(
+              color: Color(0xffADA4A5),
+            ),
+            border: InputBorder.none,
+            contentPadding: EdgeInsets.only(
+              top: 10,
+            ),
+            hintText: hintText,
+            prefixIcon: SizedBox(width: 14,height: 14,
+                child: Icon(
+                  icon,
+                  color: const Color(0xff7B6F72),
+                )),
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
+
+Widget getTextAreaField(GlobalKey<FormState> key,TextEditingController controller,String hint,IconData icon,Size size,double width){
+  return Form(
+    child: buildTextAreaField(
+      key,
+      controller,
+      hint,
+      icon,
+      size,
+      width,
+      false,
+    ),
+  );
+}
+
+Widget getDropdownField(GlobalKey<FormState> key,String title,String hint,List<String> options,onClickListener listener,Size size,double width, int action){
+  return Form(
+    child: buildDropdownField(
+        key,
+        title,
+        hint,
+        options,
+        listener,
+        size,
+        width,
+        false,action
+    ),
+  );
+}
+
+Widget buildDropdownField(
+    GlobalKey<FormState> key,
+    String title,
+    String label,
+    List<String> options,
+    onClickListener listener,
+    Size size,
+    double width,
+    bool isDark,int action
+    ) {
+  return Padding(
+    padding: EdgeInsets.only(top: size.height * 0.025),
+    child: Container(
+      width: width,
+      height: size.height * 0.06,
+      decoration: BoxDecoration(
+        color: isDark ? Colors.black : const Color(0xffF9F9F9),
+        borderRadius: const BorderRadius.all(Radius.circular(10)),
+      ),
+      child: Form(
+        key: key,
+        child: getDropdownButton(title,label, options, action, listener),
+      ),
+    ),
+  );
+}
+
+Widget getDropdownButton(String title, String _chosenValue,
+    List<String> options, int action, onClickListener listener) {
+  return Padding(padding: EdgeInsets.only(left: 5,right: 5),
+    child: DropdownButton<String>(
+      isExpanded: true,
+      icon: Icon(Icons.keyboard_arrow_down),
+      focusColor: Colors.white,
+      value: _chosenValue,
+      underline: Container(),
+      style: TextStyle(color: Colors.white),
+      iconEnabledColor: Colors.black,
+      items: options.map<DropdownMenuItem<String>>((String value) {
+        return DropdownMenuItem<String>(
+          value: value,
+          child: Text(
+            value,
+            style: LightColors.textHeaderStyle13,
+          ),
+        );
+      }).toList(),
+      hint: Text(
+        title,
+        style: TextStyle(
+            color: Colors.black, fontSize: 14, fontWeight: FontWeight.w500),
+      ),
+      onChanged: (value) {
+        _chosenValue = value!;
+        listener.onClick(action, value);
+      },
+    ),);
 }
 
 class LifecycleEventHandler extends WidgetsBindingObserver {

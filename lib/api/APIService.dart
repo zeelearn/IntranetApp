@@ -1,7 +1,33 @@
 import 'dart:convert';
+import 'dart:developer';
 import 'dart:io';
 
+import 'package:Intranet/api/request/bpms/bpms_stats.dart';
+import 'package:Intranet/api/request/bpms/bpms_task.dart';
+import 'package:Intranet/api/request/bpms/franchisee_details_request.dart';
+import 'package:Intranet/api/request/bpms/getTaskDetailsRequest.dart';
+import 'package:Intranet/api/request/bpms/get_communication.dart';
+import 'package:Intranet/api/request/bpms/get_task_comments.dart';
+import 'package:Intranet/api/request/bpms/insert_attachment.dart';
+import 'package:Intranet/api/request/bpms/projects.dart';
+import 'package:Intranet/api/request/bpms/update_task.dart';
+import 'package:Intranet/api/response/bpms/bpms_stats.dart';
+import 'package:Intranet/api/response/bpms/franchisee_details_response.dart';
+import 'package:Intranet/api/response/bpms/getTaskDetailsResponseModel.dart';
+import 'package:Intranet/api/response/bpms/get_comments_response.dart';
+import 'package:Intranet/api/response/bpms/get_communication_response.dart';
+import 'package:Intranet/api/response/bpms/insert_attachment_response.dart';
+import 'package:Intranet/api/response/bpms/project_task.dart';
+import 'package:Intranet/api/response/bpms/update_task_response.dart';
+import 'package:Intranet/api/response/uploadimage.dart';
+import 'package:aws_s3_upload/aws_s3_upload.dart';
+import 'package:aws_s3_upload/enum/acl.dart';
+import 'package:camera/camera.dart';
+import 'package:dio/dio.dart';
+import 'package:either_dart/either.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:http/http.dart' as http;
 import 'package:Intranet/api/request/apply_leave_request.dart';
 import 'package:Intranet/api/request/approve_leave_request.dart';
@@ -56,11 +82,16 @@ import 'package:Intranet/api/response/pjp/employee_response.dart';
 import 'package:Intranet/api/response/pjp/pjplistresponse.dart';
 import 'package:Intranet/api/response/pjp/update_pjpstatus_response.dart';
 import 'package:Intranet/api/response/report/my_report.dart';
+import 'package:path_provider/path_provider.dart';
 
 import '../pages/helper/LocalStrings.dart';
+import '../pages/helper/utils.dart';
+import '../pages/iface/onClick.dart';
+import 'aws_s3_upload.dart';
 
 class APIService {
   String url = LocalStrings.developmentBaseUrl;
+  String bpms_url = LocalStrings.bpms;
 
   Future<dynamic> login(LoginRequestModel requestModel) async {
     try {
@@ -990,4 +1021,473 @@ class APIService {
     }
   }
 
+  Future<Either<String, dynamic>> uploadFileDYNTube(String filepath,
+      bool isVideoFile, Function(int bytes, int totalBytes) progress) async {
+    XFile? fileResult;
+    File? targetFile;
+    if (!isVideoFile) {
+      File file = File(filepath);
+      print('start compresition....');
+      print('befour ${file.lengthSync()}');
+      String dir = (await getTemporaryDirectory()).path;
+
+      targetFile = File('$dir/${DateTime.now().millisecondsSinceEpoch}.jpeg');
+      fileResult = await FlutterImageCompress.compressAndGetFile(
+          file.absolute.path, targetFile.path,
+          quality: 72);
+
+      dynamic awsFileUpload = await AwsS3FileUpload.uploadFile(
+        file: !isVideoFile ? File(fileResult!.path) : File(filepath),
+        progress: (int bytes, int totalBytes) async {
+          // log('Uploading file progressvin AwsS3Upload function is - $p0');
+          // await progress(bytes, totalBytes);
+        },
+      );
+      print('after compression ${await fileResult?.length() as int}');
+
+      if (awsFileUpload is UploadImageResponse) {
+        return Right(awsFileUpload);
+      } else {
+        print('in else awes');
+        String? result = await AwsS3.uploadFile(
+          accessKey: "AKIAU6ELV2UB4Z6KRIHM",
+          secretKey: "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",
+          file: !isVideoFile ? File(fileResult!.path) : File(filepath),
+          contentType: "image/jpeg",
+          acl: ACL.public_read_write,
+          bucket:
+          "https://s3.console.aws.amazon.com/s3/buckets/pentemindimg/intranet/",
+          region: "ap-south-1",
+          metadata: {"accept-encoding": "gzip"},
+        );
+        targetFile.deleteSync();
+        print('completed....');
+        print(result);
+        UploadImageResponse response = UploadImageResponse.fromJson(
+          json.decode(result!) as Map<String, dynamic>,
+        );
+        if (response.imageModel != null && response.imageModel!.isNotEmpty) {
+          return Right(response);
+        } else {
+          return const Left('Something went wrong');
+        }
+      }
+    } else {
+      try {
+        var formData = FormData.fromMap({
+          'file': !isVideoFile
+              ? await MultipartFile.fromFile(fileResult!.path)
+              : await MultipartFile.fromFile(filepath),
+          'projectId': 'iKwExHJsh06H6fBWhCZqw'
+        });
+
+        var dynFileUpload = await Dio().post(
+          'https://upload.dyntube.com/v1/videos',
+          data: formData,
+          options: Options(headers: {
+            'Authorization':
+            'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkb21haW5AemVlbGVhcm4uY29tIiwianRpIjoiNmRlNjRlZDgtMzAxNC00ZmMyLWI5MDMtZTcxZDhmYjIzNWE5IiwidXNlcklkIjoiNjBmZWFhYWU3Yzc1ZDU5YWI1NDM3NzcyIiwiYWNjb3VudElkIjoiWFBXYURQQUVFV2k2a3VjVjhDYnciLCJleHAiOjI1MzQwMjMwMDgwMCwiaXNzIjoiaHR0cHM6Ly9keW50dWJlLmNvbSIsImF1ZCI6Ik1hbmFnZSJ9.gmyVqUAVVg-kFlIK3obEl2zj-EDVMeO_lPfP1Cvv0lY'
+            // 'Content-Type': 'multipart/form-data',
+          }),
+          onReceiveProgress: (count, total) async {
+            debugPrint(
+                'onReceiveProgress is getting called - $count and $total');
+            // await progress(count, total);
+          },
+          onSendProgress: (count, total) async {
+            //debugPrint('onSendProgress is getting called - $count and $total');
+            await progress(count, total);
+          },
+        );
+
+        if (dynFileUpload.statusCode == 200) {
+          try {
+            //debugPrint('Response from dyntube api is - $dynFileUpload');
+            final fileID = dynFileUpload.data['videoId'];
+            // Future.delayed(const Duration(seconds: 2));
+            var fileLocation =
+            await Dio().get('https://api.dyntube.com/v1/videos/$fileID',
+                options: Options(headers: {
+                  'Authorization':
+                  'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkb21haW5AemVlbGVhcm4uY29tIiwianRpIjoiNmRlNjRlZDgtMzAxNC00ZmMyLWI5MDMtZTcxZDhmYjIzNWE5IiwidXNlcklkIjoiNjBmZWFhYWU3Yzc1ZDU5YWI1NDM3NzcyIiwiYWNjb3VudElkIjoiWFBXYURQQUVFV2k2a3VjVjhDYnciLCJleHAiOjI1MzQwMjMwMDgwMCwiaXNzIjoiaHR0cHM6Ly9keW50dWJlLmNvbSIsImF1ZCI6Ik1hbmFnZSJ9.gmyVqUAVVg-kFlIK3obEl2zj-EDVMeO_lPfP1Cvv0lY'
+                }));
+            if (fileLocation.statusCode == 200) {
+              log('Response from Location api is - ${fileLocation.data}');
+              //debugPrint('Response from Location is - ${fileLocation.data['hlsLink']}');
+              return Right('https://api.dyntube.com/v1/apps/hls/${fileLocation.data['hlsLink']}.m3u8');
+            } else {
+              return Left(fileLocation.toString());
+            }
+          } catch (e) {
+            debugPrint(
+                'error while getting location of  file - ${e.toString()}');
+            return Left(e.toString());
+          }
+        } else {
+          return Left(dynFileUpload.toString());
+        }
+      } catch (e) {
+        debugPrint('error while uploading file - ${e.toString()}');
+        return Left(e.toString());
+      }
+    }
+  }
+
+
+  Future<Either<String, UploadImageResponse>> uploadImage(
+      String userId, String image,
+      {onClickListener? listener,
+        bool isVideoFile =  false,
+        Function(int bytes, int totalBytes)? progress}) async {
+    print('uploading images ...');
+    isVideoFile= image.contains('.mp4')  ? true : false;
+    var result = await uploadFileDYNTube(
+      image,
+      isVideoFile,
+          (int bytes, int totalBytes) async {
+        log('Uploading file progress in ApiService is - $bytes $totalBytes');
+        await progress!(bytes, totalBytes);
+      },
+    );
+    if (isVideoFile) {
+      return result.fold((left) {
+        listener?.onClick(
+            Utility.ACTION_IMAGE_UPLOAD_RESPONSE_OK,
+            UploadImageResponse(message: 'Successfully', imageModel: [
+              UploadImageModel(
+                  fieldname: '',
+                  originalname: '',
+                  encoding: '',
+                  mimetype: '',
+                  size: 0,
+                  bucket: '',
+                  key: '',
+                  acl: '',
+                  contentType: '',
+                  storageClass: '',
+                  metadata: Metadata(fieldName: ''),
+                  location: left,
+                  etag: '')
+            ]));
+        return Left(left);
+      }, (right) {
+        listener?.onClick(
+            Utility.ACTION_IMAGE_UPLOAD_RESPONSE_OK,
+            UploadImageResponse(message: 'Successfully', imageModel: [
+              UploadImageModel(
+                  fieldname: '',
+                  originalname: '',
+                  encoding: '',
+                  mimetype: '',
+                  size: 0,
+                  bucket: '',
+                  key: '',
+                  acl: '',
+                  contentType: '',
+                  storageClass: '',
+                  metadata: Metadata(fieldName: ''),
+                  location: right,
+                  etag: '')
+            ]));
+        return Right(UploadImageResponse(message: '', imageModel: [
+          UploadImageModel(
+              fieldname: '',
+              originalname: '',
+              encoding: '',
+              mimetype: '',
+              size: 0,
+              bucket: '',
+              key: '',
+              acl: '',
+              contentType: '',
+              storageClass: '',
+              metadata: Metadata(fieldName: ''),
+              location: right,
+              etag: '')
+        ]));
+      });
+    } else {
+      Either<String, UploadImageResponse>? eitherReturn;
+      result.fold((left) async {
+        var postUri = Uri.parse(''/*pentemind_url + LocalStrings.API_GET_PENTEMIND_LG_CHILD_ADVANCEMENT_UPLOAD_IMAGE*/);
+        var request = http.MultipartRequest('POST', postUri);
+        request.files
+            .add(await http.MultipartFile.fromPath('inputFile', image));
+        request.send().then((response) async {
+          try {
+            var responseData = await response.stream.toBytes();
+            var responseString = String.fromCharCodes(responseData);
+            print('Response OK');
+            listener?.onClick(
+                Utility.ACTION_IMAGE_UPLOAD_RESPONSE_OK,
+                UploadImageResponse.fromJson(
+                  json.decode(responseString) as Map<String, dynamic>,
+                ));
+
+            eitherReturn = Right(UploadImageResponse.fromJson(
+              json.decode(responseString) as Map<String, dynamic>,
+            ));
+          } catch (e) {
+            print('error');
+            print(e.toString());
+            listener?.onClick(Utility.ACTION_IMAGE_UPLOAD_RESPONSE_ERROR, e.toString());
+            eitherReturn = Left(e.toString());
+          }
+        });
+      }, (right) {
+        print('Response OK Right');
+        listener?.onClick(Utility.ACTION_IMAGE_UPLOAD_RESPONSE_OK, right);
+        eitherReturn = Right(right);
+      });
+      return eitherReturn ?? const Left('Something went wrong');
+    }
+  }
+
+  Future<dynamic> updateTaskDetails(UpdateBpmsTaskRequest requestModel) async {
+    try {
+      //print(getHeader(''));
+      final response = await http.post(
+          Uri.parse(bpms_url + LocalStrings.API_UPDATE_TASKDETAILS),
+          headers: getHeader(''),
+          body: requestModel.toJson());
+      print(requestModel.toJson());
+      print(response.request!.url);
+      print(response.statusCode);
+      //print(response.body);
+      if (response.statusCode == 200) {
+        return UpdateBpmsTaskResponse.fromJson(
+          json.decode(response.body) as Map<String, dynamic>,
+        );
+      } else {
+        print('statusCode null');
+        return null;
+      }
+    } catch (e) {
+      print('error e');
+      print(e.toString());
+      e.toString();
+    }
+  }
+
+  Future<dynamic> insertTaskAttachment(
+      InsertTaskAttachmentRequest requestModel) async {
+    try {
+      print(getHeader(''));
+      final response = await http.post(
+          Uri.parse(bpms_url + LocalStrings.API_INSERT_ATTACHMENT),
+          headers: getHeader(''),
+          body: requestModel.toJson());
+      print(requestModel.toJson());
+      print(response.request!.url);
+      print(response.statusCode);
+      //print(response.body);
+      if (response.statusCode == 200) {
+        return InsertTaskAttachmentResponse.fromJson(
+          json.decode(response.body) as Map<String, dynamic>,
+        );
+      } else {
+        print('statusCode null');
+        return null;
+      }
+    } catch (e) {
+      print('statusCode null error');
+      print(e.toString());
+      e.toString();
+      return null;
+    }
+  }
+
+  Map<String, String> getHeader(token) {
+    return {
+      //"Accept": "application/json",
+      "content-type": "application/json",
+      //'Authorization': 'Bearer $token',
+      'dbid': '1',
+      'source': kIsWeb ? 'web' : Platform.isAndroid
+          ? 'Android'
+          : Platform.isIOS
+          ? 'IOS'
+          : 'unknown',
+    };
+  }
+
+  dynamic getCommunication(GetCommunicationRequest requestModel) async {
+    try {
+      print('Header -- ${getHeader('')}');
+      final response = await http.post(
+          Uri.parse(bpms_url + LocalStrings.API_GET_COMMUNICATION),
+          headers: getHeader(''),
+          body: requestModel.toJson());
+      print(requestModel.toJson());
+      print(response.request!.url);
+      print(response.statusCode);
+      print('2914 response ${response.body}');
+      if (response.statusCode == 200) {
+        return GetCommunicationResponse.fromJson(
+          json.decode(response.body) as Map<String, dynamic>,
+        );
+      } else {
+        print('statusCode null');
+        return null;
+      }
+    } catch (e) {
+      print(e.toString());
+      e.toString();
+    }
+    return null;
+  }
+
+  Future<dynamic> getTaskComments(GetTaskCommentRequest requestModel) async {
+    try {
+      print(getHeader(''));
+      final response = await http.post(
+          Uri.parse(bpms_url + LocalStrings.API_GET_COMMENTS),
+          headers: getHeader(''),
+          body: requestModel.toJson());
+      print(requestModel.toJson());
+      print(response.request!.url);
+      print(response.statusCode);
+      //print(response.body);
+      if (response.statusCode == 200) {
+        return GetCommentResponse.fromJson(
+          json.decode(response.body) as Map<String, dynamic>,
+        );
+      } else {
+        print('statusCode null');
+        return null;
+      }
+    } catch (e) {
+      print(e.toString());
+      e.toString();
+    }
+  }
+
+  Future<GetTaskDetailsResponseModel> getBPMSTaskDetails(GetTaskDetailsRequest requestModel) async {
+    try {
+      print(getHeader(''));
+      final response = await http.post(
+          Uri.parse(bpms_url + LocalStrings.API_GET_TASKDETAILS),
+          headers: getHeader(''),
+          body: requestModel.toJson());
+      print(requestModel.toJson());
+      print(response.request!.url);
+      print(response.statusCode);
+      //print(response.body);
+      if (response.statusCode == 200) {
+        return GetTaskDetailsResponseModel.fromJson(
+          json.decode(response.body) as Map<String, dynamic>,
+        );
+      } else {
+        return GetTaskDetailsResponseModel(success: 400, taskDetail: []);
+      }
+    } catch (e) {
+      print(e.toString());
+      e.toString();
+      return GetTaskDetailsResponseModel(success: 401, taskDetail: []);
+    }
+  }
+
+  dynamic getFranDetailInfo(GetFranchiseeDetailsRequest requestModel) async {
+    try {
+      print('getFranDetails ....');
+      final response = await http.post(
+          Uri.parse(bpms_url + LocalStrings.API_GET_FRANCHISEEDETAILS),
+          headers: getHeader(''),
+          body: requestModel.toJson());
+      print('resonse received.........');
+      print('Fran ${requestModel.toJson()}');
+      print('Fran ${response.request!.url}');
+      print('Fran ${response.statusCode}');
+      print('Fran ${response.body}');
+      if (response.statusCode == 200) {
+        return GetFranchiseeDetailsResponse.fromJson(
+          json.decode(response.body) as Map<String, dynamic>,
+        );
+      } else {
+        print('statusCode null');
+        return 500;
+      }
+    } catch (e) {
+      print(e.toString());
+      e.toString();
+    }
+  }
+
+  dynamic getBpmsStats(BpmsStatRequest requestModel) async {
+    try {
+      print('Header -- ${getHeader('')}');
+      final response = await http.post(
+          Uri.parse(bpms_url + LocalStrings.API_GET_BPMS_COUNTS),
+          headers: getHeader(''),
+          body: requestModel.toJson());
+      print(requestModel.toJson());
+      print(response.request!.url);
+      print(response.statusCode);
+      print('2914 response ${response.body}');
+      if (response.statusCode == 200) {
+        return ProjectStatsResponse.fromJson(
+          json.decode(response.body) as Map<String, dynamic>,
+        );
+      } else {
+        print('ProjectStatsResponse null');
+        return null;
+      }
+    } catch (e) {
+      print(e.toString());
+      e.toString();
+    }
+    return null;
+  }
+
+  dynamic getAllProject(BpmsStatRequest requestModel) async {
+    try {
+      print('Header -- ${getHeader('')}');
+      final response = await http.post(
+          Uri.parse(bpms_url + LocalStrings.API_GET_BPMS_ALL_PROJECTS),
+          headers: getHeader(''),
+          body: requestModel.toJson1());
+      print(requestModel.toJson1());
+      print(response.request!.url);
+      print(response.statusCode);
+      print('2914 response ${response.body}');
+      if (response.statusCode == 200) {
+        return ProjectResponse.fromJson(
+          json.decode(response.body) as Map<String, dynamic>,
+        );
+      } else {
+        print('ProjectResponse null');
+        return null;
+      }
+    } catch (e) {
+      print(e.toString());
+      e.toString();
+    }
+    return null;
+  }
+
+  dynamic getAllProjectTask(BpmsTaskRequest requestModel) async {
+    try {
+      print('Header -- ${getHeader('')}');
+      final response = await http.post(
+          Uri.parse(bpms_url + LocalStrings.API_GET_BPMS_ALL_PROJECTTASK),
+          headers: getHeader(''),
+          body: requestModel.toJson());
+      print(requestModel.toJson());
+      print(response.request!.url);
+      print(response.statusCode);
+      print('2914 response ${response.body}');
+      if (response.statusCode == 200) {
+        return ProjectTaskResponse.fromJson(
+          json.decode(response.body) as Map<String, dynamic>,
+        );
+      } else {
+        print('ProjectResponse null');
+        return null;
+      }
+    } catch (e) {
+      print(e.toString());
+      e.toString();
+    }
+    return null;
+  }
 }

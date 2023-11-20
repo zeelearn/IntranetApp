@@ -20,6 +20,8 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter/foundation.dart';
 import 'package:Intranet/pages/model/NotificationDataModel.dart';
 import 'package:Intranet/pages/pjp/cvf/CheckInModel.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hive_flutter/adapters.dart';
 import 'package:location/location.dart';
 import 'api/APIService.dart';
 import 'api/request/cvf/update_cvf_status_request.dart';
@@ -242,8 +244,16 @@ Future<void> main() async {
   _requestPermission();
   await FirebaseMessaging.instance.setAutoInitEnabled(true);
 
+  await Hive.initFlutter();
+  await Hive.openBox(LocalConstant.communicationKey); // settings
+  await Hive.openBox(LocalConstant.authStorageKey);
+  await Hive.openBox(LocalConstant.indent);
+
   //await initializeService();
-  runApp(const MyApp());
+  //runApp(const MyApp());
+  runApp(const ProviderScope(
+    child: MyApp(),
+  ));
 }
 
 _requestPermission() async {

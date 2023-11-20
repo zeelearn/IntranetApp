@@ -9,6 +9,7 @@ class LocalStrings {
   static var stepThreeTitle = "Center Visit Form";
   static var stepThreeContent = "";
 
+  static const String bpms = "https://commonapi.zeelearn.com/";
   static const String productionBaseUrl = "http://app.ekidzee.com";
   static const String developmentBaseUrl = "http://intranetapi.zeelearn.com";
   static const kGoogleApiKey = "AIzaSyD-x4HqYO1O0kwDpkxIc128nM4f1bZ3oDM";
@@ -46,5 +47,16 @@ class LocalStrings {
   static const String GET_GETPJPREPORT = '/api/PJP/GetPJPReport';
   static const String UPDATE_MODIFY_STATUS = '/api/PJP/ModifyPJPStatus';
   static const String UPDATE_MODIFY_STATUS_MULTIPLE = '/api/PJP/ModifyPJPStatus_multiple';
+
+
+  static const String API_GET_TASKDETAILS = 'api/bp/GetPartnerTaskDetails';
+  static const String API_UPDATE_TASKDETAILS = 'api/bp/UpdateTaskStatus';
+  static const String API_GET_COMMENTS = 'api/bp/Getcomments';
+  static const String API_INSERT_ATTACHMENT = 'api/bp/InserttaskAttachment';
+  static const String API_GET_FRANCHISEEDETAILS = 'api/bp/GetFranchiseeDetailInfo';
+  static const String API_GET_COMMUNICATION = 'api/bp/Getcommunication';
+  static const String API_GET_BPMS_COUNTS = 'api/bp//GetDashboardCount';
+  static const String API_GET_BPMS_ALL_PROJECTS = 'api/bp//GetAllProjectList';
+  static const String API_GET_BPMS_ALL_PROJECTTASK = 'api/bp//Gettaskdata';
 
 }

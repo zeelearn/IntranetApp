@@ -196,6 +196,7 @@ class _LoginFormState extends State<LoginForm> implements changePasswordInterfac
               Utility.showMessage(context, 'Invalid UserName/Password');
             } else {
               EmployeeDetails info = value.responseData.employeeDetails[0];
+
               //// Save an integer value to 'counter' key.
               hiveBox.put(LocalConstant.KEY_EMPLOYEE_ID, info.employeeId as String);
               hiveBox.put(LocalConstant.KEY_EMPLOYEE_CODE, info.employeeCode as String);

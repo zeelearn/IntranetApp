@@ -37,4 +37,12 @@ class LightColor {
   static const Color lightGrey = Color.fromRGBO(251, 252, 252 , 50);
   static const Color darkBlue = Color(0xff13165A);
   static const Color lightBlue = Color(0xff203387);
+
+  static int bg = 0xfff5f3fe;
+  static int bg01 = 0xff6f75e1;
+  static int bg02 = 0xffc3c5f8;
+  static int bg03 = 0xffe8eafe;
+  static int text01 = 0xffbec2fc;
+  static int grey01 = 0xffe9ebf0;
+  static int grey02 = 0xff9796af;
 }

@@ -270,6 +270,7 @@ class EmployeeRoles {
 class BusinessApplications {
   BusinessApplications({
     required this.businessID,
+    required this.business_UserID,
     required this.employeeId,
     required this.businessName,
     required this.logoPath,
@@ -278,6 +279,7 @@ class BusinessApplications {
     required this.path,
   });
   late final int businessID;
+  late final int business_UserID;
   late final String employeeId;
   late final String businessName;
   late final String? logoPath;
@@ -287,6 +289,7 @@ class BusinessApplications {
 
   BusinessApplications.fromJson(Map<String, dynamic> json){
     businessID = json['business_ID'] ?? '';
+    business_UserID = json['business_UserID'] ?? 0;
     employeeId = json['employee_Id'] ?? 0;
     businessName = json['business_Name'] ?? '';
     logoPath = json['logo_Path'] ?? '';
@@ -298,6 +301,7 @@ class BusinessApplications {
   Map<String, dynamic> toJson() {
     final _data = <String, dynamic>{};
     _data['business_ID'] = businessID;
+    _data['business_UserID'] = business_UserID;
     _data['employee_Id'] = employeeId;
     _data['business_Name'] = businessName;
     _data['logo_Path'] = logoPath;

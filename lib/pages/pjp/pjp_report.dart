@@ -765,7 +765,7 @@ class _MyPjpReportListState extends State<MyPjpReportScreen> implements onRespon
         //rejected
         Utility.getRejectionDialog(context, 'Rejected', 'The Pjp is rejected by you..', this);
       }else {
-        Utility.getConfirmationDialog(context, this);
+        Utility.getConfirmationDialogPJP(context, this);
       }
     }else if(value is PjpListResponse){
       debugPrint('PJP List onSuccess PjpListResponse');

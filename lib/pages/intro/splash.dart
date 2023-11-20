@@ -59,7 +59,7 @@ class _SplashScreenState extends State<SplashScreen> {
                     context,
                     MaterialPageRoute(
                         builder: (context) =>
-                        currentBusinessName==null || currentBusinessName.isEmpty ? LoginPage(isAutoLogin: true,) : IntranetHomePage(userId: '',)),
+                        /*currentBusinessName==null || currentBusinessName.isEmpty ? LoginPage(isAutoLogin: true,) : */IntranetHomePage(userId: '',)),
                   ));
       }else {
         debugPrint(' in else');

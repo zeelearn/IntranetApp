@@ -1,9 +1,13 @@
 import 'dart:math';
 
+import 'package:Intranet/pages/bpms/auth/ui/bpms_home.dart';
+import 'package:Intranet/pages/helper/LocalConstant.dart';
 import 'package:flutter/material.dart';
 import 'package:Intranet/pages/home/task_category_entity.dart';
 import 'package:Intranet/pages/pjp/cvf/mycvf.dart';
 
+import '../bpms/bpms_dashboard.dart';
+import '../helper/utils.dart';
 import '../model/filter.dart';
 import '../pjp/mypjp.dart';
 import '../report/myreport.dart';
@@ -220,7 +224,68 @@ class HomePageMenu extends StatelessWidget {
                   mainAxisSize: MainAxisSize.max,
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
+                    //_getMenu(context, 'BPMS', BPMSHome()),
                     _getMenu(context, 'My Report', MyReportsScreen()),
+                    GestureDetector(
+                      onTap: () async {
+                        var box = await Utility.openBox();
+                        int frichiseeId = box.get(LocalConstant.KEY_FRANCHISEE_ID) as int;
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => BPMSDashboard(userId: frichiseeId.toString(),)));
+                      },
+                      child: Padding(
+                        padding: EdgeInsetsDirectional.fromSTEB(8, 8, 8, 8),
+                        child: Container(
+                          width: MediaQuery
+                              .of(context)
+                              .size
+                              .width * 0.4,
+                          height: 150,
+                          decoration: BoxDecoration(
+                            color: Colors.blue,
+                            boxShadow: const [
+                              BoxShadow(
+                                blurRadius: 3,
+                                color: Colors.indigoAccent,
+                                offset: Offset(0, 1),
+                              )
+                            ],
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.max,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: const [
+                              Padding(
+                                padding:
+                                EdgeInsetsDirectional.fromSTEB(0, 16, 0, 0),
+                                child: Icon(
+                                  Icons.calendar_today,
+                                  color: Colors.white,
+                                  size: 44,
+                                ),
+                              ),
+                              Padding(
+                                padding: EdgeInsetsDirectional.fromSTEB(
+                                    0, 8, 0, 0),
+                                child: Text(
+                                  'BPMS',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    fontFamily: 'Lexend Deca',
+                                    color: Colors.white,
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
                   ],
                 )
             ),

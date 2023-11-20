@@ -97,6 +97,14 @@ dependencies:
   order_tracker_zen: ^1.0.0+4
   app_version_update: ^4.0.1
   location: ^5.0.3
+  flutter_riverpod: ^2.3.10
+  dio: ^5.3.2
+  camera: ^0.10.5+4
+  video_player: ^2.4.5
+  either_dart: ^1.0.0
+  aws_s3_upload: ^1.5.0
+  chewie: ^1.5.0
+  flutter_widget_from_html_core: ^0.14.6
   #overlay_support: ^2.0.1
 
   #flutter_background_service: ^2.4.3
