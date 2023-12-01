@@ -41,7 +41,7 @@ class Tasks extends StatelessWidget {
 
   showChatScreen(BuildContext context, ProjectTaskModel taskModel) async {
     var result = await Navigator.push(context, MaterialPageRoute(builder: (context) {
-      return ChatPage(taskModel: taskModel);
+      return ChatPage(taskModel: taskModel, isEdit: true,);
     }));
     print('showChatScreen ------notifier-----------${result}');
     ref.read(authNotifierProvider.notifier).refreshTask();
@@ -56,7 +56,7 @@ class Tasks extends StatelessWidget {
               child: Container(
                 margin: EdgeInsets.only(left: 15,right: 15,top: 15),
                 decoration: BoxDecoration(
-                    color: taskModel.statusname.toLowerCase().contains('bp completed') ? Colors.white : taskModel.statusname.toLowerCase().contains('completed') ?  Colors.white : taskModel.statusname.toLowerCase().contains('progress') ? LightColors.kLightYellow : LightColors.kLightGray1,
+                    color: taskModel.statusname.toLowerCase().contains('completed') ? Colors.white : taskModel.statusname.toLowerCase().contains('completed') ?  Colors.white : taskModel.statusname.toLowerCase().contains('progress') ? LightColors.kLightYellow : LightColors.kLightGray1,
                     borderRadius: BorderRadius.circular(10.0),
                     boxShadow: [BoxShadow(
                         color: Colors.black26.withOpacity(0.05),
@@ -127,7 +127,7 @@ class Tasks extends StatelessWidget {
                                 "${taskModel.statusname}",
                               style: GoogleFonts.roboto(
                                 background: Paint()
-                                  ..color = taskModel.statusname.toLowerCase().contains('bp completed') ? LightColors.kLightGreenMaterial : taskModel.statusname.toLowerCase().contains('completed') ? LightColors.kGreen : taskModel.statusname.toLowerCase().contains('progress') ? LightColors.kLightYellow2 : LightColors.kLightGray1
+                                  ..color = taskModel.statusname.toLowerCase().contains('completed') ? LightColors.kLightGreenMaterial : taskModel.statusname.toLowerCase().contains('completed') ? LightColors.kGreen : taskModel.statusname.toLowerCase().contains('progress') ? LightColors.kLightYellow2 : LightColors.kLightGray1
                                   ..strokeWidth = 18
                                   ..strokeJoin = StrokeJoin.round
                                   ..strokeCap = StrokeCap.round

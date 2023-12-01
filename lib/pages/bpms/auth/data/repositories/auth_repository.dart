@@ -8,12 +8,17 @@ import '../../../../../api/request/bpms/bpms_task.dart';
 import '../../../../../api/request/bpms/franchisee_details_request.dart';
 import '../../../../../api/request/bpms/getTaskDetailsRequest.dart';
 import '../../../../../api/request/bpms/get_communication.dart';
+import '../../../../../api/request/bpms/newtask.dart';
 import '../../../../../api/request/bpms/projects.dart';
+import '../../../../../api/request/bpms/send_cred.dart';
 import '../../../../../api/response/bpms/bpms_stats.dart';
+import '../../../../../api/response/bpms/bpms_status.dart';
 import '../../../../../api/response/bpms/franchisee_details_response.dart';
 import '../../../../../api/response/bpms/getTaskDetailsResponseModel.dart';
 import '../../../../../api/response/bpms/get_communication_response.dart';
+import '../../../../../api/response/bpms/newtask.dart';
 import '../../../../../api/response/bpms/project_task.dart';
+import '../../../../../api/response/bpms/send_cred.dart';
 import '../exceptions/login_exception.dart';
 
 abstract class AuthRepository {
@@ -34,6 +39,7 @@ abstract class AuthRepository {
     required BpmsStatRequest request,
   });
 
+
   Future<ProjectTaskResponse> getAllProjectTask({
     required BpmsTaskRequest request,
   });
@@ -46,12 +52,25 @@ abstract class AuthRepository {
     required String projectId,
     required String userId,
   });
+
+  Future<ProjectStatusResponse> getStatus();
+
+  Future<AddNewTaskResponse> addNewTask({required NewTaskRequest request});
+
 }
 
 class ApiAuthRepository implements AuthRepository {
   final Dio _dio;
 
   ApiAuthRepository(this._dio);
+
+
+
+  @override
+  Future<ProjectStatusResponse> getStatus() async {
+    return await APIService().getBPMSStatus();
+  }
+
 
   @override
   Future<ProjectStatsResponse> getProjectsCounts(
@@ -167,6 +186,11 @@ class ApiAuthRepository implements AuthRepository {
     } catch (e) {
       throw Exception('Unable to login');
     }
+  }
+
+  @override
+  Future<AddNewTaskResponse> addNewTask({required NewTaskRequest request}) async {
+    return await APIService().addNewTask(request);
   }
 }
 

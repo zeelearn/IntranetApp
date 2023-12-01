@@ -217,7 +217,7 @@ class _VideoPlayerState extends State<VideoPlayer> {
                     ? Chewie(
                         controller: _chewieController!,
                       )
-                    : Center(child: Lottie.asset('assets/json/kidzee_loader.json')) /*const Column(
+                    : Center(child: Lottie.asset('assets/json/loading.json')) /*const Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           CircularProgressIndicator(),

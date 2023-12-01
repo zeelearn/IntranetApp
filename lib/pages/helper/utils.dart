@@ -1,3 +1,4 @@
+import 'package:Intranet/pages/helper/constants.dart';
 import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
@@ -180,7 +181,7 @@ class Utility{
         height: 1,
       ),
       lottieBuilder: Lottie.asset(
-        'assets/json/85594-done.json',
+        'assets/json/alert.json',
         fit: BoxFit.contain,
       ),
       dialogWidth: kIsWeb ? 0.3 : null,
@@ -241,7 +242,7 @@ class Utility{
 
   static DateTime parseStringDate(String value) {
     DateTime dt = DateTime.now();
-    //print('value ${value}');
+    print('value ${value}');
     try {
 
       dt = new DateFormat('yyyy-MM-dd\'T\'HH:mm:ss.sss\'Z\'').parse(value);
@@ -256,10 +257,24 @@ class Utility{
     DateTime dt = DateTime.now();
     //print('value ${value}');
     try {
-
       dt = new DateFormat('yyyy-MM-dd\'T\'HH:mm:ss.sss\'Z\'').parse(value);
       //print('dt ${dt.day}');
-      date = DateFormat("dd MMM").format(dt);
+      date = DateFormat("dd MMM yy").format(dt);
+      //print('date ${date}');
+    } catch (e) {
+      e.toString();
+    }
+    return date;
+  }
+
+  static String parseDateOnly(String value) {
+    String date =value;
+    DateTime dt = DateTime.now();
+    //print('value ${value}');
+    try {
+      dt = new DateFormat('mm-dd-yy').parse(value);
+      //print('dt ${dt.day}');
+      date = DateFormat("dd MMM yy").format(dt);
       //print('date ${date}');
     } catch (e) {
       e.toString();
@@ -849,6 +864,47 @@ class Utility{
           },
           text: 'Cancel',
           color: Colors.blue,
+          textStyle: TextStyle(color: Colors.white),
+          iconColor: Colors.white,
+        ),
+      ],
+    );
+  }
+
+  static onApproveConfirmation(BuildContext context,String title,String message,onClickListener response){
+    Dialogs.materialDialog(
+      color: Colors.white,
+      msg: message,
+      title: title,
+      lottieBuilder: Lottie.asset(
+        'assets/json/75382-question.json',
+        fit: BoxFit.contain,
+      ),
+      dialogWidth: kIsWeb ? 0.2 : null,
+      context: context,
+      actions: [
+        IconsButton(
+          onPressed: () {
+            Future.delayed(Duration(milliseconds: 50)).then((_) {
+              Navigator.of(context).pop();
+              response.onClick(ACTION_OK, 'onConfirmationBox');
+            });
+          },
+          text: 'Cancel',
+          iconData: Icons.clear,
+          color: Colors.red,
+          textStyle: TextStyle(color: Colors.white),
+          iconColor: Colors.white,
+        ),
+        IconsButton(
+          onPressed: () {
+            Future.delayed(Duration(milliseconds: 50)).then((_) {
+              Navigator.of(context).pop();
+              response.onClick(ACTION_CONFIRM, 'onConfirmationBox');
+            });
+          },
+          text: 'Delete',
+          color: kPrimaryLightColor,
           textStyle: TextStyle(color: Colors.white),
           iconColor: Colors.white,
         ),

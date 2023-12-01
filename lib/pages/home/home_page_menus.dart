@@ -7,6 +7,7 @@ import 'package:Intranet/pages/home/task_category_entity.dart';
 import 'package:Intranet/pages/pjp/cvf/mycvf.dart';
 
 import '../bpms/bpms_dashboard.dart';
+import '../bpms/bpms_projects.dart';
 import '../helper/utils.dart';
 import '../model/filter.dart';
 import '../pjp/mypjp.dart';
@@ -229,11 +230,17 @@ class HomePageMenu extends StatelessWidget {
                     GestureDetector(
                       onTap: () async {
                         var box = await Utility.openBox();
-                        int frichiseeId = box.get(LocalConstant.KEY_FRANCHISEE_ID) as int;
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => BPMSDashboard(userId: frichiseeId.toString(),)));
+                        try {
+                          int frichiseeId = box.get(
+                              LocalConstant.KEY_FRANCHISEE_ID) as int;
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) =>
+                                      BPMSProjects()));
+                        }catch(e){
+                          Utility.showMessage(context, 'BPMS is not application for current user');
+                        }
                       },
                       child: Padding(
                         padding: EdgeInsetsDirectional.fromSTEB(8, 8, 8, 8),

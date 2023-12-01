@@ -172,8 +172,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
               hive.put(LocalConstant.KEY_ISCEO, info.isCEO);
               hive.put(
                   LocalConstant.KEY_IS_BUSINESS_HEAD, info.isBusinessHead);
-              hive.put(
-                  LocalConstant.KEY_USER_NAME, info.userName as String);
+              hive.put(LocalConstant.KEY_USER_NAME, info.userName as String);
               hive.put(LocalConstant.KEY_USER_PASSWORD, info.userPassword as String);
               hive.put(LocalConstant.KEY_DOB, info.employeeDateOfBirth as String);
               hive.put(LocalConstant.KEY_GRADE, info.employeeGrade as String);

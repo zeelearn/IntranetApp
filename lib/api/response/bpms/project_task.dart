@@ -74,7 +74,7 @@ class ProjectTaskModel {
   final String mtaskId;
   final String taskcreateduser;
   late String latestComment;
-  late final dynamic files;
+  late final String files;
   final String manager;
   final String treeStatus;
   final String datumClass;

@@ -32,6 +32,8 @@ import '../../../utils/theme/colors/light_colors.dart';
 import '../../../widget/VideoPlayer.dart';
 import '../../../widget/button_widget.dart';
 import '../../../widget/image_viewer.dart';
+import '../../new_task.dart';
+import '../../update_task.dart';
 import '../data/enums/auth_status.dart';
 import '../data/providers/auth_provider.dart';
 import 'MessageModel.dart';
@@ -44,8 +46,9 @@ import 'camera/CameraScreen.dart';
 
 class ChatPage extends ConsumerStatefulWidget {
   ProjectTaskModel taskModel;
+  bool isEdit;
 
-  ChatPage({Key? key, required this.taskModel}) : super(key: key);
+  ChatPage({Key? key, required this.taskModel,required this.isEdit}) : super(key: key);
 
   @override
   ConsumerState<ConsumerStatefulWidget> createState() => _ChatPageState();
@@ -112,7 +115,7 @@ class _ChatPageState extends ConsumerState<ChatPage>
       GetCommentResponse response = GetCommentResponse.fromJson(
         json.decode(data!),
       );
-      print(response.toJson());
+      //print(response.toJson());
       messages.addAll(response.commentModelList);
       setState(() {});
       setState(() {});
@@ -136,6 +139,7 @@ class _ChatPageState extends ConsumerState<ChatPage>
     //await getUserInfo();
     imgList.clear();
     print('chat initData-------------------------${widget.taskModel.statusname}');
+    getUserInfo();
     if (widget.taskModel.files.isNotEmpty) {
       print('initData---${widget.taskModel.files}');
       imgList.addAll(widget.taskModel.files.split(','));
@@ -150,14 +154,24 @@ class _ChatPageState extends ConsumerState<ChatPage>
     });
   }
 
-  String userId = '';
   String francId = '';
+  String userId = '';
+  String userName = '';
 
   Future<void> getUserInfo() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
+    var box = await Utility.openBox();
+    if(box.get(LocalConstant.KEY_EMPLOYEE_ID)!=null) {
+      print('in if emoloyee found');
+      //userId = box.get(LocalConstant.KEY_EMPLOYEE_ID) as String;
+      userId = francId = (box.get(LocalConstant.KEY_FRANCHISEE_ID) as int).toString();
+      userName = '${box.get(LocalConstant.KEY_FIRST_NAME) as String} ${box.get(LocalConstant.KEY_LAST_NAME) as String}';
+      print('in if emoloyee found ${userId}');
+    }
+    /*SharedPreferences prefs = await SharedPreferences.getInstance();
     francId = prefs.getString(LocalConstant.KEY_FRANCHISEE_ID) as String;
-    userId = prefs.getString(LocalConstant.KEY_UID) as String;
-    loadTaskComments();
+    userId = prefs.getString(LocalConstant.KEY_UID) as String;*/
+    print('UserId ${userId}');
+    //loadTaskComments();
   }
 
   void loadTaskComments() {
@@ -421,29 +435,32 @@ class _ChatPageState extends ConsumerState<ChatPage>
                         ),
                       ),
                       Text(
-                        lastsync,
+                        widget.taskModel.statusname,
                         style: const TextStyle(
                           fontSize: 12,
                         ),
                       )
                     ],
                   ),
-              actions: widget.taskModel.statusname
-                      .toLowerCase()
-                      .contains('progres')
-                  ? [
-                      InkWell(
-                        onTap: () {
-                          _status = 'BP Completed';
+              actions: !widget.isEdit  ? null : [InkWell(
+                        onTap: () async {
+
+                          final result = await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) =>UpdateBPMSTask(taskModel: widget.taskModel,)),
+                          );
+                          //_status = 'BP Completed';
                           //Utility.confirmalert(context, 'Are you sure?', 'Are you sure to Complete the Task', this);
-                          Utility.getConfirmation(context, 'Are you sure you want to complete the task?', '', this);
+                          //Utility.getConfirmation(context, 'Are you sure you want to complete the task?', '', this);
+
                         },
                         child: Padding(
                           padding: const EdgeInsets.all(8.0),
                           child: Card(
                             color: Colors.white,
                             child: Center(
-                              child: Text('  Mark Completed  ',
+                              child: Text('  Edit  ',
                                 style: LightColors.textHeaderStyle13,
                               ),
                             ),
@@ -451,83 +468,13 @@ class _ChatPageState extends ConsumerState<ChatPage>
                         ),
                       ),
                     ]
-                  : null,
           ),
           body: SizedBox(
             height: MediaQuery.of(context).size.height,
             width: MediaQuery.of(context).size.width,
             child: isLoading ? Utility.showLoader() : WillPopScope(
-              child: widget.taskModel.statusname.isEmpty ||
-                    widget.taskModel.statusname == 'Pending'
-                  ? Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
+              child: Column(
                       children: [
-                        showBottomSheetStartTask1(context, widget.taskModel)
-                      ],
-                    )
-                  : Column(
-                      children: [
-                        /*StreamBuilder<Map<String, dynamic>?>(
-                          stream: FlutterBackgroundService().on('update'),
-                          builder: (context, snapshot) {
-                            if (!snapshot.hasData) {
-                              return const SizedBox.shrink();
-                            }
-
-                            final data = snapshot.data!;
-                            debugPrint('Response from background is - $data');
-
-                            if (data.containsKey('success')) {
-                              UploadImageResponse value =
-                                  UploadImageResponse.fromJson(
-                                      jsonDecode(jsonEncode(data['success'])));
-
-                              imgList.add(value.imageModel![0].location);
-
-                              afterFileUploading(value);
-
-                              var file = File(data['videoUrl']);
-
-                              debugPrint(
-                                  'new video name is - ${value.imageModel![0].location.split('/').last.split('.').first}');
-
-                              var path = file.path;
-                              var lastseperator =
-                                  path.lastIndexOf(Platform.pathSeparator);
-                              var newpath =
-                                  '${path.substring(0, lastseperator + 1)}${value.imageModel![0].location.split('/').last.split('.').first}.mp4';
-                              file.renameSync(newpath);
-                            } else if (data.containsKey('progress')) {
-                              debugPrint('data on progress is - $data');
-                              return Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Center(
-                                    child: Column(
-                                  children: [
-                                    const Text('Uploading File wait'),
-                                    const SizedBox(
-                                      height: 5,
-                                    ),
-                                    CircularProgressIndicator(
-                                      value: data['progress']['bytes'] /
-                                          data['progress']['totalbytes'],
-                                      strokeWidth: 5,
-                                      color: Colors.red,
-                                    ),
-                                  ],
-                                )),
-                              );
-                            } else {
-                              WidgetsBinding.instance
-                                  .addPostFrameCallback((timeStamp) {
-                                Utility.showMessageCallback(
-                                    context, 'Alert', data['error'], this);
-                              });
-                            }
-
-                            return const SizedBox.shrink();
-                          },
-                        ),*/
                         Container(
                           child: imgList.isNotEmpty
                               ? Card(
@@ -552,18 +499,17 @@ class _ChatPageState extends ConsumerState<ChatPage>
                                   height: 70,
                                 );
                               }
+                              print(messages[index].toJson());
                               return OwnMessageCard(
-                                message: messages[index].comment,
+                                commentModel: messages[index],
                                 time: Utility.parseShortTime(
-                                    messages[index].CreatedDate),
+                                    messages[index].CreatedDate), isSelf: messages[index].createduser == francId ? true : false,
                               );
                             },
                           ),
                         ),
-                        widget.taskModel.statusname
-                                .toLowerCase()
-                                .contains('progres')
-                            ? Align(
+                        !widget.isEdit ? SizedBox(height: 0,) :
+                        Align(
                                 alignment: Alignment.bottomCenter,
                                 child: SizedBox(
                                   height: 70,
@@ -719,9 +665,6 @@ class _ChatPageState extends ConsumerState<ChatPage>
                                   ),
                                 ),
                               )
-                            : const SizedBox(
-                                width: 0,
-                              ),
                       ],
                     ),
               onWillPop: () {
@@ -833,9 +776,11 @@ class _ChatPageState extends ConsumerState<ChatPage>
     }
   }
 
-  void updateTaskDetails(ProjectTaskModel item, String status, String remark) {
+  void updateTaskDetails(ProjectTaskModel item, String status, String remark) async{
     _status = status;
     isAnyChange = true;
+    print('updateTaskDetails----------------------=================${userId}');
+    print('yUserId a------------${userId}');
     CommentModel messageModel = CommentModel(
         comment: remark,
         CreatedBy: userId,
@@ -843,7 +788,7 @@ class _ChatPageState extends ConsumerState<ChatPage>
         createdtime: DateTime.now().toString().substring(10, 16),
         ModifiedBy: userId,
         ModifiedDate: Utility.getServerDate(),
-        createduser: userId);
+        createduser: userName);
     setMessage("source", messageModel);
     UpdateBpmsTaskRequest request = UpdateBpmsTaskRequest(
         taskid: int.parse(item.id),
@@ -858,11 +803,12 @@ class _ChatPageState extends ConsumerState<ChatPage>
     //Navigator.of(context, rootNavigator: true).pop('dialog');
   }
 
-  void insertTaskAttachment(String filepath) {
+  void insertTaskAttachment(String filepath) async {
     setState(() {
       isLoading = true;
     });
     ProjectTaskModel item = widget.taskModel;
+    print('insertTaskAttachment----------------------=================${userId}');
     InsertTaskAttachmentRequest request = InsertTaskAttachmentRequest(
         taskId: item.id, filePath: filepath, userId: userId);
     IntranetServiceHandler().insertTaskAttachment(request, this);
@@ -1102,8 +1048,8 @@ class _ChatPageState extends ConsumerState<ChatPage>
           .updateMessage(widget.taskModel, _controller.text.toString());
       if (_status == 'In Progress') {
 
-      }else if (_status == 'BP Completed') {
-        widget.taskModel.statusname = 'BP Completed';
+      }else if (_status.toLowerCase().contains('completed')) {
+        widget.taskModel.statusname = _status;
         widget.taskModel.status = getStatus(_status);
         print('in BP COmpltedadadakldnakldn');
         isAnyChange = true;

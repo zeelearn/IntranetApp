@@ -17,7 +17,9 @@ class PathBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 50,
+      color: Colors.white,
+      padding: EdgeInsets.only(left: 10,right: 10),
+      height: 40,
       child: Align(
         alignment: Alignment.centerLeft,
         child: ListView.separated(
@@ -41,14 +43,14 @@ class PathBar extends StatelessWidget implements PreferredSizeWidget {
             return InkWell(
               onTap: () => onChanged(index),
               child: Container(
-                height: 40,
+                height: 35,
                 child: Center(
                   child: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 10),
+                    padding: EdgeInsets.symmetric(horizontal: 0),
                     child: Text(
                       '${splited[splited.length - 1]}',
                       style: TextStyle(
-                        fontSize: 16,
+                        fontSize: 12,
                         fontWeight: FontWeight.normal,
                         color: index == paths.length - 1
                             ? Theme.of(context).hintColor
@@ -61,9 +63,9 @@ class PathBar extends StatelessWidget implements PreferredSizeWidget {
             );
           },
           separatorBuilder: (BuildContext context, int index) {
-            return IconButton(
+            return IconButton(color: Colors.blue,
               icon: Icon(Icons.arrow_back_ios_new_rounded),
-              onPressed: () => onChanged(-1),
+              onPressed: () {},
             );;//Image.asset('assets/icons/ic_arrow_right.png');
           },
         ),

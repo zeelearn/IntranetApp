@@ -59,7 +59,7 @@ class _LeaveSummeryScreenState extends State<LeaveSummeryScreen>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    debugPrint('didChangeAppLifecycleState ${state} ');
+    debugPrint('62 didChangeAppLifecycleState ${state} ');
     if (state == AppLifecycleState.resumed) {
       getUserInfo();
     }

@@ -49,7 +49,7 @@ class _OutdoorScreen extends State<OutdoorScreen>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    debugPrint('didChangeAppLifecycleState ${state} ');
+    debugPrint(' 52didChangeAppLifecycleState ${state} ');
     if (state == AppLifecycleState.resumed) {
       loadOutdoorRequisition();
     }

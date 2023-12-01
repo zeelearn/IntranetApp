@@ -42,7 +42,7 @@ class MyWebsiteViewState extends State<MyWebsiteView> {
 
   showLoaderDialog(BuildContext context) {
     AlertDialog alert = AlertDialog(
-      content: Lottie.asset('assets/json/kidzee_loader.json'),
+      content: Lottie.asset('assets/json/loading.json'),
     );
     showDialog(
       barrierDismissible: false,
@@ -60,7 +60,7 @@ class MyWebsiteViewState extends State<MyWebsiteView> {
           appBar:  AppBar(
             title: Text(widget.title),// You can add title here
             leading: IconButton(
-              icon: Icon(Icons.arrow_back_ios, color: Colors.black),
+              icon: Icon(Icons.arrow_back_ios, color: Colors.white),
               onPressed: () => Navigator.of(context).pop(),
             ), //You can make this transparent
             elevation: 0.0, //No shadow

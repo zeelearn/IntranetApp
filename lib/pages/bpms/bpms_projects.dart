@@ -1,15 +1,21 @@
+import 'package:Intranet/api/request/bpms/send_cred.dart';
+import 'package:Intranet/api/response/bpms/send_cred.dart';
 import 'package:Intranet/pages/bpms/bpms_task.dart';
 import 'package:Intranet/pages/helper/math_utils.dart';
 import 'package:Intranet/pages/utils/theme/colors/light_colors.dart';
+import 'package:Intranet/pages/widget/MyWebSiteView.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../api/APIService.dart';
 import '../../api/request/bpms/projects.dart';
 import '../../api/response/bpms/bpms_stats.dart';
 import '../helper/LocalConstant.dart';
 import '../helper/constants.dart';
 import '../helper/utils.dart';
+import '../home/IntranetHomePage.dart';
+import '../iface/onResponse.dart';
 import 'auth/data/providers/auth_provider.dart';
 
 class BPMSProjects extends ConsumerStatefulWidget {
@@ -36,7 +42,7 @@ class _BPMSProjects extends  ConsumerState<BPMSProjects> with WidgetsBindingObse
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-      print('didChangeAppLifecycleState');
+      print('bpms project 39 didChangeAppLifecycleState');
     if (state == AppLifecycleState.resumed) {
       //print('resume');
       loadProjects();
@@ -52,6 +58,36 @@ class _BPMSProjects extends  ConsumerState<BPMSProjects> with WidgetsBindingObse
       print('in if emoloyee found ${uid}');
       await ref.read(authNotifierProvider.notifier).getAllProjects(frid.toString());
     }
+  }
+
+  refreshProjects() async{
+    var box = await Utility.openBox();
+    if(box.get(LocalConstant.KEY_EMPLOYEE_ID)!=null) {
+      print('in if emoloyee found');
+      String uid = box.get(LocalConstant.KEY_EMPLOYEE_ID) as String;
+      int frid = box.get(LocalConstant.KEY_FRANCHISEE_ID) as int;
+      print('in if emoloyee found ${uid}');
+      await ref.read(authNotifierProvider.notifier).refreshProjectList(frid.toString());
+    }
+  }
+
+  void sendCredentials(String crmId) {
+    APIService apiService = APIService();
+    Utility.showLoader();
+    apiService.sendCredentials(SendCredentialsRequest(crmId: crmId)).then((value) {
+      if (value != null) {
+        Navigator.of(context).pop();
+        CommonResponse responseModel;
+        if (value != null) {
+          responseModel = value;
+          Utility.showMessage(context,responseModel.data[0].msg );
+        } else {
+          Utility.showMessage(context,'Unable to send Credentials Please try again later');
+        }
+      } else {
+        Utility.showMessage(context,'Unable to send Credentials Please try again later');
+      }
+    });
   }
 
   final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey = GlobalKey<RefreshIndicatorState>();
@@ -71,7 +107,7 @@ class _BPMSProjects extends  ConsumerState<BPMSProjects> with WidgetsBindingObse
           mSortedProjectList.add(auth.projectList![index]);
         }
       }
-    print('Sorted list ${mSortedProjectList.length}');
+    //print('Sorted list ${mSortedProjectList.length}');
     setState(() {
       //isLoading=false;
     });
@@ -87,6 +123,25 @@ class _BPMSProjects extends  ConsumerState<BPMSProjects> with WidgetsBindingObse
         backgroundColor: Color(0xffe9ebf0),
         appBar: AppBar(
           centerTitle: false,
+          backgroundColor: kPrimaryLightColor,
+          leading: InkWell(
+            onTap: () {
+              Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) =>
+                          IntranetHomePage(userId: '',)));
+            },
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.arrow_back,
+                  size: 24,
+                ),
+              ],
+            ),
+          ),
           title: isSearch ? Card(
             margin: EdgeInsets.all(5),
             color: Colors.white,
@@ -114,7 +169,7 @@ class _BPMSProjects extends  ConsumerState<BPMSProjects> with WidgetsBindingObse
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(2.0),
                       borderSide: BorderSide(
-                        color: Colors.blue,
+                        color: kPrimaryLightColor,
                       ),
                     ),
                     enabledBorder: OutlineInputBorder(
@@ -171,15 +226,9 @@ class _BPMSProjects extends  ConsumerState<BPMSProjects> with WidgetsBindingObse
             ), //IconButton
           ],
           //<Widget>[]
-          backgroundColor: kPrimaryLightColor,
+
           elevation: 50.0,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            tooltip: 'Menu Icon',
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-          ),
+
           systemOverlayStyle: SystemUiOverlayStyle.light,
         ),
         body: SafeArea(
@@ -192,6 +241,7 @@ class _BPMSProjects extends  ConsumerState<BPMSProjects> with WidgetsBindingObse
               // Replace this delay with the code to be executed during refresh
               // and return a Future when code finishs execution.
               //IntranetServiceHandler.loadPjpSummery(employeeId, 0,businessId, this);
+              refreshProjects();
               return Future<void>.delayed(const Duration(seconds: 3));
             },
             // Pull from top to show refresh indicator.
@@ -214,11 +264,16 @@ class _BPMSProjects extends  ConsumerState<BPMSProjects> with WidgetsBindingObse
                           String crmId = mSortedProjectList[index].CRMId;
                           return GestureDetector(
                             onTap: (){
-                              print(crmId);
-                              Navigator.pushReplacement(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) => BPMSProjectTask(projectId: crmId,)));
+                              if(mSortedProjectList!=null && mSortedProjectList.length>index) {
+                                Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) =>
+                                            BPMSProjectTask(
+                                              project: mSortedProjectList[index],)));
+                              }else{
+                                print('list not found....');
+                              }
                             },
                             child: getView(mSortedProjectList![index],isLastElement),
                           );
@@ -253,8 +308,14 @@ class _BPMSProjects extends  ConsumerState<BPMSProjects> with WidgetsBindingObse
                       if (index==0) {
                         //showImagePicker(0);
                       } else if (index==1) {
-                        //showImagePicker(1);
+                        Navigator.of(context).push(MaterialPageRoute(
+                            builder: (BuildContext context) => MyWebsiteView(
+                              title: model.FranchiseeName!,
+                              url: 'https://chart.zeelearn.com/chart.html?pid=${model.CRMId}',
+                            )));
+                        //MyWebsiteView(title: model.FranchiseeName!, url: 'https://chart.zeelearn.com/chart.html?pid=${model.CRMId}',);
                       } else {
+                        sendCredentials(model.CRMId);
                         //showImagePicker(3);
                       }
                     },
@@ -302,7 +363,7 @@ getView(ProjectModel model,bool isLastElement){
                       height: 5,
                     ),
                     Text(
-                      '${model.FranchiseeCode}',
+                      '${model.FranchiseeCode==null || model.FranchiseeCode=='null' ? '' : model.FranchiseeCode}',
                       style: TextStyle(
                         color: Colors.black45,
                         fontSize: 12,
@@ -314,15 +375,15 @@ getView(ProjectModel model,bool isLastElement){
                 SizedBox(
                   width: 10,
                 ),
+
                 IconButton(
                   icon: const Icon(Icons.more_outlined),
-                  color: Color(0xff575de3),
-                  tooltip: 'Filter',
-                  onPressed: () {
+                  color: kPrimaryLightColor,
+                  tooltip: 'Options',
+                  onPressed: () async {
                     showImageOption(model);
                   },
                 )
-
               ],
             ),
 

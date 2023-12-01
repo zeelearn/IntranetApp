@@ -141,8 +141,7 @@ class FastDatePickerState extends FastFormFieldState<DateTime> {
 
 Text datePickerTextBuilder(FastDatePickerState field) {
   final theme = Theme.of(field.context);
-  final format =
-      field.widget.dateFormat?.format ?? _datePickerFormat(field).format;
+  final format =field.widget.dateFormat?.format ?? _datePickerFormat(field).format;
   final value = field.value;
 
   return Text(
@@ -169,7 +168,7 @@ Container cupertinoDatePickerModalPopupBuilder(
   DateTime? modalValue = field.value;
 
   return Container(
-    color: CupertinoColors.systemBackground,
+    color: const Color(0xffF7F8F8),
     height: widget.height + 90.0,
     child: Column(
       children: [
@@ -255,24 +254,30 @@ Widget materialDatePickerBuilder(FormFieldState<DateTime> field) {
   }
 
   final textBuilder = widget.textBuilder ?? datePickerTextBuilder;
-  final iconButtonBuilder =
-      widget.iconButtonBuilder ?? datePickerIconButtonBuilder;
+  final iconButtonBuilder = widget.iconButtonBuilder ?? datePickerIconButtonBuilder;
 
-  return InkWell(
-    onTap: widget.enabled ? () => show(DatePickerEntryMode.input) : null,
-    child: InputDecorator(
-      decoration: field.decoration,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: <Widget>[
-          Expanded(
-            child: textBuilder(field),
-          ),
-          iconButtonBuilder(field, show),
-        ],
+  return Container(
+    margin: EdgeInsets.only(right: 15,left: 15),
+    decoration: BoxDecoration(
+      color: const Color(0xffF7F8F8),
+      borderRadius: const BorderRadius.all(Radius.circular(10)),
+    ),
+    child: InkWell(
+      onTap: widget.enabled ? () => show(DatePickerEntryMode.calendar) : null,
+      child: InputDecorator(
+        decoration: field.decoration,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: <Widget>[
+            Expanded(
+              child: textBuilder(field),
+            ),
+            iconButtonBuilder(field, show),
+          ],
+        ),
       ),
     ),
-  );
+  ) ;
 }
 
 Widget cupertinoDatePickerBuilder(FormFieldState<DateTime> field) {

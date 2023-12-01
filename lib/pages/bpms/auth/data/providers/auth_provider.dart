@@ -10,10 +10,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../../api/request/bpms/bpms_task.dart';
+import '../../../../../api/request/bpms/newtask.dart';
+import '../../../../../api/request/bpms/send_cred.dart';
+import '../../../../../api/response/bpms/bpms_status.dart';
 import '../../../../../api/response/bpms/franchisee_details_response.dart';
 import '../../../../../api/response/bpms/getTaskDetailsResponseModel.dart';
 import '../../../../../api/response/bpms/get_communication_response.dart';
+import '../../../../../api/response/bpms/newtask.dart';
 import '../../../../../api/response/bpms/project_task.dart';
+import '../../../../../api/response/bpms/send_cred.dart';
 import '../../../../helper/LocalConstant.dart';
 import '../../../../helper/utils.dart';
 import '../../../bpms_db.dart';
@@ -69,7 +74,7 @@ class AuthStateNotifier extends StateNotifier<AuthState> {
     state = state.copyWith(status: AuthStatus.loading,
     );
     List<ProjectModel> modelList =  await BpmsDB.getAllProjects();
-    if(modelList!=null && modelList.length>0){
+    if(!await Utility.isInternet() && modelList!=null && modelList.length>0){
       state = state.copyWith(
           status: AuthStatus.authenticated,
           projectList:modelList
@@ -83,6 +88,16 @@ class AuthStateNotifier extends StateNotifier<AuthState> {
       );
     }
 
+  }
+  refreshProjectList(String userId) async{
+    state = state.copyWith(status: AuthStatus.loading,
+    );
+    final response = await _repo.getAllProject(request: BpmsStatRequest(userId: userId));
+    await BpmsDB.addAllProjects(response.data);
+    state = state.copyWith(
+        status: AuthStatus.authenticated,
+        projectList:response.data
+    );
   }
 
   refreshProjectTask(String userId,String projectId) async{
@@ -119,6 +134,37 @@ class AuthStateNotifier extends StateNotifier<AuthState> {
           projectTask: response!
       );
     }
+    print('Response');
+
+  }
+
+  getStatus() async{
+    print('getStatus');
+    /*state = state.copyWith(status: AuthStatus.loading,
+    );*/
+    print('getStatus');
+    ProjectStatusResponse taskResponse = await _repo.getStatus();
+    print(taskResponse.toString());
+    state = state.copyWith(
+        status: AuthStatus.authenticated,
+        statusList: taskResponse.data[0]!
+    );
+
+    print('Response');
+
+  }
+
+  addNewTask(NewTaskRequest request) async{
+    print('getStatus');
+    state = state.copyWith(status: AuthStatus.loading,
+    );
+    print('getStatus');
+    AddNewTaskResponse taskResponse = await _repo.addNewTask(request: request);
+
+    state = state.copyWith(
+        status: AuthStatus.authenticated,
+    );
+
     print('Response');
 
   }

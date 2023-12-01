@@ -4,20 +4,26 @@ import 'dart:io';
 
 import 'package:Intranet/api/request/bpms/bpms_stats.dart';
 import 'package:Intranet/api/request/bpms/bpms_task.dart';
+import 'package:Intranet/api/request/bpms/deletetask.dart';
 import 'package:Intranet/api/request/bpms/franchisee_details_request.dart';
 import 'package:Intranet/api/request/bpms/getTaskDetailsRequest.dart';
 import 'package:Intranet/api/request/bpms/get_communication.dart';
 import 'package:Intranet/api/request/bpms/get_task_comments.dart';
 import 'package:Intranet/api/request/bpms/insert_attachment.dart';
+import 'package:Intranet/api/request/bpms/newtask.dart';
 import 'package:Intranet/api/request/bpms/projects.dart';
+import 'package:Intranet/api/request/bpms/send_cred.dart';
 import 'package:Intranet/api/request/bpms/update_task.dart';
 import 'package:Intranet/api/response/bpms/bpms_stats.dart';
+import 'package:Intranet/api/response/bpms/bpms_status.dart';
 import 'package:Intranet/api/response/bpms/franchisee_details_response.dart';
 import 'package:Intranet/api/response/bpms/getTaskDetailsResponseModel.dart';
 import 'package:Intranet/api/response/bpms/get_comments_response.dart';
 import 'package:Intranet/api/response/bpms/get_communication_response.dart';
 import 'package:Intranet/api/response/bpms/insert_attachment_response.dart';
+import 'package:Intranet/api/response/bpms/newtask.dart';
 import 'package:Intranet/api/response/bpms/project_task.dart';
+import 'package:Intranet/api/response/bpms/send_cred.dart';
 import 'package:Intranet/api/response/bpms/update_task_response.dart';
 import 'package:Intranet/api/response/uploadimage.dart';
 import 'package:aws_s3_upload/aws_s3_upload.dart';
@@ -1269,6 +1275,32 @@ class APIService {
     }
   }
 
+  Future<dynamic> sendCredentials(SendCredentialsRequest requestModel) async {
+    try {
+      //print(getHeader(''));
+      final response = await http.post(
+          Uri.parse(bpms_url + LocalStrings.API_SEND_CREDENTIALS),
+          headers: getHeader(''),
+          body: requestModel.toJson());
+      print(requestModel.toJson());
+      print(response.request!.url);
+      print(response.statusCode);
+      //print(response.body);
+      if (response.statusCode == 200) {
+        return CommonResponse.fromJson(
+          json.decode(response.body) as Map<String, dynamic>,
+        );
+      } else {
+        print('SendCredentialResponse null');
+        return null;
+      }
+    } catch (e) {
+      print('SendCredentialResponse error e');
+      print(e.toString());
+      e.toString();
+    }
+  }
+
   Future<dynamic> insertTaskAttachment(
       InsertTaskAttachmentRequest requestModel) async {
     try {
@@ -1345,8 +1377,8 @@ class APIService {
           headers: getHeader(''),
           body: requestModel.toJson());
       print(requestModel.toJson());
-      print(response.request!.url);
-      print(response.statusCode);
+      //print(response.request!.url);
+      //print(response.statusCode);
       //print(response.body);
       if (response.statusCode == 200) {
         return GetCommentResponse.fromJson(
@@ -1394,11 +1426,7 @@ class APIService {
           Uri.parse(bpms_url + LocalStrings.API_GET_FRANCHISEEDETAILS),
           headers: getHeader(''),
           body: requestModel.toJson());
-      print('resonse received.........');
-      print('Fran ${requestModel.toJson()}');
-      print('Fran ${response.request!.url}');
-      print('Fran ${response.statusCode}');
-      print('Fran ${response.body}');
+
       if (response.statusCode == 200) {
         return GetFranchiseeDetailsResponse.fromJson(
           json.decode(response.body) as Map<String, dynamic>,
@@ -1420,10 +1448,7 @@ class APIService {
           Uri.parse(bpms_url + LocalStrings.API_GET_BPMS_COUNTS),
           headers: getHeader(''),
           body: requestModel.toJson());
-      print(requestModel.toJson());
-      print(response.request!.url);
-      print(response.statusCode);
-      print('2914 response ${response.body}');
+
       if (response.statusCode == 200) {
         return ProjectStatsResponse.fromJson(
           json.decode(response.body) as Map<String, dynamic>,
@@ -1446,10 +1471,7 @@ class APIService {
           Uri.parse(bpms_url + LocalStrings.API_GET_BPMS_ALL_PROJECTS),
           headers: getHeader(''),
           body: requestModel.toJson1());
-      print(requestModel.toJson1());
-      print(response.request!.url);
-      print(response.statusCode);
-      print('2914 response ${response.body}');
+
       if (response.statusCode == 200) {
         return ProjectResponse.fromJson(
           json.decode(response.body) as Map<String, dynamic>,
@@ -1472,16 +1494,80 @@ class APIService {
           Uri.parse(bpms_url + LocalStrings.API_GET_BPMS_ALL_PROJECTTASK),
           headers: getHeader(''),
           body: requestModel.toJson());
-      print(requestModel.toJson());
-      print(response.request!.url);
-      print(response.statusCode);
-      print('2914 response ${response.body}');
+
       if (response.statusCode == 200) {
         return ProjectTaskResponse.fromJson(
           json.decode(response.body) as Map<String, dynamic>,
         );
       } else {
         print('ProjectResponse null');
+        return null;
+      }
+    } catch (e) {
+      print(e.toString());
+      e.toString();
+    }
+    return null;
+  }
+
+  dynamic getBPMSStatus() async {
+    try {
+      final response = await http.post(
+          Uri.parse(bpms_url + LocalStrings.API_INSERT_BPMS_STATUS),
+          headers: getHeader(''));
+      print('getBPMSStatus ${response}');
+      if (response.statusCode == 200) {
+        return ProjectStatusResponse.fromJson(
+          json.decode(response.body) as Map<String, dynamic>,
+        );
+      } else {
+        print('getBPMSStatus null');
+        return null;
+      }
+    } catch (e) {
+      print(e.toString());
+      e.toString();
+    }
+    return null;
+  }
+
+  dynamic addNewTask(NewTaskRequest request) async {
+    try {
+      final response = await http.post(
+          Uri.parse(bpms_url + LocalStrings.API_INSERT_BPMS_NEW_TASK),
+          headers: getHeader(''),
+      body: request.toJson());
+      print('addNewTask request ${ request.toJson()}');
+      print('addNewTask ${response}');
+      if (response.statusCode == 200) {
+        return AddNewTaskResponse.fromJson(
+          json.decode(response.body) as Map<String, dynamic>,
+        );
+      } else {
+        print('addNewTask null');
+        return null;
+      }
+    } catch (e) {
+      print(e.toString());
+      e.toString();
+    }
+    return null;
+  }
+
+  dynamic deleteTask(DeleteTaskRequest request) async {
+    try {
+      final response = await http.post(
+          Uri.parse(bpms_url + LocalStrings.API_BPMS_DELETETASK),
+          headers: getHeader(''),
+      body: request.toJson());
+      print('delte request ${ request.toJson()}');
+      print('deleteTask ${response.toString()}');
+      if (response.statusCode == 200) {
+        return CommonResponse.fromJson1(
+          json.decode(response.body) as Map<String, dynamic>,
+        );
+      } else {
+        print('addNewTask null');
         return null;
       }
     } catch (e) {

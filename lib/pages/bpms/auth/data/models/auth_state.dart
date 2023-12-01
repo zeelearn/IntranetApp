@@ -1,6 +1,7 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import '../../../../../api/request/bpms/projects.dart';
 import '../../../../../api/response/bpms/bpms_stats.dart';
+import '../../../../../api/response/bpms/bpms_status.dart';
 import '../../../../../api/response/bpms/franchisee_details_response.dart';
 import '../../../../../api/response/bpms/getTaskDetailsResponseModel.dart';
 import '../../../../../api/response/bpms/get_communication_response.dart';
@@ -14,6 +15,7 @@ class AuthState {
   List<FranchiseeIndentModel>? indentList;
   List<ProjectTaskModel>? taskModelList;
   List<ProjectModel>? projectList;
+  List<ProjectStatusModel>? statusList;
   ProjectTaskResponse? projectTask;
   final AuthStatus status;
   final String? errorMessage;
@@ -30,6 +32,7 @@ class AuthState {
     this.action =0,
     this.projectList,
     this.projectTask,
+    this.statusList,
     this.status = AuthStatus.unknown,
     this.errorMessage,
     this.loading = false,
@@ -43,6 +46,7 @@ class AuthState {
     ProjectStatsModel? statsCounts,
     List<ProjectModel>? projectList,
     ProjectTaskResponse? projectTask,
+    List<ProjectStatusModel>? statusList,
     AuthStatus? status,
     String? errorMessage,
     bool? loading,
@@ -57,6 +61,7 @@ class AuthState {
       status: status ?? this.status,
       projectList: projectList,
       projectTask: projectTask,
+      statusList: statusList,
       loading: loading ?? this.loading,
       errorMessage: errorMessage ?? this.errorMessage,
     );
@@ -69,6 +74,7 @@ class AuthState {
       indentList : [],
       taskModelList : [],
       projectList: [],
+      statusList: [],
       user: null,
       errorMessage: null,
       loading: false,

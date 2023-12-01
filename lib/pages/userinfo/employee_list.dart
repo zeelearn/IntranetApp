@@ -43,7 +43,7 @@ class _EmployeeListScreenState extends State<EmployeeListScreen>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    debugPrint('didChangeAppLifecycleState ${state} ');
+    debugPrint(' 446 didChangeAppLifecycleState ${state} ');
     if (state == AppLifecycleState.resumed) {
       loadEmployeeList();
     }

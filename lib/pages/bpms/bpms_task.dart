@@ -1,35 +1,43 @@
+import 'package:Intranet/api/request/bpms/deletetask.dart';
 import 'package:Intranet/pages/bpms/auth/ui/ChatPage.dart';
+import 'package:Intranet/pages/bpms/update_task.dart';
 import 'package:Intranet/pages/helper/math_utils.dart';
+import 'package:Intranet/pages/iface/onClick.dart';
 import 'package:Intranet/pages/utils/theme/colors/light_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hive/hive.dart';
 
+import '../../api/APIService.dart';
 import '../../api/request/bpms/projects.dart';
 import '../../api/response/bpms/bpms_stats.dart';
 import '../../api/response/bpms/project_task.dart';
+import '../../api/response/bpms/send_cred.dart';
 import '../helper/LocalConstant.dart';
 import '../helper/constants.dart';
 import '../helper/utils.dart';
 import '../widget/path_bar.dart';
 import 'auth/data/providers/auth_provider.dart';
 import 'bpms_projects.dart';
+import 'new_task.dart';
 
 class BPMSProjectTask extends ConsumerStatefulWidget {
 
-  String projectId;
-  BPMSProjectTask({Key? key,required this.projectId}) : super(key: key);
+  ProjectModel project;
+  BPMSProjectTask({Key? key,required this.project}) : super(key: key);
 
   @override
   _BPMSProjectTask createState() => _BPMSProjectTask();
 }
 
-class _BPMSProjectTask extends  ConsumerState<BPMSProjectTask> with WidgetsBindingObserver {
+class _BPMSProjectTask extends  ConsumerState<BPMSProjectTask> with WidgetsBindingObserver implements onClickListener{
 
-  bool isSearch=false;
-  TextEditingController _searchController = TextEditingController();
+  bool isDataFound=false;
+  bool isAddButton=false;
   final focusNode = FocusNode();
 
+  String displayName='';
   int _currentIndex=0;
   Map<int,ProjectTaskModel> mMap = Map();
   int frichiseeId=0;
@@ -38,16 +46,16 @@ class _BPMSProjectTask extends  ConsumerState<BPMSProjectTask> with WidgetsBindi
   String path = 'HOME';
   List<ProjectTaskModel> paths = [];
 
+  ProjectTaskModel? currentTask;
   void pop(){
-    //historyLis.removeLast();
-    //supportPath = historyList.last.currentPath;
-    //loadDigitalResource();
-    //paths.removeRange(index + 1, paths.length);
+    print('pop');
     paths.removeLast();
     supportPath = paths.last.path;
-    //print(supportPath);
+    print(paths.length);
+    if(paths.length<=1){
+      isAddButton=false;
+    }
     getSortedData();
-
   }
 
   void push(ProjectTaskModel data,String supportName){
@@ -57,7 +65,7 @@ class _BPMSProjectTask extends  ConsumerState<BPMSProjectTask> with WidgetsBindi
       Navigator.push(
           context,
           MaterialPageRoute(
-              builder: (context) => ChatPage(taskModel: data,)));
+              builder: (context) => ChatPage(taskModel: data, isEdit: data.taskcreateduser ==frichiseeId.toString() ? true : false,)));
     }else {
       if (supportPath.isEmpty) {
         supportPath = data.title;
@@ -68,6 +76,9 @@ class _BPMSProjectTask extends  ConsumerState<BPMSProjectTask> with WidgetsBindi
       //print(path);
       data.path = supportPath;
       paths.add(data);
+      if(paths.length>=2){
+        isAddButton=true;
+      }
       getSortedData();
     }
     //historyList.add(ECampusHistoryModel(index: historyList.length + 1, currentPath: path, previousPath: supportName, content: data.ContentDescription));
@@ -78,8 +89,9 @@ class _BPMSProjectTask extends  ConsumerState<BPMSProjectTask> with WidgetsBindi
     // TODO: implement initState
     super.initState();
     WidgetsBinding.instance?.addObserver(this);
+    var hive = Hive.box(LocalConstant.KidzeeDB);
+    displayName  = '${hive.get(LocalConstant.KEY_FIRST_NAME)} ${hive.get(LocalConstant.KEY_LAST_NAME)} - ${hive.get(LocalConstant.KEY_DESIGNATION)}' ;
     paths.clear();
-    //paths.add("HOME");
     paths.add(ProjectTaskModel(projectId: '', title: 'HOME', id: 'id', note: 'note', img: '', priority: '', startDate: '', endDate: '', pStartDate: '', dueDate: '', responsiblePerson: '', status: 0, statusname: '', parentTaskId: '', dependentTaskId: 0, taskcount: '', isImageUpload: 0, done: false, mtaskId: '', taskcreateduser: '', latestComment: '', files: '', manager: '', treeStatus: '', datumClass: '', parantDate: '', parantPlandate: 'parantPlandate', path: 'HOME'));
     loadProjectTask();
   }
@@ -87,6 +99,7 @@ class _BPMSProjectTask extends  ConsumerState<BPMSProjectTask> with WidgetsBindi
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
+      print('loading on resume');
         loadProjectTask();
     }
   }
@@ -94,49 +107,48 @@ class _BPMSProjectTask extends  ConsumerState<BPMSProjectTask> with WidgetsBindi
   loadProjectTask() async{
     var box = await Utility.openBox();
     if(box.get(LocalConstant.KEY_EMPLOYEE_ID)!=null) {
-      //print('in if emoloyee found');
       String uid = box.get(LocalConstant.KEY_EMPLOYEE_ID) as String;
       frichiseeId = box.get(LocalConstant.KEY_FRANCHISEE_ID) as int;
-      //print('in if emoloyee found ${uid}');
-      await ref.read(authNotifierProvider.notifier).getAllTask(frichiseeId.toString(),widget.projectId);
+      await ref.read(authNotifierProvider.notifier).getAllTask(frichiseeId.toString(),widget.project.CRMId);
     }
   }
 
   final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey = GlobalKey<RefreshIndicatorState>();
 
-  resetSearch(){
-    isSearch=false;
-    _searchController.text='';
-  }
+
   refreshTask(int franchiseeId){
-    ref.read(authNotifierProvider.notifier).refreshProjectTask(franchiseeId.toString(),widget.projectId);
+    ref.read(authNotifierProvider.notifier).refreshProjectTask(franchiseeId.toString(),widget.project.CRMId);
   }
   List<ProjectTaskModel> mSortedProjectList = [];
   getSortedData(){
-    //print('Sorted list ${path}');
     final auth = ref.watch(authNotifierProvider);
     mSortedProjectList.clear();
-    //print('Sorted list ${auth.projectTask}');
-    if (auth.projectTask!=null && auth.projectTask!.data[0]!.length>0)
-      for (int index = 0; index <auth.projectTask!.data[0]!.length; index++) {
-        //if (_searchController.text.toString().isEmpty || auth.projectTask!.data[0]![index].isContains(_searchController.text.toString().toLowerCase())) {
-        if(path=='HOME') {
-          if(auth.projectTask!.data[0]![index].parentTaskId =='0' ){
+    isDataFound=false;
+    if (auth.projectTask!=null && auth.projectTask!.data[0]!.length>0) {
+      for (int index = 0; index < auth.projectTask!.data[0]!.length; index++) {
+        if (path == 'HOME') {
+          if (auth.projectTask!.data[0]![index].parentTaskId == '0') {
             mSortedProjectList.add(auth.projectTask!.data[0][index]);
+            isDataFound=true;
           }
-          //mSortedProjectList.add(auth.projectTask!.data[0][index]);
-        }else if(paths.length>0){
-          if(auth.projectTask!.data[0]![index].parentTaskId == paths[paths.length-1].id){
+        } else if (paths.length > 0) {
+          if (auth.projectTask!.data[0]![index].parentTaskId == paths[paths.length - 1].id) {
             mSortedProjectList.add(auth.projectTask!.data[0][index]);
+            isDataFound=true;
           }
         }
         //}
       }
+    }else{
+      print('getSorting no list');
+    }
     setState(() {
       //isLoading=false;
     });
   return mSortedProjectList;
   }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -147,86 +159,27 @@ class _BPMSProjectTask extends  ConsumerState<BPMSProjectTask> with WidgetsBindi
         backgroundColor: Color(0xffe9ebf0),
         appBar: AppBar(
           centerTitle: false,
-          title: isSearch ? Card(
-            margin: EdgeInsets.all(5),
-            color: Colors.white,
-            child: Container(
-              child: SizedBox(
-                height: 45,
-                width: MediaQuery.of(context).size.width / 0.7,
-                child: TextFormField(
-                  controller: _searchController,
-                  textInputAction: TextInputAction.done,
-                  style: LightColors.textHeaderStyle13,
-                  focusNode: focusNode,
-                  autofocus: true,
-                  decoration: InputDecoration(
-                    labelText: 'search here..',
-                    counterText: "",
-                    fillColor: Colors.white60,
-                    suffixIcon: InkWell(
-                      onTap: (){
-                        resetSearch();
-                        getSortedData();
-                      },
-                      child: !isSearch ?  Icon(Icons.search) : Icon(Icons.clear),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(2.0),
-                      borderSide: BorderSide(
-                        color: Colors.blue,
-                      ),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(2.0),
-                      borderSide: BorderSide(
-                        color: LightColors.kLightGray,
-                        width: 1.0,
-                      ),
-                    ),
-                  ),
-                  //initialValue: _dayController.text.toString(),
-                  onChanged: (val){
-
-                    //if(val.length>1)
-                    setState(() {
-                      _searchController.text = val.toString();
-                      getSortedData();
-                    });
-                  },
-                  onFieldSubmitted: (val) {
-
-                    setState(() {
-                      _searchController.text = val.toString();
-                      getSortedData();
-                      resetSearch();
-                    });
-                  },
-                ),
-              ),
-            ),
-          ) : Column(
+          title: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('All Projects',style: LightColors.textHeaderStyle13Selected,),
-              Text('Manish Sharma - SAT Operation Head',style: LightColors.textHeaderStyle13Selected,),
+              Text(widget.project.FranchiseeName== null ? displayName : widget.project.FranchiseeName!,style: LightColors.textHeaderStyle13Selected,),
+              Text(widget.project.FranchiseeCode==null ? '' : widget.project.FranchiseeCode!,style: LightColors.textHeaderStyle13Selected,),
             ],
           ),
-          actions: isSearch ? null : <Widget>[
-            /*IconButton(
-              icon: const Icon(Icons.filter_list),
-              tooltip: 'Filter',
-              onPressed: () {
-
-              },
-            ),*/IconButton(
-              icon: !isSearch ?  Icon(Icons.search) : Icon(Icons.clear),
-              tooltip: 'Search',
-              onPressed: () {
-                setState(() {
-                  _searchController.text ='';
-                  isSearch = true;
-                });
+          actions:  <Widget>[
+            !isAddButton ?  SizedBox(height: 0,) :
+            IconButton(
+              icon: const Icon(Icons.add),
+              tooltip: 'addNewTask',
+              onPressed: () async {
+                if(paths.length>0) {
+                  final result = await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) =>InsertNewTask(taskModel: paths[paths.length - 1],)),
+                  );
+                  loadProjectTask();
+                }
               },
             ), //IconButton
           ],
@@ -261,25 +214,26 @@ class _BPMSProjectTask extends  ConsumerState<BPMSProjectTask> with WidgetsBindi
             // Pull from top to show refresh indicator.
             child: auth.projectTask ==null || auth.loading ? Utility.showLoader() :  Column(
               children: [
-                SizedBox(
-                  height: 10,
-                ),
                 Container(
                   child: PathBar(
                     paths: paths,
                     icon: Icons.sd_card,
                     onChanged: (index) {
-                      //print('index ${index} ${path}');
-                      if(index==0){
+                      print('index ${index} - ${paths.length} ${path}');
+                      if(index == paths.length-1){
+
+                      }else if(index==0){
                         paths.clear();
                         path = "HOME";
                         paths.add(ProjectTaskModel(projectId: '', title: 'HOME', id: 'id', note: 'note', img: '', priority: '', startDate: '', endDate: '', pStartDate: '', dueDate: '', responsiblePerson: '', status: 0, statusname: '', parentTaskId: '', dependentTaskId: 0, taskcount: '', isImageUpload: 0, done: false, mtaskId: '', taskcreateduser: '', latestComment: '', files: '', manager: '', treeStatus: '', datumClass: '', parantDate: '', parantPlandate: 'parantPlandate', path: 'HOME'));
                         supportPath="";
+                        isAddButton = false;
                         //historyList.clear();
                         //loadDigitalResource();
                         getSortedData();
                       }else {
-                        path = paths[index].path;
+                        //path = paths[index].path;
+
                         // for(int j=index+1;j<historyList.length;j++){
                         //   historyList.removeAt(index);
                         // }
@@ -287,35 +241,18 @@ class _BPMSProjectTask extends  ConsumerState<BPMSProjectTask> with WidgetsBindi
                         pop();
                         //getSortedData();
                       }
+                      print('Path is ${path}');
                       setState(() {});
                     },
                   ),
                 ),
-                /*ListView.builder(
-                    itemExtent: mMap.keys.toList().length.toDouble(),
-                    scrollDirection: Axis.horizontal,
-                    itemBuilder: (context, index) {
-                      ProjectTaskModel? model = mMap[mMap.keys.toList()[index]];
-                      return Container(
-                        margin: EdgeInsets.all(5.0),
-                        color: Colors.orangeAccent,
-                        child: Text(model!.taskcount.toString()),
-                      );
-                    },
-                    *//*itemBuilder: (context, index) => Container(
-                      margin: EdgeInsets.all(5.0),
-                      color: Colors.orangeAccent,
-                      child: ,
-                    ),*//*
-                    itemCount: 20
-                ),*/
                 SizedBox(
                   height: 10,
                 ),
                 Flexible(
                   child: Container(
                       padding: EdgeInsets.all(12.0),
-                      child: ListView.builder(
+                      child: isDataFound==false ? Utility.emptyDataSet(context, 'Project task are not found') : ListView.builder(
                         itemCount: getSortedData().length,
                         shrinkWrap: true,
                         itemBuilder: (context, index) {
@@ -371,7 +308,272 @@ class _BPMSProjectTask extends  ConsumerState<BPMSProjectTask> with WidgetsBindi
         });
   }
 
-getView(ProjectTaskModel model,bool isLastElement){
+  getAssetName(String status){
+    if(status == 'Pending'){
+      return "pendingtasks";
+    }else if(status == 'In Progress'){
+      return "inprogress";
+    }else if(status.toLowerCase().contains('completed')){
+      return "task_completed";
+    }
+    return "pendingtasks";
+  }
+
+  getActions(ProjectTaskModel model){
+    List<Widget> list = [];
+    if(paths.length > 1){
+      list.add(IconButton(
+        icon: const Icon(Icons.message_outlined),
+        color: kPrimaryLightColor,
+        tooltip: 'message',
+        onPressed: () async {
+          final result = await Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) => ChatPage(taskModel: model,isEdit: model.taskcreateduser ==frichiseeId.toString() ? true : false)),
+          );
+          loadProjectTask();
+          //showImageOption(model);
+        },
+      ));
+    }else if(model.taskcreateduser.isNotEmpty) {
+      list.add(IconButton(
+        icon: const Icon(Icons.message_outlined),
+        color: kPrimaryLightColor,
+        tooltip: 'message',
+        onPressed: () async {
+          final result = await Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) => ChatPage(taskModel: model,isEdit: model.taskcreateduser ==frichiseeId.toString() ? true : false)),
+          );
+          loadProjectTask();
+          //showImageOption(model);
+        },
+      ));
+    }
+    if(model.taskcreateduser == frichiseeId.toString()){
+      if(model.statusname=='Completed'){
+        list.add(IconButton(
+          icon: const Icon(Icons.done_outline),
+          color: LightColors.kGreen,
+          tooltip: 'edit',
+          onPressed: () async {
+            Utility.showMessage(context, 'The task has been completed...');
+            //showImageOption(model);
+          },
+        ));
+      }else {
+        list.add(IconButton(
+          icon: const Icon(Icons.edit),
+          color: kPrimaryLightColor,
+          tooltip: 'edit',
+          onPressed: () async {
+            final result = await Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => UpdateBPMSTask(taskModel: model,)),
+            );
+            loadProjectTask();
+            //showImageOption(model);
+          },
+        ));
+        list.add(IconButton(
+          icon: const Icon(Icons.delete),
+          color: LightColors.kRed,
+          tooltip: 'Filter',
+          onPressed: () async {
+            currentTask = model;
+            Utility.onApproveConfirmation(context, 'Delete task', 'Are you sure to delete the ${model.title} task', this);
+            //showImageOption(model);
+          },
+        ));
+      }
+
+    }
+    return list;
+  }
+
+  getListofImages(ProjectTaskModel model){
+    if(model.files.isNotEmpty && model.files.contains(',')) {
+      List<String> imageList = model.files.split(',');
+      return Column(
+        children: <Widget>[
+          new Container(
+            child: Expanded(
+              child: new ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: imageList.length,
+                itemBuilder: (context, index) =>
+                new Container(
+                  alignment: Alignment.topCenter,
+                  child: new Stack(
+                    alignment: Alignment.topCenter,
+                    children: <Widget>[
+                      new Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: new Container(
+                          width: 60.0,
+                          height: 60.0,
+                          decoration: new BoxDecoration(
+                            shape: BoxShape.circle,
+                            image: new DecorationImage(
+                                fit: BoxFit.fill,
+                                image: new NetworkImage(
+                                    imageList[index])),
+                          ),
+                          //margin: const EdgeInsets.symmetric(horizontal: 8.0),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+              ),
+            ),
+          ),
+        ],
+      );
+    }else{
+      return SizedBox(height: 0,);
+    }
+  }
+
+  getView(ProjectTaskModel model,bool isLastElement){
+    return Card(
+      elevation: 5,
+      margin: !isLastElement
+          ? EdgeInsets.only(bottom: 20)
+          : EdgeInsets.zero,
+      child: Padding(
+        padding: EdgeInsets.only(left: 10,top: 10,bottom: 10),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(
+                      width: model.taskcreateduser == frichiseeId.toString() && model.statusname=='Completed' ? size.width *  0.6 : model.taskcreateduser.isEmpty || model.taskcreateduser != frichiseeId.toString()  ? size.width *  0.7 : size.width * 0.43,
+                      child: Text(
+                        '${model.title}',
+                        style: TextStyle(
+                          color: Color(0xff151a56),
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                    SizedBox(
+                      height: 1,
+                    ),
+                    Text(
+                      '${model.statusname}',
+                      style: TextStyle(
+                        color: Colors.black45,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+
+                SizedBox(
+                  width: 10,
+                ),
+                model.taskcreateduser.isEmpty  ? SizedBox(width: 0,) : Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: getActions(model),
+                ),
+                /*model.taskcreateduser.isEmpty || model.taskcreateduser != frichiseeId.toString() ? SizedBox(width: 0,) :
+                IconButton(
+                  icon: const Icon(Icons.edit),
+                  color: kPrimaryLightColor,
+                  tooltip: 'Filter',
+                  onPressed: () async {
+                    final result = await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) =>UpdateBPMSTask(taskModel: model,)),
+                    );
+                    loadProjectTask();
+                    //showImageOption(model);
+                  },
+                )*/
+
+              ],
+            ),
+            model.taskcount.isEmpty && model.responsiblePerson.isEmpty && model.latestComment.isEmpty ? SizedBox(height: 0,) :
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                /*getListofImages(model),*/
+                model.responsiblePerson.isEmpty ? SizedBox(height: 0,) :
+                Text(
+                  'Responsible Person   : ${model.responsiblePerson}',
+                  style: TextStyle(
+                    color: Colors.black45,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                model.latestComment!=null && model.latestComment.isNotEmpty ?
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Last Comments         : ${model.latestComment}',
+                      style: TextStyle(
+                        color: Colors.black45,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    /*SizedBox(width: 50,),
+                    Text(
+                      'Fee Type : ${model.FeeType}',
+                      style: TextStyle(
+                        color: Colors.black45,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),*/
+                  ],
+                ) : SizedBox(height: 0,),
+                Text(
+                  'Total Task        : ${model.taskcount}',
+                  style: TextStyle(
+                    color: Colors.black45,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                /*Text(
+                  'Location : ${model.CatchmentArea}',
+                  style: TextStyle(
+                    color: Colors.black45,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),*/
+              ],
+            ),
+
+            SizedBox(
+              height: 15,
+            ),
+            model.parantPlandate.isNotEmpty || model.startDate.isNotEmpty || model.parantPlandate.isNotEmpty || model.pStartDate.isNotEmpty ?
+            DateTimeCard(model) : SizedBox(height: 0,)
+            ,
+          ],
+        ),
+      ),
+    );
+  }
+
+getView12(ProjectTaskModel model,bool isLastElement){
     return Card(
       elevation: 5,
       margin: !isLastElement
@@ -385,7 +587,7 @@ getView(ProjectTaskModel model,bool isLastElement){
             Row(
               children: [
                 CircleAvatar(
-                  backgroundImage: AssetImage('assets/icons/ic_pending.png'),
+                  backgroundImage: AssetImage('assets/images/task-list.png'),
                 ),
                 SizedBox(
                   width: 10,
@@ -606,36 +808,35 @@ getView(ProjectTaskModel model,bool isLastElement){
           children: [
             Column(
               children: [
-                /*
-                SizedBox(
-                  width: 5,
-                ),*/
+                model.pStartDate.isEmpty && model.parantPlandate.isEmpty ? SizedBox(height: 0,) :
                 Text(
-                  Utility.parseShortDate(model.parantPlandate),
+                  'Plan StartDate : ${model.pStartDate.isEmpty ? model.parantPlandate.isEmpty ? '' : parsePlanDate(model.parantPlandate,0) :  Utility.parseShortDate(model.pStartDate)}',
                   style: TextStyle(
-                    fontSize: 12,
-                    color: Color(0xff575de3),
+                    fontSize: 10,
+                    color: kPrimaryLightColor,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
+                model.startDate != null && model.startDate.isNotEmpty || model.parantDate!=null && model.parantDate.isNotEmpty   ?
                 Text(
-                  'Plan Start Date',
+                  'Actual Date : ${model.startDate.isNotEmpty ?  Utility.parseShortDate(model.startDate) : parsePlanDate(model.parantDate, 0)}',
                   style: TextStyle(
-                    fontSize: 8,
-                    color: Color(0xff575de3),
+                    fontSize: 10,
+                    color: kPrimaryLightColor,
                     fontWeight: FontWeight.bold,
                   ),
-                ),
+                ) : SizedBox(height: 0,),
+
               ],
             ),
-            Text(
+            /*Text(
               Utility.parseShortDate(model.taskcount),
               style: TextStyle(
-                fontSize: 14,
-                color: Color(0xff575de3),
+                fontSize: 10,
+                color: kPrimaryLightColor,
                 fontWeight: FontWeight.bold,
               ),
-            ),
+            ),*/
             Column(
               children: [
                 /*Icon(
@@ -643,25 +844,70 @@ getView(ProjectTaskModel model,bool isLastElement){
                   color: Color(0xff575de3),
                   size: 17,
                 ),*/
+
+                model.dueDate.isEmpty && model.parantPlandate.isEmpty ? SizedBox(height: 0,) :
                 Text(
-                  Utility.parseShortDate(model.parantPlandate),
+                  'Plan EndDate : ${model.dueDate.isEmpty ? model.parantPlandate.isEmpty ? '' : parsePlanDate(model.parantPlandate,1) : Utility.parseShortDate(model.dueDate)}' ,
                   style: TextStyle(
-                    color: LightColors.kRed,
+                    fontSize: 10,
+                    color: kPrimaryLightColor,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
+                model.endDate != null && model.endDate.isNotEmpty || model.parantDate!=null && model.parantDate.isNotEmpty   ?
                 Text(
-                  'Deadline',
+                  'Actual End : ${model.endDate.isNotEmpty ? Utility.parseShortDate(model.endDate) : parsePlanDate(model.parantDate, 1)}',
                   style: TextStyle(
                     fontSize: 10,
                     color: LightColors.kRed,
                     fontWeight: FontWeight.bold,
                   ),
-                ),
+                )  : SizedBox(height: 0,),
               ],
             )
           ],
         ),
       );
     }
+    String parsePlanDate(String date,int index){
+      String newDate = date;
+      try{
+        var d = date.split(',');
+        return d[index];
+      }catch(e){}
+      return newDate;
+    }
+
+  deleteTask(ProjectTaskModel? currentTask){
+    APIService apiService = APIService();
+    Utility.showLoaderDialog(context);
+    apiService.deleteTask(DeleteTaskRequest(taskId: currentTask!.id)).then((value) {
+      Navigator.of(context).pop();
+      print('response ---');
+      print(value);
+      if (value != null) {
+        if (value == null ) {
+          Utility.showMessage(context, 'data not found');
+        } else if (value is CommonResponse) {
+          CommonResponse response = value;
+          print(response.toJson());
+          if(response.data[0].msg.toLowerCase().contains('sucess')){
+            Utility.getConfirmationDialog(context, 'Task Deleted Successfully', response.data[0].msg,this);
+          }else
+            Utility.showMessage(context, response.data[0].msg);
+        } else {
+          Utility.showMessage(context, 'Unable to delete task');
+        }
+      }
+      //Navigator.of(context).pop();
+      setState(() {});
+    });
+  }
+  
+  @override
+  void onClick(int action, value) {
+    if(action == Utility.ACTION_CONFIRM){
+      deleteTask(currentTask);
+    }
+  }
 }

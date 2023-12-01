@@ -57,7 +57,7 @@ class _CameraScreenState extends State<CameraScreen> {
 
   initCamera() async {
     cameras = await availableCameras();
-    _cameraController = CameraController(cameras![0], ResolutionPreset.high);
+    _cameraController = CameraController(cameras![0], ResolutionPreset.medium);
     cameraValue = _cameraController.initialize();
     setState(() {
       isInilise = true;

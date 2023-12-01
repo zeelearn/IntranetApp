@@ -211,9 +211,7 @@ Future<void> main() async {
   });
 
   if (!kIsWeb) {
-    //NotificationService.initNotification();
-
-    channel = const AndroidNotificationChannel(
+   channel = const AndroidNotificationChannel(
         'intranet', // id
         'intranet', // title
         importance: Importance.defaultImportance,
@@ -222,13 +220,6 @@ Future<void> main() async {
         showBadge: true,
         playSound: true);
 
-    /*flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
-    await flutterLocalNotificationsPlugin!
-      .resolvePlatformSpecificImplementation<
-  AndroidFlutterLocalNotificationsPlugin>()
-      ?.createNotificationChannel(channel!);
-
-    */
     NotificationService notificationService = NotificationService();
     await notificationService.init();
     await notificationService.requestIOSPermissions();

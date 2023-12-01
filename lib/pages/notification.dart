@@ -44,7 +44,7 @@ class _NotificationListScreenState extends State<NotificationListScreen>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    debugPrint('didChangeAppLifecycleState ${state} ');
+    debugPrint('47 didChangeAppLifecycleState ${state} ');
     if (state == AppLifecycleState.resumed) {
       getNotifications();
     }
