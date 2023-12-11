@@ -170,9 +170,8 @@ class _LoginFormState extends State<LoginForm> implements changePasswordInterfac
 
     if(!isChecked){
       Utility.showMessage(context, "Please accept the Terms and Conditions");
-    }else if (userNameController.text.toString() != "" &&
-        userPasswordController.text.toString() != "") {
-      Utility.showLoaderDialog(context);
+    }else if (userNameController.text.toString() != "" &&  userPasswordController.text.toString() != "") {
+      //Utility.showLoaderDialog(context);
       LoginRequestModel loginRequestModel = LoginRequestModel(
         userName: userNameController.text.toString(),
         password: userPasswordController.text.toString(),
@@ -233,7 +232,7 @@ class _LoginFormState extends State<LoginForm> implements changePasswordInterfac
 
         } else {
           Navigator.pop(context);
-          Utility.showMessage(context, "Invalid User Name and Password");
+          Utility.showMessage(context, "Invalid User Name and Password 1");
           debugPrint("null value");
         }
       });
@@ -241,7 +240,7 @@ class _LoginFormState extends State<LoginForm> implements changePasswordInterfac
     } else {
       userNameController.text='';
       userPasswordController.text='';
-      Utility.showMessage(context, "Invalid User Name and Password");
+      Utility.showMessage(context, "Invalid User Name and Password 2");
     }
   }
 

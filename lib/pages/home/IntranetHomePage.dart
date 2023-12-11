@@ -1,9 +1,11 @@
 import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
+import 'package:Intranet/pages/notification/UserNotification.dart';
 import 'package:app_version_update/app_version_update.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -30,6 +32,7 @@ import '../attendance/attendance_list.dart';
 import '../attendance/attendance_marking.dart';
 import '../attendance/manager_screen.dart';
 import '../firebase/anylatics.dart';
+import '../firebase/firebase_options.dart';
 import '../firebase/notification.dart';
 import '../firebase/storageutil.dart';
 import '../helper/DatabaseHelper.dart';
@@ -100,8 +103,8 @@ class _IntranetHomePageState extends State<IntranetHomePage>
   bool _flexibleUpdateAvailable = false;
   AppUpdateInfo? _updateInfo;
 
-  FirebaseAnalytics analytics = FirebaseAnalytics.instance;
-  FirebaseMessaging messaging = FirebaseMessaging.instance;
+  /*FirebaseAnalytics analytics = FirebaseAnalytics.instance;
+  FirebaseMessaging messaging = FirebaseMessaging.instance;*/
   String appVersion = '';
   List<BusinessApplications> businessApplications =[];
 
@@ -285,10 +288,6 @@ class _IntranetHomePageState extends State<IntranetHomePage>
   @override
   void initState() {
     WidgetsBinding.instance?.addObserver(this);
-    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-      debugPrint('message received');
-      debugPrint(message.toString());
-    });
     super.initState();
     debugPrint('initstate ======================');
     _selectedDay = _focusedDay;
@@ -299,6 +298,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
     getLoginResponse();
     validate(context);
     //_listenForMessages();
+    if(!kIsWeb)
     if (Platform.isAndroid) {
       checkForUpdate();
     }else if(Platform.isIOS){
@@ -329,41 +329,6 @@ class _IntranetHomePageState extends State<IntranetHomePage>
       if (result.canUpdate!) {
         await AppVersionUpdate.showBottomSheetUpdate(context: context, appVersionResult: result,mandatory: true,title: 'App Update Avaliable',
         content: Text('New version of our Intranet application is now available, and we highly recommend that you install it to benefit from its enhanced features and improved security.'));
-         //await AppVersionUpdate.showPageUpdate(context: context, appVersionResult: result,mandatory: true);
-        // or use your own widget with information received from AppVersionResult
-
-        //##############################################################################################
-        /*await AppVersionUpdate.showAlertUpdate(
-          appVersionResult: result,
-          context: context,
-          mandatory: true,
-          backgroundColor: Colors.grey[200],
-          title: 'App Update Avaliable',
-          titleTextStyle: const TextStyle(
-              color: Colors.black, fontWeight: FontWeight.w600, fontSize: 24.0),
-          content:
-          'New version of our Intranet application is now available, and we highly recommend that you install it to benefit from its enhanced features and improved security.',
-          contentTextStyle: const TextStyle(
-            color: Colors.black,
-            fontWeight: FontWeight.w400,
-          ),
-          updateButtonText: 'Update',
-          cancelButtonText: 'Cancel',
-        );*/
-
-        //## AppVersionUpdate.showBottomSheetUpdate ##
-        // await AppVersionUpdate.showBottomSheetUpdate(
-        //   context: context,
-        //   mandatory: true,
-        //   appVersionResult: result,
-        // );
-
-        //## AppVersionUpdate.showPageUpdate ##
-
-        // await AppVersionUpdate.showPageUpdate(
-        //   context: context,
-        //   appVersionResult: result,
-        // );
       }
     });
     // TODO: implement initState
@@ -373,18 +338,20 @@ class _IntranetHomePageState extends State<IntranetHomePage>
   Future<void> setupInteractedMessage() async {
     // Get any messages which caused the application to open from
     // a terminated state.
-    RemoteMessage? initialMessage =
-        await FirebaseMessaging.instance.getInitialMessage();
+    if(!kIsWeb) {
+      RemoteMessage? initialMessage =
+      await FirebaseMessaging.instance.getInitialMessage();
 
-    // If the message also contains a data property with a "type" of "chat",
-    // navigate to a chat screen
-    if (initialMessage != null) {
-      _handleMessage(initialMessage);
+      // If the message also contains a data property with a "type" of "chat",
+      // navigate to a chat screen
+      if (initialMessage != null) {
+        _handleMessage(initialMessage);
+      }
+
+      // Also handle any interaction when the app is in the background via a
+      // Stream listener
+      FirebaseMessaging.onMessageOpenedApp.listen(_handleMessage);
     }
-
-    // Also handle any interaction when the app is in the background via a
-    // Stream listener
-    FirebaseMessaging.onMessageOpenedApp.listen(_handleMessage);
   }
 
   void _handleMessage(RemoteMessage message) {
@@ -516,9 +483,11 @@ class _IntranetHomePageState extends State<IntranetHomePage>
       id= androidDeviceInfo.id; // unique ID on Android
       useragent='Android_${androidDeviceInfo.brand}_${androidDeviceInfo.model}';
     }
-    final firebaseMessaging = FCM();
-    //useragent= Platform.isIOS ? 'IOS' : 'Android';
-    firebaseMessaging.setNotifications(employeeId.toString(),id,useragent);
+    if(!kIsWeb) {
+      final firebaseMessaging = FCM();
+      //useragent= Platform.isIOS ? 'IOS' : 'Android';
+      firebaseMessaging.setNotifications(employeeId.toString(), id, useragent);
+    }
   }
 
   getCurrentEvents(DateTime date, List<PJPModel> pjpListModels) {
@@ -696,7 +665,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
     EasyLoading.init();
     FirebaseAnalyticsUtils().enableAnytics();
     FirebaseAnalyticsUtils().sendAnalyticsEvent('HomeScreen');
-    analytics.logAppOpen();
+    //analytics.logAppOpen();
     return WillPopScope(
       onWillPop: () async {
         onBackClickListener();
@@ -809,7 +778,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
         InkWell(
           onTap: () {
             Navigator.push(
-                context, MaterialPageRoute(builder: (context) => NotificationListScreen()));
+                context, MaterialPageRoute(builder: (context) => UserNotification()));
           },
           child: Padding(
             padding: const EdgeInsets.all(8.0),
@@ -1026,7 +995,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(mDesignation,style: TextStyle(
-                fontSize: 14.0,
+                fontSize: 12.0,
                 color: Colors.white,
               ),),
               Text(_currentBusinessName,style: TextStyle(
@@ -1036,9 +1005,10 @@ class _IntranetHomePageState extends State<IntranetHomePage>
             ],
           ),
           accountName: Text(mTitle,style: TextStyle(
-            fontSize: 20.0,
+            fontSize: 16.0,
             color: Colors.white,
           ),),
+          currentAccountPictureSize: const Size.square(60.0),
           currentAccountPicture: GestureDetector(
             onTap: (){
               if(_profileImage.isNotEmpty){
@@ -1056,10 +1026,10 @@ class _IntranetHomePageState extends State<IntranetHomePage>
               }
             },
             child: Container(
-              width: 100.0,
-              height: 100.0,
+              width: 60.0,
+              height: 60.0,
               decoration: BoxDecoration(
-                color: const Color(0xff7c94b6),
+                color: kPrimaryLightColor /*const Color(0xff7c94b6)*/,
                 image: DecorationImage(
                   image: _profileAvtar!=null ? Image.memory(_profileAvtar!).image : NetworkImage(_profileImage),
                   fit: BoxFit.cover,
@@ -1070,12 +1040,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
                   width: 1.0,
                 ),
               ),
-            ),/*CircleAvatar(
-              radius: 50.0,
-              child: _profileAvtar!=null ? Image.memory(_profileAvtar!) : Image.network(_profileImage),
-              backgroundColor: Color(0xFF778899),
-              *//*backgroundImage: NetworkImage(_profileImage),*//*
-            ),*/
+            ),
           ),
         ),
         Ink(

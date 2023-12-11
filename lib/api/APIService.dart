@@ -101,35 +101,47 @@ class APIService {
 
   Future<dynamic> login(LoginRequestModel requestModel) async {
     try {
-      debugPrint(requestModel.toJson().toString());
-      var body = jsonEncode( {
+      debugPrint('Login Request ${requestModel.toJson().toString()}');
+      var body = jsonEncode({
         'userName': requestModel.userName,
         'password': requestModel.password,
-        'AppType' :Platform.isAndroid ? 'Android' : Platform.isIOS ? 'IOS' : 'unknown'
+        'AppType': kIsWeb ? 'Web' : Platform.isAndroid ? 'Android' : Platform.isIOS
+            ? 'IOS'
+            : 'unknown'
       });
-      debugPrint(Uri.parse(url + LocalStrings.GET_LOGIN).toString());
-      final response = await http.post(Uri.parse(url + LocalStrings.GET_LOGIN),
-          headers: {
-            "Accept": "application/json",
-            "content-type": "application/json",
-            "Access-Control-Allow-Origin": "*", // Required for CORS support to work
-            "Access-Control-Allow-Credentials": "true", // Required for cookies, authorization headers with HTTPS
-            "Access-Control-Allow-Headers": "Origin,Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,locale",
-            "Access-Control-Allow-Methods": "POST, OPTIONS"
-          },
-          body:body);
-      if (response.statusCode == 200 || response.statusCode == 400) {
-        if(response.body is LoginResponseInvalid){
-          return LoginResponseInvalid.fromJson(
-            json.decode(response.body),
-          );
-        }else {
-          return LoginResponseModel.fromJson(
-            json.decode(response.body),
-          );
+      debugPrint('URL ${url + LocalStrings.GET_LOGIN}');
+      debugPrint('URL PARSE ${Uri.parse(url + LocalStrings.GET_LOGIN).toString()}');
+      try {
+        final response = await http.post(
+            Uri.parse(url + LocalStrings.GET_LOGIN),
+            headers: {
+              "Accept": "application/json",
+              "content-type": "application/json",
+              "Access-Control-Allow-Origin": "*",
+              // Required for CORS support to work
+              "Access-Control-Allow-Credentials": "true",
+              // Required for cookies, authorization headers with HTTPS
+              "Access-Control-Allow-Headers": "Origin,Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,locale",
+              "Access-Control-Allow-Methods": "*"
+            },
+            body: body);
+        debugPrint('Response ${response}');
+        debugPrint(Uri.parse(url + LocalStrings.GET_LOGIN).toString());
+        if (response.statusCode == 200 || response.statusCode == 400) {
+          if (response.body is LoginResponseInvalid) {
+            return LoginResponseInvalid.fromJson(
+              json.decode(response.body),
+            );
+          } else {
+            return LoginResponseModel.fromJson(
+              json.decode(response.body),
+            );
+          }
+        } else {
+          return null; //LoginResponseModel(token:"",Status:"Invalid/Wrong Login Details");
         }
-      } else {
-        return null; //LoginResponseModel(token:"",Status:"Invalid/Wrong Login Details");
+      }catch(e){
+        print(e.toString());
       }
     } catch (e) {
       e.toString();
@@ -716,14 +728,18 @@ class APIService {
 
   Future<dynamic> getPJPList(PJPListRequest requestModel) async {
     try {
+      print('pjp list ');
       final response = await http.post(Uri.parse(url + LocalStrings.GET_PJP_LIST),
           headers: {
             "Accept": "application/json",
             "content-type": "application/json"
           },
           body:requestModel.getJson());
+      print('RRR ${response.body.toString()}');
+      print('status ${response.statusCode}');
       if (response.statusCode == 200 || response.statusCode == 400) {
         String data = response.body.replaceAll('null', '\"NA\"');
+        print('data ${data}');
         return PjpListResponse.fromJson(
           json.decode(data),
         );
@@ -746,9 +762,11 @@ class APIService {
             "content-type": "application/json"
           },
           body:requestModel.getJson());
-      debugPrint(response.body);
+      print(response.body);
+      print(response.statusCode);
       if (response.statusCode == 200 || response.statusCode == 400) {
         String data = response.body.replaceAll('null', '\"NA\"');
+        print(data);
         return PjpListResponse.fromJson(
           json.decode(data),
         );
@@ -1476,6 +1494,41 @@ class APIService {
         return ProjectResponse.fromJson(
           json.decode(response.body) as Map<String, dynamic>,
         );
+      } else {
+        print('ProjectResponse null');
+        return null;
+      }
+    } catch (e) {
+      print(e.toString());
+      e.toString();
+    }
+    return null;
+  }
+
+  dynamic getProjectByStatus(BpmsStatRequest requestModel) async {
+    try {
+      print('Header -- ${getHeader('')}');
+      final response = await http.post(
+          Uri.parse(bpms_url + LocalStrings.API_GET_BPMS_PROJECTS_BYSTATUS),
+          headers: getHeader(''),
+          body: requestModel.toStatusJson());
+      print(bpms_url + LocalStrings.API_GET_BPMS_PROJECTS_BYSTATUS);
+      print(response.body.toString());
+      print(response.statusCode);
+      if (response.statusCode == 200) {
+        try {
+          if (requestModel.status == 0) {
+            return ProjectResponse.fromJson(
+              json.decode(response.body) as Map<String, dynamic>,
+            );
+          } else {
+            return ProjectResponse.fromJsonByStatus(
+              json.decode(response.body) as Map<String, dynamic>,
+            );
+          }
+        }catch(e){
+          print(e.toString());
+        }
       } else {
         print('ProjectResponse null');
         return null;

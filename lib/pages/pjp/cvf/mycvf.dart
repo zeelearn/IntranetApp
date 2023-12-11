@@ -150,7 +150,6 @@ class _MyCVFListScreen extends State<MyCVFListScreen> implements onResponse,onCl
         backgroundColor: Colors.white,
         appBar: AppBar(
           title: const Text("My CVF"),
-          backgroundColor: kPrimaryLightColor,
           elevation: 50.0,
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),

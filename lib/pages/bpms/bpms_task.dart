@@ -25,7 +25,8 @@ import 'new_task.dart';
 class BPMSProjectTask extends ConsumerStatefulWidget {
 
   ProjectModel project;
-  BPMSProjectTask({Key? key,required this.project}) : super(key: key);
+  int status;
+  BPMSProjectTask({Key? key,required this.project,required this.status}) : super(key: key);
 
   @override
   _BPMSProjectTask createState() => _BPMSProjectTask();
@@ -51,10 +52,12 @@ class _BPMSProjectTask extends  ConsumerState<BPMSProjectTask> with WidgetsBindi
     print('pop');
     paths.removeLast();
     supportPath = paths.last.path;
+    path =supportPath;
     print(paths.length);
     if(paths.length<=1){
       isAddButton=false;
     }
+    print('supportPath ${supportPath}');
     getSortedData();
   }
 
@@ -156,7 +159,7 @@ class _BPMSProjectTask extends  ConsumerState<BPMSProjectTask> with WidgetsBindi
     getSortedData();
     return Scaffold(
         extendBodyBehindAppBar: true,
-        backgroundColor: Color(0xffe9ebf0),
+        backgroundColor: Colors.white,
         appBar: AppBar(
           centerTitle: false,
           title: Column(
@@ -193,82 +196,95 @@ class _BPMSProjectTask extends  ConsumerState<BPMSProjectTask> with WidgetsBindi
               Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(
-                      builder: (context) => BPMSProjects()));
+                      builder: (context) => BPMSProjects(status: widget.status,)));
             },
           ),
           systemOverlayStyle: SystemUiOverlayStyle.light,
         ),
-        body: SafeArea(
-          child: RefreshIndicator(
-            key: _refreshIndicatorKey,
-            color: Colors.white,
-            backgroundColor: Colors.blue,
-            strokeWidth: 4.0,
-            onRefresh: () async {
-              // Replace this delay with the code to be executed during refresh
-              // and return a Future when code finishs execution.
-              //IntranetServiceHandler.loadPjpSummery(employeeId, 0,businessId, this);
-              refreshTask(frichiseeId);
-              return Future<void>.delayed(const Duration(seconds: 3));
-            },
-            // Pull from top to show refresh indicator.
-            child: auth.projectTask ==null || auth.loading ? Utility.showLoader() :  Column(
-              children: [
-                Container(
-                  child: PathBar(
-                    paths: paths,
-                    icon: Icons.sd_card,
-                    onChanged: (index) {
-                      print('index ${index} - ${paths.length} ${path}');
-                      if(index == paths.length-1){
+        body: PopScope(
+          canPop: false,
+          onPopInvoked: (value){
+            if(paths.length>1){
+              print('if pop ${paths.length}');
+              pop();
+              print('if pop ${paths.length}');
+            }else{
+              print('else print ${paths.length}');
+              Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => BPMSProjects(status: widget.status)));
+            }
+          },
+          child: SafeArea(
+            child: RefreshIndicator(
+              key: _refreshIndicatorKey,
+              color: Colors.white,
+              backgroundColor: Colors.blue,
+              strokeWidth: 4.0,
+              onRefresh: () async {
+                // Replace this delay with the code to be executed during refresh
+                // and return a Future when code finishs execution.
+                //IntranetServiceHandler.loadPjpSummery(employeeId, 0,businessId, this);
+                refreshTask(frichiseeId);
+                return Future<void>.delayed(const Duration(seconds: 3));
+              },
+              // Pull from top to show refresh indicator.
+              child: auth.projectTask ==null || auth.loading ? Utility.showLoader() :  Column(
+                children: [
+                  Container(
+                    child: PathBar(
+                      paths: paths,
+                      icon: Icons.sd_card,
+                      onChanged: (index) {
+                        print('index ${index} - ${paths.length} ${path}');
+                        if(index == paths.length-1){
 
-                      }else if(index==0){
-                        paths.clear();
-                        path = "HOME";
-                        paths.add(ProjectTaskModel(projectId: '', title: 'HOME', id: 'id', note: 'note', img: '', priority: '', startDate: '', endDate: '', pStartDate: '', dueDate: '', responsiblePerson: '', status: 0, statusname: '', parentTaskId: '', dependentTaskId: 0, taskcount: '', isImageUpload: 0, done: false, mtaskId: '', taskcreateduser: '', latestComment: '', files: '', manager: '', treeStatus: '', datumClass: '', parantDate: '', parantPlandate: 'parantPlandate', path: 'HOME'));
-                        supportPath="";
-                        isAddButton = false;
-                        //historyList.clear();
-                        //loadDigitalResource();
-                        getSortedData();
-                      }else {
-                        //path = paths[index].path;
+                        }else if(index==0){
+                          paths.clear();
+                          path = "HOME";
+                          paths.add(ProjectTaskModel(projectId: '', title: 'HOME', id: 'id', note: 'note', img: '', priority: '', startDate: '', endDate: '', pStartDate: '', dueDate: '', responsiblePerson: '', status: 0, statusname: '', parentTaskId: '', dependentTaskId: 0, taskcount: '', isImageUpload: 0, done: false, mtaskId: '', taskcreateduser: '', latestComment: '', files: '', manager: '', treeStatus: '', datumClass: '', parantDate: '', parantPlandate: 'parantPlandate', path: 'HOME'));
+                          supportPath="";
+                          isAddButton = false;
+                          //historyList.clear();
+                          //loadDigitalResource();
+                          getSortedData();
+                        }else {
+                          //path = paths[index].path;
 
-                        // for(int j=index+1;j<historyList.length;j++){
-                        //   historyList.removeAt(index);
-                        // }
-                        //paths.removeRange(index + 1, paths.length);
-                        pop();
-                        //getSortedData();
-                      }
-                      print('Path is ${path}');
-                      setState(() {});
-                    },
+                          // for(int j=index+1;j<historyList.length;j++){
+                          //   historyList.removeAt(index);
+                          // }
+                          //paths.removeRange(index + 1, paths.length);
+                          pop();
+                          //getSortedData();
+                        }
+                        print('Path is ${path}');
+                        setState(() {});
+                      },
+                    ),
                   ),
-                ),
-                SizedBox(
-                  height: 10,
-                ),
-                Flexible(
-                  child: Container(
-                      padding: EdgeInsets.all(12.0),
-                      child: isDataFound==false ? Utility.emptyDataSet(context, 'Project task are not found') : ListView.builder(
-                        itemCount: getSortedData().length,
-                        shrinkWrap: true,
-                        itemBuilder: (context, index) {
-                          bool isLastElement = mSortedProjectList.length + 1 == index;
-                          return GestureDetector(
-                            onTap: (){
+                  Flexible(
+                    child: Container(
+                        padding: EdgeInsets.only(left: 10,right: 10,top: 10),
+                        child: isDataFound==false ? Utility.emptyDataSet(context, 'Project task are not found') : ListView.builder(
+                          itemCount: getSortedData().length,
+                          shrinkWrap: true,
+                          itemBuilder: (context, index) {
+                            bool isLastElement = mSortedProjectList.length + 1 == index;
+                            return GestureDetector(
+                              onTap: (){
                                 push(mSortedProjectList[index], supportPath);
-                              //paths.add(mSortedProjectList[index]);
-                            },
-                            child: getView(mSortedProjectList![index],isLastElement),
-                          );
-                        },
-                      )
-                  ),
-                )
-              ],
+                                //paths.add(mSortedProjectList[index]);
+                              },
+                              child: getView(mSortedProjectList![index],isLastElement),
+                            );
+                          },
+                        )
+                    ),
+                  )
+                ],
+              ),
             ),
           ),
         ));
@@ -378,6 +394,8 @@ class _BPMSProjectTask extends  ConsumerState<BPMSProjectTask> with WidgetsBindi
             //showImageOption(model);
           },
         ));
+        print('${model.title} ${model.mtaskId}');
+        if(model.mtaskId=='0')
         list.add(IconButton(
           icon: const Icon(Icons.delete),
           color: LightColors.kRed,
@@ -441,12 +459,21 @@ class _BPMSProjectTask extends  ConsumerState<BPMSProjectTask> with WidgetsBindi
 
   getView(ProjectTaskModel model,bool isLastElement){
     return Card(
+      color: model.statusname=='Pending' ?  LightColors.kYallow : model.statusname=='Completed' ?  kPrimaryLightColor : LightColors.kRed,
       elevation: 5,
       margin: !isLastElement
-          ? EdgeInsets.only(bottom: 20)
+          ? EdgeInsets.only(bottom: 10)
           : EdgeInsets.zero,
-      child: Padding(
-        padding: EdgeInsets.only(left: 10,top: 10,bottom: 10),
+      child: Container(
+        decoration: BoxDecoration(
+            color: Color(0xFFFFFFFF),
+            border: Border.all(
+              color: model.statusname=='Pending' ?  LightColors.kYallow : model.statusname=='Completed' ?  kPrimaryLightColor : LightColors.kRed,
+            ),
+            borderRadius: BorderRadius.all(Radius.circular(5))
+        ),
+        margin: EdgeInsets.only(right: 5,bottom: 4),
+        padding: EdgeInsets.only(left: 10,top: 10,bottom: 10,right:10),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -456,7 +483,7 @@ class _BPMSProjectTask extends  ConsumerState<BPMSProjectTask> with WidgetsBindi
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     SizedBox(
-                      width: model.taskcreateduser == frichiseeId.toString() && model.statusname=='Completed' ? size.width *  0.6 : model.taskcreateduser.isEmpty || model.taskcreateduser != frichiseeId.toString()  ? size.width *  0.7 : size.width * 0.43,
+                      width: model.taskcreateduser == frichiseeId.toString() && model.statusname=='Completed' ? size.width *  0.6 : model.taskcreateduser.isEmpty || model.taskcreateduser != frichiseeId.toString()  ? size.width *  0.72 : model.mtaskId=='0' ? size.width * 0.45 : size.width * 0.57,
                       child: Text(
                         '${model.title}',
                         style: TextStyle(
@@ -480,29 +507,13 @@ class _BPMSProjectTask extends  ConsumerState<BPMSProjectTask> with WidgetsBindi
                 ),
 
                 SizedBox(
-                  width: 10,
+                  width: 5,
                 ),
                 model.taskcreateduser.isEmpty  ? SizedBox(width: 0,) : Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: getActions(model),
                 ),
-                /*model.taskcreateduser.isEmpty || model.taskcreateduser != frichiseeId.toString() ? SizedBox(width: 0,) :
-                IconButton(
-                  icon: const Icon(Icons.edit),
-                  color: kPrimaryLightColor,
-                  tooltip: 'Filter',
-                  onPressed: () async {
-                    final result = await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) =>UpdateBPMSTask(taskModel: model,)),
-                    );
-                    loadProjectTask();
-                    //showImageOption(model);
-                  },
-                )*/
-
               ],
             ),
             model.taskcount.isEmpty && model.responsiblePerson.isEmpty && model.latestComment.isEmpty ? SizedBox(height: 0,) :
@@ -531,15 +542,6 @@ class _BPMSProjectTask extends  ConsumerState<BPMSProjectTask> with WidgetsBindi
                         fontWeight: FontWeight.w500,
                       ),
                     ),
-                    /*SizedBox(width: 50,),
-                    Text(
-                      'Fee Type : ${model.FeeType}',
-                      style: TextStyle(
-                        color: Colors.black45,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),*/
                   ],
                 ) : SizedBox(height: 0,),
                 Text(
@@ -550,14 +552,6 @@ class _BPMSProjectTask extends  ConsumerState<BPMSProjectTask> with WidgetsBindi
                     fontWeight: FontWeight.w500,
                   ),
                 ),
-                /*Text(
-                  'Location : ${model.CatchmentArea}',
-                  style: TextStyle(
-                    color: Colors.black45,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),*/
               ],
             ),
 
@@ -801,7 +795,7 @@ getView12(ProjectTaskModel model,bool isLastElement){
           borderRadius: BorderRadius.circular(10),
         ),
         width: double.infinity,
-        padding: EdgeInsets.only(left: 20,right: 20,top: 10,bottom: 10),
+        padding: EdgeInsets.only(left: 10,right: 10,top: 10,bottom: 10),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,

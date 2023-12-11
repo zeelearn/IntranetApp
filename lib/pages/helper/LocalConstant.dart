@@ -7,6 +7,7 @@ class LocalConstant {
   static const kDefaultSpacing = 20.0;
 
   static const String ACTION_PDF = 'pdf';
+  static const String NOTIFICATION_CHANNEL = 'Intranet';
   static const String ACTION_GALLERY = 'Gallery';
   static const String ACTION_CAMERA = 'Camera';
   static const String ACTION_UPDATE_STATUS = 'Update Status';
@@ -15,6 +16,7 @@ class LocalConstant {
   static const String KidzeeDB = "kidzeepref";
   static const String DEF_AVTAR = 'https://cdn-icons-png.flaticon.com/128/847/847969.png';
 
+  static const String KEY_COUNTER = "counter";
   static const String KEY_ISLOGGEDIN = "islogin";
   static const String KEY_UID = "uid";
   static const String KEY_FRANCHISEE_ID = "franid";
@@ -78,7 +80,7 @@ class LocalConstant {
   static Color? ratingBG = Colors.yellow[600];
 
 
-  static String TABLE_NOTIFICATION ="notification_table";
+  static String TABLE_NOTIFICATION ="usernotification";
   static String TABLE_CHECKIN ="checkin";
   static String TABLE_EMPLOYEES ="emp_info";
   static String TABLE_PARENT_INFO ="parent_info";
@@ -103,6 +105,14 @@ class LocalConstant {
   static const taskKey = 'task';
   static const indent = 'indent';
   static const projects = 'projects';
+  static const projectbystatus = 'projectbystatus';
   static const projecttask = 'projectstask';
+
+
+  static const int ALL_PROJECT = 100;
+  static const int MY_PROJECT = 0;
+  static const int PENDING_PROJECT = 1;
+  static const int INPROGRESS_PROJECT = 2;
+  static const int COMPLETED_PROJECT = 4;
 
 }

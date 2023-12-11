@@ -30,7 +30,7 @@ class DBHelper {
 
   var _db;
 
-  static String CREATE_TABLE_NOTIFICATION = 'CREATE TABLE IF NOT EXISTS  ${LocalConstant.TABLE_NOTIFICATION}'
+  /*static String CREATE_TABLE_NOTIFICATION = 'CREATE TABLE IF NOT EXISTS  ${LocalConstant.TABLE_NOTIFICATION}'
       '(notification_id TEXT PRIMARY KEY, '
       'title TEXT, '
       'type TEXT, '
@@ -38,6 +38,18 @@ class DBHelper {
       'data TEXT, '
       'isseen int, '
       'imageurl TEXT, '
+      'date TEXT)';*/
+
+  static String CREATE_TABLE_NOTIFICATION =
+      'CREATE TABLE ${LocalConstant.TABLE_NOTIFICATION}'
+      '(notification_id TEXT PRIMARY KEY, '
+      'title TEXT, '
+      'description TEXT, '
+      'type TEXT, '
+      'imageurl TEXT, '
+      'logoUrl TEXT, '
+      'bigImageUrl TEXT, '
+      'webViewLink TEXT, '
       'date TEXT)';
 
   static String CREATE_TABLE_CHECKIN = 'CREATE TABLE IF NOT EXISTS  ${LocalConstant.TABLE_CHECKIN}'
@@ -227,7 +239,11 @@ class DBHelper {
               //db.execute(CREATE_TABLE_CVF_FRANCHISEE);
               db.execute("ALTER TABLE ${LocalConstant.TABLE_CVF_QUESTION_JSON} ADD COLUMN ${DBConstant.CATEGORY_ID} TEXT;");
             }
-        }, version: 11);
+            if(old<=13){
+              //db.execute(CREATE_TABLE_CVF_FRANCHISEE);
+              db.execute(CREATE_TABLE_NOTIFICATION);
+            }
+        }, version: 14);
   }
 
   /// insert data to db

@@ -345,7 +345,7 @@ class _LoginPage extends State<LoginPage> {
 
   void validate(BuildContext context) async {
     if(!isChecked){
-      Utility.showMessage(context, "Please accept the Terms and Conditions");
+      Utility.showMessage(context, "Please accept the Terms and Conditions 1");
     }else if (_userNameController.text.toString() != "" &&
         _userPasswordController.text.toString() != "") {
       Utility.showLoaderDialog(context);
@@ -422,7 +422,7 @@ class _LoginPage extends State<LoginPage> {
 
         } else {
           Navigator.pop(context);
-          Utility.showMessage(context, "Invalid User Name and Password");
+          Utility.showMessage(context, "Invalid User Name and Password 1 ${value}");
           debugPrint("null value");
         }
       });

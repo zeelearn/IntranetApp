@@ -237,7 +237,7 @@ class HomePageMenu extends StatelessWidget {
                               context,
                               MaterialPageRoute(
                                   builder: (context) =>
-                                      BPMSProjects()));
+                                      BPMSDashboard(userId: frichiseeId.toString())));
                         }catch(e){
                           Utility.showMessage(context, 'BPMS is not application for current user');
                         }

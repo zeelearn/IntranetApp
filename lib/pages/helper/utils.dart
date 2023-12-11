@@ -70,6 +70,12 @@ class Utility{
     );
   }
 
+  static String removeAllHtmlTags(String htmlText) {
+    RegExp exp = RegExp(r"<[^>]*>", multiLine: true, caseSensitive: true);
+
+    return htmlText.replaceAll(exp, '');
+  }
+
   static showLoader(){
     return Lottie.asset('assets/json/loading.json');
   }

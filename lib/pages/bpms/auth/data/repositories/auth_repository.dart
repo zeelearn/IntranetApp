@@ -39,6 +39,10 @@ abstract class AuthRepository {
     required BpmsStatRequest request,
   });
 
+  Future<ProjectResponse> getProjectByStatus({
+    required BpmsStatRequest request,
+  });
+
 
   Future<ProjectTaskResponse> getAllProjectTask({
     required BpmsTaskRequest request,
@@ -93,6 +97,22 @@ class ApiAuthRepository implements AuthRepository {
       {required BpmsStatRequest request}) async {
     try {
       return await APIService().getAllProject(request);
+    } on DioException catch (e) {
+      print(e.message);
+      throw LoginException(message: 'Unable to ProjectStatsResponse');
+      //return null;
+    } catch (e) {
+      print(e.toString());
+      throw Exception('Unable to login');
+      //return null;
+    }
+  }
+
+  @override
+  Future<ProjectResponse> getProjectByStatus(
+      {required BpmsStatRequest request}) async {
+    try {
+      return await APIService().getProjectByStatus(request);
     } on DioException catch (e) {
       print(e.message);
       throw LoginException(message: 'Unable to ProjectStatsResponse');

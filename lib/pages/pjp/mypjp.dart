@@ -86,7 +86,9 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse,onCli
         if (response != null && response.responseData != null)
           mPjpList.addAll(response.responseData);
         _isChecked = List<bool>.filled(mPjpList.length, false);
-        setState(() {});
+        setState(() {
+          isLoading = false;
+        });
       }catch(e){
         IntranetServiceHandler.loadPjpSummery(employeeId, 0,businessId, this);
       }
@@ -616,7 +618,7 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse,onCli
     setState(() {
 
     });
-    Navigator.of(context).pop();
+    //Navigator.of(context).pop();
   }
 
   @override
@@ -652,6 +654,7 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse,onCli
     }else if(value is PjpListResponse){
       PjpListResponse response = value;
       String json = jsonEncode(response);
+      print(json);
       savePJPLocally(json);
       isLoading = false;
       mPjpList.clear();
@@ -715,7 +718,7 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse,onCli
       }
     }
     setState(() {
-      //mPjpList.addAll(response.responseData);
+      isLoading=false;
     });
   }
 

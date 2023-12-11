@@ -26,3 +26,6 @@ const double kDefaultPadding = 20.0;
 
 const int ACTION_ADD_NEW_IMAGE=10001;
 const int ACTION_DELETE_IMAGE=10002;
+
+const String no_Notification_Animtion =
+    'assets/json/no_notification_animation.json';

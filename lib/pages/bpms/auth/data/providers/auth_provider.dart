@@ -61,8 +61,9 @@ class AuthStateNotifier extends StateNotifier<AuthState> {
   Future<ProjectStatsModel> getStats(String userId) async{
     state = state.copyWith(
         status: AuthStatus.loading,
+        statsCounts:ProjectStatsModel(TotalProject: 0, pendingtask: 0, completedTask: 0, InprogressTask: 0, CancelledTask: 0)
     );
-    final list = await _repo.getProjectsCounts(request: BpmsStatRequest(userId: userId));
+    final list = await _repo.getProjectsCounts(request: BpmsStatRequest(userId: userId, status: 0));
     state = state.copyWith(
       status: AuthStatus.authenticated,
       statsCounts:list.data[0]
@@ -80,19 +81,40 @@ class AuthStateNotifier extends StateNotifier<AuthState> {
           projectList:modelList
       );
     }else {
-      final response = await _repo.getAllProject(request: BpmsStatRequest(userId: userId));
+      final response = await _repo.getAllProject(request: BpmsStatRequest(userId: userId, status: 0));
       await BpmsDB.addAllProjects(response.data);
       state = state.copyWith(
           status: AuthStatus.authenticated,
           projectList:response.data
       );
     }
-
   }
+
+  getProjectByStatus(String userId,int status) async{
+    state = state.copyWith(status: AuthStatus.loading,
+    );
+    List<ProjectModel> modelList =  await BpmsDB.getAllProjectByStatus();
+    if(!await Utility.isInternet() && modelList!=null && modelList.length>0){
+      print('load offline');
+      state = state.copyWith(
+          status: AuthStatus.authenticated,
+          projectList:modelList
+      );
+    }else {
+      print('load online');
+      final response = await _repo.getProjectByStatus(request: BpmsStatRequest(userId: userId, status: status));
+      await BpmsDB.addAllProjects(response.data);
+      state = state.copyWith(
+          status: AuthStatus.authenticated,
+          projectList:response.data
+      );
+    }
+  }
+
   refreshProjectList(String userId) async{
     state = state.copyWith(status: AuthStatus.loading,
     );
-    final response = await _repo.getAllProject(request: BpmsStatRequest(userId: userId));
+    final response = await _repo.getAllProject(request: BpmsStatRequest(userId: userId, status: LocalConstant.ALL_PROJECT));
     await BpmsDB.addAllProjects(response.data);
     state = state.copyWith(
         status: AuthStatus.authenticated,

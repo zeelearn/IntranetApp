@@ -1,3 +1,4 @@
+import 'package:Intranet/pages/utils/theme/colors/light_colors.dart';
 import 'package:flutter/material.dart';
 
 import '../../api/response/bpms/project_task.dart';
@@ -17,7 +18,7 @@ class PathBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Colors.white,
+      color: LightColors.kLightGray,
       padding: EdgeInsets.only(left: 10,right: 10),
       height: 40,
       child: Align(
@@ -64,7 +65,7 @@ class PathBar extends StatelessWidget implements PreferredSizeWidget {
           },
           separatorBuilder: (BuildContext context, int index) {
             return IconButton(color: Colors.blue,
-              icon: Icon(Icons.arrow_back_ios_new_rounded),
+              icon: Icon(Icons.arrow_back_ios_new_rounded,weight: 20,),
               onPressed: () {},
             );;//Image.asset('assets/icons/ic_arrow_right.png');
           },

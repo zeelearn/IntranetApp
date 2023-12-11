@@ -36,11 +36,14 @@ class IntranetServiceHandler{
         if (value == null || value.responseData == null) {
           onResponse.onError('PJP List not avaliable ');
         } else if (value is PjpListResponse) {
-          PjpListResponse response = value;
-          onResponse.onSuccess(response);
+          try {
+            onResponse.onSuccess(value);
+          }catch(e){
+            onResponse.onError('PJP List not avaliable ');
+          }
+
         } else {
           onResponse.onError('PJP List not avaliable ');
-
         }
       }else{
         onResponse.onError('PJP List not avaliable ');

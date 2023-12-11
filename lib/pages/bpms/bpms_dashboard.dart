@@ -21,6 +21,7 @@ class BPMSDashboard extends ConsumerStatefulWidget {
 
 class _BPMSDashboard extends  ConsumerState<BPMSDashboard> {
 
+  bool isLoading = true;
     @override
   void initState() {
     // TODO: implement initState
@@ -37,41 +38,53 @@ class _BPMSDashboard extends  ConsumerState<BPMSDashboard> {
       print('in if emoloyee found ${frid}');
       ProjectStatsModel response = await ref.read(authNotifierProvider.notifier).getStats(frid.toString());
       print('in if response ${response}');
+      setState(() {
+        isLoading=false;
+      });
       mMenus.addAll([
         CourseCard(
-            level: response.TotalProject.toString(),
-            title: "My Projects",
-            duration: "7-30 Days",
+            counts: response.TotalProject,
+            title: "ALL Projects",
+            status: LocalConstant.ALL_PROJECT,
             color: Color(0xff8E97FD),
             textColor: Color(0xffFFECCC),
             image: Image(
               image: AssetImage('assets/images/project.png'),
             )
         ),CourseCard(
-            level: response.pendingtask.toString(),
-            title: "Pending Task",
-            duration: "12-35 Days",
-            color: Color(0xffFA6E5A),
+            counts: response.TotalProject,
+            title: "My Projects",
+            status: LocalConstant.MY_PROJECT,
+            color: Color(0xff8E97FD),
             textColor: Color(0xffFFECCC),
-
+            image: Image(
+              image: AssetImage('assets/images/project.png'),
+            )
+        ),CourseCard(
+            counts: response.InprogressTask,
+            title: "In Progress Task",
+            status: LocalConstant.INPROGRESS_PROJECT,
+            color: Color(0xffFFC97E),
+            textColor: Color(0xff3F414E),
             image: Image(
               image: AssetImage('assets/images/pending-tasks.png'),
             )
         ),
         CourseCard(
-            level: response.InprogressTask.toString(),
-            title: "In Progress",
-            duration: "7-27 Days",
-            color: Color(0xffFFC97E),
-            textColor: Color(0xff3F414E),
+            counts: response.pendingtask,
+            title: "Pending Task",
+            status: LocalConstant.PENDING_PROJECT,
+            color: Color(0xffFA6E5A),
+            textColor: Color(0xffFFECCC),
+
             image: Image(
               image: AssetImage('assets/images/work-in-progress.png'),
             )
         ),
         CourseCard(
-            level: response.completedTask.toString(),
+            counts: response.completedTask,
             title: "Completed",
-            duration: "1 Day",
+            status: LocalConstant.COMPLETED_PROJECT,
             color: Color(0xff6CB28E),
             textColor: Color(0xffFFECCC),
             image: Image(
@@ -88,6 +101,7 @@ class _BPMSDashboard extends  ConsumerState<BPMSDashboard> {
   @override
   Widget build(BuildContext context) {
     final auth = ref.watch(authNotifierProvider);
+    print('isLoading ${auth.loading}');
     return Scaffold(
         extendBodyBehindAppBar: true,
         backgroundColor: Colors.white,
@@ -100,15 +114,6 @@ class _BPMSDashboard extends  ConsumerState<BPMSDashboard> {
               Text('Manish Sharma - SAT Operation Head',style: LightColors.textHeaderStyle13Selected,),
             ],
           ),
-          actions: <Widget>[
-            IconButton(
-              icon: const Icon(Icons.filter_list),
-              tooltip: 'Filter',
-              onPressed: () {
-                //openFilters();
-              },
-            ), //IconButton
-          ],
           //<Widget>[]
           backgroundColor: kPrimaryLightColor,
           elevation: 50.0,
@@ -134,7 +139,7 @@ class _BPMSDashboard extends  ConsumerState<BPMSDashboard> {
               return Future<void>.delayed(const Duration(seconds: 3));
             },
             // Pull from top to show refresh indicator.
-            child: auth.loading ? Utility.showLoader() : Column(
+            child: isLoading ? Utility.showLoader() : Column(
               children: [
                 SizedBox(
                   height: 10,
@@ -168,229 +173,22 @@ class _BPMSDashboard extends  ConsumerState<BPMSDashboard> {
       );
   }
 
-  @override
-  Widget build123(BuildContext context) {
-    return MaterialApp(
-      theme: ThemeData(fontFamily: 'MontserratRegular'),
-      home: Scaffold(
-        body: ListView(
-          children: <Widget>[
-            IntrinsicHeight(
-              child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      child: Text(
-                        "Coding step by step",
-                        style: TextStyle(
-                            fontSize: 28,
-                            color: Colors.blueGrey[800],
-                            fontFamily: 'MontserratBold'),
-                      ),
-                      padding: EdgeInsets.fromLTRB(10, 40, 0, 0),
-                    ),
-                    Padding(
-                      child: Text(
-                        "Programming is fun when it's learnt right",
-                        style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.blueGrey[400],
-                            fontFamily: 'MontserratRegular'),
-                      ),
-                      padding: EdgeInsets.fromLTRB(10, 8, 0, 30),
-                    ),
-                  ]),
-            ),
-            IntrinsicHeight(
-              child: Row(children: [
-                Flexible(
-                  flex: 1,
-                  child: CourseCard(
-                      level: "All Projects",
-                      title: "My Projects",
-                      duration: "7-30 Days",
-                      color: Color(0xff8E97FD),
-                      textColor: Color(0xffFFECCC),
-                      image: Image(
-                        image: AssetImage('assets/icons/python.png'),
-                      )),
-                ),
-                Flexible(
-                  flex: 1,
-                  child: CourseCard(
-                      level: "BASIC",
-                      title: "JavaScript",
-                      duration: "12-35 Days",
-                      color: Color(0xffFFC97E),
-                      textColor: Color(0xff3F414E),
-                      image: Image(
-                        image: AssetImage('assets/icons/js.png'),
-                      )),
-                ),
-              ]),
-            ),
-            IntrinsicHeight(
-              child: Row(children: [
-                Flexible(
-                  flex: 1,
-                  child: CourseCard(
-                      level: "BASIC",
-                      title: "CSS",
-                      duration: "7-27 Days",
-                      color: Color(0xffFA6E5A),
-                      textColor: Color(0xffFFECCC),
-                      image: Image(
-                        image: AssetImage('assets/icons/css.png'),
-                      )),
-                ),
-                Flexible(
-                  flex: 1,
-                  child: CourseCard(
-                      level: "Crash Course",
-                      title: "HTML",
-                      duration: "1 Day",
-                      color: Color(0xff6CB28E),
-                      textColor: Color(0xffFFECCC),
-                      image: Image(
-                        image: AssetImage('assets/icons/html.png'),
-                      )),
-                ),
-              ]),
-            ),
-            IntrinsicHeight(
-              child: Row(children: [
-                Flexible(
-                  flex: 1,
-                  child: HorizontalCard(
-                      level: "BASIC",
-                      title: "CSS",
-                      color: Color(0xff3B3A55),
-                      textColor: Color(0xffFFECCC),
-                      image: Image(
-                        image: AssetImage('assets/icons/bottom-cloud.png'),
-                      ), duration: '',),
-                ),
-              ]),
-            ),
-            ListTile(
-              leading: Icon(Icons.map),
-              title: Text('Map'),
-            ),
-            ListTile(
-              leading: Icon(Icons.map),
-              title: Text('Map'),
-            ),
-            ListTile(
-              leading: Icon(Icons.map),
-              title: Text('Map'),
-            ),
-            ListTile(
-              leading: Icon(Icons.map),
-              title: Text('Map'),
-            ),
-            ListTile(
-              leading: Icon(Icons.map),
-              title: Text('Map'),
-            ),
-            ListTile(
-              leading: Icon(Icons.map),
-              title: Text('Map'),
-            ),
-            ListTile(
-              leading: Icon(Icons.map),
-              title: Text('Map'),
-            ),
-            ListTile(
-              leading: Icon(Icons.map),
-              title: Text('Map'),
-            ),
-            ListTile(
-              leading: Icon(Icons.map),
-              title: Text('Map'),
-            ),
-            ListTile(
-              leading: Icon(Icons.map),
-              title: Text('Map'),
-            ),
-            ListTile(
-              leading: Icon(Icons.map),
-              title: Text('Map'),
-            ),
-            ListTile(
-              leading: Icon(Icons.map),
-              title: Text('Map'),
-            ),
-            ListTile(
-              leading: Icon(Icons.map),
-              title: Text('Map'),
-            ),
-            ListTile(
-              leading: Icon(Icons.map),
-              title: Text('Map'),
-            ),
-            ListTile(
-              leading: Icon(Icons.map),
-              title: Text('Map'),
-            ),
-            ListTile(
-              leading: Icon(Icons.map),
-              title: Text('Map'),
-            ),
-            ListTile(
-              leading: Icon(Icons.map),
-              title: Text('Map'),
-            ),
-            ListTile(
-              leading: Icon(Icons.map),
-              title: Text('Map'),
-            ),
-          ],
-        ),
-        //body: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        //   Padding(
-        //     child: Text(
-        //       "Coding step by step",
-        //       style: TextStyle(
-        //           fontSize: 28,
-        //           color: Colors.blueGrey[800],
-        //           fontFamily: 'MontserratBold'),
-        //     ),
-        //     padding: EdgeInsets.fromLTRB(10, 80, 0, 0),
-        //   ),
-        //   Padding(
-        //     child: Text(
-        //       "Programming is fun when it's learnt right",
-        //       style: TextStyle(
-        //           fontSize: 16,
-        //           color: Colors.blueGrey[400],
-        //           fontFamily: 'MontserratRegular'),
-        //     ),
-        //     padding: EdgeInsets.fromLTRB(10, 8, 0, 0),
-        //   ),
-        // ]
-
-        //GridView.count(
-        //    crossAxisCount: 2, children: [Text("Hi"), Text("Hello")])
-        //]),
-      ),
-    );
-  }
 }
 
 class CourseCard extends StatelessWidget {
   const CourseCard(
       {Key? key,
-        required this.level,
+        required this.counts,
         required this.title,
-        required this.duration,
+        required this.status,
         required this.color,
         required this.image,
         required this.textColor})
       : super(key: key);
 
-  final String level;
+  final int counts;
   final String title;
-  final String duration;
+  final int status;
   final Color color;
   final Image image;
   final Color textColor;
@@ -402,7 +200,7 @@ class CourseCard extends StatelessWidget {
         Navigator.pushReplacement(
             context,
             MaterialPageRoute(
-                builder: (context) => BPMSProjects()));
+                builder: (context) => new BPMSProjects(status: status)));
       },
       child: Container(
           child: Padding(
@@ -423,7 +221,7 @@ class CourseCard extends StatelessWidget {
                     ),
                     Padding(
                       child: Text(
-                        level,
+                        counts.toString(),
                         style: TextStyle(
                             fontSize: 28,
                             color: textColor,

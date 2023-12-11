@@ -57,6 +57,7 @@ class LocalStrings {
   static const String API_GET_COMMUNICATION = 'api/bp/Getcommunication';
   static const String API_GET_BPMS_COUNTS = 'api/bp//GetDashboardCount';
   static const String API_GET_BPMS_ALL_PROJECTS = 'api/bp//GetAllProjectList';
+  static const String API_GET_BPMS_PROJECTS_BYSTATUS = 'api/bp//GettaskbyUser';
   static const String API_GET_BPMS_ALL_PROJECTTASK = 'api/bp//Gettaskdata';
   static const String API_INSERT_BPMS_NEW_TASK = 'api/bp//AddNewTask';
   static const String API_INSERT_BPMS_STATUS = 'api/bp//GetInputdata';

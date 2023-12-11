@@ -1,5 +1,6 @@
 import 'package:Intranet/api/request/bpms/send_cred.dart';
 import 'package:Intranet/api/response/bpms/send_cred.dart';
+import 'package:Intranet/pages/bpms/bpms_dashboard.dart';
 import 'package:Intranet/pages/bpms/bpms_task.dart';
 import 'package:Intranet/pages/helper/math_utils.dart';
 import 'package:Intranet/pages/utils/theme/colors/light_colors.dart';
@@ -10,17 +11,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../api/APIService.dart';
 import '../../api/request/bpms/projects.dart';
-import '../../api/response/bpms/bpms_stats.dart';
 import '../helper/LocalConstant.dart';
 import '../helper/constants.dart';
 import '../helper/utils.dart';
 import '../home/IntranetHomePage.dart';
-import '../iface/onResponse.dart';
 import 'auth/data/providers/auth_provider.dart';
 
 class BPMSProjects extends ConsumerStatefulWidget {
-
-  BPMSProjects({Key? key,}) : super(key: key);
+  int status;
+  BPMSProjects({Key? key,required this.status}) : super(key: key);
+  //BPMSProjects({Key? key}) : super(key: key);
 
   @override
   _BPMSProjects createState() => _BPMSProjects();
@@ -31,6 +31,7 @@ class _BPMSProjects extends  ConsumerState<BPMSProjects> with WidgetsBindingObse
   bool isSearch=false;
   TextEditingController _searchController = TextEditingController();
   final focusNode = FocusNode();
+  int frichiseeId=0;
 
     @override
   void initState() {
@@ -42,7 +43,6 @@ class _BPMSProjects extends  ConsumerState<BPMSProjects> with WidgetsBindingObse
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-      print('bpms project 39 didChangeAppLifecycleState');
     if (state == AppLifecycleState.resumed) {
       //print('resume');
       loadProjects();
@@ -52,11 +52,13 @@ class _BPMSProjects extends  ConsumerState<BPMSProjects> with WidgetsBindingObse
   loadProjects() async{
     var box = await Utility.openBox();
     if(box.get(LocalConstant.KEY_EMPLOYEE_ID)!=null) {
-      print('in if emoloyee found');
       String uid = box.get(LocalConstant.KEY_EMPLOYEE_ID) as String;
-      int frid = box.get(LocalConstant.KEY_FRANCHISEE_ID) as int;
-      print('in if emoloyee found ${uid}');
-      await ref.read(authNotifierProvider.notifier).getAllProjects(frid.toString());
+      frichiseeId = box.get(LocalConstant.KEY_FRANCHISEE_ID) as int;
+      if(widget.status==100 || widget.status==0) {
+        await ref.read(authNotifierProvider.notifier).getAllProjects(frichiseeId.toString());
+      }else{
+        await ref.read(authNotifierProvider.notifier).getProjectByStatus(frichiseeId.toString(),widget.status);
+      }
     }
   }
 
@@ -104,7 +106,13 @@ class _BPMSProjects extends  ConsumerState<BPMSProjects> with WidgetsBindingObse
     if (auth.projectList!=null && auth.projectList!.length>0)
       for (int index = 0; index <auth.projectList!.length; index++) {
         if (_searchController.text.toString().isEmpty || auth.projectList![index].isContains(_searchController.text.toString().toLowerCase())) {
-          mSortedProjectList.add(auth.projectList![index]);
+          if(widget.status==0){
+            print('${auth.projectList![index].FranchiseeId}  frnd ${frichiseeId}');
+           if(auth.projectList![index].FranchiseeId == frichiseeId)
+             mSortedProjectList.add(auth.projectList![index]);
+          } else{
+            mSortedProjectList.add(auth.projectList![index]);
+          }
         }
       }
     //print('Sorted list ${mSortedProjectList.length}');
@@ -130,7 +138,7 @@ class _BPMSProjects extends  ConsumerState<BPMSProjects> with WidgetsBindingObse
                   context,
                   MaterialPageRoute(
                       builder: (context) =>
-                          IntranetHomePage(userId: '',)));
+                          BPMSDashboard(userId: '',)));
             },
             child: const Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -265,12 +273,12 @@ class _BPMSProjects extends  ConsumerState<BPMSProjects> with WidgetsBindingObse
                           return GestureDetector(
                             onTap: (){
                               if(mSortedProjectList!=null && mSortedProjectList.length>index) {
-                                Navigator.push(
+                                Navigator.pushReplacement(
                                     context,
                                     MaterialPageRoute(
                                         builder: (context) =>
                                             BPMSProjectTask(
-                                              project: mSortedProjectList[index],)));
+                                              project: mSortedProjectList[index], status: widget.status,)));
                               }else{
                                 print('list not found....');
                               }
@@ -329,11 +337,19 @@ class _BPMSProjects extends  ConsumerState<BPMSProjects> with WidgetsBindingObse
 
 getView(ProjectModel model,bool isLastElement){
     return Card(
+      color: LightColors.kLightGrayM,
       elevation: 5,
       margin: !isLastElement
           ? EdgeInsets.only(bottom: 20)
           : EdgeInsets.zero,
-      child: Padding(
+      child: Container(
+        decoration: BoxDecoration(
+            color: Color(0xFFFFFFFF),
+            border: Border.all(
+              color: LightColors.kLightGray1,
+            ),
+            borderRadius: BorderRadius.all(Radius.circular(5))
+        ),
         padding: EdgeInsets.only(left: 10,top: 10,bottom: 10),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -363,7 +379,7 @@ getView(ProjectModel model,bool isLastElement){
                       height: 5,
                     ),
                     Text(
-                      '${model.FranchiseeCode==null || model.FranchiseeCode=='null' ? '' : model.FranchiseeCode}',
+                      '${model.Title}  ${model.FranchiseeCode==null  || model.FranchiseeCode=='null' ? model.Title!.isNotEmpty ? model.Title : model.FranchiseeCode : ''}',
                       style: TextStyle(
                         color: Colors.black45,
                         fontSize: 12,
@@ -575,6 +591,7 @@ getView(ProjectModel model,bool isLastElement){
           borderRadius: BorderRadius.circular(10),
         ),
         width: double.infinity,
+        margin: EdgeInsets.only(right:10),
         padding: EdgeInsets.only(left: 20,right: 20,top: 10,bottom: 10),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,

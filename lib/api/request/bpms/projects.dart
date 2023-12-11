@@ -10,6 +10,10 @@ class ProjectResponse {
     success = json['success'];
     data = List.from(json['data']).map((e)=>ProjectModel.fromJson(e)).toList();
   }
+  ProjectResponse.fromJsonByStatus(Map<String, dynamic> json){
+    success = json['success'];
+    data = List.from(json['data']).map((e)=>ProjectModel.fromJsonByStatus(e)).toList();
+  }
 
   Map<String, dynamic> toJson() {
     final _data = <String, dynamic>{};
@@ -32,6 +36,7 @@ class ProjectModel {
     required this.TotalNoOfTask,
     required this.CatchmentArea,
     required this.taskcount,
+    required this.responsiblePerson,
     this.TierName,
     this.FeeType,
   });
@@ -40,6 +45,7 @@ class ProjectModel {
   late final String approvedDate;
   late final String? FranchiseeCode;
   late final String? FranchiseeName;
+  late final String? responsiblePerson;
   late final int? FranchiseeId;
   late final String deadline;
   late final String CreatedBy;
@@ -48,6 +54,7 @@ class ProjectModel {
   late final String taskcount;
   late final String? TierName;
   late final String? FeeType;
+  late final String? Title;
 
   ProjectModel.fromJson(Map<String, dynamic> json){
     CRMId = json['CRM_id'];
@@ -58,11 +65,30 @@ class ProjectModel {
     FranchiseeId = json['Franchisee_Id'];
     deadline = json['deadline'];
     CreatedBy = json['CreatedBy'];
-    TotalNoOfTask = json['TotalNoOfTask'];
+    TotalNoOfTask = json['TotalNoOfTask'] ?? 0;
     CatchmentArea = json['CatchmentArea'];
     taskcount = json['taskcount'];
     TierName = json['Tier_Name'];
     FeeType = json['Fee_Type'];
+    Title = json['Title'] ?? '';
+  }
+
+  ProjectModel.fromJsonByStatus(Map<String, dynamic> json){
+    CRMId = json['project_id'];
+    DocUrl = json['Doc_url'] ?? '';
+    approvedDate = json['approved_date'] ?? '';
+    FranchiseeCode = json['Franchisee_Code'] ?? '';
+    FranchiseeName = json['Franchisee_Name'] ?? '';
+    FranchiseeId = json['Franchisee_Id'] ?? 0;
+    deadline = json['deadline'] ?? '';
+    CreatedBy = json['CreatedBy'];
+    responsiblePerson = json['Responsible_person'];
+    TotalNoOfTask = json['TotalNoOfTask'] ?? 0;
+    CatchmentArea = json['CatchmentArea'];
+    taskcount = json['taskcount'];
+    TierName = json['Tier_Name'];
+    FeeType = json['Fee_Type'];
+    Title = json['Title'] ?? '';
   }
 
   Map<String, dynamic> toMap() {

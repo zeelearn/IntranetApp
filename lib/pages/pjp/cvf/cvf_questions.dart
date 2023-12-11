@@ -1813,7 +1813,6 @@ class DetailScreen extends StatelessWidget {
     debugPrint(imageUrl);
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: kPrimaryLightColor,
         centerTitle: true,
         title: Text(
           'Intranet',

@@ -1,3 +1,5 @@
+import 'package:Intranet/pages/helper/LocalConstant.dart';
+import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -6,6 +8,7 @@ import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
 import '../../main.dart';
+import '../helper/utils.dart';
 import 'DetailsPage.dart';
 
 
@@ -72,6 +75,81 @@ class NotificationService {
     debugPrint(FirebaseMessaging.instance.getToken().toString());
   }
 
+  showSimpleNotification(String title, String body,
+      [RemoteMessage? message]) async {
+    String channel = LocalConstant.NOTIFICATION_CHANNEL;
+    print('showSimpleNotification Kidzee $channel');
+    debugPrint('Remote message for simple message is - $message');
+    AwesomeNotifications().createNotification(
+        content: NotificationContent(
+          id: -1,
+          channelKey: channel,
+          title: title,
+          body: Utility.removeAllHtmlTags(body),
+          payload: {
+            'url': message != null ? (message.data['url'] ?? '') : '',
+            'type': message != null ? (message.data['type'] ?? '') : '',
+            'topic': message != null ? (message.data['topic'] ?? '') : '',
+            'bigimage': message != null ? (message.data['bigimage'] ?? '') : ''
+          },
+        ));
+    print('showSimpleNotification');
+  }
+
+
+  showBigNotification(String title, String body, String logo, String imageUrl,
+      bool showBigTextNotification,
+      [RemoteMessage? message]) async {
+    String channel = LocalConstant.NOTIFICATION_CHANNEL;
+    print('showBigNotification kid $channel');
+    if (showBigTextNotification) {
+      await AwesomeNotifications().createNotification(
+        content: NotificationContent(
+            id: -1,
+            channelKey: 'big_picture',
+            title: title,
+            body: Utility.removeAllHtmlTags(body),
+            badge: 4,
+            // summary: body,
+            autoDismissible: true,
+            icon: 'resource://drawable/app_logo',
+            backgroundColor: Colors.white54,
+            largeIcon: imageUrl,
+            payload: {
+              'url': message != null ? (message.data['url'] ?? '') : '',
+              'type': message != null ? (message.data['type'] ?? '') : '',
+              'topic': message != null ? (message.data['topic'] ?? '') : '',
+              'bigimage': message != null ? (message.data['bigimage'] ?? '') : ''
+            },
+            notificationLayout: NotificationLayout.BigText,
+            bigPicture: imageUrl),
+      );
+    } else {
+      await AwesomeNotifications().createNotification(
+        content: NotificationContent(
+            id: -1,
+            channelKey: 'big_picture',
+            title: title,
+            body: Utility.removeAllHtmlTags(body),
+            badge: 4,
+            // summary: body,
+            autoDismissible: true,
+            icon: 'resource://drawable/app_logo',
+            backgroundColor: Colors.white54,
+            largeIcon: imageUrl,
+            notificationLayout: NotificationLayout.BigPicture,
+            payload: {
+              'url': message != null ? (message.data['url'] ?? '') : '',
+              'type': message != null ? (message.data['type'] ?? '') : '',
+              'topic': message != null ? (message.data['topic'] ?? '') : '',
+              'bigimage': message != null ? (message.data['bigimage'] ?? '') : ''
+            },
+            bigPicture: imageUrl),
+      );
+    }
+  }
+
+
   Future<void> requestIOSPermissions() async {
     await flutterLocalNotificationsPlugin
         .resolvePlatformSpecificImplementation<
@@ -104,7 +182,7 @@ class NotificationService {
     await flutterLocalNotificationsPlugin.zonedSchedule(
       id,
       title,
-      body,
+      Utility.removeAllHtmlTags(body),
       tz.TZDateTime.from(scheduledTime, tz.local),
       notificationDetails,
       uiLocalNotificationDateInterpretation:
@@ -125,6 +203,6 @@ class NotificationService {
 }
 
 Future<void> onSelectNotification(String? payload) async {
-  await navigatorKey.currentState
+  await MyApp.navigatorKey.currentState
       ?.push(MaterialPageRoute(builder: (_) => DetailsPage(payload: payload)));
 }

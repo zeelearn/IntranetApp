@@ -28,8 +28,9 @@ class PjpListResponse {
         responseData.add(PJPInfo.fromJson(json['responseData']));
       }
     } catch (e) {
-      debugPrint(e.toString());
+      print('error ${e.toString()}');
     }
+    print('json comple ${responseData.toString()}');
   }
 
   Map<String, dynamic> toJson() {

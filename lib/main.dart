@@ -1,9 +1,13 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io' show Directory, Platform;
+import 'dart:isolate';
 import 'dart:math';
 import 'dart:ui';
 import 'package:Intranet/pages/firebase/notification_service.dart';
+import 'package:Intranet/pages/helper/constants.dart';
+import 'package:Intranet/pages/notification/UserNotification.dart';
+import 'package:Intranet/pages/utils/theme/colors/light_colors.dart';
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -21,6 +25,7 @@ import 'package:flutter/foundation.dart';
 import 'package:Intranet/pages/model/NotificationDataModel.dart';
 import 'package:Intranet/pages/pjp/cvf/CheckInModel.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:get/get.dart';
 import 'package:hive_flutter/adapters.dart';
 import 'package:location/location.dart';
 import 'api/APIService.dart';
@@ -32,10 +37,12 @@ import 'api/response/cvf/update_status_response.dart';
 
 import 'package:hive/hive.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:intl/intl.dart';
 
 part 'main.g.dart';
 
-Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+
+/*Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   try {
     await Firebase.initializeApp(
         name: "Intranet", options: DefaultFirebaseOptions.currentPlatform);
@@ -102,6 +109,143 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
           message.notification!.body as String);
     }
   } catch (e) {}
+}*/
+
+@pragma('vm:entry-point')
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+
+  String cdate = DateFormat("yyyy-MM-dd hh:mm a").format(DateTime.now());
+
+  String? imsageUrl = '';
+  if (Platform.isAndroid) {
+    imsageUrl = message.notification?.android?.imageUrl.toString();
+  } else if (Platform.isIOS) {
+    imsageUrl = message.notification?.apple?.imageUrl.toString();
+  }
+  DBHelper helper = DBHelper();
+  Map<String, String> data = {};
+
+  if (message.notification != null) {
+    print('its simple Notification 12');
+    data.putIfAbsent('title', () => message.notification?.title as String);
+    data.putIfAbsent('description', () =>  message.notification?.body as String);
+    data.putIfAbsent('type', () => 'push');
+    data.putIfAbsent('date', () => cdate);
+    data.putIfAbsent('imageurl', () =>  imsageUrl as String);
+    data.putIfAbsent('logoUrl', () => message.data.containsKey('logo') ? message.data['logo'] as String : '');
+    data.putIfAbsent('bigImageUrl', () => message.data.containsKey('bigimage') ? message.data['bigimage'] as String : '');
+    data.putIfAbsent('webViewLink', () => message.data.containsKey('url') ? message.data['url'] as String : '');
+    helper.insert(LocalConstant.TABLE_NOTIFICATION, data);
+    NotificationService notificationService = NotificationService();
+    notificationService.showSimpleNotification(
+        message.notification?.title as String,
+        message.notification?.body as String,
+        message);
+  } else {
+    print('its data Notification 143');
+    //print('its topic Notification');
+    if (message.data.containsKey('topic') && message.data['topic'] != '') {
+      //identifyNotification(message);
+      showNotification(message);
+    } else {
+      showNotification(message);
+    }
+  }
+}
+
+showNotification(RemoteMessage message) async {
+  String cdate = DateFormat("yyyy-MM-dd hh:mm a").format(DateTime.now());
+  DBHelper helper = DBHelper();
+  Map<String, String> data = {};
+  String type = "";
+  String title = "";
+  String imageUrl = "";
+  String body = "";
+  if (message.data != null) {
+    debugPrint(message.data.toString());
+    try {
+      String mData = message.data.toString();
+      if (!message.data.containsKey("URL")) {
+        NotificationActionModel model = NotificationActionModel.fromJson(
+          json.decode(mData),
+        );
+        type = model.type;
+        title = model.title;
+        imageUrl = '';
+        body = model.message;
+      } else if (message.data.containsKey('Status')) {
+        mData = mData.replaceAll('Purpose:', 'Purpose');
+        mData = mData.replaceAll('Status:', 'Status');
+        NotificationDataModel model = NotificationDataModel.fromJson(
+          json.decode(mData),
+        );
+        type = model.type;
+        title = model.title;
+        imageUrl = model.image;
+        body = model.message;
+      } else {
+        debugPrint('in else data ${mData}');
+        NotificationDataModel model = NotificationDataModel.fromJson(
+          json.decode(mData),
+        );
+        type = model.type;
+        title = model.title;
+        imageUrl = model.image;
+        body = model.message;
+      }
+      _showNotificationWithDefaultSound(message, title, body);
+    } catch (e) {
+      debugPrint(e.toString());
+    }
+  }
+  data.putIfAbsent('title', () => title.isNotEmpty ? title : message.data['title'] as String);
+  data.putIfAbsent(
+      'description',
+          () => body.isNotEmpty ? body : message.data.containsKey('body')
+          ? message.data['body'] as String
+          : '');
+  data.putIfAbsent(
+      'type',
+          () => type.isNotEmpty ? type : message.data.containsKey('type')
+          ? message.data['type'] as String
+          : '');
+  data.putIfAbsent('date', () => cdate);
+  data.putIfAbsent(
+      'imageurl',
+          () =>
+      message.data.containsKey('url') ? message.data['url'] as String : '');
+  data.putIfAbsent('logoUrl', () => message.data['logo'] as String);
+  data.putIfAbsent('bigImageUrl', () => message.data['bigimage'] as String);
+  data.putIfAbsent('webViewLink', () => message.data['url'] as String);
+  helper.insert(LocalConstant.TABLE_NOTIFICATION, data);
+  /*var count = (int.parse(await KidzeePref().getString(LocalConstant.KEY_NOTIFICATION_COUNT) ??'0') +1);
+  KidzeePref().setString(LocalConstant.KEY_NOTIFICATION_COUNT, count.toString());
+  KidzeePref().setString(LocalConstant.KEY_SHOWNOTIFICATION_COUNT, 'true');
+  if (ref != null) {
+    ref.read(countProvider.notifier).update((state) => count);
+  }*/
+  NotificationService notificationService = NotificationService();
+  if (message.data.containsKey('bigimage') &&
+      (message.data['bigimage'] != null &&
+          message.data['bigimage'].toString().isNotEmpty)) {
+    notificationService.showBigNotification(
+        message.data['title'],
+        message.data['body'],
+        message.data['logo'],
+        message.data['bigimage'],
+        message.data['showBigText'] == 'true' ? true : false,
+        message);
+  } else {
+    notificationService.showSimpleNotification(
+        message.data['title'], message.data['body'], message);
+  }
+}
+
+updateCounter() async{
+  var box = await Utility.openBox();
+  var counter = box.get(LocalConstant.KEY_COUNTER) as int ?? 0;
+  var count = (counter +1);
+
 }
 
 AndroidNotificationChannel? channel;
@@ -123,93 +267,136 @@ Future<void> main() async {
   await Firebase.initializeApp(
       name: "Intranet", options: DefaultFirebaseOptions.currentPlatform);
 
-  messaging = FirebaseMessaging.instance;
-  messaging.subscribeToTopic("intranet");
+  await NotificationController.initializeLocalNotifications();
+  await NotificationController.initializeIsolateReceivePort();
 
-  // Set the background messaging handler early on, as a named top-level function
-  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-  FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-    debugPrint('Got a message whilst in the foreground! main');
-    debugPrint('Message data 12: ${message.data}');
-    try {
-      if (message.notification != null) {
-        debugPrint('Message also contained a notification: ${message.notification}');
+  if(!kIsWeb) {
+    messaging = FirebaseMessaging.instance;
+    messaging.subscribeToTopic("intranet");
+
+    // Set the background messaging handler early on, as a named top-level function
+    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      String cdate = DateFormat("yyyy-MM-dd hh:mm a").format(DateTime.now());
+
+      String? imsageUrl = '';
+      if (Platform.isAndroid) {
+        imsageUrl = message.notification?.android?.imageUrl.toString();
+      } else if (Platform.isIOS) {
+        imsageUrl = message.notification?.apple?.imageUrl.toString();
+      }
+
+
+      DBHelper helper = DBHelper();
+      Map<String, String> data = {};
+      if (message.notification != null /*&& message.data == null*/) {
+        print('its simple Notification 293');
+        data.putIfAbsent('title', () => message.notification?.title as String);
+        data.putIfAbsent('description', () => message.notification?.body as String);
+        data.putIfAbsent('type', () => 'push');
+        data.putIfAbsent('date', () => cdate);
+        data.putIfAbsent('imageurl', () =>  imsageUrl as String);
+        data.putIfAbsent('logoUrl', () => message.data.containsKey('logo') ? message.data['logo'] as String : '');
+        data.putIfAbsent('bigImageUrl', () =>  message.data.containsKey('bigimage') ? message.data['bigimage'] as String : '');
+        data.putIfAbsent('webViewLink', () => message.data.containsKey('url') ? message.data['url'] as String : '');
+        helper.insert(LocalConstant.TABLE_NOTIFICATION, data);
+        NotificationService notificationService = NotificationService();
+        notificationService.showSimpleNotification(
+            message.notification?.title as String,
+            message.notification?.body as String,
+            message);
       } else {
-        debugPrint('data ${message.data}');
-      }
-      DBHelper helper = new DBHelper();
-      if (message.data != null) {
-        debugPrint(message.data.toString());
-        String type = "";
-        String title = "";
-        String imageUrl = "";
-        String body = "";
-        try {
-          String mData = message.data.toString();
-          debugPrint('in 149' + mData);
-          if (!message.data.containsKey("URL")) {
-            debugPrint('json decode--');
-            String jsonencodeValue = '';
-            try{
-              jsonencodeValue = json.decode(mData);
-            }catch(e){
-              jsonencodeValue = mData;
-              jsonencodeValue = jsonencodeValue.replaceAll("{", "{\"");
-              jsonencodeValue = jsonencodeValue.replaceAll(":", "\":\"");
-              jsonencodeValue = jsonencodeValue.replaceAll(",", "\",\"");
-              jsonencodeValue = jsonencodeValue.replaceAll("}", "\"}");
-              debugPrint('in catch....4 $jsonencodeValue');
-            }
-            NotificationActionModel model = NotificationActionModel.fromJson(
-              json.decode(jsonencodeValue),
-            );
-            type = model.type;
-            title = model.title;
-            imageUrl = '';
-            body = model.message;
-          } else {
-            debugPrint('in else ');
-            NotificationDataModel model = NotificationDataModel.fromJson(
-              json.decode(mData),
-            );
-            type = model.type;
-            title = model.title;
-            imageUrl = model.image;
-            body = model.message;
-          }
-          _showNotificationWithDefaultSound(message, title, body);
-        } catch (e) {
-          debugPrint(e.toString());
+        print('its data Notification 261');
+        //print('its topic Notification');
+        if (message.data.containsKey('topic') && message.data['topic'] != '') {
+          //identifyNotification(message);
+          showNotification(message);
+        } else {
+          showNotification(message);
         }
-        helper.insertNotification(
-            message.messageId as String,
-            message.data.toString(),
-            type,
-            '',
-            message.data.toString(),
-            0,
-            imageUrl);
       }
-      if (message.notification != null) {
-        debugPrint('in notification '+message.notification.toString());
-        helper.insertNotification(
-            message.messageId as String,
-            message.notification!.title as String,
-            message.notification!.title as String,
-            message.notification!.body as String,
-            '',
-            0,
-            '');
-        _showNotificationWithDefaultSound(
-            message,
-            message.notification!.title as String,
-            message.notification!.body as String);
-      }
-    }catch(e){
-      debugPrint(e.toString());
-    }
-  });
-
+      /*debugPrint('Got a message whilst in the foreground! main');
+      debugPrint('Message data 12: ${message.data}');
+      try {
+        if (message.notification != null) {
+          debugPrint(
+              'Message also contained a notification: ${message.notification}');
+        } else {
+          debugPrint('data ${message.data}');
+        }
+        DBHelper helper = new DBHelper();
+        if (message.data != null) {
+          debugPrint(message.data.toString());
+          String type = "";
+          String title = "";
+          String imageUrl = "";
+          String body = "";
+          try {
+            String mData = message.data.toString();
+            debugPrint('in 149' + mData);
+            if (!message.data.containsKey("URL")) {
+              debugPrint('json decode--');
+              String jsonencodeValue = '';
+              try {
+                jsonencodeValue = json.decode(mData);
+              } catch (e) {
+                jsonencodeValue = mData;
+                jsonencodeValue = jsonencodeValue.replaceAll("{", "{\"");
+                jsonencodeValue = jsonencodeValue.replaceAll(":", "\":\"");
+                jsonencodeValue = jsonencodeValue.replaceAll(",", "\",\"");
+                jsonencodeValue = jsonencodeValue.replaceAll("}", "\"}");
+                debugPrint('in catch....4 $jsonencodeValue');
+              }
+              NotificationActionModel model = NotificationActionModel.fromJson(
+                json.decode(jsonencodeValue),
+              );
+              type = model.type;
+              title = model.title;
+              imageUrl = '';
+              body = model.message;
+            } else {
+              debugPrint('in else ');
+              NotificationDataModel model = NotificationDataModel.fromJson(
+                json.decode(mData),
+              );
+              type = model.type;
+              title = model.title;
+              imageUrl = model.image;
+              body = model.message;
+            }
+            _showNotificationWithDefaultSound(message, title, body);
+          } catch (e) {
+            debugPrint(e.toString());
+          }
+          helper.insertNotification(
+              message.messageId as String,
+              message.data.toString(),
+              type,
+              '',
+              message.data.toString(),
+              0,
+              imageUrl);
+        }
+        if (message.notification != null) {
+          debugPrint('in notification ' + message.notification.toString());
+          helper.insertNotification(
+              message.messageId as String,
+              message.notification!.title as String,
+              message.notification!.title as String,
+              message.notification!.body as String,
+              '',
+              0,
+              '');
+          _showNotificationWithDefaultSound(
+              message,
+              message.notification!.title as String,
+              message.notification!.body as String);
+        }
+      } catch (e) {
+        debugPrint(e.toString());
+      }*/
+    });
+  }
   if (!kIsWeb) {
    channel = const AndroidNotificationChannel(
         'intranet', // id
@@ -231,9 +418,10 @@ Future<void> main() async {
       badge: true,
       sound: true,
     );
+
+   await FirebaseMessaging.instance.setAutoInitEnabled(true);
   }
   _requestPermission();
-  await FirebaseMessaging.instance.setAutoInitEnabled(true);
 
   await Hive.initFlutter();
   await Hive.openBox(LocalConstant.communicationKey); // settings
@@ -242,7 +430,7 @@ Future<void> main() async {
 
   //await initializeService();
   //runApp(const MyApp());
-  runApp(const ProviderScope(
+  runApp(ProviderScope(
     child: MyApp(),
   ));
 }
@@ -683,10 +871,11 @@ Future _showNotificationWithDefaultSound(
   debugPrint('Send Notification');
 }
 
-final GlobalKey<NavigatorState> navigatorKey = new GlobalKey<NavigatorState>();
 
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+  static final GlobalKey<NavigatorState> navigatorKey = new GlobalKey<NavigatorState>();
+
+  MyApp({Key? key}) : super(key: key);
 
   // This widget is the root of your application.
   @override
@@ -712,8 +901,25 @@ class MyApp extends StatelessWidget {
         // or simply save your changes to "hot reload" in a Flutter IDE).
         // Notice that the counter didn't reset back to zero; the application
         // is not restarted.
-        primaryColorDark: LightColor.primarydark_color,
-        primaryColor: LightColor.primary_color,
+        /*colorScheme: ColorScheme.fromSeed(
+          seedColor: kPrimaryLightColor,
+          background: LightColors.kLightGray1,
+          brightness: Brightness.light,
+        ),
+        fontFamily: 'Roboto',
+        primaryColorDark: kPrimaryLightColor,
+        primaryColor: kPrimaryLightColor,*/
+        appBarTheme: AppBarTheme( // <-- SEE HERE
+          color: kPrimaryLightColor,
+          iconTheme: IconThemeData(color: Colors.white),
+          titleTextStyle: TextStyle(fontSize: 17, color: Colors.white, letterSpacing: 0.53),
+        ),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: kPrimaryLightColor,
+          background: LightColors.kLightGray1,
+          primary: kPrimaryLightColor,
+
+        ),
       ),
       home: Scaffold(
         body: SplashScreen(),
@@ -805,4 +1011,242 @@ class _MyHomePageState extends State<MyHomePage> {
       ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
+}
+
+class NotificationController {
+
+  static ReceivePort? receivePort;
+  static Future<void> initializeIsolateReceivePort() async {
+    receivePort = ReceivePort('Notification action port in main isolate')
+      ..listen(
+              (silentData) => onActionReceivedImplementationMethod(silentData));
+
+    // This initialization only happens on main isolate
+    IsolateNameServer.registerPortWithName(
+        receivePort!.sendPort, 'notification_action_port');
+  }
+
+  static Future<void> resetBadgeCounter() async {
+    await AwesomeNotifications().resetGlobalBadge();
+  }
+
+  static Future<void> cancelNotifications() async {
+    await AwesomeNotifications().cancelAll();
+  }
+
+  static Future<void> onActionReceivedImplementationMethod(
+      ReceivedAction receivedAction) async {
+    print('onActionReceivedImplementationMethod 1192');
+    Navigator.push(
+        MyApp.navigatorKey.currentState!.context,
+        MaterialPageRoute(
+            builder: (context) => UserNotification()));
+  }
+
+  static ReceivedAction? initialAction;
+  ///  *********************************************
+  ///     INITIALIZATIONS
+  ///  *********************************************
+  ///
+  static Future<void> initializeLocalNotifications() async {
+    await AwesomeNotifications().initialize(
+        null, //'resource://drawable/res_app_icon',//
+        [
+          NotificationChannel(
+              channelKey: LocalConstant.NOTIFICATION_CHANNEL,
+              channelName: LocalConstant.NOTIFICATION_CHANNEL,
+              channelDescription: "important notification for Intranet",
+              playSound: true,
+              onlyAlertOnce: true,
+              importance: NotificationImportance.High,
+              defaultPrivacy: NotificationPrivacy.Private,
+              defaultColor: Colors.deepPurple,
+              channelShowBadge: true,
+              ledColor: Colors.deepPurple)
+        ],
+        debug: true);
+
+    // Get initial notification action is optional
+    initialAction = await AwesomeNotifications()
+        .getInitialNotificationAction(removeFromActionEvents: false);
+  }
+
+  ///  *********************************************
+  ///     NOTIFICATION EVENTS LISTENER
+  ///  *********************************************
+  ///  Notifications events are only delivered after call this method
+  static Future<void> startListeningNotificationEvents() async {
+    AwesomeNotifications().setListeners(onActionReceivedMethod: onActionReceivedMethod);
+  }
+
+  ///  *********************************************
+  ///     NOTIFICATION EVENTS
+  ///  *********************************************
+  ///
+  @pragma('vm:entry-point')
+  static Future<void> onActionReceivedMethod(
+      ReceivedAction receivedAction) async {
+    debugPrint('Received action is - ${receivedAction.actionType}');
+    if (receivedAction.actionType == ActionType.SilentAction ||
+        receivedAction.actionType == ActionType.SilentBackgroundAction) {
+      // For background actions, you must hold the execution until the end
+      print('Message sent via notification input: "${receivedAction.buttonKeyInput}"');
+      // await executeLongTaskInBackground();
+    } else if (receivedAction.payload != null && receivedAction.payload!['Video_path'] != null) {
+      /*Navigator.push(
+          MyApp.navigatorKey.currentState!.context,
+          MaterialPageRoute(
+              builder: (context) => VideoPlayer(
+                Title: receivedAction.payload!['Video_path']!,
+                path: receivedAction.payload!['Video_path']!,
+              )));*/
+    } else if (receivedAction.payload != null &&
+        receivedAction.payload!['url'] != null &&
+        receivedAction.payload!['url']!.isNotEmpty) {
+      /*Navigator.push(
+        MyApp.navigatorKey.currentState!.context,
+        MaterialPageRoute(
+            builder: (context) => MyWebsiteView(
+              title: receivedAction.payload!['url'] ?? '',
+              url: receivedAction.payload!['url'] ?? '',
+            )),
+      );*/
+    }
+  }
+
+  ///  *********************************************
+  ///     REQUESTING NOTIFICATION PERMISSIONS
+  ///  *********************************************
+  ///
+  static Future<bool> displayNotificationRationale() async {
+    bool userAuthorized = false;
+    /*await showDialog(
+        context: context,
+        builder: (BuildContext ctx) {
+          return AlertDialog(
+            title: Text('Get Notified!',
+                style: Theme.of(context).textTheme.titleLarge),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Image.asset(
+                        'assets/animated-bell.gif',
+                        height: MediaQuery.of(context).size.height * 0.3,
+                        fit: BoxFit.fitWidth,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                const Text(
+                    'Allow Awesome Notifications to send you beautiful notifications!'),
+              ],
+            ),
+            actions: [
+              TextButton(
+                  onPressed: () {
+                    Navigator.of(ctx).pop();
+                  },
+                  child: Text(
+                    'Deny',
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleLarge
+                        ?.copyWith(color: Colors.red),
+                  )),
+              TextButton(
+                  onPressed: () async {
+                    userAuthorized = true;
+                    Navigator.of(ctx).pop();
+                  },
+                  child: Text(
+                    'Allow',
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleLarge
+                        ?.copyWith(color: Colors.deepPurple),
+                  )),
+            ],
+          );
+        });*/
+    return userAuthorized &&
+        await AwesomeNotifications().requestPermissionToSendNotifications();
+  }
+
+  ///  *********************************************
+  ///     BACKGROUND TASKS TEST
+  ///  *********************************************
+  static Future<void> executeLongTaskInBackground() async {
+  }
+
+  ///  *********************************************
+  ///     NOTIFICATION CREATION METHODS
+  ///  *********************************************
+  ///
+  static Future<void> createNewNotification() async {
+    bool isAllowed = await AwesomeNotifications().isNotificationAllowed();
+    if (!isAllowed) isAllowed = await displayNotificationRationale();
+    if (!isAllowed) return;
+
+    await AwesomeNotifications().createNotification(
+        content: NotificationContent(
+            id: -1, // -1 is replaced by a random number
+            channelKey: 'alerts',
+            title: 'Huston! The eagle has landed!',
+            body:
+            "A small step for a man, but a giant leap to Flutter's community!",
+            bigPicture: 'https://storage.googleapis.com/cms-storage-bucket/d406c736e7c4c57f5f61.png',
+            largeIcon: 'https://storage.googleapis.com/cms-storage-bucket/0dbfcc7a59cd1cf16282.png',
+            //'asset://assets/images/balloons-in-sky.jpg',
+            notificationLayout: NotificationLayout.BigPicture,
+            payload: {'notificationId': '1234567890'}),
+        actionButtons: [
+          NotificationActionButton(key: 'REDIRECT', label: 'Redirect'),
+          NotificationActionButton(
+              key: 'REPLY',
+              label: 'Reply Message',
+              requireInputText: true,
+              actionType: ActionType.SilentAction),
+          NotificationActionButton(
+              key: 'DISMISS',
+              label: 'Dismiss',
+              actionType: ActionType.DismissAction,
+              isDangerousOption: true)
+        ]);
+  }
+
+  static Future<void> scheduleNewNotification() async {
+    bool isAllowed = await AwesomeNotifications().isNotificationAllowed();
+    if (!isAllowed) isAllowed = await displayNotificationRationale();
+    if (!isAllowed) return;
+
+    await AwesomeNotifications().createNotification(
+        content: NotificationContent(
+            id: -1, // -1 is replaced by a random number
+            channelKey: 'alerts',
+            title: "Huston! The eagle has landed!",
+            body:
+            "A small step for a man, but a giant leap to Flutter's community!",
+            bigPicture: 'https://storage.googleapis.com/cms-storage-bucket/d406c736e7c4c57f5f61.png',
+            largeIcon: 'https://storage.googleapis.com/cms-storage-bucket/0dbfcc7a59cd1cf16282.png',
+            //'asset://assets/images/balloons-in-sky.jpg',
+            notificationLayout: NotificationLayout.BigPicture,
+            payload: {
+              'notificationId': '1234567890'
+            }),
+        actionButtons: [
+          NotificationActionButton(key: 'REDIRECT', label: 'Redirect'),
+          NotificationActionButton(
+              key: 'DISMISS',
+              label: 'Dismiss',
+              actionType: ActionType.DismissAction,
+              isDangerousOption: true)
+        ],
+        schedule: NotificationCalendar.fromDate(
+            date: DateTime.now().add(const Duration(seconds: 10))));
+  }
+
 }

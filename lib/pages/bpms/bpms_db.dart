@@ -46,9 +46,30 @@ class BpmsDB{
     }
     return list;
   }
+
   static addAllProjects(List<ProjectModel> taskResponse) async {
     await clearAll(LocalConstant.projects);
     var box = await Hive.openBox(LocalConstant.projects); //open the hive box before writing
+    for(int index=0;index<taskResponse.length;index++) {
+      var mapTaskData = taskResponse[index].toMap();
+      await box.add(mapTaskData);
+    }
+    box.close();
+  }
+
+  static Future<List<ProjectModel>> getAllProjectByStatus() async {
+    var box = await Hive.openBox(LocalConstant.projectbystatus);
+    List<ProjectModel> list = [];
+    for (int i = box.length - 1; i >= 0; i--) {
+      var projectMap = box.getAt(i);
+      list.add(ProjectModel.fromJson(Map.from(projectMap)));
+    }
+    return list;
+  }
+
+  static insertProjectByStatus(List<ProjectModel> taskResponse) async {
+    await clearAll(LocalConstant.projectbystatus);
+    var box = await Hive.openBox(LocalConstant.projectbystatus); //open the hive box before writing
     for(int index=0;index<taskResponse.length;index++) {
       var mapTaskData = taskResponse[index].toMap();
       await box.add(mapTaskData);
