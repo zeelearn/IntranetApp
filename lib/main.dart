@@ -269,6 +269,7 @@ Future<void> main() async {
 
   await NotificationController.initializeLocalNotifications();
   await NotificationController.initializeIsolateReceivePort();
+  NotificationController.startListeningNotificationEvents();
 
   if(!kIsWeb) {
     messaging = FirebaseMessaging.instance;
@@ -1110,6 +1111,10 @@ class NotificationController {
     } else if (receivedAction.payload != null &&
         receivedAction.payload!['url'] != null &&
         receivedAction.payload!['url']!.isNotEmpty) {
+      Navigator.push(
+          MyApp.navigatorKey.currentState!.context,
+          MaterialPageRoute(
+              builder: (context) => UserNotification()));
       /*Navigator.push(
         MyApp.navigatorKey.currentState!.context,
         MaterialPageRoute(
@@ -1118,6 +1123,11 @@ class NotificationController {
               url: receivedAction.payload!['url'] ?? '',
             )),
       );*/
+    }else{
+      Navigator.push(
+          MyApp.navigatorKey.currentState!.context,
+          MaterialPageRoute(
+              builder: (context) => UserNotification()));
     }
   }
 
