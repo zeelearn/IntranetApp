@@ -33,7 +33,7 @@ class WebViewExampleState extends State<PrivacyPolicyScreen> {
         ),
         body: WebView(
           javascriptMode: JavascriptMode.unrestricted,
-          initialUrl: 'https://www.kidzee.com/Home/PrivacyPolicy',
+          initialUrl: 'https://kidzee.com/PrivacyPolicy',
         ),
       ),
     );
@@ -42,7 +42,7 @@ class WebViewExampleState extends State<PrivacyPolicyScreen> {
   @override
   Widget buildBK(BuildContext context) {
     return WebView(
-      initialUrl: 'https://www.kidzee.com/Home/PrivacyPolicy',
+      initialUrl: 'https://kidzee.com/PrivacyPolicy',
     );
   }
 }

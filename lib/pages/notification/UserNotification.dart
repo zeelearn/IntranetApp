@@ -1,4 +1,5 @@
 import 'package:Intranet/pages/notification/NotificationModel.dart';
+import 'package:Intranet/pages/utils/theme/colors/light_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -140,6 +141,7 @@ class _ListPageState extends State<UserNotification> {
 
     Card makeCard(NotificationModel model) => Card(
           elevation: 8.0,
+          color: LightColors.white,
           // shape: const RoundedRectangleBorder(
           //     borderRadius: BorderRadius.all(Radius.circular(5))),
           margin: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 10.0),

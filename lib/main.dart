@@ -276,6 +276,13 @@ Future<void> main() async {
 
     // Set the background messaging handler early on, as a named top-level function
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+      print('A new onMessageOpenedApp event was published!');
+        Navigator.push(
+            MyApp.navigatorKey.currentState!.context,
+            MaterialPageRoute(
+                builder: (context) => UserNotification()));
+    });
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       String cdate = DateFormat("yyyy-MM-dd hh:mm a").format(DateTime.now());
 

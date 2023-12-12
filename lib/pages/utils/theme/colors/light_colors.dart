@@ -26,6 +26,7 @@ class LightColors  {
 
   static const Color kLightGray = Color(0xFFF5F5F5);
   static const Color kLightGray1 = Color(0xFFE0E0E0);
+  static const Color white = Colors.white;
 
   static const Color kLightGrayM = Color.fromRGBO(242, 243, 244, 95);
   static const Color kLightRedMaterial = Color.fromRGBO(250, 219, 216, 95);

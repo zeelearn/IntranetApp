@@ -43,7 +43,7 @@ class _BPMSDashboard extends  ConsumerState<BPMSDashboard> {
       });
       mMenus.addAll([
         CourseCard(
-            counts: response.TotalProject,
+            counts: 0,
             title: "ALL Projects",
             status: LocalConstant.ALL_PROJECT,
             color: Color(0xff8E97FD),
@@ -219,15 +219,16 @@ class CourseCard extends StatelessWidget {
                         child: image,
                       ),
                     ),
+                    counts==0 ? SizedBox(height: 0,) :
                     Padding(
                       child: Text(
                         counts.toString(),
                         style: TextStyle(
-                            fontSize: 28,
+                            fontSize: 34,
                             color: textColor,
                             fontFamily: 'MontserratBold'),
                       ),
-                      padding: EdgeInsets.fromLTRB(18, 70, 0, 0),
+                      padding: EdgeInsets.fromLTRB(18, 30, 0, 0),
                     ),
                     Padding(
                       child: Text(
@@ -237,7 +238,7 @@ class CourseCard extends StatelessWidget {
                             color: textColor,
                             fontFamily: 'MontserratLight'),
                       ),
-                      padding: EdgeInsets.fromLTRB(15, 110, 0, 0),
+                      padding: EdgeInsets.fromLTRB(15, 80, 0, 0),
                     ),
                   ],
                 )),
