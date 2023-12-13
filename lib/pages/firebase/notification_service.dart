@@ -86,6 +86,9 @@ class NotificationService {
           channelKey: channel,
           title: title,
           body: Utility.removeAllHtmlTags(body),
+          notificationLayout: NotificationLayout.BigText,
+          // summary: body,
+          autoDismissible: true,
           payload: {
             'url': message != null ? (message.data['url'] ?? '') : '',
             'type': message != null ? (message.data['type'] ?? '') : '',
