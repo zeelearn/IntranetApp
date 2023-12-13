@@ -6,6 +6,7 @@ import '../../api/response/bpms/getTaskDetailsResponseModel.dart';
 import '../../api/response/bpms/get_communication_response.dart';
 import '../../api/response/bpms/project_task.dart';
 import '../helper/LocalConstant.dart';
+import '../helper/utils.dart';
 
 class BpmsDB{
 
@@ -47,34 +48,42 @@ class BpmsDB{
     return list;
   }
 
-  static addAllProjects(List<ProjectModel> taskResponse) async {
-    await clearAll(LocalConstant.projects);
-    var box = await Hive.openBox(LocalConstant.projects); //open the hive box before writing
+  static addAllProjects(List<ProjectModel> taskResponse,int status) async {
+    await clearAll(LocalConstant.projects+'${status}');
+
+    var box = await Hive.openBox(LocalConstant.projects+'${status}'); //open the hive box before writing
     for(int index=0;index<taskResponse.length;index++) {
       var mapTaskData = taskResponse[index].toMap();
       await box.add(mapTaskData);
     }
-    box.close();
+    updateBox(status);
+    //box.close();
   }
 
-  static Future<List<ProjectModel>> getAllProjectByStatus() async {
-    var box = await Hive.openBox(LocalConstant.projectbystatus);
+  static Future<List<ProjectModel>> getAllProjectByStatus(int status) async {
+    var box = await Hive.openBox(LocalConstant.projectbystatus+'${status}');
     List<ProjectModel> list = [];
     for (int i = box.length - 1; i >= 0; i--) {
       var projectMap = box.getAt(i);
-      list.add(ProjectModel.fromJson(Map.from(projectMap)));
+      list.add(ProjectModel.fromJsonStatus(Map.from(projectMap)));
     }
     return list;
   }
 
-  static insertProjectByStatus(List<ProjectModel> taskResponse) async {
-    await clearAll(LocalConstant.projectbystatus);
-    var box = await Hive.openBox(LocalConstant.projectbystatus); //open the hive box before writing
+  static updateBox(int status) async{
+    var box = await Utility.openBox();
+    box.put(LocalConstant.PROJ_LAST_SYNC+'${status}',Utility.formatDate());
+  }
+
+  static insertProjectByStatus(List<ProjectModel> taskResponse,int status) async {
+    await clearAll(LocalConstant.projectbystatus+'${status}');
+    var box = await Hive.openBox(LocalConstant.projectbystatus+'${status}'); //open the hive box before writing
     for(int index=0;index<taskResponse.length;index++) {
       var mapTaskData = taskResponse[index].toMap();
       await box.add(mapTaskData);
     }
     box.close();
+    updateBox(status);
   }
 
   static Future<List<ProjectTaskModel>> getProjectsTask() async {

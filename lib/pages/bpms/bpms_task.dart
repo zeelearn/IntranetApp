@@ -483,7 +483,7 @@ class _BPMSProjectTask extends  ConsumerState<BPMSProjectTask> with WidgetsBindi
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     SizedBox(
-                      width: model.taskcreateduser == frichiseeId.toString() && model.statusname=='Completed' ? size.width *  0.6 : model.taskcreateduser.isEmpty || model.taskcreateduser != frichiseeId.toString()  ? size.width *  0.72 : model.mtaskId=='0' ? size.width * 0.45 : size.width * 0.57,
+                      width: model.taskcreateduser == frichiseeId.toString() && model.statusname=='Completed' ? size.width *  0.56 : model.taskcreateduser.isEmpty || model.taskcreateduser != frichiseeId.toString()  ? size.width *  0.72 : model.mtaskId=='0' ? size.width * 0.45 : size.width * 0.58,
                       child: Text(
                         '${model.title}',
                         style: TextStyle(

@@ -57,7 +57,7 @@ class FCM {
     await Hive.openBox(LocalConstant.KidzeeDB);
     var oldoken = hiveBox.get(LocalConstant.KEY_FCM_ID);
     debugPrint(token);
-    if(oldoken==null || oldoken != token) {
+    if(true || oldoken==null || oldoken != token) {
       hiveBox.put(LocalConstant.KEY_FCM_ID, token);
       APIService service = APIService();
 
@@ -67,7 +67,7 @@ class FCM {
           User_Agent: userAgent);
       service.updateFCM(model);
     }else{
-      debugPrint('in else notification id not change');
+      print('in else notification id not change');
     }
   }
 

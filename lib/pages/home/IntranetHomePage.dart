@@ -34,6 +34,7 @@ import '../attendance/manager_screen.dart';
 import '../firebase/anylatics.dart';
 import '../firebase/firebase_options.dart';
 import '../firebase/notification.dart';
+import '../firebase/notification_service.dart';
 import '../firebase/storageutil.dart';
 import '../helper/DatabaseHelper.dart';
 import '../helper/constants.dart';
@@ -80,6 +81,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
 
   final ImagePicker _picker = ImagePicker();
   XFile? _imageFileList;
+  bool isBpms = false;
 
   late final ValueNotifier<List<PJPModel>> _selectedEvents;
   CalendarFormat _calendarFormat = CalendarFormat.twoWeeks;
@@ -191,6 +193,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
                 for(int index=0;index<businessApplications.length;index++){
                   //BP Management
                   if(businessApplications[index].businessName =='BP Management'){
+                    isBpms = true;
                     hive.put(LocalConstant.KEY_FRANCHISEE_ID,value.responseData.businessApplications[index].business_UserID);
                   }
                 }
@@ -297,6 +300,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
     //_listenForMessages();
     getLoginResponse();
     validate(context);
+
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
       print('A new onMessageOpenedApp event was published!');
       Navigator.push(
@@ -414,6 +418,9 @@ class _IntranetHomePageState extends State<IntranetHomePage>
     employeeId = int.parse(hiveBox.get(LocalConstant.KEY_EMPLOYEE_ID) as String);
     mDesignation = hiveBox.get(LocalConstant.KEY_DESIGNATION) as String;
     var imageUrl = hiveBox.get(LocalConstant.KEY_EMPLOYEE_AVTAR) ;
+    if(hiveBox.containsKey(LocalConstant.KEY_FRANCHISEE_ID)){
+      isBpms = true;
+    }
     mTitle = hiveBox.get(LocalConstant.KEY_FIRST_NAME).toString() +
         " " +
         hiveBox.get(LocalConstant.KEY_LAST_NAME).toString();
@@ -427,6 +434,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
     }else{
       _profileImage='https://cdn-icons-png.flaticon.com/128/727/727393.png';
     }
+    _getId(employeeId.toString());
     getProfileImage();
     PackageInfo.fromPlatform().then((PackageInfo packageInfo) {
       String appName = packageInfo.appName;
@@ -437,7 +445,6 @@ class _IntranetHomePageState extends State<IntranetHomePage>
 
     });
 
-    _getId(employeeId.toString());
     //decodeJsonValue();
     setState(() {});
   }
@@ -494,6 +501,62 @@ class _IntranetHomePageState extends State<IntranetHomePage>
       final firebaseMessaging = FCM();
       //useragent= Platform.isIOS ? 'IOS' : 'Android';
       firebaseMessaging.setNotifications(employeeId.toString(), id, useragent);
+      FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+        String cdate = DateFormat("yyyy-MM-dd hh:mm a").format(DateTime.now());
+
+        String? imsageUrl = '';
+        if (Platform.isAndroid) {
+          imsageUrl = message.notification?.android?.imageUrl.toString();
+        } else if (Platform.isIOS) {
+          imsageUrl = message.notification?.apple?.imageUrl.toString();
+        }
+
+
+        DBHelper helper = DBHelper();
+        Map<String, String> data = {};
+        if (message.notification != null /*&& message.data == null*/) {
+          print('its simple Notification 293');
+          data.putIfAbsent('title', () => message.notification?.title as String);
+          data.putIfAbsent('description', () => message.notification?.body as String);
+          data.putIfAbsent('type', () => 'push');
+          data.putIfAbsent('date', () => cdate);
+          data.putIfAbsent('imageurl', () =>  imsageUrl as String);
+          data.putIfAbsent('logoUrl', () => message.data.containsKey('logo') ? message.data['logo'] as String : '');
+          data.putIfAbsent('bigImageUrl', () =>  message.data.containsKey('bigimage') ? message.data['bigimage'] as String : '');
+          data.putIfAbsent('webViewLink', () => message.data.containsKey('url') ? message.data['url'] as String : '');
+          helper.insert(LocalConstant.TABLE_NOTIFICATION, data);
+          NotificationService notificationService = NotificationService();
+          notificationService.showSimpleNotification(
+              message.notification?.title as String,
+              message.notification?.body as String,
+              message);
+        } else {
+          print('its data Notification 261');
+          //print('its topic Notification');
+          data.putIfAbsent('title', () => message.data['title']);
+          data.putIfAbsent('description', () => message.data['body']);
+          data.putIfAbsent('type', () => message.data.containsKey('type') ?  message.data['type'] : 'push');
+          data.putIfAbsent('date', () => cdate);
+          data.putIfAbsent('imageurl', () =>  message.data.containsKey('imageurl') ?  message.data['imageurl'] : '');
+          data.putIfAbsent('logoUrl', () => message.data.containsKey('logoUrl') ?  message.data['logoUrl'] : '');
+          data.putIfAbsent('bigImageUrl', () =>  message.data.containsKey('bigimage') ? message.data['bigimage'] as String : '');
+          data.putIfAbsent('webViewLink', () => message.data.containsKey('url') ? message.data['url'] as String : '');
+          helper.insert(LocalConstant.TABLE_NOTIFICATION, data);
+          if (message.data.containsKey('topic') && message.data['topic'] != '') {
+            //identifyNotification(message);
+            //showNotification(message);
+            NotificationService notificationService = NotificationService();
+            notificationService.showSimpleNotification(
+                message.data['title'], message.data['body'], message);
+          } else {
+            //showNotification(message);
+            NotificationService notificationService = NotificationService();
+            notificationService.showSimpleNotification(
+                message.data['title'], message.data['body'], message);
+          }
+        }
+      });
+
     }
   }
 
@@ -741,7 +804,8 @@ class _IntranetHomePageState extends State<IntranetHomePage>
             style:
             TextStyle(fontSize: 17, color: Colors.white, letterSpacing: 0.53),
           ),
-          InkWell(
+        _currentBusinessName==null || _currentBusinessName=='null' ?  SizedBox(width: 0,) :
+        InkWell(
             onTap: () {
               showBusinessListDialog(false);
             },
@@ -806,7 +870,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
     debugPrint('getscreen--------');
     switch (widget._selectedDestination) {
       case MENU_HOME:
-        return HomePageMenu();
+        return HomePageMenu(isBpms);
         break;
       case MENU_ATTENDANCE:
         return AttendanceSummeryScreen(
@@ -1005,7 +1069,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
                 fontSize: 12.0,
                 color: Colors.white,
               ),),
-              Text(_currentBusinessName,style: TextStyle(
+              Text(_currentBusinessName==null || _currentBusinessName=='null' ? '' : _currentBusinessName,style: TextStyle(
                 fontSize: 14.0,
                 color: Colors.white,
               ),),

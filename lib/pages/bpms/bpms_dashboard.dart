@@ -22,6 +22,7 @@ class BPMSDashboard extends ConsumerStatefulWidget {
 class _BPMSDashboard extends  ConsumerState<BPMSDashboard> {
 
   bool isLoading = true;
+  String displayName='';
     @override
   void initState() {
     // TODO: implement initState
@@ -35,6 +36,7 @@ class _BPMSDashboard extends  ConsumerState<BPMSDashboard> {
       print('in if emoloyee found');
       String uid = box.get(LocalConstant.KEY_EMPLOYEE_ID) as String;
       int frid = box.get(LocalConstant.KEY_FRANCHISEE_ID) as int;
+      displayName = '${box.get(LocalConstant.KEY_FIRST_NAME) as String} ${box.get(LocalConstant.KEY_LAST_NAME) as String}';
       print('in if emoloyee found ${frid}');
       ProjectStatsModel response = await ref.read(authNotifierProvider.notifier).getStats(frid.toString());
       print('in if response ${response}');
@@ -111,7 +113,7 @@ class _BPMSDashboard extends  ConsumerState<BPMSDashboard> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text('BPMS Dashboard',style: LightColors.textHeaderStyle13Selected,),
-              Text('Manish Sharma - SAT Operation Head',style: LightColors.textHeaderStyle13Selected,),
+              Text(displayName,style: LightColors.textHeaderStyle13Selected,),
             ],
           ),
           //<Widget>[]

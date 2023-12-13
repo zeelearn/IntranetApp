@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_google_places/flutter_google_places.dart';
@@ -424,60 +425,67 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener{
   }
 
   addNewCVF() async {
-    if(validate()) {
-      Utility.showLoaderDialog(context);
-      debugPrint('categoty');
-      /*String xml =
-        '<root><tblPJPCVF><Employee_Id>${employeeId}</Employee_Id><Franchisee_Id>${getFrichanseeId()}</Franchisee_Id><Visit_Date>${Utility.convertShortDate(cvfDate)}</Visit_Date><Visit_Time>${vistitDateTime?.hour}:${vistitDateTime?.minute}</Visit_Time><Category_Id>${getCategoryId()}</Category_Id></tblPJPCVF></root>';
-    */
-      LocationData deviceLocation = await LocationHelper.getLocation();
-      if(deviceLocation!=null){
-        latitude = deviceLocation.latitude!;
-        longitude = deviceLocation.longitude!;
-      }else{
-        print('location data not found');
-      }
-      /*if (await Permission.location.request().isGranted) {
-        Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.medium);
-        latitude=position.latitude;
-        longitude=position.longitude;
-      }*/
-      String xml = '<root><tblPJPCVF><Business_Id>${businessId}</Business_Id><Employee_Id>${employeeId}</Employee_Id><Franchisee_Id>${getFrichanseeId()}</Franchisee_Id><Visit_Date>${Utility
-          .convertShortDate(cvfDate)}</Visit_Date><Visit_Time>${vistitDateTime
-          ?.hour}:${vistitDateTime
-          ?.minute}</Visit_Time><Category_Id>${getCategoryList()}</Category_Id><Latitude>${latitude}</Latitude><Longitude>${longitude}</Longitude><ActivityTitle>${_activityNameController.text.toString()}</ActivityTitle><Address>${location=='Search Location' ? getFrichanseeAddress() :location}</Address></tblPJPCVF></root>';
-      AddCVFRequest request = AddCVFRequest(
-          PJP_Id: int.parse(widget.mPjpModel.PJP_Id),
-          DocXml: xml,
-          UserId: employeeId);
-      debugPrint(request.toJson().toString());
-      APIService apiService = APIService();
-      apiService.saveCVF(request).then((value) {
-        print(value);
-        Navigator.of(context).pop();
-        if (value != null) {
-          if (value == null || value.responseData == null) {
-            Utility.showMessage(context, 'data not found');
-          } else if (value is NewCVFResponse) {
-            NewCVFResponse response = value;
-            debugPrint(response.toString());
-            if (response != null) {
-              //mPjpModel.pjpId=response.responseData;
-            }
-            try {
-              //fetchQuestions(response.responseData);
-            }catch(e){}
-            Navigator.of(context).pop();
-            //Utility.showMessage(context, 'CVF Saved in server');
-            setState(() {});
-            //debugPrint('category list ${response.responseData.length}');
-          } else {
-            Utility.showMessage(context, 'data not found');
-          }
+    if (!await Permission.location.request().isGranted){
+      LocationData deviceLocation = await LocationHelper.getLocation(context);
+    }else if(validate()) {
+      if(!await Utility.isInternet()){
+        Utility.noInternetConnection(context);
+      }else {
+        Utility.showLoaderDialog(context);
+        debugPrint('categoty');
+        LocationData deviceLocation = await LocationHelper.getLocation(context);
+        if (deviceLocation != null) {
+          latitude = deviceLocation.latitude!;
+          longitude = deviceLocation.longitude!;
+        } else {
+          print('location data not found');
         }
-        //Navigator.of(context).pop();
-        setState(() {});
-      });
+        /*if (await Permission.location.request().isGranted) {
+          Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.medium);
+          latitude=position.latitude;
+          longitude=position.longitude;
+        }*/
+        String xml = '<root><tblPJPCVF><Business_Id>${businessId}</Business_Id><Employee_Id>${employeeId}</Employee_Id><Franchisee_Id>${getFrichanseeId()}</Franchisee_Id><Visit_Date>${Utility
+            .convertShortDate(cvfDate)}</Visit_Date><Visit_Time>${vistitDateTime
+            ?.hour}:${vistitDateTime
+            ?.minute}</Visit_Time><Category_Id>${getCategoryList()}</Category_Id><Latitude>${latitude}</Latitude><Longitude>${longitude}</Longitude><ActivityTitle>${_activityNameController
+            .text.toString()}</ActivityTitle><Address>${location ==
+            'Search Location'
+            ? getFrichanseeAddress()
+            : location}</Address></tblPJPCVF></root>';
+        AddCVFRequest request = AddCVFRequest(
+            PJP_Id: int.parse(widget.mPjpModel.PJP_Id),
+            DocXml: xml,
+            UserId: employeeId);
+        debugPrint(request.toJson().toString());
+        APIService apiService = APIService();
+        apiService.saveCVF(request).then((value) {
+          print(value);
+          Navigator.of(context).pop();
+          if (value != null) {
+            if (value == null || value.responseData == null) {
+              Utility.showMessage(context, 'data not found');
+            } else if (value is NewCVFResponse) {
+              NewCVFResponse response = value;
+              debugPrint(response.toString());
+              if (response != null) {
+                //mPjpModel.pjpId=response.responseData;
+              }
+              try {
+                //fetchQuestions(response.responseData);
+              } catch (e) {}
+              Navigator.of(context).pop();
+              //Utility.showMessage(context, 'CVF Saved in server');
+              setState(() {});
+              //debugPrint('category list ${response.responseData.length}');
+            } else {
+              Utility.showMessage(context, 'data not found');
+            }
+          }
+          //Navigator.of(context).pop();
+          setState(() {});
+        });
+      }
     }else{
       debugPrint("unable to Validate");
     }
@@ -509,7 +517,9 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener{
                 onChanged: (String? value) {
                   debugPrint(value);
                   setState(() {
-                    _CenterName = value!;
+                    try {
+                      _CenterName = value!.split('--')[1];
+                    }catch(e){}
                   });
                 },
                 alignment: Alignment.centerLeft,
@@ -557,7 +567,8 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener{
             items: getList(mFrianchiseeList),
           ),
         ),*/
-        getCenterDropdown(context),
+        getCenterList(),
+        //getCenterDropdown(context),
         //getCenterListDropDown(),
         SizedBox(
           height: 10,
@@ -622,6 +633,62 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener{
     );
   }
 
+  Widget _customPopupItemBuilderExample2(BuildContext context, FranchiseeInfo item, bool isSelected) {
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: 8),
+      decoration: !isSelected
+          ? null
+          : BoxDecoration(
+        border: Border.all(color: Theme.of(context).primaryColor),
+        borderRadius: BorderRadius.circular(5),
+        color: Colors.white,
+      ),
+      child: ListTile(
+        selected: isSelected,
+        title: Text(item.franchiseeName),
+        subtitle: Text(item.franchiseeCode),
+      ),
+    );
+  }
+
+  Future<List<FranchiseeInfo>> getData(filter) async {
+    print('in filter');
+    List<FranchiseeInfo> list = [];
+    print('Filter ${filter}');
+    for(int index=0;index<mFrianchiseeList.length;index++){
+      if(filter=='' || mFrianchiseeList[index].isContain(filter)){
+        list.add(mFrianchiseeList[index]);
+      }
+    }
+    return list;
+  }
+  selectCenter(FranchiseeInfo model){
+    _CenterName = model.franchiseeName;
+  }
+  getCenterList(){
+    //mFrianchiseeList
+    return Container(
+      padding: EdgeInsets.only(left: 10,right: 10),
+      color: Colors.white,
+      child: DropdownSearch<FranchiseeInfo>(
+        asyncItems: (filter) => getData(filter),
+        compareFn: (i, s) => i.isEqual(s),
+        onChanged: (FranchiseeInfo? data) => selectCenter(data!),
+        itemAsString: (FranchiseeInfo f) => f.franchiseeCode+ '- '+ f.franchiseeName,
+        dropdownDecoratorProps: DropDownDecoratorProps(
+          dropdownSearchDecoration: InputDecoration(labelText: "Franchisee Name",hintText: 'Search Franchisee Name or code'),
+            baseStyle: LightColors.textSmallStyle
+        ),
+        popupProps: PopupPropsMultiSelection.modalBottomSheet(
+          showSearchBox: true,
+          title: Padding(child: Text('Search Franchisee Name or Code'),padding: EdgeInsets.only(left: 10,top: 10),),
+          isFilterOnline: true,
+          itemBuilder: _customPopupItemBuilderExample2,
+        ),
+      ),
+    );
+  }
+
   void itemChange(bool val) {
     setState(() {
       _isNotify = val;
@@ -673,7 +740,7 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener{
                 var place = await PlacesAutocomplete.show(
                     context: context,
                     apiKey: LocalStrings.kGoogleApiKey,
-                    mode: Mode.overlay,
+                    //mode: Mode.overlay,
                     types: [],
                     strictbounds: false,
                     components: [Component(Component.country, 'in')],
@@ -753,7 +820,7 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener{
         region: "us",
         language: "en",
         context: context,
-        mode: Mode.overlay,
+        //mode: Mode.overlay,
         apiKey: LocalStrings.kGoogleApiKey,
 
         components: [new Component(Component.country, "us")],
@@ -777,7 +844,7 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener{
       onError: onError,
       types: ['establishment'],
       strictbounds: true,
-      mode: Mode.overlay,
+      //mode: Mode.overlay,
       language: "en",
       decoration: InputDecoration(
         hintText: 'Search',
@@ -1012,10 +1079,10 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener{
   List<String> getList(List<FranchiseeInfo> mFrianchiseeList) {
     List<String> data = ['Select'];
     for (int index = 0; index < mFrianchiseeList.length; index++) {
-      if (mFrianchiseeList[index].franchiseeName.length > 150) {
-        data.add(mFrianchiseeList[index].franchiseeName.substring(0, 150));
+      if (mFrianchiseeList[index].franchiseeName.length > 100) {
+        data.add(mFrianchiseeList[index].franchiseeCode+'--'+mFrianchiseeList[index].franchiseeName.substring(0, 100));
       } else
-        data.add(mFrianchiseeList[index].franchiseeName);
+        data.add(mFrianchiseeList[index].franchiseeCode+'--'+mFrianchiseeList[index].franchiseeName);
     }
     /*return data.map<DropdownMenuItem<String>>((String value) {
       return DropdownMenuItem<String>(

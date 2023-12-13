@@ -16,6 +16,10 @@ import '../utils/theme/colors/light_colors.dart';
 import '../utils/theme/theme.dart';
 
 class HomePageMenu extends StatelessWidget {
+  final bool isBpms;
+  HomePageMenu(this.isBpms);
+
+
   Text subheading(String title) {
     return Text(
       title,
@@ -27,58 +31,6 @@ class HomePageMenu extends StatelessWidget {
     );
   }
 
-  @override
-  Widget build123(BuildContext context) {
-    List<TaskCategoryItemEntity> dataList =[];
-    dataList.add(TaskCategoryItemEntity(
-        title: "My PJP",
-        gradient: AppTheme.purpleGradient,
-        action: MyPjpListScreen(
-          mFilterSelection: FilterSelection(
-              filters: [],
-              type: FILTERStatus.MYSELF),)
-    ));dataList.add(TaskCategoryItemEntity(
-        title: "My CVF",
-        gradient: AppTheme.greenGradient,
-        action: MyCVFListScreen()
-    ));dataList.add(TaskCategoryItemEntity(
-        title: "Reports",
-        gradient: AppTheme.brownGradient,
-        action: MyReportsScreen()
-    ));
-    return GridView.extent(
-      childAspectRatio: (2 / 2),
-      crossAxisSpacing: 4,
-      mainAxisSpacing: 4,
-      padding: EdgeInsets.all(10.0),
-      maxCrossAxisExtent: 200.0,
-      children: List.generate(50, (index) {
-        return GestureDetector(
-            onTap: () {
-              Navigator.push(
-                  context,
-                  dataList[index].action);
-            },
-            child: Container(
-              padding: EdgeInsets.all(20.0),
-              color: RandomColorModel().getColor(),
-              margin: EdgeInsets.all(1.0),
-              child: Center(
-                child: GridTile(
-                  child: Text(
-                    'Item $index',
-                    textAlign: TextAlign.center,
-                    style:const TextStyle(color:Colors.white,fontSize:15,fontWeight:FontWeight.bold),
-                  ),
-                  /*child: Icon(Icons.access_alarm,
-                      size: 40.0, color: Colors.white),*/
-                ),
-              ),
-            )
-        );
-      }),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -227,12 +179,12 @@ class HomePageMenu extends StatelessWidget {
                   children: [
                     //_getMenu(context, 'BPMS', BPMSHome()),
                     _getMenu(context, 'My Report', MyReportsScreen()),
+                    !isBpms ? SizedBox(width: 0,) :
                     GestureDetector(
                       onTap: () async {
                         var box = await Utility.openBox();
                         try {
-                          int frichiseeId = box.get(
-                              LocalConstant.KEY_FRANCHISEE_ID) as int;
+                          int frichiseeId = box.get(LocalConstant.KEY_FRANCHISEE_ID) as int;
                           Navigator.push(
                               context,
                               MaterialPageRoute(
@@ -264,7 +216,7 @@ class HomePageMenu extends StatelessWidget {
                           child: Column(
                             mainAxisSize: MainAxisSize.max,
                             mainAxisAlignment: MainAxisAlignment.center,
-                            children: const [
+                            children:  [
                               Padding(
                                 padding:
                                 EdgeInsetsDirectional.fromSTEB(0, 16, 0, 0),
@@ -287,7 +239,7 @@ class HomePageMenu extends StatelessWidget {
                                     fontWeight: FontWeight.w500,
                                   ),
                                 ),
-                              ),
+                              )
                             ],
                           ),
                         ),

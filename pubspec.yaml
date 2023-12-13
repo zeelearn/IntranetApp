@@ -106,6 +106,7 @@ dependencies:
   chewie: ^1.5.0
   flutter_widget_from_html_core: ^0.14.6
   flutter_html: ^3.0.0-alpha.6
+  dropdown_search: ^5.0.6
   #overlay_support: ^2.0.1
 
   #flutter_background_service: ^2.4.3

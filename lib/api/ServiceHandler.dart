@@ -18,6 +18,7 @@ import 'package:Intranet/api/response/pjp/update_pjpstatus_response.dart';
 import 'package:Intranet/api/response/report/my_report.dart';
 import 'package:Intranet/pages/helper/utils.dart';
 import 'package:location/location.dart';
+import 'package:path/path.dart';
 
 import '../pages/helper/LocationHelper.dart';
 import '../pages/iface/onResponse.dart';
@@ -82,7 +83,7 @@ class IntranetServiceHandler{
 
     double latitude=0.0;
     double longitude=0.0;
-    LocationData location = await LocationHelper.getLocation();
+    LocationData location = await LocationHelper.getLocation(null);
     if(location!=null){
       latitude = location.latitude!;
       longitude = location.longitude!;

@@ -8,6 +8,7 @@ import 'package:Intranet/pages/firebase/notification_service.dart';
 import 'package:Intranet/pages/helper/constants.dart';
 import 'package:Intranet/pages/notification/UserNotification.dart';
 import 'package:Intranet/pages/utils/theme/colors/light_colors.dart';
+import 'package:Intranet/pages/widget/VideoPlayer.dart';
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -143,12 +144,26 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
         message);
   } else {
     print('its data Notification 143');
-    //print('its topic Notification');
+    data.putIfAbsent('title', () => message.data['title']);
+    data.putIfAbsent('description', () => message.data['body']);
+    data.putIfAbsent('type', () => message.data.containsKey('type') ?  message.data['type'] : 'push');
+    data.putIfAbsent('date', () => cdate);
+    data.putIfAbsent('imageurl', () =>  message.data.containsKey('imageurl') ?  message.data['imageurl'] : '');
+    data.putIfAbsent('logoUrl', () => message.data.containsKey('logoUrl') ?  message.data['logoUrl'] : '');
+    data.putIfAbsent('bigImageUrl', () =>  message.data.containsKey('bigimage') ? message.data['bigimage'] as String : '');
+    data.putIfAbsent('webViewLink', () => message.data.containsKey('url') ? message.data['url'] as String : '');
+    helper.insert(LocalConstant.TABLE_NOTIFICATION, data);
     if (message.data.containsKey('topic') && message.data['topic'] != '') {
       //identifyNotification(message);
-      showNotification(message);
+      //showNotification(message);
+      NotificationService notificationService = NotificationService();
+      notificationService.showSimpleNotification(
+          message.data['title'], message.data['body'], message);
     } else {
-      showNotification(message);
+      //showNotification(message);
+      NotificationService notificationService = NotificationService();
+      notificationService.showSimpleNotification(
+          message.data['title'], message.data['body'], message);
     }
   }
 }
@@ -284,7 +299,7 @@ Future<void> main() async {
             MaterialPageRoute(
                 builder: (context) => UserNotification()));
     });
-    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+    /*FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       String cdate = DateFormat("yyyy-MM-dd hh:mm a").format(DateTime.now());
 
       String? imsageUrl = '';
@@ -297,7 +312,7 @@ Future<void> main() async {
 
       DBHelper helper = DBHelper();
       Map<String, String> data = {};
-      if (message.notification != null /*&& message.data == null*/) {
+      if (message.notification != null *//*&& message.data == null*//*) {
         print('its simple Notification 293');
         data.putIfAbsent('title', () => message.notification?.title as String);
         data.putIfAbsent('description', () => message.notification?.body as String);
@@ -316,14 +331,29 @@ Future<void> main() async {
       } else {
         print('its data Notification 261');
         //print('its topic Notification');
+        data.putIfAbsent('title', () => message.data['title']);
+        data.putIfAbsent('description', () => message.data['body']);
+        data.putIfAbsent('type', () => message.data.containsKey('type') ?  message.data['type'] : 'push');
+        data.putIfAbsent('date', () => cdate);
+        data.putIfAbsent('imageurl', () =>  message.data.containsKey('imageurl') ?  message.data['imageurl'] : '');
+        data.putIfAbsent('logoUrl', () => message.data.containsKey('logoUrl') ?  message.data['logoUrl'] : '');
+        data.putIfAbsent('bigImageUrl', () =>  message.data.containsKey('bigimage') ? message.data['bigimage'] as String : '');
+        data.putIfAbsent('webViewLink', () => message.data.containsKey('url') ? message.data['url'] as String : '');
+        helper.insert(LocalConstant.TABLE_NOTIFICATION, data);
         if (message.data.containsKey('topic') && message.data['topic'] != '') {
           //identifyNotification(message);
-          showNotification(message);
+          //showNotification(message);
+          NotificationService notificationService = NotificationService();
+          notificationService.showSimpleNotification(
+              message.data['title'], message.data['body'], message);
         } else {
-          showNotification(message);
+          //showNotification(message);
+          NotificationService notificationService = NotificationService();
+          notificationService.showSimpleNotification(
+              message.data['title'], message.data['body'], message);
         }
       }
-      /*debugPrint('Got a message whilst in the foreground! main');
+      *//*debugPrint('Got a message whilst in the foreground! main');
       debugPrint('Message data 12: ${message.data}');
       try {
         if (message.notification != null) {
@@ -402,8 +432,8 @@ Future<void> main() async {
         }
       } catch (e) {
         debugPrint(e.toString());
-      }*/
-    });
+      }*//*
+    });*/
   }
   if (!kIsWeb) {
    channel = const AndroidNotificationChannel(
@@ -1101,13 +1131,13 @@ class NotificationController {
       print('Message sent via notification input: "${receivedAction.buttonKeyInput}"');
       // await executeLongTaskInBackground();
     } else if (receivedAction.payload != null && receivedAction.payload!['Video_path'] != null) {
-      /*Navigator.push(
+      Navigator.push(
           MyApp.navigatorKey.currentState!.context,
           MaterialPageRoute(
               builder: (context) => VideoPlayer(
                 Title: receivedAction.payload!['Video_path']!,
                 path: receivedAction.payload!['Video_path']!,
-              )));*/
+              )));
     } else if (receivedAction.payload != null &&
         receivedAction.payload!['url'] != null &&
         receivedAction.payload!['url']!.isNotEmpty) {
@@ -1115,14 +1145,6 @@ class NotificationController {
           MyApp.navigatorKey.currentState!.context,
           MaterialPageRoute(
               builder: (context) => UserNotification()));
-      /*Navigator.push(
-        MyApp.navigatorKey.currentState!.context,
-        MaterialPageRoute(
-            builder: (context) => MyWebsiteView(
-              title: receivedAction.payload!['url'] ?? '',
-              url: receivedAction.payload!['url'] ?? '',
-            )),
-      );*/
     }else{
       Navigator.push(
           MyApp.navigatorKey.currentState!.context,

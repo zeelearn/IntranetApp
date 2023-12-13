@@ -14,6 +14,7 @@ import 'package:location_geocoder/location_geocoder.dart';
 import 'package:lottie/lottie.dart';
 import 'package:material_dialogs/material_dialogs.dart';
 import 'package:material_dialogs/widgets/buttons/icon_button.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 import '../utils/theme/colors/light_colors.dart';
 import 'LightColor.dart';
@@ -41,6 +42,42 @@ class Utility{
   static int ACTION_IMAGE_UPLOAD_RESPONSE_OK=100015;
   static int ACTION_IMAGE_UPLOAD_RESPONSE_ERROR=100016;
 
+  static void openPermisisonSettings(BuildContext context){
+    AlertDialog alertBox = AlertDialog(
+      title: new Text('Permission Required'),
+      content: new Text(
+          'Please give the required Location permission for Intranet App'),
+      actions: <Widget>[
+        // usually buttons at the bottom of the dialog
+        ElevatedButton(
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+          // style: ButtonStyle(elevation: MaterialStateProperty(12.0 )),
+          style: ElevatedButton.styleFrom(
+              elevation: 10.0,
+              textStyle: const TextStyle(color: LightColors.kDarkBlue)),
+          child: const Text('Cancel'),
+        ),ElevatedButton(
+          onPressed: () async {
+            Navigator.of(context).pop();
+            await Utility.openSetting();
+          },
+          // style: ButtonStyle(elevation: MaterialStateProperty(12.0 )),
+          style: ElevatedButton.styleFrom(
+              elevation: 10.0,
+              textStyle: const TextStyle(color: LightColors.kDarkBlue)),
+          child: const Text('Open Settings'),
+        ),
+      ],
+    );
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return alertBox;
+      },
+    );
+  }
   static void showMessageCallback(BuildContext context,String title,String message,onClickListener listener) {
     showDialog(
       context: context,
@@ -222,8 +259,12 @@ class Utility{
       ],
     );
   }
+  static openSetting() async{
+    print('open setting');
+    await  openAppSettings();
+  }
 
-  static Future<bool> isOfflineEligble(BuildContext context,String value) async {
+  static Future<bool> isOfflineEligble(String value) async {
     final prefs = await SharedPreferences.getInstance();
     int _currentSelection=prefs.containsKey(LocalConstant.KEY_SYNC_INTERVAL) ? prefs.getInt(LocalConstant.KEY_SYNC_INTERVAL) as int : 4;
     print('Current Selection is ${_currentSelection}');
@@ -1061,5 +1102,7 @@ class Utility{
     final address = await geocoder.findAddressesFromCoordinates(Coordinates(latitude, longitude));
     return address.first.addressLine;
   }
+
+
 
 }

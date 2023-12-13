@@ -11,7 +11,7 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
    <application
         tools:replace="android:label"
-        android:label="intranet"
+        android:label="Intranet"
         android:name="${applicationName}"
         android:icon="@drawable/ic_launcher">
         <activity

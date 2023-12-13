@@ -96,16 +96,16 @@ class _LoginPage extends State<LoginPage> {
                   //logo section
                   logo(50, 50),
                   SizedBox(
-                    height: size.height * 0.02,
+                    height: size.height * 0.07,
                   ),
                   richText(20),
                   SizedBox(
-                    height: size.height * 0.02,
+                    height: size.height * 0.03,
                   ),
 
                   //email & password section
                   /*emailTextField(size),*/
-                  MyWidget().normalTextField(context, 'Enter the your User Name', _userNameController),
+                  MyWidget().normalTextField(context, 'UserName', _userNameController),
                   SizedBox(
                     height: size.height * 0.02,
                   ),
@@ -188,7 +188,7 @@ class _LoginPage extends State<LoginPage> {
   }
 
   Widget logo(double height_, double width_) {
-    return Image.asset('assets/icons/app_logo.png'); /*SvgPicture.asset(
+    return Image.asset('assets/icons/app_logo.png',width: 150,); /*SvgPicture.asset(
       'assets/icons/app_logo.png',
       height: height_,
       width: width_,

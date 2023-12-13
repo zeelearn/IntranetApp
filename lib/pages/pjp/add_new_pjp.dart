@@ -8,6 +8,8 @@ import 'package:Intranet/pages/helper/LightColor.dart';
 import 'package:Intranet/pages/helper/constants.dart';
 import 'package:Intranet/pages/helper/utils.dart';
 import 'package:Intranet/pages/pjp/cvf/mypjpcvf.dart';
+import 'package:location/location.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 
 import '../../api/APIService.dart';
@@ -16,6 +18,7 @@ import '../../api/response/pjp/add_pjp_response.dart';
 import '../helper/DBConstant.dart';
 import '../helper/DatabaseHelper.dart';
 import '../helper/LocalConstant.dart';
+import '../helper/LocationHelper.dart';
 import '../iface/onClick.dart';
 import '../iface/onResponse.dart';
 import '../widget/primary_button.dart';
@@ -320,15 +323,21 @@ class _AddNewPJPState extends State<AddNewPJPScreen> implements onResponse,onCli
     );
   }
 
-  bool isValidate(){
+  Future<bool> isValidate() async{
     if(_remarkController.text.isEmpty){
       Utility.showMessages(context,"Please Enter Remark and submit again");
       return false;
+    }else if(!await Utility.isInternet()){
+      Utility.noInternetConnection(context);
+      return false;
+    }else {
+      return true;
     }
-    return true;
   }
-  addNewPjp() {
-    if(isValidate()) {
+
+  addNewPjp() async {
+    if(await isValidate()) {
+      print('addNew PJP validate');
       Utility.showLoaderDialog(context);
       //mCategoryList.clear();
       //debugPrint('categoty');

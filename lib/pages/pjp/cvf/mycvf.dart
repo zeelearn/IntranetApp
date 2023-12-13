@@ -708,7 +708,7 @@ class _MyCVFListScreen extends State<MyCVFListScreen> implements onResponse,onCl
       longitude= position.longitude;
     }*/
     print('saveDataOffline');
-      LocationData location = LocationHelper.getLocation();
+      LocationData location = LocationHelper.getLocation(context);
       debugPrint('Status is ${cvfView.Status}');
       String address = await Utility.getAddress(location.latitude!, location.longitude!);
       UpdateCVFStatusRequest request = UpdateCVFStatusRequest(

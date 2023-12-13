@@ -995,7 +995,8 @@ class APIService {
             "content-type": "application/json"
           },
           body:requestModel.getJson());
-      debugPrint(response.body);
+      print('Updatting fcm token');
+      print(response.body);
       if (response.statusCode == 200 || response.statusCode == 400) {
         if(response.body is FcmResponse){
           return FcmResponse.fromJson(
@@ -1512,9 +1513,9 @@ class APIService {
           Uri.parse(bpms_url + LocalStrings.API_GET_BPMS_PROJECTS_BYSTATUS),
           headers: getHeader(''),
           body: requestModel.toStatusJson());
-      print(bpms_url + LocalStrings.API_GET_BPMS_PROJECTS_BYSTATUS);
+      /*print(bpms_url + LocalStrings.API_GET_BPMS_PROJECTS_BYSTATUS);
       print(response.body.toString());
-      print(response.statusCode);
+      print(response.statusCode);*/
       if (response.statusCode == 200) {
         try {
           if (requestModel.status == 0) {

@@ -52,6 +52,14 @@ class FranchiseeInfo {
     franchiseeCity = json['franchisee_City'];
   }
 
+  isContain(String filter){
+    if(franchiseeName.toLowerCase().contains(filter.toLowerCase()) || franchiseeCode.toLowerCase().contains(filter.toLowerCase()) || franchiseeZone.toLowerCase().contains(filter.toLowerCase()) || franchiseeState.toLowerCase().contains(filter.toLowerCase())|| franchiseeState.toLowerCase().contains(filter.toLowerCase())){
+      return true;
+    }else{
+      return false;
+    }
+  }
+
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = new Map<String, dynamic>();
     data['franchisee_Id'] = this.franchiseeId;
@@ -61,6 +69,15 @@ class FranchiseeInfo {
     data['franchisee_State'] = this.franchiseeState;
     data['franchisee_City'] = this.franchiseeCity;
     return data;
+  }
+
+  isEqual(FranchiseeInfo s) {
+    print('isEqual ${s.franchiseeName}');
+    if(franchiseeName == s.franchiseeName){
+      return true;
+    }else{
+      return false;
+    }
   }
 
 }

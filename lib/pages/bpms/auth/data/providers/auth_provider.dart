@@ -8,6 +8,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:path/path.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../../api/request/bpms/bpms_task.dart';
 import '../../../../../api/request/bpms/newtask.dart';
@@ -71,31 +72,50 @@ class AuthStateNotifier extends StateNotifier<AuthState> {
     return list.data[0];
   }
 
-  getAllProjects(String userId) async{
-    state = state.copyWith(status: AuthStatus.loading,
-    );
-    List<ProjectModel> modelList =  await BpmsDB.getAllProjects();
-    if(!await Utility.isInternet() && modelList!=null && modelList.length>0){
-      state = state.copyWith(
-          status: AuthStatus.authenticated,
-          projectList:modelList
+  getAllProjects(String userId,String lastSync) async{
+    try {
+      state = state.copyWith(status: AuthStatus.loading,
       );
-    }else {
-      final response = await _repo.getAllProject(request: BpmsStatRequest(userId: userId, status: 0));
-      await BpmsDB.addAllProjects(response.data);
-      state = state.copyWith(
-          status: AuthStatus.authenticated,
-          projectList:response.data
-      );
+      print('getAll Projects....');
+      List<ProjectModel> modelList = await BpmsDB.getAllProjects();
+      bool isOfflineEligble = await Utility.isOfflineEligble(lastSync);
+      if (isOfflineEligble &&  modelList != null &&
+          modelList.length > 0) {
+        print('offline.....');
+        try {
+          modelList.sort((a, b) =>
+              b.approvedDate!.compareTo(a.approvedDate!));
+        }catch(e){}
+        state = state.copyWith(
+            status: AuthStatus.authenticated,
+            projectList: modelList
+        );
+      } else {
+        print('online.....');
+        final response = await _repo.getAllProject(
+            request: BpmsStatRequest(userId: userId, status: 0));
+        await BpmsDB.addAllProjects(response.data, 100);
+        state = state.copyWith(
+            status: AuthStatus.authenticated,
+            projectList: response.data
+        );
+      }
+    }catch(e){
+      print(e.toString());
     }
   }
 
-  getProjectByStatus(String userId,int status) async{
+  getProjectByStatus(String userId,int status,String lastSync) async{
     state = state.copyWith(status: AuthStatus.loading,
     );
-    List<ProjectModel> modelList =  await BpmsDB.getAllProjectByStatus();
-    if(!await Utility.isInternet() && modelList!=null && modelList.length>0){
+    List<ProjectModel> modelList =  await BpmsDB.getAllProjectByStatus(status);
+    bool isOfflineEligble = await Utility.isOfflineEligble(lastSync);
+    if(isOfflineEligble && modelList!=null && modelList.length>0){
       print('load offline');
+      try {
+        modelList.sort((a, b) =>
+            b.approvedDate!.compareTo(a.approvedDate!));
+      }catch(e){}
       state = state.copyWith(
           status: AuthStatus.authenticated,
           projectList:modelList
@@ -103,7 +123,8 @@ class AuthStateNotifier extends StateNotifier<AuthState> {
     }else {
       print('load online');
       final response = await _repo.getProjectByStatus(request: BpmsStatRequest(userId: userId, status: status));
-      await BpmsDB.addAllProjects(response.data);
+
+      await BpmsDB.insertProjectByStatus(response.data,status);
       state = state.copyWith(
           status: AuthStatus.authenticated,
           projectList:response.data
@@ -111,15 +132,25 @@ class AuthStateNotifier extends StateNotifier<AuthState> {
     }
   }
 
-  refreshProjectList(String userId) async{
+  refreshProjectList(String userId,int status) async{
     state = state.copyWith(status: AuthStatus.loading,
     );
-    final response = await _repo.getAllProject(request: BpmsStatRequest(userId: userId, status: LocalConstant.ALL_PROJECT));
-    await BpmsDB.addAllProjects(response.data);
-    state = state.copyWith(
-        status: AuthStatus.authenticated,
-        projectList:response.data
-    );
+    if(status==100) {
+      final response = await _repo.getAllProject(
+          request: BpmsStatRequest(userId: userId, status: status));
+      await BpmsDB.addAllProjects(response.data, status);
+      state = state.copyWith(
+          status: AuthStatus.authenticated,
+          projectList: response.data
+      );
+    }else{
+      final response = await _repo.getProjectByStatus(request: BpmsStatRequest(userId: userId, status: status));
+      await BpmsDB.insertProjectByStatus(response.data,status);
+      state = state.copyWith(
+          status: AuthStatus.authenticated,
+          projectList:response.data
+      );
+    }
   }
 
   refreshProjectTask(String userId,String projectId) async{

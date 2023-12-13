@@ -339,38 +339,48 @@ class _PjpState extends State<NewPJP> {
     return code;
   }
 
-  addNewCVF() {
-    Utility.showLoaderDialog(context);
-    mCategoryList.clear();
-    debugPrint('categoty');
-    String xml =
-        '<root><tblPJPCVF><Business_Id>${businessId}</Business_Id><Employee_Id>${employeeId}</Employee_Id><Franchisee_Id>${getFrichanseeId()}</Franchisee_Id><Visit_Date>${Utility.convertShortDate(cvfDate)}</Visit_Date><Visit_Time>${vistitDateTime?.hour}:${vistitDateTime?.minute}</Visit_Time><Category_Id>1</Category_Id></tblPJPCVF></root>';
-    AddCVFRequest request =
-    AddCVFRequest(PJP_Id: widget.mPjpModel.pjpId, DocXml: xml, UserId: employeeId);
-    debugPrint(request.toJson().toString());
-    APIService apiService = APIService();
-    apiService.saveCVF(request).then((value) {
-      debugPrint(value.toString());
-      if (value != null) {
-        if (value == null || value.responseData == null) {
-          Utility.showMessage(context, 'data not found');
-        } else if (value is NewCVFResponse) {
-          NewCVFResponse response = value;
-          debugPrint(response.toString());
-          if (response != null) {
-            //mPjpModel.pjpId=response.responseData;
-          }
+  addNewCVF() async {
 
-          Utility.showMessage(context, 'CVF Saved in server');
-          setState(() {});
-          //debugPrint('category list ${response.responseData.length}');
-        } else {
-          Utility.showMessage(context, 'data not found');
+    if(!await Utility.isInternet()){
+      //Navigator.of(context).pop();
+      Utility.noInternetConnection(context);
+    }else {
+      Utility.showLoaderDialog(context);
+      mCategoryList.clear();
+      debugPrint('categoty');
+      String xml =
+          '<root><tblPJPCVF><Business_Id>${businessId}</Business_Id><Employee_Id>${employeeId}</Employee_Id><Franchisee_Id>${getFrichanseeId()}</Franchisee_Id><Visit_Date>${Utility
+          .convertShortDate(cvfDate)}</Visit_Date><Visit_Time>${vistitDateTime
+          ?.hour}:${vistitDateTime
+          ?.minute}</Visit_Time><Category_Id>1</Category_Id></tblPJPCVF></root>';
+      AddCVFRequest request =
+      AddCVFRequest(
+          PJP_Id: widget.mPjpModel.pjpId, DocXml: xml, UserId: employeeId);
+      debugPrint(request.toJson().toString());
+      APIService apiService = APIService();
+      apiService.saveCVF(request).then((value) {
+        debugPrint(value.toString());
+        if (value != null) {
+          if (value == null || value.responseData == null) {
+            Utility.showMessage(context, 'data not found');
+          } else if (value is NewCVFResponse) {
+            NewCVFResponse response = value;
+            debugPrint(response.toString());
+            if (response != null) {
+              //mPjpModel.pjpId=response.responseData;
+            }
+
+            Utility.showMessage(context, 'CVF Saved in server');
+            setState(() {});
+            //debugPrint('category list ${response.responseData.length}');
+          } else {
+            Utility.showMessage(context, 'data not found');
+          }
         }
-      }
-      Navigator.of(context).pop();
-      setState(() {});
-    });
+        Navigator.of(context).pop();
+        setState(() {});
+      });
+    }
   }
 
 

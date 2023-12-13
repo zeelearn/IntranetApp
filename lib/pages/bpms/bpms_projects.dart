@@ -2,6 +2,7 @@ import 'package:Intranet/api/request/bpms/send_cred.dart';
 import 'package:Intranet/api/response/bpms/send_cred.dart';
 import 'package:Intranet/pages/bpms/bpms_dashboard.dart';
 import 'package:Intranet/pages/bpms/bpms_task.dart';
+import 'package:Intranet/pages/bpms/update_task.dart';
 import 'package:Intranet/pages/helper/math_utils.dart';
 import 'package:Intranet/pages/utils/theme/colors/light_colors.dart';
 import 'package:Intranet/pages/widget/MyWebSiteView.dart';
@@ -10,12 +11,16 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../api/APIService.dart';
+import '../../api/request/bpms/deletetask.dart';
 import '../../api/request/bpms/projects.dart';
+import '../../api/response/bpms/project_task.dart';
 import '../helper/LocalConstant.dart';
 import '../helper/constants.dart';
 import '../helper/utils.dart';
 import '../home/IntranetHomePage.dart';
+import '../iface/onClick.dart';
 import 'auth/data/providers/auth_provider.dart';
+import 'auth/ui/ChatPage.dart';
 
 class BPMSProjects extends ConsumerStatefulWidget {
   int status;
@@ -26,12 +31,14 @@ class BPMSProjects extends ConsumerStatefulWidget {
   _BPMSProjects createState() => _BPMSProjects();
 }
 
-class _BPMSProjects extends  ConsumerState<BPMSProjects> with WidgetsBindingObserver{
+class _BPMSProjects extends  ConsumerState<BPMSProjects> with WidgetsBindingObserver implements onClickListener{
 
   bool isSearch=false;
   TextEditingController _searchController = TextEditingController();
   final focusNode = FocusNode();
   int frichiseeId=0;
+  String displayName='';
+  ProjectTaskModel? currentTask;
 
     @override
   void initState() {
@@ -54,10 +61,14 @@ class _BPMSProjects extends  ConsumerState<BPMSProjects> with WidgetsBindingObse
     if(box.get(LocalConstant.KEY_EMPLOYEE_ID)!=null) {
       String uid = box.get(LocalConstant.KEY_EMPLOYEE_ID) as String;
       frichiseeId = box.get(LocalConstant.KEY_FRANCHISEE_ID) as int;
+      displayName = '${box.get(LocalConstant.KEY_FIRST_NAME) as String} ${box.get(LocalConstant.KEY_LAST_NAME) as String}';
+      print('last sync');
+      String lastSync = box.containsKey(LocalConstant.PROJ_LAST_SYNC+'${widget.status}') ?  box.get(LocalConstant.PROJ_LAST_SYNC+'${widget.status}') as String : '';
+      print(lastSync);
       if(widget.status==100 || widget.status==0) {
-        await ref.read(authNotifierProvider.notifier).getAllProjects(frichiseeId.toString());
+        await ref.read(authNotifierProvider.notifier).getAllProjects(frichiseeId.toString(),lastSync);
       }else{
-        await ref.read(authNotifierProvider.notifier).getProjectByStatus(frichiseeId.toString(),widget.status);
+        await ref.read(authNotifierProvider.notifier).getProjectByStatus(frichiseeId.toString(),widget.status,lastSync);
       }
     }
   }
@@ -69,13 +80,13 @@ class _BPMSProjects extends  ConsumerState<BPMSProjects> with WidgetsBindingObse
       String uid = box.get(LocalConstant.KEY_EMPLOYEE_ID) as String;
       int frid = box.get(LocalConstant.KEY_FRANCHISEE_ID) as int;
       print('in if emoloyee found ${uid}');
-      await ref.read(authNotifierProvider.notifier).refreshProjectList(frid.toString());
+      await ref.read(authNotifierProvider.notifier).refreshProjectList(frid.toString(),widget.status);
     }
   }
 
   void sendCredentials(String crmId) {
     APIService apiService = APIService();
-    Utility.showLoader();
+    Utility.showLoaderDialog(context);
     apiService.sendCredentials(SendCredentialsRequest(crmId: crmId)).then((value) {
       if (value != null) {
         Navigator.of(context).pop();
@@ -100,15 +111,13 @@ class _BPMSProjects extends  ConsumerState<BPMSProjects> with WidgetsBindingObse
   }
   List<ProjectModel> mSortedProjectList = [];
   getSortedData(){
-    print('Sorted list');
     final auth = ref.watch(authNotifierProvider);
     mSortedProjectList.clear();
     if (auth.projectList!=null && auth.projectList!.length>0)
       for (int index = 0; index <auth.projectList!.length; index++) {
         if (_searchController.text.toString().isEmpty || auth.projectList![index].isContains(_searchController.text.toString().toLowerCase())) {
           if(widget.status==0){
-            print('${auth.projectList![index].FranchiseeId}  frnd ${frichiseeId}');
-           if(auth.projectList![index].FranchiseeId == frichiseeId)
+           //if(auth.projectList![index].FranchiseeId == frichiseeId)
              mSortedProjectList.add(auth.projectList![index]);
           } else{
             mSortedProjectList.add(auth.projectList![index]);
@@ -120,6 +129,25 @@ class _BPMSProjects extends  ConsumerState<BPMSProjects> with WidgetsBindingObse
       //isLoading=false;
     });
   return mSortedProjectList;
+  }
+
+  getTitle(){
+    String title ='All Projects';
+    switch(widget.status){
+      case LocalConstant.MY_PROJECT:
+          title = 'My Projects';
+        break;
+        case LocalConstant.PENDING_PROJECT:
+          title = 'Pending Task';
+        break;
+        case LocalConstant.COMPLETED_PROJECT:
+          title = 'Completed Task';
+        break;
+        case LocalConstant.INPROGRESS_PROJECT:
+          title = 'In-Progress Task';
+        break;
+    }
+    return title;
   }
 
   @override
@@ -211,8 +239,8 @@ class _BPMSProjects extends  ConsumerState<BPMSProjects> with WidgetsBindingObse
           ) : Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('All Projects',style: LightColors.textHeaderStyle13Selected,),
-              Text('Manish Sharma - SAT Operation Head',style: LightColors.textHeaderStyle13Selected,),
+              Text(displayName,style: LightColors.textHeaderStyle13Selected,),
+              Text(getTitle(),style: LightColors.textHeaderStyle13Selected,),
             ],
           ),
           actions: isSearch ? null : <Widget>[
@@ -272,7 +300,12 @@ class _BPMSProjects extends  ConsumerState<BPMSProjects> with WidgetsBindingObse
                           String crmId = mSortedProjectList[index].CRMId;
                           return GestureDetector(
                             onTap: (){
-                              if(mSortedProjectList!=null && mSortedProjectList.length>index) {
+                              if(widget.status !=0 && widget.status !=100){
+                                Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) => ChatPage(taskModel: mSortedProjectList![index].getModel(), isEdit: true)));
+                              }else if(mSortedProjectList!=null && mSortedProjectList.length>index) {
                                 Navigator.pushReplacement(
                                     context,
                                     MaterialPageRoute(
@@ -283,7 +316,7 @@ class _BPMSProjects extends  ConsumerState<BPMSProjects> with WidgetsBindingObse
                                 print('list not found....');
                               }
                             },
-                            child: getView(mSortedProjectList![index],isLastElement),
+                            child: widget.status ==100 || widget.status ==0 ? getView(mSortedProjectList![index],isLastElement) :  getTaskView(mSortedProjectList![index],isLastElement),
                           );
                         },
                       )
@@ -314,7 +347,11 @@ class _BPMSProjects extends  ConsumerState<BPMSProjects> with WidgetsBindingObse
                     onTap: () {
                       Navigator.of(context).pop();
                       if (index==0) {
-                        //showImagePicker(0);
+                        Navigator.of(context).push(MaterialPageRoute(
+                            builder: (BuildContext context) => MyWebsiteView(
+                              title: model.FranchiseeName!,
+                              url: 'https://project.zeelearn.com/#/admin/projects/projectDetails/${model.FranchiseeId!}&${model.CRMId}&mobile',
+                            )));
                       } else if (index==1) {
                         Navigator.of(context).push(MaterialPageRoute(
                             builder: (BuildContext context) => MyWebsiteView(
@@ -461,6 +498,7 @@ getView(ProjectModel model,bool isLastElement){
             SizedBox(
               height: 15,
             ),
+            widget.status == 100 || widget.status == 0 ? DateTimeCardMyProject(model) :
             DateTimeCard(model),
             /*Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -487,103 +525,225 @@ getView(ProjectModel model,bool isLastElement){
       ),
     );
 }
-    getView1(ProjectModel model) {
-      return GestureDetector(
-        onTap: () {
-          /*if(model.ApprovalStatus =='Approved') {
-            Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => CVFListScreen(mPjpInfo: pjpInfo)));
-          }else if(pjpInfo.isSelfPJP=='1' && pjpInfo.ApprovalStatus=='Rejected'){
-            Utility.showMessageSingleButton(context, 'The PJP is Rejected by Manager', this);
-          }else if (pjpInfo.isSelfPJP=='1'){
-            Utility.showMessageSingleButton(context, 'This pjp is not approved yet, Please connect with your manager', this);
-          }*/
-        },
-        child: Padding(
-          padding: EdgeInsetsDirectional.fromSTEB(1, 10, 1, 1),
-          child: Container(
-            width: double.infinity,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              boxShadow: [
-                BoxShadow(
-                  blurRadius: 3,
-                  color: Color(0x430F1113),
-                  offset: Offset(0, 1),
-                )
-              ],
-              borderRadius: BorderRadius.circular(8),
+
+  getTaskView(ProjectModel model,bool isLastElement){
+    return Card(
+      color: widget.status == LocalConstant.PENDING_PROJECT ?  LightColors.kYallow : widget.status == LocalConstant.COMPLETED_PROJECT ?  kPrimaryLightColor : LightColors.kRed,
+      elevation: 5,
+      margin: !isLastElement
+          ? EdgeInsets.only(bottom: 10)
+          : EdgeInsets.zero,
+      child: Container(
+        decoration: BoxDecoration(
+            color: Color(0xFFFFFFFF),
+            border: Border.all(
+              color: widget.status == LocalConstant.PENDING_PROJECT ?  LightColors.kYallow : widget.status == LocalConstant.COMPLETED_PROJECT ?  kPrimaryLightColor : LightColors.kRed,
             ),
-            child: Column(
-              mainAxisSize: MainAxisSize.max,
+            borderRadius: BorderRadius.all(Radius.circular(5))
+        ),
+        margin: EdgeInsets.only(right: 5,bottom: 4),
+        padding: EdgeInsets.only(left: 10,top: 10,bottom: 10,right:10),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
               children: [
-                Padding(
-                  padding: EdgeInsetsDirectional.fromSTEB(12, 4, 12, 4),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.max,
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Padding(
-                        padding: EdgeInsetsDirectional.fromSTEB(0, 4, 0, 0),
-                        child: Text(
-                          'Created By : ${model.CreatedBy}',
-                          style: TextStyle(
-                            fontFamily: 'Lexend Deca',
-                            color: Color(0xFF4B39EF),
-                            fontSize: 8,
-                            fontWeight: FontWeight.w600,
-                          ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(
+                      width: model.taskcreateduser == frichiseeId.toString() && model.statusname=='Completed' ? size.width *  0.52 : model.taskcreateduser!.isEmpty || model.taskcreateduser != frichiseeId.toString()  ? size.width *  0.44 : model.mtaskId=='0' ? size.width * 0.43 : size.width * 0.55,
+                      child: Text(
+                        '${model.Title}',
+                        style: TextStyle(
+                          color: Color(0xff151a56),
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
-                      Padding(
-                        padding: EdgeInsetsDirectional.fromSTEB(0, 4, 0, 0),
-                        child: Text(
-                          'CRM Id : P-${model.CRMId}',
-                          style: TextStyle(
-                            fontFamily: 'Lexend Deca',
-                            color: Color(0xFF4B39EF),
-                            fontSize: 10,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
+                    ),
+                    SizedBox(
+                      height: 1,
+                    ),
+                    Text(
+                      '${model.FranchiseeName} ${model.FranchiseeCode!.isNotEmpty ? ' - ${model.FranchiseeCode}' : ''}',
+                      style: TextStyle(
+                        color: Colors.black45,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-                ListTile(
-                  title: Padding(
-                    padding: EdgeInsetsDirectional.all(0),
-                    child: Text(
-                      '${model.FranchiseeName}',
-                      style: LightColors.textHeaderStyle16,
-                    ),
-                  ),
-                  subtitle: /*Expanded(
-                  flex: 1,
-                  child:*/ Text(
-                    '${model.FranchiseeCode}',
-                    style: LightColors.textSmallStyle,
-                  ),
-                  //),
-                  /*trailing:  Text(
-                    pjpInfo.ApprovalStatus,
-                    style: TextStyle(
-                      fontFamily: 'Lexend Deca',
-                      color: LightColors.kRed,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),*/
+
+                SizedBox(
+                  width: 5,
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: getActions(model),
                 ),
               ],
+            ),
+            model.taskcount.isEmpty && model.responsiblePerson!.isEmpty && model.Remark!.isEmpty ? SizedBox(height: 0,) :
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                /*getListofImages(model),*/
+                model.responsiblePerson==null || model.responsiblePerson.isEmpty ? SizedBox(height: 0,) :
+                Text(
+                  'Responsible Person   : ${model.responsiblePerson}',
+                  style: TextStyle(
+                    color: Colors.black45,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                model!.Remark!=null && model.Remark!.isNotEmpty ?
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Last Comments         : ${model.Remark}',
+                      style: TextStyle(
+                        color: Colors.black45,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ) : SizedBox(height: 0,),
+              ],
+            ),
+
+            SizedBox(
+              height: 10,
+            ),
+            model.p_start_date!.isNotEmpty || model.StartDate!.isNotEmpty || model.due_date!.isNotEmpty || model.End_date!.isNotEmpty ?
+            DateTimeCard(model) : SizedBox(height: 0,)
+            ,
+          ],
+        ),
+      ),
+    );
+  }
+
+
+  getActions(ProjectModel model){
+    List<Widget> list = [];
+    list.add(IconButton(
+      icon: const Icon(Icons.message_outlined),
+      color: kPrimaryLightColor,
+      tooltip: 'message',
+      onPressed: () async {
+        final result = await Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) => ChatPage(taskModel: model.getModel(),isEdit: model.taskcreateduser ==frichiseeId.toString() ? true : false)),
+        );
+        refreshProjects();
+        //showImageOption(model);
+      },
+    ));
+    list.add(IconButton(
+      icon: const Icon(Icons.edit),
+      color: kPrimaryLightColor,
+      tooltip: 'edit',
+      onPressed: () async {
+        final result = await Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) => UpdateBPMSTask(taskModel: model.getModel(),)),
+        );
+        refreshProjects();
+        //showImageOption(model);
+      },
+    ));
+    if(model.mtaskId=='0')
+      list.add(IconButton(
+        icon: const Icon(Icons.delete),
+        color: LightColors.kRed,
+        tooltip: 'Filter',
+        onPressed: () async {
+          currentTask = model.getModel();
+          Utility.onApproveConfirmation(context, 'Delete task', 'Are you sure to delete the ${model.Title} task', this);
+          //showImageOption(model);
+        },
+      ));
+    return list;
+  }
+
+  DateTimeCardMyProject(ProjectModel model){
+    return Container(
+      decoration: BoxDecoration(
+        color: Color(0xffe8eafe),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      width: double.infinity,
+      margin: EdgeInsets.only(right:10),
+      padding: EdgeInsets.only(left: 20,right: 20,top: 10,bottom: 0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Column(
+            children: [
+              Text(
+                widget.status==100 || widget.status == 0 ? 'Approved Date' : 'Plan Start Date',
+                style: TextStyle(
+                  fontSize: 8,
+                  color: Color(0xff575de3),
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              Text(
+                widget.status==100 || widget.status == 0 ?  Utility.parseShortDate(model.approvedDate) : Utility.parseShortDate(model.p_start_date!),
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Color(0xff575de3),
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          SizedBox(
+            width: size.width *  0.3,
+            child: Center(
+              child: Text(
+                model.taskcount.replaceAll(',', ', '),
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Color(0xff575de3),
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
           ),
-        ),
-      );
-    }
-
+          Column(
+            children: [
+              Text(
+                widget.status==100 || widget.status == 0 ? 'Deadline' : 'Plan End Date',
+                style: TextStyle(
+                  fontSize: 8,
+                  color: LightColors.kRed,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              Text(
+                widget.status==100 || widget.status == 0 ? Utility.parseShortDate(model.deadline) : Utility.parseShortDate(model.due_date!),
+                style: TextStyle(
+                  fontSize: 12,
+                  color: LightColors.kRed,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          )
+        ],
+      ),
+    );
+  }
     DateTimeCard(ProjectModel model){
       return Container(
         decoration: BoxDecoration(
@@ -592,7 +752,7 @@ getView(ProjectModel model,bool isLastElement){
         ),
         width: double.infinity,
         margin: EdgeInsets.only(right:10),
-        padding: EdgeInsets.only(left: 20,right: 20,top: 10,bottom: 10),
+        padding: EdgeInsets.only(left: 20,right: 20,top: 10,bottom: 0),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -604,57 +764,129 @@ getView(ProjectModel model,bool isLastElement){
                   width: 5,
                 ),*/
                 Text(
-                  Utility.parseShortDate(model.approvedDate),
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Color(0xff575de3),
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                Text(
-                  'Approved Date',
+                  widget.status==100 || widget.status == 0 ? 'Approved Date' : 'Plan Start Date',
                   style: TextStyle(
                     fontSize: 8,
                     color: Color(0xff575de3),
                     fontWeight: FontWeight.bold,
                   ),
                 ),
+                Text(
+                  widget.status==100 || widget.status == 0 ?  Utility.parseShortDate(model.approvedDate) : Utility.parseShortDate(model.p_start_date!),
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Color(0xff575de3),
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+
+                Text(
+                  widget.status==100 || widget.status == 0 ? 'Deadline' : 'Actual Start Date',
+                  style: TextStyle(
+                    fontSize: 8,
+                    color: Color(0xff575de3),
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Text(
+                  Utility.parseShortDate(model.StartDate!),
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Color(0xff575de3),
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+
               ],
             ),
-            Text(
-              model.taskcount.replaceAll(',', ', '),
-              style: TextStyle(
-                fontSize: 14,
-                color: Color(0xff575de3),
-                fontWeight: FontWeight.bold,
+            SizedBox(
+              width: size.width *  0.3,
+              child: Center(
+              child: Text(
+                  model.taskcount.replaceAll(',', ', '),
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Color(0xff575de3),
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
             ),
             Column(
               children: [
-                /*Icon(
-                  Icons.access_alarm,
-                  color: Color(0xff575de3),
-                  size: 17,
-                ),*/
                 Text(
-                  Utility.parseShortDate(model.deadline),
+                  widget.status==100 || widget.status == 0 ? 'Deadline' : 'Plan End Date',
                   style: TextStyle(
+                    fontSize: 8,
                     color: LightColors.kRed,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 Text(
-                  'Deadline',
+                  widget.status==100 || widget.status == 0 ? Utility.parseShortDate(model.deadline) : Utility.parseShortDate(model.due_date!),
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: LightColors.kRed,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Divider(height: 1,),
+                Text(
+                  'Actual End Date',
+                  style: TextStyle(
+                    fontSize: 8,
+                    color: Color(0xff575de3),
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Text(
+                  Utility.parseShortDate(model.End_date!),
                   style: TextStyle(
                     fontSize: 10,
-                    color: LightColors.kRed,
+                    color: Color(0xff575de3),
                     fontWeight: FontWeight.bold,
                   ),
                 ),
+
               ],
             )
           ],
         ),
       );
     }
+
+  deleteTask(ProjectTaskModel? currentTask){
+    APIService apiService = APIService();
+    Utility.showLoaderDialog(context);
+    apiService.deleteTask(DeleteTaskRequest(taskId: currentTask!.id)).then((value) {
+      Navigator.of(context).pop();
+      print('response ---');
+      print(value);
+      if (value != null) {
+        if (value == null ) {
+          Utility.showMessage(context, 'data not found');
+        } else if (value is CommonResponse) {
+          CommonResponse response = value;
+          //print(response.toJson());
+          if(response.data[0].msg.toLowerCase().contains('sucess')){
+            Utility.getConfirmationDialog(context, 'Task Deleted Successfully', response.data[0].msg,this);
+          }else
+            Utility.showMessage(context, response.data[0].msg);
+        } else {
+          Utility.showMessage(context, 'Unable to delete task');
+        }
+        refreshProjects();
+      }
+      //Navigator.of(context).pop();
+      setState(() {});
+    });
+  }
+
+  @override
+  void onClick(int action, value) {
+    if(action == Utility.ACTION_CONFIRM){
+      deleteTask(currentTask);
+    }
+  }
 }

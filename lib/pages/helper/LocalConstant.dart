@@ -108,6 +108,8 @@ class LocalConstant {
   static const projectbystatus = 'projectbystatus';
   static const projecttask = 'projectstask';
 
+  static const PROJ_LAST_SYNC = 'projlastsync';
+
 
   static const int ALL_PROJECT = 100;
   static const int MY_PROJECT = 0;

@@ -84,6 +84,9 @@ class _ChatPageState extends ConsumerState<ChatPage>
   void initState() {
     _controller.text = "";
     super.initState();
+    if(widget.taskModel.statusname.toLowerCase().contains('compl')){
+      widget.isEdit = false;
+    }
     loadTaskComments();
 
   }
@@ -93,7 +96,7 @@ class _ChatPageState extends ConsumerState<ChatPage>
     SharedPreferences prefs = await SharedPreferences.getInstance();
     bool isInternet = await Utility.isInternet();
     var chatSummery = prefs.getString(getId());
-    bool isOfflineEligble = await Utility.isOfflineEligble(context, prefs.getString('sync_${getId()}') ?? '');
+    bool isOfflineEligble = await Utility.isOfflineEligble(prefs.getString('sync_${getId()}') ?? '');
     if (chatSummery == null) {
       isInternet = false;
       isLoading = false;

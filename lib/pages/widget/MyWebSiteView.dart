@@ -60,7 +60,7 @@ class MyWebsiteViewState extends State<MyWebsiteView> {
           appBar:  AppBar(
             title: Text(widget.title),// You can add title here
             leading: IconButton(
-              icon: Icon(Icons.arrow_back_ios, color: Colors.white),
+              icon: Icon(Icons.arrow_back_ios),
               onPressed: () => Navigator.of(context).pop(),
             ), //You can make this transparent
             elevation: 0.0, //No shadow
