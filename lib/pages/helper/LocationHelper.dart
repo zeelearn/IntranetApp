@@ -4,6 +4,26 @@ import 'package:location/location.dart';
 
 class LocationHelper{
 
+  static isLocationPermission(BuildContext context) async{
+    Location location = new Location();
+    bool _serviceEnabled;
+    PermissionStatus _permissionGranted;
+    LocationData _locationData;
+    print('in Permission');
+    _serviceEnabled = await location.serviceEnabled();
+    if (!_serviceEnabled) {
+      _serviceEnabled = await location.requestService();
+      if (!_serviceEnabled) {
+        return false;
+      }
+    }
+
+    _permissionGranted = await location.hasPermission();
+    if (_permissionGranted == PermissionStatus.denied) {
+      return false;
+    }
+    return true;
+  }
   static getLocation(BuildContext? context) async{
     Location location = new Location();
 
@@ -31,8 +51,9 @@ class LocationHelper{
         return;
       }
     }
-
+    print('location is ');
     _locationData = await location.getLocation();
+    print(_locationData);
     return _locationData;
   }
 }
