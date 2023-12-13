@@ -216,7 +216,8 @@ class ProjectModel {
         FranchiseeCode.toString().toLowerCase().contains(value.toLowerCase()) ||
         TierName.toString().toLowerCase().contains(value.toLowerCase()) ||
         FeeType.toString().toLowerCase().contains(value.toLowerCase()) ||
-        CreatedBy.toString().toLowerCase().contains(value.toLowerCase())
+        CreatedBy.toString().toLowerCase().contains(value.toLowerCase()) ||
+        Title.toString().toLowerCase().contains(value.toLowerCase())
     ){
       return true;
     }else{
