@@ -343,7 +343,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
     ).then((result) async {
       if (result.canUpdate!) {
         await AppVersionUpdate.showBottomSheetUpdate(context: context, appVersionResult: result,mandatory: true,title: 'App Update Avaliable',
-        content: Text('New version of our Intranet application is now available, and we highly recommend that you install it to benefit from its enhanced features and improved security.'));
+        content: const Text('New version of our Intranet application is now available, and we highly recommend that you install it to benefit from its enhanced features and improved security.'));
       }
     });
     // TODO: implement initState
