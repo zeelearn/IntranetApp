@@ -85,7 +85,7 @@ class ProjectModel {
   late final String mtaskId;
 
   getModel(){
-    return ProjectTaskModel(projectId: CRMId, title: Title!, id: id, note: Remark!, img: files, priority: '', startDate: StartDate!, endDate: End_date!, pStartDate: p_start_date!, dueDate: due_date!, responsiblePerson: responsiblePerson, status: status, statusname: statusname, parentTaskId: parenttaskid, dependentTaskId: dependentTaskId, taskcount: taskcount, isImageUpload: 0, done: false, mtaskId: mtaskId, taskcreateduser: taskcreateduser!, latestComment: Remark!, files: files, manager: '', treeStatus: '', datumClass: '', parantDate: '', parantPlandate: '', path: '');
+    return ProjectTaskModel(projectId: CRMId, title: Title!, id: id, note: Remark!, img: files, priority: '', startDate: StartDate!, endDate: End_date!, pStartDate: p_start_date!, dueDate: due_date!, responsiblePerson: responsiblePerson, status: status, statusname: statusname, parentTaskId: parenttaskid, dependentTaskId: dependentTaskId, taskcount: taskcount, isImageUpload: 0, done: false, mtaskId: mtaskId, taskcreateduser: FranchiseeName!, latestComment: Remark!, files: files, manager: '', treeStatus: '', datumClass: '', parantDate: '', parantPlandate: '', path: '');
   }
 
   ProjectModel.fromJson(Map<String, dynamic> json){

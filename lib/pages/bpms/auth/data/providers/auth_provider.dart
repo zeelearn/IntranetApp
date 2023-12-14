@@ -137,7 +137,7 @@ class AuthStateNotifier extends StateNotifier<AuthState> {
   refreshProjectList(String userId,int status) async{
     state = state.copyWith(status: AuthStatus.loading,
     );
-    if(status==100) {
+    if(status==0 || status==100) {
       final response = await _repo.getAllProject(
           request: BpmsStatRequest(userId: userId, status: status));
       await BpmsDB.addAllProjects(response.data, status);

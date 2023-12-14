@@ -175,12 +175,7 @@ class _MyCVFListScreen extends State<MyCVFListScreen> implements onResponse,onCl
             // Pull from top to show refresh indicator.
             child: Column(
               children: [
-                SizedBox(
-                  height: 10,
-                ),
-                SizedBox(
-                  height: 10,
-                ),
+
                 getCVFListView(),
               ],
             ),

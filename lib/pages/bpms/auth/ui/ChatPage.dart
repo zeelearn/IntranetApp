@@ -46,9 +46,10 @@ import 'camera/CameraScreen.dart';
 
 class ChatPage extends ConsumerStatefulWidget {
   ProjectTaskModel taskModel;
+  String franchiseeName;
   bool isEdit;
 
-  ChatPage({Key? key, required this.taskModel,required this.isEdit}) : super(key: key);
+  ChatPage({Key? key, required this.taskModel,required this.isEdit,required this.franchiseeName}) : super(key: key);
 
   @override
   ConsumerState<ConsumerStatefulWidget> createState() => _ChatPageState();
@@ -437,7 +438,7 @@ class _ChatPageState extends ConsumerState<ChatPage>
                         ),
                       ),
                       Text(
-                        widget.taskModel.taskcreateduser,
+                        widget.franchiseeName,
                         style: const TextStyle(
                           fontSize: 12,
                         ),

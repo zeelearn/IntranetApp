@@ -210,7 +210,7 @@ class _MyPjpListState extends State<MyPjpManPListScreen> implements onResponse,o
                             elevation: 12.0,
                             textStyle:
                             const TextStyle(color: LightColors.kLightGreen)),
-                        child: const Text('Submit'),
+                        child:  Text('Submit',style: LightColors.textHeaderStyle,),
                       ),
                     ),
                   ),
@@ -381,7 +381,7 @@ class _MyPjpListState extends State<MyPjpManPListScreen> implements onResponse,o
         padding: EdgeInsetsDirectional.fromSTEB(16, 0, 16, 8),
         child: Container(
           width: double.infinity,
-          height: 130,
+          height: 150,
           decoration: BoxDecoration(
             color: Colors.white,
             boxShadow: [

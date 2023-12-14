@@ -1,3 +1,4 @@
+import 'package:Intranet/pages/helper/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -140,6 +141,25 @@ class LightColors  {
   );
   static TextStyle titleTextStyle = GoogleFonts.poppins(
     color: LightColors.TextColor,
+    fontSize: 12.0,
+  );
+
+  static TextStyle titleWhiteTextStyle = GoogleFonts.poppins(
+    color: Colors.white,
+    fontSize: 14.0,
+  );
+
+  static TextStyle headerTitleSelected = GoogleFonts.poppins(
+    color: kPrimaryLightColor,
+    fontSize: 16.0,
+  );
+  static TextStyle headerTilte = GoogleFonts.poppins(
+    color: Colors.black,
+    fontSize: 16.0,
+  );
+
+  static TextStyle subWhiteTextStyle = GoogleFonts.poppins(
+    color: Colors.white,
     fontSize: 12.0,
   );
   static TextStyle titleRedTextStyle = GoogleFonts.poppins(

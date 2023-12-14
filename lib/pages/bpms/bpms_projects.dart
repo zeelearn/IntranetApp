@@ -304,7 +304,7 @@ class _BPMSProjects extends  ConsumerState<BPMSProjects> with WidgetsBindingObse
                                 Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                        builder: (context) => ChatPage(taskModel: mSortedProjectList![index].getModel(), isEdit: true)));
+                                        builder: (context) => ChatPage(taskModel: mSortedProjectList![index].getModel(), isEdit: true,franchiseeName: mSortedProjectList![index].FranchiseeName!)));
                               }else if(mSortedProjectList!=null && mSortedProjectList.length>index) {
                                 Navigator.pushReplacement(
                                     context,
@@ -552,7 +552,7 @@ getView(ProjectModel model,bool isLastElement){
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     SizedBox(
-                      width: model.taskcreateduser == frichiseeId.toString() && model.statusname=='Completed' ? size.width *  0.52 : model.taskcreateduser!.isEmpty || model.taskcreateduser != frichiseeId.toString()  ? size.width *  0.44 : model.mtaskId=='0' ? size.width * 0.43 : size.width * 0.4,
+                      width: model.taskcreateduser == frichiseeId.toString() && model.statusname=='Completed' ? size.width *  0.45 : model.taskcreateduser!.isEmpty || model.taskcreateduser != frichiseeId.toString()  ? size.width *  0.44 : model.mtaskId=='0' ? size.width * 0.43 : size.width * 0.4,
                       child: Text(
                         '${model.Title}',
                         style: TextStyle(
@@ -606,14 +606,18 @@ getView(ProjectModel model,bool isLastElement){
                 Row(
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
-                    Text(
-                      'Last Comments         : ${model.Remark}',
-                      style: TextStyle(
-                        color: Colors.black45,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
+                    SizedBox(
+                      width: size.width * 0.7,
+                      child: Text(
+                        'Last Comments         : ${model.Remark}',
+                        style: TextStyle(
+                          color: Colors.black45,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
-                    ),
+                    )
+                    ,
                   ],
                 ) : SizedBox(height: 0,),
               ],
@@ -642,7 +646,7 @@ getView(ProjectModel model,bool isLastElement){
         final result = await Navigator.push(
           context,
           MaterialPageRoute(
-              builder: (context) => ChatPage(taskModel: model.getModel(),isEdit: model.taskcreateduser ==frichiseeId.toString() ? true : false)),
+              builder: (context) => ChatPage(taskModel: model.getModel(),isEdit: model.taskcreateduser ==frichiseeId.toString() ? true : false,franchiseeName: model.FranchiseeName!,)),
         );
         refreshProjects();
         //showImageOption(model);

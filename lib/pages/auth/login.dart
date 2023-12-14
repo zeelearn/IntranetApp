@@ -422,7 +422,7 @@ class _LoginPage extends State<LoginPage> {
 
         } else {
           Navigator.pop(context);
-          Utility.showMessage(context, "Invalid User Name and Password 1 ${value}");
+          Utility.showMessage(context, "Invalid User Name and Password");
           debugPrint("null value");
         }
       });

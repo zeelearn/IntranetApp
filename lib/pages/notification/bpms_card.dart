@@ -37,7 +37,7 @@ class _BPMSNotificationState extends State<BPMSNotification> {
           Navigator.push(
             context,
             MaterialPageRoute(
-                builder: (context) => ChatPage(taskModel: model.getModel(),isEdit: true)),
+                builder: (context) => ChatPage(taskModel: model.getModel(),isEdit: true,franchiseeName:model.dName! )),
           );
         },
         child: ListTile(
@@ -52,7 +52,7 @@ class _BPMSNotificationState extends State<BPMSNotification> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                  builder: (context) => ChatPage(taskModel: model.getModel(),isEdit: true)),
+                  builder: (context) => ChatPage(taskModel: model.getModel(),isEdit: true,franchiseeName:model.dName!)),
             );
           }),
         ),
@@ -106,7 +106,7 @@ class BPMSNotificationCard extends StatelessWidget {
           Navigator.push(
             context,
             MaterialPageRoute(
-                builder: (context) => ChatPage(taskModel: model.getModel(),isEdit: true)),
+                builder: (context) => ChatPage(taskModel: model.getModel(),isEdit: true,franchiseeName:model.dName!)),
           );
         },
         child: ListTile(
@@ -116,7 +116,7 @@ class BPMSNotificationCard extends StatelessWidget {
             Navigator.push(
               context,
               MaterialPageRoute(
-                  builder: (context) => ChatPage(taskModel: model.getModel(),isEdit: true)),
+                  builder: (context) => ChatPage(taskModel: model.getModel(),isEdit: true,franchiseeName:model.dName!)),
             );
           }),
         ),

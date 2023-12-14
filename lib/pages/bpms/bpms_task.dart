@@ -64,11 +64,11 @@ class _BPMSProjectTask extends  ConsumerState<BPMSProjectTask> with WidgetsBindi
   void push(ProjectTaskModel data,String supportName){
     //String path  = data.title;
     //print('------ ${data.taskcreateduser} ${frichiseeId}');
-    if(data.taskcreateduser ==frichiseeId.toString()){
+    if(false && data.taskcreateduser ==frichiseeId.toString()){
       Navigator.push(
           context,
           MaterialPageRoute(
-              builder: (context) => ChatPage(taskModel: data, isEdit: data.taskcreateduser ==frichiseeId.toString() ? true : false,)));
+              builder: (context) => ChatPage(taskModel: data, isEdit: data.taskcreateduser ==frichiseeId.toString() ? true : false, franchiseeName: widget.project.FranchiseeName!)));
     }else {
       if (supportPath.isEmpty) {
         supportPath = data.title;
@@ -346,7 +346,7 @@ class _BPMSProjectTask extends  ConsumerState<BPMSProjectTask> with WidgetsBindi
           final result = await Navigator.push(
             context,
             MaterialPageRoute(
-                builder: (context) => ChatPage(taskModel: model,isEdit: model.taskcreateduser ==frichiseeId.toString() ? true : false)),
+                builder: (context) => ChatPage(taskModel: model,isEdit: model.taskcreateduser ==frichiseeId.toString() ? true : false, franchiseeName: widget.project.FranchiseeName!)),
           );
           loadProjectTask();
           //showImageOption(model);
@@ -361,7 +361,7 @@ class _BPMSProjectTask extends  ConsumerState<BPMSProjectTask> with WidgetsBindi
           final result = await Navigator.push(
             context,
             MaterialPageRoute(
-                builder: (context) => ChatPage(taskModel: model,isEdit: model.taskcreateduser ==frichiseeId.toString() ? true : false)),
+                builder: (context) => ChatPage(taskModel: model,isEdit: model.taskcreateduser ==frichiseeId.toString() ? true : false, franchiseeName: widget.project.FranchiseeName!)),
           );
           loadProjectTask();
           //showImageOption(model);

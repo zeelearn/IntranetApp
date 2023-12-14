@@ -325,7 +325,7 @@ class _BPMSTaskScreenState extends ConsumerState<BPMSTaskScreen> {
 
   showChatScreen(BuildContext context, ProjectTaskModel taskModel) async {
     var result = await Navigator.push(context, MaterialPageRoute(builder: (context) {
-      return ChatPage(taskModel: taskModel, isEdit: true,);
+      return ChatPage(taskModel: taskModel, isEdit: true,franchiseeName: taskModel.title);
     }));
     print('showChatScreen ------notifier-----------${result}');
     ref.read(authNotifierProvider.notifier).refreshTask();

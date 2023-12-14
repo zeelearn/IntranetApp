@@ -72,7 +72,7 @@ class ProjectTaskModel {
   final int isImageUpload;
   final bool done;
   final String mtaskId;
-  final String taskcreateduser;
+  late String taskcreateduser;
   late String latestComment;
   late final String files;
   final String manager;

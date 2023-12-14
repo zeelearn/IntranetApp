@@ -1169,7 +1169,7 @@ class _MultiSelectState extends State<MultiSelect> {
           onPressed: _cancel,
         ),
         ElevatedButton(
-          child: const Text('Submit'),
+          child:  Text('Submit',style: LightColors.textHeaderStyle,),
           onPressed: _submit,
         ),
       ],

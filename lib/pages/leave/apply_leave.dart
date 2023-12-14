@@ -272,15 +272,7 @@ int _groupValue=0;
                                 ],
                               ),
                               child: Text(
-                                'Submit',
-                                style: GoogleFonts.inter(
-                                  fontSize: 16.0,
-                                  color: LightColor.black,
-                                  fontWeight: FontWeight.w600,
-                                  height: 1.5,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
+                                'Submit',style: LightColors.textHeaderStyle,)
                             ),
                           ),
                   ],

@@ -752,15 +752,23 @@ class MyApp extends StatelessWidget {
       themeMode: ThemeMode.light,
       theme: ThemeData(
         useMaterial3: true,
-        // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or simply save your changes to "hot reload" in a Flutter IDE).
-        // Notice that the counter didn't reset back to zero; the application
-        // is not restarted.
+        checkboxTheme: CheckboxThemeData(
+          checkColor: MaterialStateProperty.all(LocalConstant.kPrimaryColor),
+          fillColor: MaterialStateProperty.all(Colors.white),
+          side: BorderSide(color: LightColors.kLightGray1),
+        ),
+          tabBarTheme: const TabBarTheme(
+              labelColor: Colors.pink,
+              labelStyle: TextStyle(color: Colors.pink), // color for text
+              indicator: UnderlineTabIndicator( // color for indicator (underline)
+                  borderSide: BorderSide(color: LightColors.kLightGray1)),
+          ),
+
+        elevatedButtonTheme: ElevatedButtonThemeData(
+            style: ElevatedButton.styleFrom(
+            primary: kPrimaryLightColor,
+              textStyle: TextStyle(color: Colors.black,),)),
+        fontFamily: 'Roboto',
         /*colorScheme: ColorScheme.fromSeed(
           seedColor: kPrimaryLightColor,
           background: LightColors.kLightGray1,
@@ -779,7 +787,7 @@ class MyApp extends StatelessWidget {
           primary: Colors.white,
           onPrimary: Colors.red,
           secondary: Colors.green,
-          onSecondary: Colors.white,
+          onSecondary: Colors.black,
           primaryContainer: Colors.black45,
           error: Colors.black,
           onError: Colors.red,
@@ -789,6 +797,17 @@ class MyApp extends StatelessWidget {
           onSurface: Colors.black87,
           outline: LightColors.kLightGrayM,
         ),
+        textTheme: Theme.of(context).textTheme.apply(bodyColor: Colors.black),
+          primaryTextTheme: Typography().black,
+        textSelectionTheme: const TextSelectionThemeData(
+          cursorColor: kPrimaryLightColor,
+          selectionColor: kPrimaryLightColor,
+          selectionHandleColor: kPrimaryLightColor,
+        ),
+          buttonTheme: ButtonThemeData(
+            buttonColor: kPrimaryLightColor,
+            textTheme: ButtonTextTheme.primary,
+          ),
         /*colorScheme: ColorScheme.fromSeed(
           seedColor: Colors.white,
           background: LightColors.kLightGray1,

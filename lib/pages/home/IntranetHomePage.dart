@@ -1009,6 +1009,13 @@ class _IntranetHomePageState extends State<IntranetHomePage>
       padding: EdgeInsets.zero,
       children: <Widget>[
         UserAccountsDrawerHeader(
+          decoration: BoxDecoration(
+              color: kPrimaryLightColor,
+              border: Border.all(
+                color: LightColors.kYallow,
+              ),
+              borderRadius: BorderRadius.all(Radius.circular(5))
+          ),
           onDetailsPressed: (){
 //            uploadProfilePicture();
             showBusinessListDialog(true);
@@ -1017,20 +1024,11 @@ class _IntranetHomePageState extends State<IntranetHomePage>
             mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(mDesignation,style: TextStyle(
-                fontSize: 12.0,
-                color: Colors.white,
-              ),),
-              Text(_currentBusinessName==null || _currentBusinessName=='null' ? '' : _currentBusinessName,style: TextStyle(
-                fontSize: 14.0,
-                color: Colors.white,
-              ),),
+              Text(mDesignation,style: LightColors.subWhiteTextStyle),
+              Text(_currentBusinessName==null || _currentBusinessName=='null' ? '' : _currentBusinessName,style: LightColors.subWhiteTextStyle,),
             ],
           ),
-          accountName: Text(mTitle,style: TextStyle(
-            fontSize: 16.0,
-            color: Colors.white,
-          ),),
+          accountName: Text(mTitle,style: LightColors.titleWhiteTextStyle),
           currentAccountPictureSize: const Size.square(60.0),
           currentAccountPicture: GestureDetector(
             onTap: (){
@@ -1077,9 +1075,9 @@ class _IntranetHomePageState extends State<IntranetHomePage>
               width: 32.0,
               child: Image.asset('assets/icons/ic_home.png')),
           trailing: widget._selectedDestination == MENU_HOME
-              ? Icon(Icons.bookmark)
+              ? Icon(Icons.bookmark,color: kPrimaryLightColor,)
               : null,
-          title: Text('Home'),
+          title: Text('Home',style: widget._selectedDestination == MENU_HOME ? LightColors.headerTitleSelected : LightColors.headerTilte,),
           selected: widget._selectedDestination == MENU_HOME,
           onTap: () => selectDestination(MENU_HOME),
         ),),
@@ -1094,7 +1092,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
               height: 32.0,
               width: 32.0,
               child: Image.asset('assets/icons/ic_leave.png')),
-          title: const Text('Leave'),
+          title: Text('Leave',style: widget._selectedDestination == MENU_LEAVE ? LightColors.headerTitleSelected : LightColors.headerTilte,),
           trailing: widget._selectedDestination == MENU_LEAVE
               ? Icon(Icons.bookmark)
               : null,
@@ -1111,7 +1109,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
               height: 32.0,
               width: 32.0,
               child: Image.asset('assets/icons/ic_outdoor.png')),
-          title: Text('Outdoor Duty'),
+          title: Text('Outdoor Duty',style: widget._selectedDestination == MENU_OUTDOOR ? LightColors.headerTitleSelected : LightColors.headerTilte,),
           trailing: widget._selectedDestination == MENU_OUTDOOR
               ? Icon(Icons.bookmark)
               : null,
@@ -1128,7 +1126,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
               height: 32.0,
               width: 32.0,
               child: Image.asset('assets/icons/ic_attendance.png')),
-          title: const Text('Attendance Summary'),
+          title: Text('Attendance Summary',style: widget._selectedDestination == MENU_ATTENDANCE ? LightColors.headerTitleSelected : LightColors.headerTilte,),
           trailing: widget._selectedDestination == MENU_ATTENDANCE
               ? const Icon(Icons.bookmark)
               : null,
@@ -1180,7 +1178,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
               height: 32.0,
               width: 32.0,
               child: Image.asset('assets/icons/ic_attendance_marking.png')),
-          title: const Text('Attendance Marking'),
+          title:  Text('Attendance Marking',style: widget._selectedDestination == MENU_ATTENDANCE_MARKING ? LightColors.headerTitleSelected : LightColors.headerTilte,),
           trailing: widget._selectedDestination == MENU_ATTENDANCE_MARKING
               ? const Icon(Icons.bookmark)
               : null,
@@ -1212,7 +1210,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
               height: 32.0,
               width: 32.0,
               child: Image.asset('assets/icons/ic_leave.png')),
-          title: const Text('Leave'),
+          title: Text('Leave',style: widget._selectedDestination == MENU_LEAVE_APPROVAL ? LightColors.headerTitleSelected : LightColors.headerTilte,),
           trailing: widget._selectedDestination == MENU_LEAVE_APPROVAL
               ? const Icon(Icons.bookmark)
               : null,
@@ -1229,7 +1227,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
               height: 32.0,
               width: 32.0,
               child: Image.asset('assets/icons/ic_outdoor.png')),
-          title: const Text('Outdoor Duty'),
+          title: Text('Outdoor Duty',style: widget._selectedDestination == MENU_OUTDOOR_APPROVAL ? LightColors.headerTitleSelected : LightColors.headerTilte,),
           trailing: widget._selectedDestination == MENU_OUTDOOR_APPROVAL
               ? const Icon(Icons.bookmark)
               : null,
@@ -1249,7 +1247,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
                 widget._selectedDestination == MENU_ATTENDANCE_MARKING_APPROVAL
                     ? LightColors.kLightBlue
                     : Colors.white,
-            title: const Text('Attendance Marking'),
+            title: Text('Attendance Marking',style: widget._selectedDestination == MENU_ATTENDANCE_MARKING_APPROVAL ? LightColors.headerTitleSelected : LightColors.headerTilte,),
             trailing:
                 widget._selectedDestination == MENU_ATTENDANCE_MARKING_APPROVAL
                     ? const Icon(Icons.bookmark)
