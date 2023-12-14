@@ -115,58 +115,12 @@ part 'main.g.dart';
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
-  String cdate = DateFormat("yyyy-MM-dd hh:mm a").format(DateTime.now());
-
-  String? imsageUrl = '';
-  if (Platform.isAndroid) {
-    imsageUrl = message.notification?.android?.imageUrl.toString();
-  } else if (Platform.isIOS) {
-    imsageUrl = message.notification?.apple?.imageUrl.toString();
-  }
-  DBHelper helper = DBHelper();
-  Map<String, String> data = {};
-
-  if (message.notification != null) {
-    print('its simple Notification 12');
-    data.putIfAbsent('title', () => message.notification?.title as String);
-    data.putIfAbsent('description', () =>  message.notification?.body as String);
-    data.putIfAbsent('type', () => 'push');
-    data.putIfAbsent('date', () => cdate);
-    data.putIfAbsent('imageurl', () =>  imsageUrl as String);
-    data.putIfAbsent('logoUrl', () => message.data.containsKey('logo') ? message.data['logo'] as String : '');
-    data.putIfAbsent('bigImageUrl', () => message.data.containsKey('bigimage') ? message.data['bigimage'] as String : '');
-    data.putIfAbsent('webViewLink', () => message.data.containsKey('url') ? message.data['url'] as String : '');
-    helper.insert(LocalConstant.TABLE_NOTIFICATION, data);
-    NotificationService notificationService = NotificationService();
-    notificationService.showSimpleNotification(
-        message.notification?.title as String,
-        message.notification?.body as String,
-        message);
-  } else {
-    print('its data Notification 143');
-    data.putIfAbsent('title', () => message.data['title']);
-    data.putIfAbsent('description', () => message.data['body']);
-    data.putIfAbsent('type', () => message.data.containsKey('type') ?  message.data['type'] : 'push');
-    data.putIfAbsent('date', () => cdate);
-    data.putIfAbsent('imageurl', () =>  message.data.containsKey('imageurl') ?  message.data['imageurl'] : '');
-    data.putIfAbsent('logoUrl', () => message.data.containsKey('logoUrl') ?  message.data['logoUrl'] : '');
-    data.putIfAbsent('bigImageUrl', () =>  message.data.containsKey('bigimage') ? message.data['bigimage'] as String : '');
-    data.putIfAbsent('webViewLink', () => message.data.containsKey('url') ? message.data['url'] as String : '');
-    helper.insert(LocalConstant.TABLE_NOTIFICATION, data);
-    if (message.data.containsKey('topic') && message.data['topic'] != '') {
-      //identifyNotification(message);
-      //showNotification(message);
-      NotificationService notificationService = NotificationService();
-      notificationService.showSimpleNotification(
-          message.data['title'], message.data['body'], message);
-    } else {
-      //showNotification(message);
-      NotificationService notificationService = NotificationService();
-      notificationService.showSimpleNotification(
-          message.data['title'], message.data['body'], message);
-    }
-  }
+  NotificationService().parseNotification(message);
 }
+
+
+
+
 
 showNotification(RemoteMessage message) async {
   String cdate = DateFormat("yyyy-MM-dd hh:mm a").format(DateTime.now());
@@ -283,10 +237,11 @@ Future<void> main() async {
       name: "Intranet", options: DefaultFirebaseOptions.currentPlatform);
 
   await NotificationController.initializeLocalNotifications();
-  await NotificationController.initializeIsolateReceivePort();
+
   NotificationController.startListeningNotificationEvents();
 
   if(!kIsWeb) {
+    await NotificationController.initializeIsolateReceivePort();
     messaging = FirebaseMessaging.instance;
     messaging.subscribeToTopic("intranet");
 
@@ -299,141 +254,6 @@ Future<void> main() async {
             MaterialPageRoute(
                 builder: (context) => UserNotification()));
     });
-    /*FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      String cdate = DateFormat("yyyy-MM-dd hh:mm a").format(DateTime.now());
-
-      String? imsageUrl = '';
-      if (Platform.isAndroid) {
-        imsageUrl = message.notification?.android?.imageUrl.toString();
-      } else if (Platform.isIOS) {
-        imsageUrl = message.notification?.apple?.imageUrl.toString();
-      }
-
-
-      DBHelper helper = DBHelper();
-      Map<String, String> data = {};
-      if (message.notification != null *//*&& message.data == null*//*) {
-        print('its simple Notification 293');
-        data.putIfAbsent('title', () => message.notification?.title as String);
-        data.putIfAbsent('description', () => message.notification?.body as String);
-        data.putIfAbsent('type', () => 'push');
-        data.putIfAbsent('date', () => cdate);
-        data.putIfAbsent('imageurl', () =>  imsageUrl as String);
-        data.putIfAbsent('logoUrl', () => message.data.containsKey('logo') ? message.data['logo'] as String : '');
-        data.putIfAbsent('bigImageUrl', () =>  message.data.containsKey('bigimage') ? message.data['bigimage'] as String : '');
-        data.putIfAbsent('webViewLink', () => message.data.containsKey('url') ? message.data['url'] as String : '');
-        helper.insert(LocalConstant.TABLE_NOTIFICATION, data);
-        NotificationService notificationService = NotificationService();
-        notificationService.showSimpleNotification(
-            message.notification?.title as String,
-            message.notification?.body as String,
-            message);
-      } else {
-        print('its data Notification 261');
-        //print('its topic Notification');
-        data.putIfAbsent('title', () => message.data['title']);
-        data.putIfAbsent('description', () => message.data['body']);
-        data.putIfAbsent('type', () => message.data.containsKey('type') ?  message.data['type'] : 'push');
-        data.putIfAbsent('date', () => cdate);
-        data.putIfAbsent('imageurl', () =>  message.data.containsKey('imageurl') ?  message.data['imageurl'] : '');
-        data.putIfAbsent('logoUrl', () => message.data.containsKey('logoUrl') ?  message.data['logoUrl'] : '');
-        data.putIfAbsent('bigImageUrl', () =>  message.data.containsKey('bigimage') ? message.data['bigimage'] as String : '');
-        data.putIfAbsent('webViewLink', () => message.data.containsKey('url') ? message.data['url'] as String : '');
-        helper.insert(LocalConstant.TABLE_NOTIFICATION, data);
-        if (message.data.containsKey('topic') && message.data['topic'] != '') {
-          //identifyNotification(message);
-          //showNotification(message);
-          NotificationService notificationService = NotificationService();
-          notificationService.showSimpleNotification(
-              message.data['title'], message.data['body'], message);
-        } else {
-          //showNotification(message);
-          NotificationService notificationService = NotificationService();
-          notificationService.showSimpleNotification(
-              message.data['title'], message.data['body'], message);
-        }
-      }
-      *//*debugPrint('Got a message whilst in the foreground! main');
-      debugPrint('Message data 12: ${message.data}');
-      try {
-        if (message.notification != null) {
-          debugPrint(
-              'Message also contained a notification: ${message.notification}');
-        } else {
-          debugPrint('data ${message.data}');
-        }
-        DBHelper helper = new DBHelper();
-        if (message.data != null) {
-          debugPrint(message.data.toString());
-          String type = "";
-          String title = "";
-          String imageUrl = "";
-          String body = "";
-          try {
-            String mData = message.data.toString();
-            debugPrint('in 149' + mData);
-            if (!message.data.containsKey("URL")) {
-              debugPrint('json decode--');
-              String jsonencodeValue = '';
-              try {
-                jsonencodeValue = json.decode(mData);
-              } catch (e) {
-                jsonencodeValue = mData;
-                jsonencodeValue = jsonencodeValue.replaceAll("{", "{\"");
-                jsonencodeValue = jsonencodeValue.replaceAll(":", "\":\"");
-                jsonencodeValue = jsonencodeValue.replaceAll(",", "\",\"");
-                jsonencodeValue = jsonencodeValue.replaceAll("}", "\"}");
-                debugPrint('in catch....4 $jsonencodeValue');
-              }
-              NotificationActionModel model = NotificationActionModel.fromJson(
-                json.decode(jsonencodeValue),
-              );
-              type = model.type;
-              title = model.title;
-              imageUrl = '';
-              body = model.message;
-            } else {
-              debugPrint('in else ');
-              NotificationDataModel model = NotificationDataModel.fromJson(
-                json.decode(mData),
-              );
-              type = model.type;
-              title = model.title;
-              imageUrl = model.image;
-              body = model.message;
-            }
-            _showNotificationWithDefaultSound(message, title, body);
-          } catch (e) {
-            debugPrint(e.toString());
-          }
-          helper.insertNotification(
-              message.messageId as String,
-              message.data.toString(),
-              type,
-              '',
-              message.data.toString(),
-              0,
-              imageUrl);
-        }
-        if (message.notification != null) {
-          debugPrint('in notification ' + message.notification.toString());
-          helper.insertNotification(
-              message.messageId as String,
-              message.notification!.title as String,
-              message.notification!.title as String,
-              message.notification!.body as String,
-              '',
-              0,
-              '');
-          _showNotificationWithDefaultSound(
-              message,
-              message.notification!.title as String,
-              message.notification!.body as String);
-        }
-      } catch (e) {
-        debugPrint(e.toString());
-      }*//*
-    });*/
   }
   if (!kIsWeb) {
    channel = const AndroidNotificationChannel(
@@ -929,7 +749,9 @@ class MyApp extends StatelessWidget {
       navigatorKey: navigatorKey,
       debugShowCheckedModeBanner: false,
       title: 'Intranet',
+      themeMode: ThemeMode.light,
       theme: ThemeData(
+        useMaterial3: true,
         // This is the theme of your application.
         //
         // Try running your application with "flutter run". You'll see the
@@ -952,12 +774,33 @@ class MyApp extends StatelessWidget {
           iconTheme: IconThemeData(color: Colors.white),
           titleTextStyle: TextStyle(fontSize: 17, color: Colors.white, letterSpacing: 0.53),
         ),
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: kPrimaryLightColor,
-          background: LightColors.kLightGray1,
-          primary: kPrimaryLightColor,
-
+        colorScheme: const ColorScheme(
+          brightness: Brightness.light,
+          primary: Colors.white,
+          onPrimary: Colors.red,
+          secondary: Colors.green,
+          onSecondary: Colors.white,
+          primaryContainer: Colors.black45,
+          error: Colors.black,
+          onError: Colors.red,
+          background: Colors.white,
+          onBackground: Colors.white,
+          surface: Colors.white,
+          onSurface: Colors.black87,
+          outline: LightColors.kLightGrayM,
         ),
+        /*colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.white,
+          background: LightColors.kLightGray1,
+          primaryContainer: Colors.white,
+          secondary: Colors.white,
+          secondaryContainer: Colors.white,
+          primary: Colors.white,
+          brightness: Brightness.light,
+          onSurface: Colors.black87, // text color
+          surface: Colors.white
+
+        ),*/
       ),
       home: Scaffold(
         body: SplashScreen(),

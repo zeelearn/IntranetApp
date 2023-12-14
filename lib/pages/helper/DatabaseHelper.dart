@@ -42,7 +42,7 @@ class DBHelper {
 
   static String CREATE_TABLE_NOTIFICATION =
       'CREATE TABLE ${LocalConstant.TABLE_NOTIFICATION}'
-      '(notification_id TEXT PRIMARY KEY, '
+      '(${DBConstant.ID} INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, '
       'title TEXT, '
       'description TEXT, '
       'type TEXT, '
@@ -243,7 +243,11 @@ class DBHelper {
               //db.execute(CREATE_TABLE_CVF_FRANCHISEE);
               db.execute(CREATE_TABLE_NOTIFICATION);
             }
-        }, version: 14);
+            if(old<=15){
+              //db.execute(CREATE_TABLE_CVF_FRANCHISEE);
+              db.execute(CREATE_TABLE_NOTIFICATION);
+            }
+        }, version: 16);
   }
 
   /// insert data to db
@@ -269,7 +273,23 @@ class DBHelper {
   /// @param id: product id to be deleted
   Future<void> delete(String table, String id) async {
     final dbClient = await db;
-    dbClient.delete(table, where: '${DBConstant.ID} = ?', whereArgs: [id]);
+    print('Affected row is...');
+    int afftctedCount = await dbClient.delete(table, where: '${DBConstant.ID} = ?', whereArgs: [id]);
+    print('Affected row ${afftctedCount}');
+
+  }
+
+  Future<void> deleteNotification(String table, int id) async {
+    final dbClient = await db;
+    print('Affected row is...');
+    try {
+      int afftctedCount = await dbClient.delete(
+          table, where: '${DBConstant.ID} = ?', whereArgs: [id]);
+      print('Affected row ${afftctedCount}');
+    }catch(e){
+      print(e.toString());
+    }
+
   }
 
   Future<void> deleteAllData() async {

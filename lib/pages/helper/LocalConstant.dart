@@ -80,7 +80,7 @@ class LocalConstant {
   static Color? ratingBG = Colors.yellow[600];
 
 
-  static String TABLE_NOTIFICATION ="usernotification";
+  static String TABLE_NOTIFICATION ="usernotifications";
   static String TABLE_CHECKIN ="checkin";
   static String TABLE_EMPLOYEES ="emp_info";
   static String TABLE_PARENT_INFO ="parent_info";

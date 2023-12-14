@@ -137,12 +137,19 @@ class LightColors  {
   static TextStyle smallTextStyle = GoogleFonts.poppins(
     color: LightColors.TextColor,
     fontSize: 10.0,
-  )/*GoogleFonts.roboto(
-    fontSize: 10.0,
+  );
+  static TextStyle titleTextStyle = GoogleFonts.poppins(
     color: LightColors.TextColor,
-    fontWeight: FontWeight.w600,
-    height: 1.5,
-  )*/;
+    fontSize: 12.0,
+  );
+  static TextStyle titleRedTextStyle = GoogleFonts.poppins(
+    color: Colors.red,
+    fontSize: 12.0,
+  );
+  static TextStyle subtitleRedTextStyle = GoogleFonts.poppins(
+    color: LightColors.kRed,
+    fontSize: 12.0,
+  );
   static TextStyle absentRoundedStyle = GoogleFonts.roboto(
     fontSize: 12.0,
     color: Colors.white,

@@ -552,7 +552,7 @@ getView(ProjectModel model,bool isLastElement){
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     SizedBox(
-                      width: model.taskcreateduser == frichiseeId.toString() && model.statusname=='Completed' ? size.width *  0.52 : model.taskcreateduser!.isEmpty || model.taskcreateduser != frichiseeId.toString()  ? size.width *  0.44 : model.mtaskId=='0' ? size.width * 0.43 : size.width * 0.55,
+                      width: model.taskcreateduser == frichiseeId.toString() && model.statusname=='Completed' ? size.width *  0.52 : model.taskcreateduser!.isEmpty || model.taskcreateduser != frichiseeId.toString()  ? size.width *  0.44 : model.mtaskId=='0' ? size.width * 0.43 : size.width * 0.4,
                       child: Text(
                         '${model.Title}',
                         style: TextStyle(
@@ -564,14 +564,17 @@ getView(ProjectModel model,bool isLastElement){
                     SizedBox(
                       height: 1,
                     ),
-                    Text(
-                      '${model.FranchiseeName} ${model.FranchiseeCode!.isNotEmpty ? ' - ${model.FranchiseeCode}' : ''}',
-                      style: TextStyle(
-                        color: Colors.black45,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
+                    SizedBox(
+                      width: model.taskcreateduser == frichiseeId.toString() && model.statusname=='Completed' ? size.width *  0.52 : model.taskcreateduser!.isEmpty || model.taskcreateduser != frichiseeId.toString()  ? size.width *  0.44 : model.mtaskId=='0' ? size.width * 0.43 : size.width * 0.4,
+                      child: Text(
+                        '${model.FranchiseeName} ${model.FranchiseeCode!.isNotEmpty ? ' - ${model.FranchiseeCode}' : ''}',
+                        style: TextStyle(
+                          color: Colors.black45,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
-                    ),
+                    )
                   ],
                 ),
 

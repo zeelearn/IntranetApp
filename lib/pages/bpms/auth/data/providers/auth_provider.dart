@@ -84,7 +84,8 @@ class AuthStateNotifier extends StateNotifier<AuthState> {
         print('offline.....');
         try {
           modelList.sort((a, b) =>
-              b.approvedDate!.compareTo(a.approvedDate!));
+              b.approvedDate.compareTo(a.approvedDate));
+          modelList = modelList.reversed.toList();
         }catch(e){}
         state = state.copyWith(
             status: AuthStatus.authenticated,
@@ -113,8 +114,9 @@ class AuthStateNotifier extends StateNotifier<AuthState> {
     if(isOfflineEligble && modelList!=null && modelList.length>0){
       print('load offline');
       try {
-        modelList.sort((a, b) =>
-            b.approvedDate!.compareTo(a.approvedDate!));
+        modelList.sort((b,a) =>
+            a.approvedDate.compareTo(b.approvedDate));
+        modelList = modelList.reversed.toList();
       }catch(e){}
       state = state.copyWith(
           status: AuthStatus.authenticated,

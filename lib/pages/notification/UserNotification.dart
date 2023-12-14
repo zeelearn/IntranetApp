@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:Intranet/pages/notification/NotificationModel.dart';
+import 'package:Intranet/pages/notification/bpms_card.dart';
 import 'package:Intranet/pages/utils/theme/colors/light_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -10,6 +13,7 @@ import '../../main.dart';
 import '../helper/DatabaseHelper.dart';
 import '../helper/LocalConstant.dart';
 import '../helper/constants.dart';
+import '../model/bpms_notification_model.dart';
 import 'DetailPage.dart';
 
 
@@ -21,7 +25,7 @@ class UserNotification extends StatefulWidget {
 }
 
 class _ListPageState extends State<UserNotification> {
-  late List lessons = [];
+  late List<NotificationModel> lessons = [];
 
   @override
   void initState() {
@@ -37,9 +41,10 @@ class _ListPageState extends State<UserNotification> {
     for (int index = 0; index < list.length; index++) {
       Map<String, dynamic> map = list[index];
       //print('----${map['title']}');
-      print(map['date']);
+      print(map.toString());
+      if(index>40) break;
       lessons.add(NotificationModel(
-          notificationId: 0,
+          notificationId: map['id'] ?? index,
           subject: map['title'] ?? '',
           notificationtype: map['type'] ?? '',
           message: map['description'] ?? '',
@@ -53,6 +58,11 @@ class _ListPageState extends State<UserNotification> {
     }
     lessons = lessons.reversed.toList();
     setState(() {});
+  }
+
+  deleteNotification(int id){
+    print('delete the notification ${id}');
+    DBHelper().deleteNotification(LocalConstant.TABLE_NOTIFICATION, id);
   }
 
   String removeAllHtmlTags(String htmlText) {
@@ -71,8 +81,8 @@ class _ListPageState extends State<UserNotification> {
             child: notificationModel.image_url.isNotEmpty
                 ? Image.network(
                     notificationModel.logoUrl,
-                    width: 40,
-                    height: 40,
+                    width: 32,
+                    height: 32,
                     errorBuilder: (context, error, stackTrace) =>
                         const Icon(Icons.notifications, color: Colors.grey),
                   )
@@ -90,7 +100,7 @@ class _ListPageState extends State<UserNotification> {
                   notificationModel.subject,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.titleSmall,
+                  style: LightColors.titleTextStyle,
                 ),
               ),
             ],
@@ -106,9 +116,7 @@ class _ListPageState extends State<UserNotification> {
                 maxLines: 2, // this will show dots(...) after 3 lines
                 strutStyle: const StrutStyle(fontSize: 10.0),
                 text: TextSpan(
-                    style: GoogleFonts.lato(
-                      textStyle: Theme.of(context).textTheme.labelLarge,
-                    ),
+                    style: LightColors.smallTextStyle,
                     text: removeAllHtmlTags(notificationModel.message)),
               ),
               const SizedBox(
@@ -121,10 +129,7 @@ class _ListPageState extends State<UserNotification> {
                       DateFormat('yyyy-MM-dd hh:mm a')
                           .parse(notificationModel.time)),
                   textAlign: TextAlign.end,
-                  style: Theme.of(context)
-                      .textTheme
-                      .labelSmall!
-                      .copyWith(color: Colors.lightBlueAccent),
+                  style: LightColors.smallTextStyle,
                 ),
               )
             ],
@@ -140,7 +145,7 @@ class _ListPageState extends State<UserNotification> {
         );
 
     Card makeCard(NotificationModel model) => Card(
-          elevation: 8.0,
+          elevation: 4.0,
           color: LightColors.white,
           // shape: const RoundedRectangleBorder(
           //     borderRadius: BorderRadius.all(Radius.circular(5))),
@@ -155,7 +160,27 @@ class _ListPageState extends State<UserNotification> {
             // reverse: true,
             itemCount: lessons.length,
             itemBuilder: (BuildContext context, int index) {
-              return makeCard(lessons[index]);
+              if(lessons[index].notificationtype=='BPMS'){
+                print(lessons[index].message.toString());
+                BpmsNotificationModelList bpmsList = BpmsNotificationModelList.fromJson(
+                  json.decode('{"data":${lessons[index].message.toString().replaceAll(',]', ']')}}') as Map<String, dynamic>,
+                );
+                return Dismissible(key: Key(lessons[index].notificationId.toString()),
+                    onDismissed: (direction){
+                      setState(() {
+                        deleteNotification(lessons[index].notificationId);
+                        lessons.removeAt(index);
+                      });
+                    },
+                    child: BPMSNotification(bpmsList: bpmsList,title: lessons[index].subject,time:lessons[index].time));
+              }else return  Dismissible(key: Key(lessons[index].notificationId.toString()),
+                  onDismissed: (direction){
+                    setState(() {
+                      deleteNotification(lessons[index].notificationId);
+                      lessons.removeAt(index);
+                    });
+                  },
+                  child: makeCard(lessons[index]));
             },
           )
         : Lottie.asset(no_Notification_Animtion);
@@ -197,8 +222,7 @@ class _ListPageState extends State<UserNotification> {
     );
 
     return Scaffold(
-      backgroundColor: Colors.white,
-
+      backgroundColor: LightColors.kLightGray1,
       appBar: topAppBar,
       body: makeBody,
       //bottomNavigationBar: makeBottom,

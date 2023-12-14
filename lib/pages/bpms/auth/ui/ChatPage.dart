@@ -414,7 +414,6 @@ class _ChatPageState extends ConsumerState<ChatPage>
               backgroundColor: kPrimaryLightColor,
               leading: InkWell(
                 onTap: () {
-
                   Navigator.of(context).pop();
                 },
                 child: const Row(
@@ -435,6 +434,12 @@ class _ChatPageState extends ConsumerState<ChatPage>
                         widget.taskModel.title,
                         style: const TextStyle(
                           fontSize: 14.0,
+                        ),
+                      ),
+                      Text(
+                        widget.taskModel.taskcreateduser,
+                        style: const TextStyle(
+                          fontSize: 12,
                         ),
                       ),
                       Text(

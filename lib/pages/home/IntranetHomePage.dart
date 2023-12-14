@@ -506,59 +506,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
       //useragent= Platform.isIOS ? 'IOS' : 'Android';
       firebaseMessaging.setNotifications(employeeId.toString(), id, useragent);
       FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-        String cdate = DateFormat("yyyy-MM-dd hh:mm a").format(DateTime.now());
-
-        String? imsageUrl = '';
-        if (Platform.isAndroid) {
-          imsageUrl = message.notification?.android?.imageUrl.toString();
-        } else if (Platform.isIOS) {
-          imsageUrl = message.notification?.apple?.imageUrl.toString();
-        }
-
-
-        DBHelper helper = DBHelper();
-        Map<String, String> data = {};
-        if (message.notification != null /*&& message.data == null*/) {
-          print('its simple Notification 293');
-          data.putIfAbsent('title', () => message.notification?.title as String);
-          data.putIfAbsent('description', () => message.notification?.body as String);
-          data.putIfAbsent('type', () => 'push');
-          data.putIfAbsent('date', () => cdate);
-          data.putIfAbsent('imageurl', () =>  imsageUrl as String);
-          data.putIfAbsent('logoUrl', () => message.data.containsKey('logo') ? message.data['logo'] as String : '');
-          data.putIfAbsent('bigImageUrl', () =>  message.data.containsKey('bigimage') ? message.data['bigimage'] as String : '');
-          data.putIfAbsent('webViewLink', () => message.data.containsKey('url') ? message.data['url'] as String : '');
-          helper.insert(LocalConstant.TABLE_NOTIFICATION, data);
-          NotificationService notificationService = NotificationService();
-          notificationService.showSimpleNotification(
-              message.notification?.title as String,
-              message.notification?.body as String,
-              message);
-        } else {
-          print('its data Notification 261');
-          //print('its topic Notification');
-          data.putIfAbsent('title', () => message.data['title']);
-          data.putIfAbsent('description', () => message.data['body']);
-          data.putIfAbsent('type', () => message.data.containsKey('type') ?  message.data['type'] : 'push');
-          data.putIfAbsent('date', () => cdate);
-          data.putIfAbsent('imageurl', () =>  message.data.containsKey('imageurl') ?  message.data['imageurl'] : '');
-          data.putIfAbsent('logoUrl', () => message.data.containsKey('logoUrl') ?  message.data['logoUrl'] : '');
-          data.putIfAbsent('bigImageUrl', () =>  message.data.containsKey('bigimage') ? message.data['bigimage'] as String : '');
-          data.putIfAbsent('webViewLink', () => message.data.containsKey('url') ? message.data['url'] as String : '');
-          helper.insert(LocalConstant.TABLE_NOTIFICATION, data);
-          if (message.data.containsKey('topic') && message.data['topic'] != '') {
-            //identifyNotification(message);
-            //showNotification(message);
-            NotificationService notificationService = NotificationService();
-            notificationService.showSimpleNotification(
-                message.data['title'], message.data['body'], message);
-          } else {
-            //showNotification(message);
-            NotificationService notificationService = NotificationService();
-            notificationService.showSimpleNotification(
-                message.data['title'], message.data['body'], message);
-          }
-        }
+        NotificationService().parseNotification(message);
       });
 
     }

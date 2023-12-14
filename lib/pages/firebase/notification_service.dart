@@ -1,14 +1,21 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:Intranet/pages/helper/LocalConstant.dart';
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-
+import 'package:flutter/foundation.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
+import 'package:path_provider/path_provider.dart';
+import 'package:intl/intl.dart';
 
 import '../../main.dart';
+import '../helper/DatabaseHelper.dart';
 import '../helper/utils.dart';
+import '../model/bpms_notification_model.dart';
 import 'DetailsPage.dart';
 
 
@@ -202,6 +209,68 @@ class NotificationService {
 
   Future<void> cancelAllNotifications() async {
     await flutterLocalNotificationsPlugin.cancelAll();
+  }
+
+
+  void parseNotification(RemoteMessage message) {
+    String cdate = DateFormat("yyyy-MM-dd hh:mm a").format(DateTime.now());
+
+    String? imsageUrl = '';
+    if (Platform.isAndroid) {
+      imsageUrl = message.notification?.android?.imageUrl.toString();
+    } else if (Platform.isIOS) {
+      imsageUrl = message.notification?.apple?.imageUrl.toString();
+    }
+    DBHelper helper = DBHelper();
+    Map<String, String> data = {};
+
+    if (message.notification != null) {
+      print('its simple Notification 12');
+      data.putIfAbsent('title', () => message.notification?.title as String);
+      data.putIfAbsent('description', () =>  message.notification?.body as String);
+      data.putIfAbsent('type', () => 'push');
+      data.putIfAbsent('date', () => cdate);
+      data.putIfAbsent('imageurl', () =>  imsageUrl as String);
+      data.putIfAbsent('logoUrl', () => message.data.containsKey('logo') ? message.data['logo'] as String : '');
+      data.putIfAbsent('bigImageUrl', () => message.data.containsKey('bigimage') ? message.data['bigimage'] as String : '');
+      data.putIfAbsent('webViewLink', () => message.data.containsKey('url') ? message.data['url'] as String : '');
+      helper.insert(LocalConstant.TABLE_NOTIFICATION, data);
+      NotificationService notificationService = NotificationService();
+      notificationService.showSimpleNotification(
+          message.notification?.title as String,
+          message.notification?.body as String,
+          message);
+    } else {
+      print('its data Notification 143');
+      data.putIfAbsent('title', () => message.data['title']);
+      data.putIfAbsent('description', () => message.data['body']);
+      data.putIfAbsent('type', () => message.data.containsKey('type') ?  message.data['type'] : 'push');
+      data.putIfAbsent('date', () => cdate);
+      data.putIfAbsent('imageurl', () =>  message.data.containsKey('imageurl') ?  message.data['imageurl'] : '');
+      data.putIfAbsent('logoUrl', () => message.data.containsKey('logoUrl') ?  message.data['logoUrl'] : '');
+      data.putIfAbsent('bigImageUrl', () =>  message.data.containsKey('bigimage') ? message.data['bigimage'] as String : '');
+      data.putIfAbsent('webViewLink', () => message.data.containsKey('url') ? message.data['url'] as String : '');
+      helper.insert(LocalConstant.TABLE_NOTIFICATION, data);
+      if(message.data.containsKey('type') && message.data['type']=='BPMS'){
+        BpmsNotificationModelList list = BpmsNotificationModelList.fromJson(
+          json.decode('{"data":${message.data['body'].toString().replaceAll(',]', ']')}}') as Map<String, dynamic>,
+        );
+        NotificationService notificationService = NotificationService();
+        notificationService.showSimpleNotification(
+            message.data['title'], list.getBody(), message);
+      }else if (message.data.containsKey('topic') && message.data['topic'] != '') {
+        //identifyNotification(message);
+        //showNotification(message);
+        NotificationService notificationService = NotificationService();
+        notificationService.showSimpleNotification(
+            message.data['title'], message.data['body'], message);
+      } else {
+        //showNotification(message);
+        NotificationService notificationService = NotificationService();
+        notificationService.showSimpleNotification(
+            message.data['title'], message.data['body'], message);
+      }
+    }
   }
 }
 

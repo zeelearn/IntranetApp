@@ -157,7 +157,12 @@ class _BPMSDashboard extends  ConsumerState<BPMSDashboard> {
   }
 
   getBPMSMenu() {
-      return Flexible(
+    var size = MediaQuery.of(context).size;
+
+    /*24 is for notification bar on Android*/
+    final double itemHeight = (size.height - kToolbarHeight - 24) / 4;
+    final double itemWidth = size.width / 2;
+    return Flexible(
           child: Container(
               padding: EdgeInsets.all(12.0),
               child: GridView.builder(
@@ -165,7 +170,8 @@ class _BPMSDashboard extends  ConsumerState<BPMSDashboard> {
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
                     crossAxisSpacing: 4.0,
-                    mainAxisSpacing: 4.0
+                    mainAxisSpacing: 4.0,
+                  childAspectRatio: (itemWidth / itemHeight),
                 ),
                 itemBuilder: (BuildContext context, int index){
                   return mMenus[index];
@@ -205,6 +211,7 @@ class CourseCard extends StatelessWidget {
                 builder: (context) => new BPMSProjects(status: status)));
       },
       child: Container(
+        height: 100,
           child: Padding(
             padding: EdgeInsets.all(5),
             child: Card(

@@ -114,7 +114,7 @@ class Utility{
   }
 
   static showLoader(){
-    return Lottie.asset('assets/json/loading.json');
+    return Lottie.asset('assets/json/loading.json',height: 200);
   }
 
   static String formatDate() {
@@ -392,14 +392,18 @@ class Utility{
 
   static Future<bool> isInternet() async{
     bool isConnected = true;
-    try {
-      final result = await InternetAddress.lookup('example.com');
-      if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
-        debugPrint('connected');
+    if(kIsWeb){
+      return true;
+    }else {
+      try {
+        final result = await InternetAddress.lookup('example.com');
+        if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
+          debugPrint('connected');
+        }
+      } on SocketException catch (_) {
+        debugPrint('not connected');
+        isConnected = false;
       }
-    } on SocketException catch (_) {
-      debugPrint('not connected');
-      isConnected = false;
     }
     return isConnected;
   }
@@ -436,6 +440,7 @@ class Utility{
   static Container emptyDataSet(BuildContext context,String message) {
     return Container(
       width: MediaQuery.of(context).size.width,
+      height: MediaQuery.of(context).size.height,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: <Widget>[
