@@ -114,7 +114,7 @@ class Utility{
   }
 
   static showLoader(){
-    return Lottie.asset('assets/json/loading.json',height: 200);
+    return Center(child: Lottie.asset('assets/json/loading.json',height: 200),);
   }
 
   static String formatDate() {
