@@ -197,7 +197,7 @@ class _AttendanceManagerScreen extends State<AttendanceManagerScreen>
                       elevation: 12.0,
                       textStyle:
                       const TextStyle(color: LightColors.kLightGreen)),
-                  child: Text('Submit',style: LightColors.textHeaderStyle,),
+                  child: Text('Submit',style: LightColors.textHeaderStyle13Selected,),
                 ),
               ),
             ),

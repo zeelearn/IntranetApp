@@ -70,7 +70,7 @@ class _PJPManagerScreen extends State<PJPManagerScreen>
     getUserInfo();
     updateFilter();
     _tabController.addListener(() {
-      debugPrint('my index is' + _tabController.index.toString());
+      debugPrint('pjplist my index is' + _tabController.index.toString());
       setState(() {
         //IntranetServiceHandler.loadPjpSummery(widget.employeeId, 0,businessId, this);
       });
@@ -304,7 +304,7 @@ class _PJPManagerScreen extends State<PJPManagerScreen>
                       elevation: 12.0,
                       textStyle:
                       const TextStyle(color: LightColors.kLightGreen)),
-                  child: Text('Submit',style: LightColors.textHeaderStyle,),
+                  child: Text('Submit',style: LightColors.textHeaderStyle13Selected,),
                 ),
               ),
             ),
@@ -671,10 +671,11 @@ class _PJPManagerScreen extends State<PJPManagerScreen>
   @override
   void onError(value) {
     isLoading=false;
+    print(value);
     setState(() {
 
     });
-    Navigator.of(context).pop();
+    //Navigator.of(context).pop();
   }
 
 }

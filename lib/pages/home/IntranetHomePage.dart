@@ -250,7 +250,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
           builder: (context) {
             return AlertDialog(
               title: Text("Alert"),
-              content: Text('No Business has been markied in your account'),
+              content: Text('Business not assigned in your account, please connect with your manager'),
             );
           });
     }else

@@ -7,6 +7,7 @@ import 'dart:ui';
 import 'package:Intranet/pages/firebase/notification_service.dart';
 import 'package:Intranet/pages/helper/constants.dart';
 import 'package:Intranet/pages/notification/UserNotification.dart';
+import 'package:Intranet/pages/theme/extention.dart';
 import 'package:Intranet/pages/utils/theme/colors/light_colors.dart';
 import 'package:Intranet/pages/widget/VideoPlayer.dart';
 import 'package:awesome_notifications/awesome_notifications.dart';
@@ -753,8 +754,9 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         useMaterial3: true,
         checkboxTheme: CheckboxThemeData(
-          checkColor: MaterialStateProperty.all(LocalConstant.kPrimaryColor),
+          checkColor: MaterialStateProperty.all(Colors.blue),
           fillColor: MaterialStateProperty.all(Colors.white),
+          overlayColor: MaterialStateProperty.all(Colors.red),
           side: BorderSide(color: LightColors.kLightGray1),
         ),
           tabBarTheme: const TabBarTheme(
@@ -767,7 +769,8 @@ class MyApp extends StatelessWidget {
         elevatedButtonTheme: ElevatedButtonThemeData(
             style: ElevatedButton.styleFrom(
             primary: kPrimaryLightColor,
-              textStyle: TextStyle(color: Colors.black,),)),
+              onPrimary: Colors.white,
+              textStyle: TextStyle(color: Colors.white,),)),
         fontFamily: 'Roboto',
         /*colorScheme: ColorScheme.fromSeed(
           seedColor: kPrimaryLightColor,
@@ -784,11 +787,11 @@ class MyApp extends StatelessWidget {
         ),
         colorScheme: const ColorScheme(
           brightness: Brightness.light,
-          primary: Colors.white,
-          onPrimary: Colors.red,
+          primary: kPrimaryLightColor,
+          onPrimary: Colors.black,
           secondary: Colors.green,
-          onSecondary: Colors.black,
-          primaryContainer: Colors.black45,
+          onSecondary: Colors.black45,
+          primaryContainer: Colors.white,
           error: Colors.black,
           onError: Colors.red,
           background: Colors.white,
@@ -796,6 +799,30 @@ class MyApp extends StatelessWidget {
           surface: Colors.white,
           onSurface: Colors.black87,
           outline: LightColors.kLightGrayM,
+        ),
+        dialogTheme: DialogTheme(
+          backgroundColor: Colors.white,
+          titleTextStyle: TextStyle(
+              fontWeight: FontWeight.w500,
+              fontSize: 16,
+              color: Colors.black54),
+        ),
+        inputDecorationTheme: InputDecorationTheme(
+          filled: true,
+          fillColor: Colors.white,
+          errorStyle: LightColors.textsubtitle,
+          helperStyle: LightColors.textsubtitle,
+          hintStyle: LightColors.textsubtitle,
+          focusedErrorBorder: LightColors.kRed.getOutlineBorder,
+          errorBorder: LightColors.kRed.getOutlineBorder,
+          focusedBorder: Colors.black45.getOutlineBorder,
+          iconColor: Colors.black38,
+          prefixIconColor: Colors.black38,
+          enabledBorder: Colors.black12.getOutlineBorder,
+          disabledBorder: Colors.black12.getOutlineBorder,
+          errorMaxLines: 1,
+          suffixIconColor: kPrimaryLightColor,
+          floatingLabelStyle: TextStyle(color: Colors.black38,backgroundColor: Colors.white,)
         ),
         textTheme: Theme.of(context).textTheme.apply(bodyColor: Colors.black),
           primaryTextTheme: Typography().black,

@@ -1,4 +1,5 @@
 import 'package:Intranet/pages/notification/NotificationModel.dart';
+import 'package:Intranet/pages/utils/theme/colors/light_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:intl/intl.dart';
@@ -34,9 +35,10 @@ class _DetailPageState extends State<DetailPage> {
             style: Theme.of(context).textTheme.titleSmall,
           ), */
           Text(
-            DateFormat('MMM/dd,hh:mm a').format(DateFormat('yyyy-mm-dd hh:mm a')
+            DateFormat('dd MMM hh:mm a').format(DateFormat('yyyy-mm-dd hh:mm a')
                 .parse(widget.notificationModel.time)),
             textAlign: TextAlign.center,
+            style: LightColors.subWhiteTextStyle,
           )
         ],
       ),

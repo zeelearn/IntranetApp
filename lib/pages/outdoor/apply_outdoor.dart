@@ -80,7 +80,7 @@ class _ApplyOutDoorScreen extends State<ApplyOutDoorScreen> implements onClickLi
     return Scaffold(
         resizeToAvoidBottomInset: false,
         extendBodyBehindAppBar: true,
-        backgroundColor: LightColors.kLightYellow,
+        backgroundColor: LightColors.kLightGray,
         appBar: AppBar(title: Text('Outdoor duty application'),),
         body: SafeArea(
           child: Column(
@@ -137,7 +137,7 @@ class _ApplyOutDoorScreen extends State<ApplyOutDoorScreen> implements onClickLi
                           ],
                         ),
                         child: Text(
-                          'Submit',style: LightColors.textHeaderStyle,
+                          'Submit',style: LightColors.textHeaderStyle13Selected,
                           textAlign: TextAlign.center,
                         ),
                       ),
@@ -256,11 +256,13 @@ class _ApplyOutDoorScreen extends State<ApplyOutDoorScreen> implements onClickLi
                 Utility.getAlertDialog(context, response.responseData[0].msg, this);
               }
             }else{
+              print(response.responseData);
               //warning and continue
               if(response.responseData[0].count>0) {
                 Utility.showWarning(context, response.responseData[0].msg, '', 'alert_animation','Apply', this);
               }else{
-                Utility.showWarning(context, response.responseData[0].msg, '', 'warning','Apply Anyway ', this);
+                //Utility.showWarning(context, response.responseData[0].msg, '', 'warning','Apply Anyway', this);
+                Utility.showWarning(context, 'Are you sure to Apply new Outdoor', '', 'alert_animation','Apply', this);
               }
             }
             /*Utility.showMessageSingleButton(

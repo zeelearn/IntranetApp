@@ -257,7 +257,7 @@ class _OutdoorReqManagerScreen extends State<OutdoorReqManagerScreen>
                       elevation: 12.0,
                       textStyle:
                       const TextStyle(color: LightColors.kLightGreen)),
-                  child:  Text('Submit',style: LightColors.textHeaderStyle,),
+                  child:  Text('Submit',style: LightColors.textHeaderStyle13Selected,),
                 ),
               ),
             ),

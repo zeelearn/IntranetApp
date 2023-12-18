@@ -1,3 +1,4 @@
+import 'package:Intranet/pages/helper/constants.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -126,13 +127,6 @@ class MyWidget{
       alignment: Alignment.center,
       height: MediaQuery.of(context).size.height / 10,
       padding: getTextPadding(),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(8.0),
-        border: Border.all(
-          width: 1.0,
-          color: LightColor.titleTextColor,
-        ),
-      ),
       child: TextField(
         controller: _controller,
         style: GoogleFonts.robotoMono(
@@ -161,13 +155,12 @@ class MyWidget{
         decoration: InputDecoration(
             border: OutlineInputBorder(
                 borderRadius: BorderRadius.all(Radius.circular(5.0)),
-                borderSide: BorderSide(color: LightColors.kLavender)),
+                borderSide: BorderSide(color: Colors.grey)),
             icon: Icon(Icons.calendar_today), //icon of text field
             labelText: label //label text of field
         ),
         readOnly: true, //set it true, so that user will not able to edit text
         onTap: () async {
-
           DateTime? pickedDate = await showDatePicker(
               context: context,
               initialDate: DateTime.now(),

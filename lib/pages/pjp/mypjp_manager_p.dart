@@ -74,6 +74,7 @@ class _MyPjpListState extends State<MyPjpManPListScreen> implements onResponse,o
         );
         if (response != null && response.responseData != null)
           mPjpList.addAll(response.responseData);
+        sort();
         _isChecked = List<bool>.filled(mPjpList.length, false);
         setState(() {});
       }catch(e){
@@ -93,9 +94,7 @@ class _MyPjpListState extends State<MyPjpManPListScreen> implements onResponse,o
       );
       if (response != null && response.responseData != null) {
         mPjpList.addAll(response.responseData);
-        mPjpList.sort((a, b){ //sorting in descending order
-          return DateTime.parse(a.fromDate).compareTo(DateTime.parse(b.fromDate));
-        });
+        sort();
       }
       _isChecked = List<bool>.filled(mPjpList.length, false);
       setState(() {});
@@ -106,6 +105,12 @@ class _MyPjpListState extends State<MyPjpManPListScreen> implements onResponse,o
     return isLoad;
   }
 
+  sort(){
+    mPjpList.sort((a, b){ //sorting in descending order
+      return a.PJP_Id.compareTo(b.PJP_Id);
+      //return DateTime.parse(a.fromDate).compareTo(DateTime.parse(b.fromDate));
+    });
+  }
 
   bool _isSelectAll=false;
 
@@ -210,7 +215,7 @@ class _MyPjpListState extends State<MyPjpManPListScreen> implements onResponse,o
                             elevation: 12.0,
                             textStyle:
                             const TextStyle(color: LightColors.kLightGreen)),
-                        child:  Text('Submit',style: LightColors.textHeaderStyle,),
+                        child:  Text('Submit',style: LightColors.textHeaderStyle13Selected,),
                       ),
                     ),
                   ),
@@ -293,11 +298,7 @@ class _MyPjpListState extends State<MyPjpManPListScreen> implements onResponse,o
         _isChecked[index] = _isSelectAll;
       }
     }
-    mPjpList.sort((a,b) {
-      var adate = a.fromDate; //before -> var adate = a.expiry;
-      var bdate = b.fromDate; //var bdate = b.expiry;
-      return -bdate.compareTo(adate);
-    });
+    sort();
   }
 
   void openNewPjp() async{
@@ -479,12 +480,7 @@ class _MyPjpListState extends State<MyPjpManPListScreen> implements onResponse,o
                         if(value==false){
                           _isSelectAll=false;
                         }
-                        mPjpList.sort((a,b) {
-                          var adate = a.fromDate; //before -> var adate = a.expiry;
-                          var bdate = b.fromDate; //var bdate = b.expiry;
-                          return -bdate.compareTo(adate);
-                        });
-                        //singleSelection(position);
+                        sort();
                       });
                     },
                   ) /*Text(
@@ -684,15 +680,19 @@ class _MyPjpListState extends State<MyPjpManPListScreen> implements onResponse,o
   @override
   void onError(value) {
     isLoading=false;
+    print('=========error ${value}');
     setState(() {
 
     });
-    Navigator.of(context).pop();
+    //Navigator.of(context).pop();
   }
 
   @override
   void onStart() {
-    Utility.showLoaderDialog(context);
+    setState(() {
+      isLoading=true;
+    });
+    //Utility.showLoaderDialog(context);
   }
 
   String getId(){
@@ -708,10 +708,13 @@ class _MyPjpListState extends State<MyPjpManPListScreen> implements onResponse,o
 
   @override
   void onSuccess(value) {
-    Navigator.of(context).pop();
+    //Navigator.of(context).pop();
     isLoading = false;
     debugPrint('PJP List onSuccess ');
     if(value is String){
+      print('Approves ${value}');
+      if(value=='SUCCESS')
+        Navigator.of(context).pop();
       IntranetServiceHandler.loadPjpSummery(employeeId, 0,businessId, this);
     }else if(value is UpdatePJPStatusResponse){
       UpdatePJPStatusResponse val = value;
@@ -778,11 +781,8 @@ class _MyPjpListState extends State<MyPjpManPListScreen> implements onResponse,o
             }
           }
 
-          mPjpList.sort((a,b) {
-            var adate = a.fromDate; //before -> var adate = a.expiry;
-            var bdate = b.fromDate; //var bdate = b.expiry;
-            return -bdate.compareTo(adate);
-          });
+          if(mPjpList.length>0)
+            sort();
           _isChecked = List<bool>.filled(mPjpList.length, false);
           //mPjpList.addAll(response.responseData);
           //debugPrint('========================${mPjpList.length}');

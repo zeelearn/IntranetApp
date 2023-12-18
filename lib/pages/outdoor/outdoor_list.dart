@@ -59,7 +59,7 @@ class _OutdoorScreen extends State<OutdoorScreen>
     hiveBox = Hive.box(LocalConstant.KidzeeDB);
     await Hive.openBox(LocalConstant.KidzeeDB);
     employeeId = int.parse(hiveBox.get(LocalConstant.KEY_EMPLOYEE_ID) as String);
-    widget.businessId = hiveBox.get(LocalConstant.KEY_BUSINESS_ID);
+    widget.businessId = hiveBox.get(LocalConstant.KEY_BUSINESS_ID) ?? 0;
 
     var leaveODSummery = hiveBox.get('r'+getId());
     if(leaveODSummery==null){

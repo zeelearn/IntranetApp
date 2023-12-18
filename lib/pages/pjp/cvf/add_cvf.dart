@@ -122,7 +122,7 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener{
 
     List<FranchiseeInfo> franchiseeList = await helper.getFranchiseeList(businessId);
 
-    if (franchiseeList == null || franchiseeList.length == 0) {
+    if (await Utility.isInternet() || franchiseeList == null || franchiseeList.length == 0) {
       debugPrint('data load ssss');
       loadCenterList();
     } else {

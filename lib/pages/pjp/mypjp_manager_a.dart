@@ -566,12 +566,14 @@ class _MyPjpListState extends State<MyPjpManAListScreen> implements onResponse,o
     setState(() {
 
     });
-    Navigator.of(context).pop();
+    //Navigator.of(context).pop();
   }
 
   @override
   void onStart() {
-    Utility.showLoaderDialog(context);
+    setState(() {
+      isLoading = true;
+    });
   }
 
   String getId(){
@@ -587,7 +589,7 @@ class _MyPjpListState extends State<MyPjpManAListScreen> implements onResponse,o
 
   @override
   void onSuccess(value) {
-    Navigator.of(context).pop();
+    //Navigator.of(context).pop();
     isLoading = false;
     debugPrint('PJP List onSuccess ');
     if(value is String){

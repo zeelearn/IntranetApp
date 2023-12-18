@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:Intranet/pages/helper/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hive/hive.dart';
@@ -124,14 +125,13 @@ int _groupValue=0;
         appBar: AppBar(
           title: Text(
             'Leave Application',
-            style:
-            TextStyle(fontSize: 17, color: Colors.black, letterSpacing: 0.53),
+
           ),
             leading: new IconButton(
-              icon: new Icon(Icons.arrow_back_ios, color: Colors.black),
+              icon: new Icon(Icons.arrow_back_ios),
               onPressed: () => Navigator.of(context).pop(),
             ),
-            backgroundColor: Colors.blue.withOpacity(0.7), //You can make this transparent
+            backgroundColor: kPrimaryLightColor, //You can make this transparent
             elevation: 0.0,
 
         ),
@@ -189,8 +189,6 @@ int _groupValue=0;
                             children: [
                               Material(
                                 child: Checkbox(
-                                  checkColor: Colors.white,
-                                  fillColor: MaterialStateProperty.resolveWith(getColor),
                                   value: isMaternaty,
                                   onChanged: (bool? value) {
                                     setState(() {
@@ -272,7 +270,7 @@ int _groupValue=0;
                                 ],
                               ),
                               child: Text(
-                                'Submit',style: LightColors.textHeaderStyle,)
+                                'Submit',style: LightColors.textHeaderStyle13Selected,)
                             ),
                           ),
                   ],

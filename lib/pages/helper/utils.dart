@@ -144,6 +144,8 @@ class Utility{
       color: Colors.white,
       msg: 'Thank you for Approve the PJP',
       title: 'Approved',
+      titleStyle: LightColors.textHeaderStyle13,
+      msgStyle: LightColors.textHeaderStyle13,
       lottieBuilder: Lottie.asset(
         'assets/json/85594-done.json',
         fit: BoxFit.contain,
@@ -169,6 +171,8 @@ class Utility{
 
   static getConfirmationDialog(BuildContext context,String title,String description,onClickListener response){
     Dialogs.materialDialog(
+      titleStyle: LightColors.textHeaderStyle13,
+      msgStyle: LightColors.textHeaderStyle13,
       color: Colors.white,
       msg: description,
       title: title,
@@ -440,7 +444,6 @@ class Utility{
   static Container emptyDataSet(BuildContext context,String message) {
     return Container(
       width: MediaQuery.of(context).size.width,
-      height: MediaQuery.of(context).size.height * 0.6,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: <Widget>[
@@ -1029,8 +1032,10 @@ class Utility{
   static showWarning(BuildContext context,String title,String description,String filename,String oklabel,onClickListener response){
     Dialogs.materialDialog(
       color: Colors.white,
-      msg: description,
-      title: title,
+      msg: '${description}',
+      title: '${title}',
+      titleStyle: TextStyle(color: Colors.black54),
+      msgStyle: TextStyle(color: Colors.black54),
       lottieBuilder: Lottie.asset(
         'assets/json/${filename}.json',
         fit: BoxFit.contain,
@@ -1050,7 +1055,7 @@ class Utility{
 
           color: Colors.blue,
           textStyle: TextStyle(color: Colors.white),
-          iconColor: Colors.white,
+          iconColor: Colors.red,
         ),IconsButton(
           onPressed: () {
             Future.delayed(Duration(milliseconds: 50)).then((_) {
@@ -1059,7 +1064,6 @@ class Utility{
             });
           },
           text: 'Cancel',
-
           color: Colors.blue,
           textStyle: TextStyle(color: Colors.white),
           iconColor: Colors.white,

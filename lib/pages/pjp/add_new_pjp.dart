@@ -1,3 +1,4 @@
+import 'package:Intranet/pages/utils/theme/colors/light_colors.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_icons_null_safety/flutter_icons_null_safety.dart';
@@ -116,6 +117,8 @@ class _AddNewPJPState extends State<AddNewPJPScreen> implements onResponse,onCli
                 endRangeSelectionColor: LightColor.lightBlue,
                 showTodayButton: false,
                 selectionShape: DateRangePickerSelectionShape.rectangle,
+                selectionColor: Colors.red,
+                selectionTextStyle: TextStyle(color: Colors.white),
                 headerStyle: DateRangePickerHeaderStyle(
                     textAlign: TextAlign.center,
                   ),
@@ -154,11 +157,7 @@ class _AddNewPJPState extends State<AddNewPJPScreen> implements onResponse,onCli
   getInput(String hint){
     return Container(
       alignment: Alignment.centerLeft,
-      decoration: BoxDecoration(
-        color: Color.fromRGBO(215, 219, 221, 1),
-        borderRadius: BorderRadius.circular(12.0),
-      ),
-      padding: EdgeInsets.symmetric(horizontal: 24.0),
+
       child: TextFormField(
         controller: _remarkController,
         obscureText: false,

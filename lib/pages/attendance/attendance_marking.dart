@@ -278,23 +278,31 @@ class _AttendanceMarkingScreen extends State<AttendanceMarkingScreen> implements
         ToDT: DateFormat('yyyy-MM-ddTHH:mm:ss').format(parseDateTime('${_startDateController.text} ${_toTimeController.text}')));
 
   debugPrint(request.getJson());
+    print('in attendance marking 123');
     APIService apiService = APIService();
     apiService.attendanceMarking(request).then((value) {
+      print('response : ${value}');
       Navigator.of(context).pop();
-      debugPrint(value);
+      print(value);
       if (value != null) {
+        print('in value not null');
         if (value == null ) {
+          print('in if');
           Utility.showMessage(context, 'Unable to Process your Request');
         } else if (value is AttendanceMarkingResponse) {
+          print('in else if');
           AttendanceMarkingResponse response = value;
+          print('in Response asd ${response.responseMessage}');
           Utility.showMessageSingleButton(context, response.responseMessage,this);
           if(response.responseMessage=='Attendance marked successfully') {
-
             clearForm();
+          }else if(response.responseMessage.contains('Attendance already exists')){
+
           }
 
         }
       } else {
+        print('in else');
         Navigator.pop(context);
         Utility.showMessage(context, "Unable to Apply Attendance Request");
         debugPrint("null value");

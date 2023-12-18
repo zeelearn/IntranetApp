@@ -67,7 +67,7 @@ class _LoginFormState extends State<LoginForm> implements changePasswordInterfac
             decoration: const InputDecoration(
               hintText: "Your User Name",
               prefixIcon: Padding(
-                padding: EdgeInsets.all(defaultPadding),
+                padding: EdgeInsets.zero,
                 child: Icon(Icons.person),
               ),
             ),
