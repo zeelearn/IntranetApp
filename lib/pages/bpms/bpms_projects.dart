@@ -38,6 +38,7 @@ class _BPMSProjects extends  ConsumerState<BPMSProjects> with WidgetsBindingObse
   final focusNode = FocusNode();
   int frichiseeId=0;
   String displayName='';
+  String userId='';
   ProjectTaskModel? currentTask;
 
     @override
@@ -350,7 +351,7 @@ class _BPMSProjects extends  ConsumerState<BPMSProjects> with WidgetsBindingObse
                         Navigator.of(context).push(MaterialPageRoute(
                             builder: (BuildContext context) => MyWebsiteView(
                               title: model.FranchiseeName!,
-                              url: 'https://project.zeelearn.com/#/admin/projects/projectDetails/${model.FranchiseeId!}&${model.CRMId}&mobile',
+                              url: 'https://project.zeelearn.com/#/admin/projects/projectDetails/${model.FranchiseeId!}&${model.CRMId}&mobile&${frichiseeId}',
                             )));
                       } else if (index==1) {
                         Navigator.of(context).push(MaterialPageRoute(

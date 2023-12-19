@@ -14,6 +14,7 @@ import 'package:Intranet/api/request/bpms/newtask.dart';
 import 'package:Intranet/api/request/bpms/projects.dart';
 import 'package:Intranet/api/request/bpms/send_cred.dart';
 import 'package:Intranet/api/request/bpms/update_task.dart';
+import 'package:Intranet/api/request/pjp/pjp_exceptional_list.dart';
 import 'package:Intranet/api/response/bpms/bpms_stats.dart';
 import 'package:Intranet/api/response/bpms/bpms_status.dart';
 import 'package:Intranet/api/response/bpms/franchisee_details_response.dart';
@@ -25,6 +26,7 @@ import 'package:Intranet/api/response/bpms/newtask.dart';
 import 'package:Intranet/api/response/bpms/project_task.dart';
 import 'package:Intranet/api/response/bpms/send_cred.dart';
 import 'package:Intranet/api/response/bpms/update_task_response.dart';
+import 'package:Intranet/api/response/pjp/pjp_exceptional_list.dart';
 import 'package:Intranet/api/response/uploadimage.dart';
 import 'package:aws_s3_upload/aws_s3_upload.dart';
 import 'package:aws_s3_upload/enum/acl.dart';
@@ -119,7 +121,7 @@ class APIService {
               "content-type": "application/json",
               "Access-Control-Allow-Origin": "*",
               // Required for CORS support to work
-              "Access-Control-Allow-Credentials": "true",
+              "Access-Control-Allow-Credentials": "false",
               // Required for cookies, authorization headers with HTTPS
               "Access-Control-Allow-Headers": "Origin,Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,locale",
               "Access-Control-Allow-Methods": "*"
@@ -752,6 +754,30 @@ class APIService {
     }
   }
 
+  Future<dynamic> getPJPExceptionalList(PJPExceptionalRequest requestModel) async {
+    try {
+      print('pjp list ');
+      final response = await http.post(Uri.parse(url + LocalStrings.GET_PJP_EXCEPTIONAL_LIST),
+          headers: {
+            "Accept": "application/json",
+            "content-type": "application/json"
+          },
+          body:requestModel.getJson());
+      print('RRR ${response.body.toString()}');
+      print('status ${response.statusCode}');
+      if (response.statusCode == 200 || response.statusCode == 400) {
+        return PjpExceptionalResponse.fromJson(
+          json.decode(response.body),
+        );
+      } else {
+        return null;
+      }
+    } catch (e) {
+      debugPrint(e.toString());
+      e.toString();
+    }
+  }
+
   Future<dynamic> getPJPReport(PJPReportRequest requestModel) async {
     try {
       //debugPrint('in getPJP list ');
@@ -966,6 +992,36 @@ class APIService {
           },
           body:requestModel.getJson());
       debugPrint(response.body);
+      if (response.statusCode == 200 || response.statusCode == 400) {
+        if(response.body is GeneralResponse){
+          return GeneralResponse.fromJson(
+            json.decode(response.body),
+          );
+        }else {
+          return GeneralResponse.fromJson(
+            json.decode(response.body),
+          );
+        }
+      } else {
+        return null; //LoginResponseModel(token:"",Status:"Invalid/Wrong Login Details");
+      }
+    } catch (e) {
+      debugPrint(e.toString());
+      e.toString();
+    }
+  }
+
+  Future<dynamic> updatePjpStatusExceptionalList(UpdatePJPStatusListRequest requestModel) async {
+    try {
+      print(Uri.parse(url + LocalStrings.UPDATE_PJP_EXCEPTIONAL_LIST).toString());
+      final response = await http.post(Uri.parse(url + LocalStrings.UPDATE_PJP_EXCEPTIONAL_LIST),
+          headers: {
+            "Accept": "application/json",
+            "content-type": "application/json"
+          },
+          body:requestModel.getExJson());
+      print(requestModel.getExJson());
+      print(response.body);
       if (response.statusCode == 200 || response.statusCode == 400) {
         if(response.body is GeneralResponse){
           return GeneralResponse.fromJson(

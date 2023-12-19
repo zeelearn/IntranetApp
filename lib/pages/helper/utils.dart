@@ -138,7 +138,6 @@ class Utility{
     }
     return date;
   }
-
   static getConfirmationDialogPJP(BuildContext context,onResponse response){
     Dialogs.materialDialog(
       color: Colors.white,
@@ -819,7 +818,10 @@ class Utility{
       actions: [
         IconsButton(
           onPressed: () {
+
+            //Navigator.of(context, rootNavigator: true).pop();
             Future.delayed(Duration(milliseconds: 50)).then((_) {
+              Navigator.of(context, rootNavigator: true).pop('dialog');
               response.onSuccess('SUCCESS');
             });
           },

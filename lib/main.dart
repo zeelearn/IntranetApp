@@ -754,10 +754,18 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         useMaterial3: true,
         checkboxTheme: CheckboxThemeData(
-          checkColor: MaterialStateProperty.all(Colors.blue),
-          fillColor: MaterialStateProperty.all(Colors.white),
-          overlayColor: MaterialStateProperty.all(Colors.red),
-          side: BorderSide(color: LightColors.kLightGray1),
+          checkColor: MaterialStateProperty.all(kPrimaryLightColor),
+          //fillColor: MaterialStateProperty.all(Colors.white),
+          fillColor: MaterialStateColor.resolveWith(
+                (states) {
+              if (states.contains(MaterialState.selected)) {
+                return kPrimaryLightColor; // the color when checkbox is selected;
+              }
+              return Colors.black45; //the color when checkbox is unselected;
+            },
+          ),
+          overlayColor: MaterialStateProperty.all(Colors.black),
+          side: BorderSide(color: Color(0xff585858)),
         ),
           tabBarTheme: const TabBarTheme(
               labelColor: Colors.pink,
