@@ -28,6 +28,9 @@ class PjpExceptionalResponse {
   }
 }
 
+enum PJPCVFStatus { UNKNOWN, APPROVE, REJECTED }
+
+
 class PjpExceptionalModel {
   late final int employeeId;
   late final String employeeCode;
@@ -37,7 +40,7 @@ class PjpExceptionalModel {
   late final String visitDate;
   late final String dateTimeIn;
   late final String dateTimeOut;
-  late final bool isExpectionallyApproved;
+  late final String isExpectionallyApproved;
 
   PjpExceptionalModel(
       {required this.employeeId,
@@ -47,8 +50,7 @@ class PjpExceptionalModel {
         required this.pjpcvFId,
         required this.visitDate,
         required this.dateTimeIn,
-        required this.dateTimeOut,
-        required this.isExpectionallyApproved});
+        required this.dateTimeOut});
 
   PjpExceptionalModel.fromJson(Map<String, dynamic> json) {
     employeeId = json['employee_Id'].round();
@@ -59,7 +61,11 @@ class PjpExceptionalModel {
     visitDate = json['visit_Date'] ?? '';
     dateTimeIn = json['dateTimeIn'] ?? '';
     dateTimeOut = json['dateTimeOut'] ?? '';
-    isExpectionallyApproved = json['isExpectionallyApproved'] == null ? false : json['isExpectionallyApproved'] ;
+    isExpectionallyApproved =  json['isExpectionallyApproved'] == null ? 'null' : json['isExpectionallyApproved'] == true ? 'true' : 'false';
+  }
+
+  getStatus(){
+    return   isExpectionallyApproved == 'null' ? PJPCVFStatus.UNKNOWN : isExpectionallyApproved =='true' ? PJPCVFStatus.APPROVE : PJPCVFStatus.REJECTED;
   }
 
   Map<String, dynamic> toJson() {

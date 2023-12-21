@@ -68,7 +68,7 @@ class IntranetServiceHandler{
           try {
             onResponse.onSuccess(value);
           }catch(e){
-            onResponse.onError('PJP List not avaliable 2');
+            onResponse.onError('PJP List not avaliable 2 ${e.toString()}');
           }
 
         } else {

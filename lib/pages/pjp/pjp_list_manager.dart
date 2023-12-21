@@ -121,7 +121,7 @@ class _PJPManagerScreen extends State<PJPManagerScreen>
                         Navigator.push(
                             context,
                             MaterialPageRoute(
-                                builder: (context) => PJPManagerExceptionalScreen(employeeId: widget.employeeId,)));
+                                builder: (context) => PJPManagerExceptionalScreen()));
                       },
                       // style: ButtonStyle(elevation: MaterialStateProperty(12.0 )),
                       style: ElevatedButton.styleFrom(

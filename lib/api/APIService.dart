@@ -814,6 +814,7 @@ class APIService {
             "content-type": "application/json"
           },
           body:requestModel.getJson());
+      debugPrint(requestModel.getJson());
       debugPrint(response.body);
       if (response.statusCode == 200 || response.statusCode == 400) {
         if(response.body is EmployeeListPJPResponse){

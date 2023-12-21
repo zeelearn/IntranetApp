@@ -11,12 +11,13 @@ import '../bpms/bpms_projects.dart';
 import '../helper/utils.dart';
 import '../model/filter.dart';
 import '../pjp/mypjp.dart';
+import '../pjp/pjp_list_manager_exceptional.dart';
 import '../report/myreport.dart';
 import '../utils/theme/colors/light_colors.dart';
 import '../utils/theme/theme.dart';
 
 class HomePageMenu extends StatelessWidget {
-  final bool isBpms;
+  bool isBpms;
   HomePageMenu(this.isBpms);
 
 
@@ -178,8 +179,8 @@ class HomePageMenu extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
                     //_getMenu(context, 'BPMS', BPMSHome()),
-                    _getMenu(context, 'My Report', MyReportsScreen()),
-                    !isBpms ? SizedBox(width: 0,) :
+                    _getMenu(context, 'My Report',Icons.multiline_chart, MyReportsScreen()),
+                    !isBpms ? _getMenu(context, 'PJP-CVF Approval (Exp)', Icons.approval ,PJPManagerExceptionalScreen()) :
                     GestureDetector(
                       onTap: () async {
                         var box = await Utility.openBox();
@@ -248,6 +249,8 @@ class HomePageMenu extends StatelessWidget {
                   ],
                 )
             ),
+            isBpms ? _getMenu(context, 'PJP-CVF Approval (Exp)', Icons.approval ,PJPManagerExceptionalScreen()) : SizedBox(width: 0,)
+
           ]
           ),
         ),
@@ -255,7 +258,7 @@ class HomePageMenu extends StatelessWidget {
     );
   }
 
-  _getMenu(BuildContext context, String title, action) {
+  _getMenu(BuildContext context, String title,IconData icon, action) {
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -286,11 +289,11 @@ class HomePageMenu extends StatelessWidget {
               mainAxisSize: MainAxisSize.max,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Padding(
+                Padding(
                   padding:
                   EdgeInsetsDirectional.fromSTEB(0, 16, 0, 0),
                   child: Icon(
-                    Icons.multiline_chart,
+                    icon,
                     color: Colors.white,
                     size: 44,
                   ),

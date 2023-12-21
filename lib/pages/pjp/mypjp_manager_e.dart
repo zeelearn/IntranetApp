@@ -14,6 +14,7 @@ import '../../api/response/pjp/update_pjpstatus_response.dart';
 import '../firebase/anylatics.dart';
 import '../helper/LocalConstant.dart';
 import '../helper/constants.dart';
+import '../helper/math_utils.dart';
 import '../helper/utils.dart';
 import '../iface/onClick.dart';
 import '../iface/onResponse.dart';
@@ -34,7 +35,7 @@ class PjpExceotionalScreen extends StatefulWidget {
   _MyPjpListState createState() => _MyPjpListState();
 }
 
-class _MyPjpListState extends State<PjpExceotionalScreen> implements onResponse,onClickListener{
+class _MyPjpListState extends State<PjpExceotionalScreen>  with WidgetsBindingObserver implements onResponse,onClickListener{
   List<PjpExceptionalModel> mPjpList = [];
   int employeeId = 0;
   int businessId = 0;
@@ -45,23 +46,33 @@ class _MyPjpListState extends State<PjpExceotionalScreen> implements onResponse,
   bool isInternet=true;
   List<bool> _isChecked = [];
 
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      print('didChangeAppLifecycleState - Manager');
+      getUserInfo();
+    }
+  }
+
   @override
   void initState() {
     print('exceptional page');
     super.initState();
-    FirebaseAnalyticsUtils().sendAnalyticsEvent('PJP Approval - Exceptional');
+    WidgetsBinding.instance?.addObserver(this);
+    FirebaseAnalyticsUtils().sendAnalyticsEvent('PJP-CVF Attandance Approval-Exceptional');
     Future.delayed(Duration.zero, () {
       this.getUserInfo();
 
     });
   }
 
+
   Future<void> getUserInfo() async {
     hiveBox = await Utility.openBox();
     await Hive.openBox(LocalConstant.KidzeeDB);
     employeeId =int.parse(hiveBox.get(LocalConstant.KEY_EMPLOYEE_ID) as String);
     businessId = hiveBox.get(LocalConstant.KEY_BUSINESS_ID);
-    employeeId = 2772;
     isInternet = await Utility.isInternet();
     if(isInternet){
       IntranetServiceHandler.loadPjpExceptionalSummery(employeeId, this);
@@ -116,6 +127,61 @@ class _MyPjpListState extends State<PjpExceotionalScreen> implements onResponse,
 
   bool _isSelectAll=false;
 
+  sorting(){
+    var pjpList = hiveBox.get(getId());
+    PjpExceptionalResponse response = PjpExceptionalResponse.fromJson(
+      json.decode(pjpList),
+    );
+    print('locai ${pjpList}');
+    if(response.responseData!=null && response.responseData!.length>0){
+      mPjpList.clear();
+      if (response != null && response.responseData != null) {
+        if (widget.mFilterSelection == null ||widget.mFilterSelection.type == FILTERStatus.MYTEAM) {
+          for (int index = 0;index < response.responseData!.length;index++) {
+            if(widget.isApproved && response.responseData[index].getStatus() !=PJPCVFStatus.UNKNOWN || !widget.isApproved && response.responseData[index].getStatus() != PJPCVFStatus.UNKNOWN){
+              //mPjpList.add(response.responseData[index]);
+              for(int jIndex=0;jIndex<widget.mFilterSelection.filters.length;jIndex++){
+                if(widget.mFilterSelection.filters[jIndex].isSelected && response.responseData[index].displayName==widget.mFilterSelection.filters[jIndex].name){
+                  mPjpList.add(response.responseData[index]);
+                }
+              }
+            }
+          }
+        } else if (widget.mFilterSelection.type == FILTERStatus.MYSELF) {
+          debugPrint('FOR MY SELF');
+          for (int index = 0;index < response.responseData.length;index++) {
+            if (true /*|| response.responseData[index].isSelfPJP == '1'*/) {
+              if(widget.isApproved && response.responseData[index].getStatus() !=PJPCVFStatus.UNKNOWN || !widget.isApproved && response.responseData[index].getStatus() == PJPCVFStatus.UNKNOWN)
+                mPjpList.add(response.responseData[index]);
+            }
+          }
+        } else if (widget.mFilterSelection.type == FILTERStatus.NONE) {
+
+          for (int index = 0;index < response.responseData.length;index++) {
+            if(widget.isApproved && response.responseData[index].getStatus() != PJPCVFStatus.UNKNOWN || !widget.isApproved && response.responseData[index].getStatus() == PJPCVFStatus.UNKNOWN)
+              mPjpList.add(response.responseData[index]);
+          }
+        } else {
+          debugPrint('In else');
+          for (int index = 0;index < response.responseData.length;index++) {
+            for (int jIndex = 0;jIndex < widget.mFilterSelection.filters.length;jIndex++) {
+              print('-- ${widget.mFilterSelection.filters[jIndex].name}');
+              if (response.responseData[index].displayName == widget.mFilterSelection.filters[jIndex].name) {
+                if(widget.isApproved && response.responseData[index].getStatus() !=PJPCVFStatus.UNKNOWN || !widget.isApproved && response.responseData[index].getStatus() == PJPCVFStatus.UNKNOWN)
+                  mPjpList.add(response.responseData[index]);
+              }
+            }
+          }
+        }
+
+        if(mPjpList.length>0)
+          sort();
+        _isChecked = List<bool>.filled(mPjpList.length, false);
+      }
+    }
+    print('local ${mPjpList.length}');
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -139,7 +205,7 @@ class _MyPjpListState extends State<PjpExceotionalScreen> implements onResponse,
                 SizedBox(
                   height: 10,
                 ),
-            mPjpList.isEmpty || isLoading ? SizedBox(height: 0,) :
+                widget.isApproved || mPjpList.isEmpty || isLoading ? SizedBox(height: 0,) :
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -211,16 +277,16 @@ class _MyPjpListState extends State<PjpExceotionalScreen> implements onResponse,
       builder: (BuildContext context) {
         // return object of type Dialog
         return AlertDialog(
-          title: new Text("PJP Approval"),
+          title: new Text("PJP-CVF Approval"),
           content: new Text(
-              'Are you sure to approve the PJP request'),
+              'Are you sure to approve the PJP-CVF request'),
           actions: <Widget>[
             // usually buttons at the bottom of the dialog
             ElevatedButton(
               onPressed: () {
                 Navigator.of(context).pop();
                 //approvePjpList(0);
-                Utility.onConfirmationBox(context, 'REJECT', 'Cancel', 'Reject PJP', 'Are you sure to reject the PJP', Utility.ACTION_REJECT, this);
+                Utility.onConfirmationBox(context, 'REJECT', 'Cancel', 'Reject PJP-CVF', 'Are you sure to reject the PJP-CVF', Utility.ACTION_REJECT, this);
                 //approveAcquisition(model, 'REJ');
               },
               // style: ButtonStyle(elevation: MaterialStateProperty(12.0 )),
@@ -321,7 +387,7 @@ class _MyPjpListState extends State<PjpExceotionalScreen> implements onResponse,
       ),);
     }else  if (mPjpList.isEmpty) {
       //debugPrint('PJP List not avaliable');
-      return Utility.emptyDataSet(context,"your PJP list is Empty, Please plan your journey");
+      return Utility.emptyDataSet(context,"your PJP-CVF list is Empty, Please plan your journey");
     }else  if (mPjpList.isEmpty && isInternet) {
 
       return Utility.noInternetDataSet(context);
@@ -332,25 +398,209 @@ class _MyPjpListState extends State<PjpExceotionalScreen> implements onResponse,
         itemCount: mPjpList.length,
         shrinkWrap: true,
         itemBuilder: (context, index) {
-          return getView(mPjpList[index],index);
+          return getPjpView(mPjpList[index],index,mPjpList.length-1==index ? true : false);
         },
       ));
     }
   }
 
+  getPjpView(PjpExceptionalModel pjpInfo,int index,bool isLastElement){
+    return Card(
+      color: LightColors.kLightGrayM,
+      elevation: 5,
+      margin: !isLastElement
+          ? EdgeInsets.only(bottom: 20)
+          : EdgeInsets.zero,
+      child: Container(
+        decoration: BoxDecoration(
+            color: Color(0xFFFFFFFF),
+            border: Border.all(
+              color: LightColors.kLightGray1,
+            ),
+            borderRadius: BorderRadius.all(Radius.circular(5))
+        ),
+        padding: EdgeInsets.only(left: 10,top: 10,bottom: 10),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
+              padding: EdgeInsetsDirectional.fromSTEB(12, 4, 12, 4),
+              child: Row(
+                mainAxisSize: MainAxisSize.max,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Padding(
+                    padding: EdgeInsetsDirectional.fromSTEB(0, 4, 0, 0),
+                    child: Text(
+                      '',
+                      style: TextStyle(
+                        fontFamily: 'Lexend Deca',
+                        color: Color(0xFF4B39EF),
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: EdgeInsetsDirectional.fromSTEB(0, 4, 0, 0),
+                    child: Text(
+                      'Ref Id : P-${pjpInfo.pjPId}',
+                      style: TextStyle(
+                        fontFamily: 'Lexend Deca',
+                        color: Color(0xFF4B39EF),
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Row(
+              children: [
+                CircleAvatar(
+                  backgroundImage: pjpInfo.getStatus() == PJPCVFStatus.UNKNOWN ? AssetImage('assets/icons/ic_pending.png') :  pjpInfo.getStatus() == PJPCVFStatus.APPROVE ?  AssetImage('assets/icons/ic_check_mark.png') :  AssetImage('assets/icons/ic_cross.png'),
+                ),
+                SizedBox(
+                  width: 10,
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(
+                      width: size.width * 0.6,
+                      child: Text(
+                        pjpInfo.visitDate==null ? 'Visit Date : NA' : 'Visit Date : ${Utility.getShortDate(pjpInfo.visitDate)}',
+                        style: TextStyle(
+                          color: Color(0xff151a56),
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                    SizedBox(
+                      height: 5,
+                    ),
+                    Text(
+                      '${pjpInfo.displayName}',
+                      style: TextStyle(
+                        color: Colors.black45,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+
+                pjpInfo.getStatus() == PJPCVFStatus.UNKNOWN  ? Checkbox(
+                  checkColor: Colors.black,
+                  activeColor: LightColors.kLavender,
+                  value: _isChecked[index],
+                  onChanged: (bool? value) {
+                    setState(() {
+                      _isChecked[index] = value!;
+                      if(value==false){
+                        _isSelectAll=false;
+                      }
+                      sort();
+                    });
+                  },
+                  //)
+                ) : pjpInfo.getStatus() == PJPCVFStatus.APPROVE ? Image.asset(
+                  'assets/icons/ic_checked.png',
+                  height: 50,
+                ) : Image.asset(
+                  'assets/icons/ic_cross.png',
+                  height: 50,
+                )
+                /*IconButton(
+                  icon: const Icon(Icons.more_outlined),
+                  color: kPrimaryLightColor,
+                  tooltip: 'Options',
+                  onPressed: () async {
+                    showImageOption(model);
+                  },
+                )*/
+              ],
+            ),
+            SizedBox(height: 10,),
+            Container(
+              decoration: BoxDecoration(
+                color: Color(0xffe8eafe),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              width: double.infinity,
+              margin: EdgeInsets.only(right:10),
+              padding: EdgeInsets.only(left: 20,right: 20,top: 10,bottom: 10),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    children: [
+                      Text(
+                        'Check In Date Time',
+                        style: TextStyle(
+                          fontSize: 8,
+                          color: kPrimaryLightColor,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        pjpInfo.dateTimeIn==null || pjpInfo.dateTimeIn.isEmpty ? 'NA' : Utility.parsePJPDateTime(pjpInfo.dateTimeIn),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: kPrimaryLightColor,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(
+                    width: size.width *  0.1,
+                    child: Center(
+                      child: Text(
+                        '',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Color(0xff575de3),
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                  Column(
+                    children: [
+                      Text(
+                        'Check Out Date Time',
+                        style: TextStyle(
+                          fontSize: 8,
+                          color: kPrimaryLightColor,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        pjpInfo.dateTimeOut==null || pjpInfo.dateTimeOut.isEmpty ? 'NA' : Utility.parsePJPDateTime(pjpInfo.dateTimeOut),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: kPrimaryLightColor,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  )
+                ],
+              ),
+            )
+          ],
+        ),
+      ),
+    );
+  }
   getView(PjpExceptionalModel pjpInfo,int index) {
     return GestureDetector(
       onTap: () {
-        if(pjpInfo.isExpectionallyApproved) {
-          /*Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (context) => CVFListScreen(mPjpInfo: pjpInfo)));*/
-        }/*else if(pjpInfo.isSelfPJP=='1' && pjpInfo.ApprovalStatus=='Rejected'){
-          Utility.showMessageSingleButton(context, 'The PJP is Rejected by Manager', this);
-        }else if (pjpInfo.isSelfPJP=='1'){
-          Utility.showMessageSingleButton(context, 'This pjp is not approved yet, Please connect with your manager', this);
-        }*/
+
       },
       child: Padding(
         padding: EdgeInsetsDirectional.fromSTEB(16, 0, 16, 8),
@@ -450,11 +700,7 @@ class _MyPjpListState extends State<PjpExceotionalScreen> implements onResponse,
                   ),
                 ),
                 //),
-                trailing: !pjpInfo.isExpectionallyApproved ? /*OutlinedButton(
-                  onPressed: () {
-                      Utility.showMessageMultiButton(context,'Approve','Reject', 'PJP : ${pjpInfo.pjPId}', 'Are you sure to approve the PJP, created by ${pjpInfo.displayName}',pjpInfo, this);
-                  },
-                  child: */Checkbox(
+                trailing: pjpInfo.getStatus() == PJPCVFStatus.UNKNOWN ? Checkbox(
                     checkColor: Colors.black,
                     activeColor: LightColors.kLavender,
                     value: _isChecked[index],
@@ -597,7 +843,7 @@ class _MyPjpListState extends State<PjpExceotionalScreen> implements onResponse,
         if (response != null && response.responseData != null) {
           if (widget.mFilterSelection == null ||widget.mFilterSelection.type == FILTERStatus.MYTEAM) {
             for (int index = 0;index < response.responseData!.length;index++) {
-              if(widget.isApproved && response.responseData[index].isExpectionallyApproved || !widget.isApproved && !response.responseData[index].isExpectionallyApproved){
+              if(widget.isApproved && response.responseData[index].getStatus() !=PJPCVFStatus.UNKNOWN || !widget.isApproved && response.responseData[index].getStatus() != PJPCVFStatus.UNKNOWN){
                 //mPjpList.add(response.responseData[index]);
                 for(int jIndex=0;jIndex<widget.mFilterSelection.filters.length;jIndex++){
                   if(widget.mFilterSelection.filters[jIndex].isSelected && response.responseData[index].displayName==widget.mFilterSelection.filters[jIndex].name){
@@ -610,15 +856,14 @@ class _MyPjpListState extends State<PjpExceotionalScreen> implements onResponse,
             debugPrint('FOR MY SELF');
             for (int index = 0;index < response.responseData.length;index++) {
               if (true /*|| response.responseData[index].isSelfPJP == '1'*/) {
-                if(widget.isApproved && response.responseData[index].isExpectionallyApproved || !widget.isApproved && !response.responseData[index].isExpectionallyApproved)
+                if(widget.isApproved && response.responseData[index].getStatus() !=PJPCVFStatus.UNKNOWN || !widget.isApproved && response.responseData[index].getStatus() == PJPCVFStatus.UNKNOWN)
                   mPjpList.add(response.responseData[index]);
               }
             }
           } else if (widget.mFilterSelection.type == FILTERStatus.NONE) {
 
             for (int index = 0;index < response.responseData.length;index++) {
-              debugPrint('FOR MY CUSTOM TEAM - e ${widget.isApproved} ${response.responseData[index].isExpectionallyApproved}');
-              if(widget.isApproved && response.responseData[index].isExpectionallyApproved || !widget.isApproved && !response.responseData[index].isExpectionallyApproved)
+              if(widget.isApproved && response.responseData[index].getStatus() != PJPCVFStatus.UNKNOWN || !widget.isApproved && response.responseData[index].getStatus() == PJPCVFStatus.UNKNOWN)
                   mPjpList.add(response.responseData[index]);
             }
           } else {
@@ -626,7 +871,7 @@ class _MyPjpListState extends State<PjpExceotionalScreen> implements onResponse,
             for (int index = 0;index < response.responseData.length;index++) {
               for (int jIndex = 0;jIndex < widget.mFilterSelection.filters.length;jIndex++) {
                 if (response.responseData[index].displayName == widget.mFilterSelection.filters[jIndex].name) {
-                  if(widget.isApproved && response.responseData[index].isExpectionallyApproved || !widget.isApproved && !response.responseData[index].isExpectionallyApproved)
+                  if(widget.isApproved && response.responseData[index].getStatus() !=PJPCVFStatus.UNKNOWN || !widget.isApproved && response.responseData[index].getStatus() == PJPCVFStatus.UNKNOWN)
                     mPjpList.add(response.responseData[index]);
                 }
               }
@@ -647,7 +892,7 @@ class _MyPjpListState extends State<PjpExceotionalScreen> implements onResponse,
       }
     }else if(value is GeneralResponse){
       GeneralResponse response = value;
-      Utility.onSuccessMessage(context, 'PJP Updated', 'PJP status has been updated Successfully', this);
+      Utility.onSuccessMessage(context, 'PJP Updated', 'PJP-CVF  status has been updated Successfully', this);
     }
     debugPrint('length ${mPjpList.length}');
     setState(() {

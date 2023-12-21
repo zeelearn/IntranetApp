@@ -754,14 +754,14 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         useMaterial3: true,
         checkboxTheme: CheckboxThemeData(
-          checkColor: MaterialStateProperty.all(kPrimaryLightColor),
+          checkColor: MaterialStateProperty.all(Colors.white),
           //fillColor: MaterialStateProperty.all(Colors.white),
           fillColor: MaterialStateColor.resolveWith(
                 (states) {
               if (states.contains(MaterialState.selected)) {
                 return kPrimaryLightColor; // the color when checkbox is selected;
               }
-              return Colors.black45; //the color when checkbox is unselected;
+              return Colors.black12; //the color when checkbox is unselected;
             },
           ),
           overlayColor: MaterialStateProperty.all(Colors.black),

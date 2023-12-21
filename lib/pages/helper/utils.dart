@@ -317,6 +317,21 @@ class Utility{
     return date;
   }
 
+  static String parsePJPDateTime(String value) {
+    String date =value;
+    DateTime dt = DateTime.now();
+    //print('value ${value}');
+    try {
+      dt = new DateFormat('yyyy-MM-dd\'T\'HH:mm:ss').parse(value);
+      //print('dt ${dt.day}');
+      date = DateFormat("dd MMM yy, hh:mm a").format(dt);
+      //print('date ${date}');
+    } catch (e) {
+      e.toString();
+    }
+    return date;
+  }
+
   static String parseDateOnly(String value) {
     String date =value;
     DateTime dt = DateTime.now();
