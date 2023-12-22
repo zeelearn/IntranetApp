@@ -244,10 +244,10 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener{
   getCenterForm() {
     size = MediaQuery.of(context).size;
     return Container(
+      color: Colors.white,
       child: Column(
         children: [
           Card(
-            color: LightColor.lightGrey,
             margin: EdgeInsets.only(left: 10,right: 10),
             child: Padding(
               padding: EdgeInsets.only(left: 10, right: 10, bottom: 10,top:10),
@@ -319,6 +319,7 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener{
                                   border: InputBorder.none,
                                   icon: Icon(Icons.access_time),
                                   hintText: 'Select Time',
+                                  hintStyle: TextStyle(color: Colors.black38)
                                 ),
                                 undoController: null,
                                 readOnly: true, //set it true, so that user will not able to edit text
@@ -721,6 +722,7 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener{
                     border: InputBorder.none,
                     icon: Icon(Icons.calendar_today),
                     hintText: 'Select Date',
+                    hintStyle: TextStyle(color: Colors.black38)
                   ),
 
                   undoController: null,

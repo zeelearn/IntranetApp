@@ -17,6 +17,13 @@ class UpdatePJPStatusListRequest {
     });
   }
 
+  getExJson(){
+    return jsonEncode( {
+      'xml': DocXML,
+      'created_by': Workflow_user
+    });
+  }
+
   Map<String, dynamic> toJson() {
     Map<String, dynamic> map = {
       'DocXML': DocXML,

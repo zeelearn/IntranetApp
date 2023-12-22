@@ -138,7 +138,6 @@ class Utility{
     }
     return date;
   }
-
   static getConfirmationDialogPJP(BuildContext context,onResponse response){
     Dialogs.materialDialog(
       color: Colors.white,
@@ -311,6 +310,21 @@ class Utility{
       dt = new DateFormat('yyyy-MM-dd\'T\'HH:mm:ss.sss\'Z\'').parse(value);
       //print('dt ${dt.day}');
       date = DateFormat("dd MMM yy").format(dt);
+      //print('date ${date}');
+    } catch (e) {
+      e.toString();
+    }
+    return date;
+  }
+
+  static String parsePJPDateTime(String value) {
+    String date =value;
+    DateTime dt = DateTime.now();
+    //print('value ${value}');
+    try {
+      dt = new DateFormat('yyyy-MM-dd\'T\'HH:mm:ss').parse(value);
+      //print('dt ${dt.day}');
+      date = DateFormat("dd MMM yy, hh:mm a").format(dt);
       //print('date ${date}');
     } catch (e) {
       e.toString();
@@ -819,7 +833,10 @@ class Utility{
       actions: [
         IconsButton(
           onPressed: () {
+
+            //Navigator.of(context, rootNavigator: true).pop();
             Future.delayed(Duration(milliseconds: 50)).then((_) {
+              Navigator.of(context, rootNavigator: true).pop('dialog');
               response.onSuccess('SUCCESS');
             });
           },

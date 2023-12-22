@@ -1,9 +1,11 @@
 import 'package:Intranet/api/request/bpms/get_task_comments.dart';
 import 'package:Intranet/api/request/bpms/insert_attachment.dart';
 import 'package:Intranet/api/request/bpms/update_task.dart';
+import 'package:Intranet/api/request/pjp/pjp_exceptional_list.dart';
 import 'package:Intranet/api/response/bpms/get_comments_response.dart';
 import 'package:Intranet/api/response/bpms/insert_attachment_response.dart';
 import 'package:Intranet/api/response/bpms/update_task_response.dart';
+import 'package:Intranet/api/response/pjp/pjp_exceptional_list.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:Intranet/api/request/cvf/update_cvf_status_request.dart';
 import 'package:Intranet/api/request/pjp/get_pjp_list_request.dart';
@@ -48,6 +50,32 @@ class IntranetServiceHandler{
         }
       }else{
         onResponse.onError('PJP List not avaliable ');
+      }
+    });
+  }
+
+  static loadPjpExceptionalSummery(int employeeId,onResponse onResponse) {
+    onResponse.onStart();
+    PJPExceptionalRequest request = PJPExceptionalRequest(Manager_Emp_id: employeeId);
+    debugPrint(request.toJson().toString());
+    APIService apiService = APIService();
+    apiService.getPJPExceptionalList(request).then((value) {
+      debugPrint(value.toString());
+      if (value != null) {
+        if (value == null || value.responseData == null) {
+          onResponse.onError('PJP List not avaliable 1');
+        } else if (value is PjpExceptionalResponse) {
+          try {
+            onResponse.onSuccess(value);
+          }catch(e){
+            onResponse.onError('PJP List not avaliable 2 ${e.toString()}');
+          }
+
+        } else {
+          onResponse.onError('PJP List not avaliable 3');
+        }
+      }else{
+        onResponse.onError('PJP List not avaliable 4');
       }
     });
   }
@@ -182,6 +210,26 @@ class IntranetServiceHandler{
     onResponse.onStart();
     APIService apiService = APIService();
     apiService.updatePjpStatusList(request).then((value) {
+      debugPrint(value.toString());
+      if (value != null) {
+        if (value == null || value.responseData == null) {
+          onResponse.onError('Unable to get Reports');
+        } else if (value is GeneralResponse) {
+          GeneralResponse response = value;
+          onResponse.onSuccess(response);
+        } else {
+          onResponse.onError('Unable to get Reports ');
+        }
+      }else{
+        onResponse.onError('Unable to get Reports');
+      }
+    });
+  }
+
+  static updatePJPStatusExceptional(UpdatePJPStatusListRequest request,onResponse onResponse) {
+    onResponse.onStart();
+    APIService apiService = APIService();
+    apiService.updatePjpStatusExceptionalList(request).then((value) {
       debugPrint(value.toString());
       if (value != null) {
         if (value == null || value.responseData == null) {

@@ -1,5 +1,4 @@
 import 'package:Intranet/pages/helper/LocalStrings.dart';
-import 'package:Intranet/pages/pjp/pjp_list_manager_exceptional.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hive/hive.dart';
@@ -22,18 +21,17 @@ import 'mypjp_manager_a.dart';
 import 'mypjp_manager_e.dart';
 import 'mypjp_manager_p.dart';
 
-class PJPManagerScreen extends StatefulWidget {
-  int employeeId;
+class PJPManagerExceptionalScreen extends StatefulWidget {
 
-  PJPManagerScreen({Key? key, required this.employeeId})
+  PJPManagerExceptionalScreen({Key? key,})
       : super(key: key);
 
   @override
   _PJPManagerScreen createState() => _PJPManagerScreen();
 }
 
-class _PJPManagerScreen extends State<PJPManagerScreen>
-    with SingleTickerProviderStateMixin implements onClickListener {
+class _PJPManagerScreen extends State<PJPManagerExceptionalScreen>
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver implements onClickListener {
   late TabController _tabController;
   final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey =
   GlobalKey<RefreshIndicatorState>();
@@ -45,8 +43,9 @@ class _PJPManagerScreen extends State<PJPManagerScreen>
   final _tabs = [Tab(text: 'Pending Approvals'), Tab(text: 'All Approvals')];
   FilterSelection mFilterSelection = FilterSelection(
     filters: [], type: FILTERStatus.NONE,);
+  int employeeId=0;
 
-  late MyPjpManPListScreen pendingApproval;
+  late PjpExceotionalScreen pendingApproval;
 
   final _iconTabs = [
     Tab(icon: Icon(Icons.line_style)),
@@ -70,6 +69,7 @@ class _PJPManagerScreen extends State<PJPManagerScreen>
     debugPrint('MyManager screen');
     _tabController = TabController(length: 2, vsync: this);
     super.initState();
+    WidgetsBinding.instance?.addObserver(this);
     getUserInfo();
     updateFilter();
     _tabController.addListener(() {
@@ -80,17 +80,25 @@ class _PJPManagerScreen extends State<PJPManagerScreen>
     });
   }
 
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      print('didChangeAppLifecycleState - Manager');
+      updateFilter();
+    }
+  }
+
   updateFilter(){
-    pendingApproval = MyPjpManPListScreen(
-      mFilterSelection: mFilterSelection,
-      mPjpList:[],
-      isApproved : false);
+    pendingApproval = PjpExceotionalScreen(
+        mFilterSelection: mFilterSelection,
+        mPjpList:[],
+        isApproved : false);
   }
 
   Future<void> getUserInfo() async {
     var hiveBox = await Utility.openBox();
     await Hive.openBox(LocalConstant.KidzeeDB);
-    widget.employeeId = int.parse(hiveBox.get(LocalConstant.KEY_EMPLOYEE_ID) as String);
+    employeeId = int.parse(hiveBox.get(LocalConstant.KEY_EMPLOYEE_ID) as String);
     businessId = hiveBox.get(LocalConstant.KEY_BUSINESS_ID);
     //loadAcquisition();
 
@@ -102,39 +110,54 @@ class _PJPManagerScreen extends State<PJPManagerScreen>
     _tabController.dispose();
   }
 
+  Widget tabBody(){
+    return MaterialApp(
+      home: DefaultTabController(
+        length: 2,
+        child: Scaffold(
+          appBar: AppBar(
+            title: const TabBar(
+              tabs: [
+                Tab(text: 'Pending'),
+                Tab(text: 'Approved'),
+              ],
+            ),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.filter_list),
+                tooltip: 'Filter',
+                onPressed: () {
+                  openFilters();
+                },
+              )
+            ],
+          ),
+          body: TabBarView(
+            key: UniqueKey(),
+            children: [
+              pendingApproval,
+              PjpExceotionalScreen(
+                mFilterSelection: mFilterSelection,
+                mPjpList:[],
+                isApproved : true,)
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          title: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          title: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text("My PJP",style: LightColors.textHeaderStyleWhite),
-              Padding(
-                padding: EdgeInsets.only(right: 3),
-                child: Container(
-                  alignment: Alignment.center,
-                  child: Padding(
-                    padding: MyWidget().MyButtonPadding(),
-                    child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => PJPManagerExceptionalScreen()));
-                      },
-                      // style: ButtonStyle(elevation: MaterialStateProperty(12.0 )),
-                      style: ElevatedButton.styleFrom(
-                          elevation: 11.0,
-                          backgroundColor: Colors.white70,
-                          shadowColor: Colors.white,
-                          textStyle:
-                          const TextStyle(color: Colors.black)),
-                      child:  Text('Exceptional PJP',style: LightColors.textStyle,),
-                    ),
-                  ),
-                ),
-              ),
+              Text("PJPCVF Attendance Approval",style: LightColors.textHeaderStyleWhite),
+              Text("Exceptional",style: LightColors.textHeaderStyleWhite),
+
             ],
           ) /*const Text("My PJP")*/,
           backgroundColor: kPrimaryLightColor,
@@ -157,7 +180,7 @@ class _PJPManagerScreen extends State<PJPManagerScreen>
         onRefresh: () async {
           updateFilter();
           return Future<void>.delayed(const Duration(seconds: 3));
-        },child: Stack(
+        },child: true ? tabBody() : Stack(
           children: [
             Padding(
               padding: const EdgeInsets.all(8.0),
@@ -195,11 +218,11 @@ class _PJPManagerScreen extends State<PJPManagerScreen>
             ),
             Padding(
               padding: EdgeInsets.only(top: 70),
-              child: _tabController.index==0 ? pendingApproval : MyPjpManAListScreen(
+              child: _tabController.index==0 ? pendingApproval : PjpExceotionalScreen(
                 mFilterSelection: FilterSelection(
                   filters: [], type: FILTERStatus.NONE,),
                 mPjpList:[],
-                isApproved : _tabController.index==0 ? false : true,),
+                isApproved : true,),
             ),
           ],
         ),
@@ -211,14 +234,16 @@ class _PJPManagerScreen extends State<PJPManagerScreen>
         context,
         MaterialPageRoute(
           builder: (context) => FiltersScreen(
-            employeeId: widget.employeeId,
+            employeeId: employeeId,
           ),
         ));
     if (result is FilterSelection) {
+      setState(() {
+        isLoading = true;
+      });
       FilterSelection filter = result;
       mFilterSelection.type = filter.type;
       mFilterSelection.filters.clear();
-
       for(int index=0;index<filter.filters.length;index++){
         if(filter.filters[index].isSelected){
           mFilterSelection.filters.add(filter.filters[index]);
@@ -226,8 +251,10 @@ class _PJPManagerScreen extends State<PJPManagerScreen>
         }
       }
     }
+    print('update flutter');
     updateFilter();
     setState(() {
+      isLoading = false;
     });
   }
 
@@ -480,7 +507,7 @@ class _PJPManagerScreen extends State<PJPManagerScreen>
       var list = getSelectedModels(status, (index * 50));
       if(list!=null && list.toString().trim().isNotEmpty && list.toString()!='[]') {
         String xml = "{'root': {'subroot': ${list}}";
-        dbHelper.insertSyncData(xml, 'LEAVEMAN', widget.employeeId);
+        dbHelper.insertSyncData(xml, 'LEAVEMAN', employeeId);
       }
     }
     //Navigator.of(context).pop();
