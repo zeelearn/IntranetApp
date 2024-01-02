@@ -371,7 +371,7 @@ class _MyPjpListState extends State<PjpExceotionalScreen>  with WidgetsBindingOb
         for(int index=0;index<filter.filters.length;index++){
           if(filter.filters[index].isSelected){
             widget.mFilterSelection.filters.add(filter.filters[index]);
-            //debugPrint('--${filter.filters[index].name}');
+            debugPrint('--${filter.filters[index].name}');
           }
         }
         //debugPrint(filter.filters.toList());
@@ -867,10 +867,13 @@ class _MyPjpListState extends State<PjpExceotionalScreen>  with WidgetsBindingOb
                   mPjpList.add(response.responseData[index]);
             }
           } else {
-            debugPrint('In else');
+            debugPrint('In else 123');
             for (int index = 0;index < response.responseData.length;index++) {
               for (int jIndex = 0;jIndex < widget.mFilterSelection.filters.length;jIndex++) {
-                if (response.responseData[index].displayName == widget.mFilterSelection.filters[jIndex].name) {
+                print('${widget.mFilterSelection.filters[jIndex].name.trim()}vs${response.responseData[index].displayName.trim()}');
+                print(' ${widget.isApproved} ${response.responseData[index].getStatus()}');
+                if (response.responseData[index].displayName.trim() == widget.mFilterSelection.filters[jIndex].name.trim()) {
+                  print(' display name matched');
                   if(widget.isApproved && response.responseData[index].getStatus() !=PJPCVFStatus.UNKNOWN || !widget.isApproved && response.responseData[index].getStatus() == PJPCVFStatus.UNKNOWN)
                     mPjpList.add(response.responseData[index]);
                 }
