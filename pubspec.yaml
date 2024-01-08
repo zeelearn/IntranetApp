@@ -67,7 +67,7 @@ dependencies:
   flutter_icons_null_safety: ^1.1.0
   flutter_google_places: ^0.3.0
   geocoding: ^2.1.0
-  syncfusion_flutter_datepicker: ^22.2.12
+  syncfusion_flutter_datepicker: ^24.1.43
   image_picker: ^0.8.7+5
   material_dialogs: ^1.1.4
   geolocator: ^9.0.2
@@ -92,7 +92,7 @@ dependencies:
   custom_date_range_picker: ^1.0.10
   file_picker: ^5.3.2
   flutter_webview_pro: ^3.0.1+4
-  syncfusion_flutter_pdfviewer: ^22.2.12
+  syncfusion_flutter_pdfviewer: ^24.1.43
   location_geocoder: ^1.0.5
   order_tracker_zen: ^1.0.0+4
   app_version_update: ^4.0.1
@@ -107,6 +107,11 @@ dependencies:
   flutter_widget_from_html_core: ^0.14.6
   flutter_html: ^3.0.0-alpha.6
   dropdown_search: ^5.0.6
+
+  calendar_date_picker2: ^0.5.3
+  device_calendar: ^4.3.2
+  flutter_native_timezone: ^2.0.0
+  syncfusion_flutter_calendar: ^24.1.43
   #overlay_support: ^2.0.1
 
   #flutter_background_service: ^2.4.3

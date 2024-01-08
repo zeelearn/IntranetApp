@@ -165,7 +165,7 @@ class _MyPjpListState extends State<PjpExceotionalScreen>  with WidgetsBindingOb
           debugPrint('In else');
           for (int index = 0;index < response.responseData.length;index++) {
             for (int jIndex = 0;jIndex < widget.mFilterSelection.filters.length;jIndex++) {
-              print('-- ${widget.mFilterSelection.filters[jIndex].name}');
+              print('---- ${widget.mFilterSelection.filters[jIndex].name}');
               if (response.responseData[index].displayName == widget.mFilterSelection.filters[jIndex].name) {
                 if(widget.isApproved && response.responseData[index].getStatus() !=PJPCVFStatus.UNKNOWN || !widget.isApproved && response.responseData[index].getStatus() == PJPCVFStatus.UNKNOWN)
                   mPjpList.add(response.responseData[index]);

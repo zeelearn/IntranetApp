@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:Intranet/pages/bpms/auth/ui/bpms_home.dart';
 import 'package:Intranet/pages/helper/LocalConstant.dart';
+
 import 'package:flutter/material.dart';
 import 'package:Intranet/pages/home/task_category_entity.dart';
 import 'package:Intranet/pages/pjp/cvf/mycvf.dart';
@@ -10,6 +11,7 @@ import '../bpms/bpms_dashboard.dart';
 import '../bpms/bpms_projects.dart';
 import '../helper/utils.dart';
 import '../model/filter.dart';
+import '../outdoor/outdoor/myoutdoorplanner.dart';
 import '../pjp/mypjp.dart';
 import '../pjp/pjp_list_manager_exceptional.dart';
 import '../report/myreport.dart';
@@ -249,7 +251,12 @@ class HomePageMenu extends StatelessWidget {
                   ],
                 )
             ),
-            isBpms ? _getMenu(context, 'PJP-CVF Approval (Exp)', Icons.approval ,PJPManagerExceptionalScreen()) : SizedBox(width: 0,)
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+              isBpms ? _getMenu(context, 'PJP-CVF Approval (Exp)', Icons.approval ,PJPManagerExceptionalScreen()) : SizedBox(width: 0,),
+              _getMenu(context, 'My Planning',Icons.approval , MyOutdoorPlanner())
+            ],)
 
           ]
           ),
