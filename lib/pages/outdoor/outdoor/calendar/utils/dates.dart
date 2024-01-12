@@ -14,20 +14,18 @@ bool isCurrentDate(DateTime date) {
 //           highlightedDate.dateTime.month, highlightedDate.dateTime.day)));
 // }
 
-int? isHighlightedDate(
+Color? isHighlightedDate(
     DateTime date, List<HighlightDateColorModel> highlightedDates) {
   for (var element in highlightedDates) {
     if (date.isAtSameMomentAs(DateTime(
         element.dateTime.year, element.dateTime.month, element.dateTime.day))) {
+      debugPrint('date is - $date and color is - ${element.color}');
       return element.color;
     } else {
       // return 1;
     }
   }
-  return null;
-  // highlightedDates.any((HighlightDateColorModel highlightedDate) =>
-  //     date.isAtSameMomentAs(DateTime(highlightedDate.dateTime.year,
-  //         highlightedDate.dateTime.month, highlightedDate.dateTime.day)));
+  return Colors.transparent;
 }
 
 /// Gets the number of days for the given month,
@@ -61,7 +59,7 @@ String getMonthName(int month, {List<String>? monthNames}) {
 
 class HighlightDateColorModel {
   DateTime dateTime;
-  int color;
+  Color color;
 
   HighlightDateColorModel({required this.dateTime, required this.color});
 }

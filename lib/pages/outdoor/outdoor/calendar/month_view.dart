@@ -7,6 +7,7 @@ import 'utils/screen_sizes.dart';
 
 class MonthView extends StatelessWidget {
   const MonthView({
+    super.key,
     required this.context,
     required this.year,
     required this.month,
@@ -36,10 +37,8 @@ class MonthView extends StatelessWidget {
       color = currentDateColor;
     } else if (highlightedDates != null && highlightedDates!.isNotEmpty) {
       var highLightType = isHighlightedDate(date, highlightedDates!);
-      if (highLightType != null && highLightType == 1) {
-        color = highlightedDateColor!;
-      } else if (highLightType != null && highLightType == 2) {
-        color = Colors.green;
+      if (highLightType != null) {
+        color = highLightType;
       }
     }
     return color;
@@ -62,6 +61,8 @@ class MonthView extends StatelessWidget {
         DayNumber(
           day: day,
           color: color,
+          highlightedDates: highlightedDates,
+          currentTime: DateTime(year, month, day),
         ),
       );
 
@@ -83,7 +84,7 @@ class MonthView extends StatelessWidget {
   }
 
   Widget buildMonthView(BuildContext context) {
-    return Container(
+    return SizedBox(
       width: 7 * getDayNumberSize(context),
       // margin: EdgeInsets.all(padding),
       child: Column(

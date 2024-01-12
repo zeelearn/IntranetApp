@@ -1,11 +1,9 @@
 class LocalStrings {
   static String appName = "Kidzee";
   static var stepOneTitle = "Intranet ";
-  static var stepOneContent =
-      "Attendance, Leave and outdoor Requisition ";
+  static var stepOneContent = "Attendance, Leave and outdoor Requisition ";
   static var stepTwoTitle = "Permanent Journey Planner";
-  static var stepTwoContent =
-      "PJP Planning and approval for manager";
+  static var stepTwoContent = "PJP Planning and approval for manager";
   static var stepThreeTitle = "Center Visit Form";
   static var stepThreeContent = "";
 
@@ -15,22 +13,41 @@ class LocalStrings {
   static const kGoogleApiKey = "AIzaSyD-x4HqYO1O0kwDpkxIc128nM4f1bZ3oDM";
   static const String GET_TOKEN = "/snltoken";
   static const String GET_LOGIN = '/api/Account/Login';
-  static const String GET_ATTENDANCE_SUMMERY = '/api/EmployeeInfo/GetAttendance';
+  static const String GET_ATTENDANCE_SUMMERY =
+      '/api/EmployeeInfo/GetAttendance';
   static const String GET_LEAVE_SUMMERY = '/api/EmployeeInfo/CheckLeaveBalance';
-  static const String GET_LEAVE_REQUISITION = '/api/EmployeeInfo/AttendanceRequisition';
+  static const String GET_LEAVE_REQUISITION =
+      '/api/EmployeeInfo/AttendanceRequisition';
   static const String GET_APPLY_LEAVE = '/api/Leave/RequisitionHeaderInsert';
-  static const String GET_ATTENDANCE_MARKING = '/api/EmployeeInfo/SaveAttendanceMarking';
-  static const String GET_OUTDOOR_REQUISITION = '/api/EmployeeInfo/GetOutdoorReqList';
-  static const String GET_ATTENDANCE_REQUISITION_MAN = '/api/EmployeeInfo/GetAttendanceMarkingList';
-  static const String GET_APPROVE_ATTENDANCE_REQUISITION = '/api/EmployeeInfo/AttendanceMarking';
-  static const String GET_LEAVE_REQUISITION_MANAGER = '/api/EmployeeInfo/LeaveReqList';
-  static const String GET_APPROVE_LEAVE_REQUISITION = '/api/Leave/UpdateWorkflowGeneric';
-  static const String GET_APPROVE_LEAVE_REQUISITION_MULTIPLE = '/api/Leave/UpdateWorkflowGenericNew';
-  static const String GET_APPROVE_ATTENDANCE_REQUISITION_NEW = '/api/EmployeeInfo/AttendanceMarkingNew';
+  static const String GET_ATTENDANCE_MARKING =
+      '/api/EmployeeInfo/SaveAttendanceMarking';
+  static const String GET_OUTDOOR_REQUISITION =
+      '/api/EmployeeInfo/GetOutdoorReqList';
+  static const String GET_ATTENDANCE_REQUISITION_MAN =
+      '/api/EmployeeInfo/GetAttendanceMarkingList';
+  static const String GET_APPROVE_ATTENDANCE_REQUISITION =
+      '/api/EmployeeInfo/AttendanceMarking';
+  static const String GET_LEAVE_REQUISITION_MANAGER =
+      '/api/EmployeeInfo/LeaveReqList';
+  static const String GET_APPROVE_LEAVE_REQUISITION =
+      '/api/Leave/UpdateWorkflowGeneric';
+  static const String GET_APPROVE_LEAVE_REQUISITION_MULTIPLE =
+      '/api/Leave/UpdateWorkflowGenericNew';
+  static const String GET_APPROVE_ATTENDANCE_REQUISITION_NEW =
+      '/api/EmployeeInfo/AttendanceMarkingNew';
   static const String UPDATE_FCM = '/api/EmployeeInfo/Insert_FCM_Table';
   static const String GET_PHPSTATUSBYEMPID = '/api/PJP/GetPJPByEmpID';
 
   static const String GET_EMPLOYEE_LIST = '/api/EmployeeInfo/GetEmployees';
+
+  static const String CREATE_EMPLYEE_VISIT_PLANNER =
+      '/api/PJP/CreateEmployeeVisitPlanner';
+
+  static const String GET_EMPLOYEE_VISIT_DETAILS =
+      '/api/PJP/GetEmployeeVisitDetails';
+
+  static const String DELETE_EMPLOYEE_VISIT_PLAN =
+      '/api/PJP/DeleteVisitPlanner';
 
   /*CVF*/
   static const String GET_CVF_CATEGORY = '/api/PJP/GetPJPCategory';
@@ -40,22 +57,26 @@ class LocalStrings {
   static const String GET_CVF_QUESTIONS = '/api/PJP/GetPJPQuestion';
   static const String GET_PJP_LIST = '/api/PJP/GetAllVisitDetails';
   static const String GET_PJP_REPORT = '/api/PJP/RptMyTeamPJPCVF';
-  static const String GET_PJP_EMPLOYEELIST = '/api/PJP/GetEmployeesBySuperiorID';
+  static const String GET_PJP_EMPLOYEELIST =
+      '/api/PJP/GetEmployeesBySuperiorID';
   static const String GET_ALL_CVF = '/api/PJP/GetAllCVFDetails';
   static const String GET_SAVE_CVF_ANSWERS = '/api/PJP/Ins_PJPCVF_Answers';
   static const String GET_UPDATE_CVF_STATUS = '/api/PJP/AddPJPAttendance';
   static const String GET_GETPJPREPORT = '/api/PJP/GetPJPReport';
   static const String UPDATE_MODIFY_STATUS = '/api/PJP/ModifyPJPStatus';
-  static const String UPDATE_MODIFY_STATUS_MULTIPLE = '/api/PJP/ModifyPJPStatus_multiple';
-  static const String GET_PJP_EXCEPTIONAL_LIST = '/api/PJP/GetCVFForExceptionalCases';
-  static const String UPDATE_PJP_EXCEPTIONAL_LIST = '/api/PJP/ApproveCVFForExceptionalCases';
-
+  static const String UPDATE_MODIFY_STATUS_MULTIPLE =
+      '/api/PJP/ModifyPJPStatus_multiple';
+  static const String GET_PJP_EXCEPTIONAL_LIST =
+      '/api/PJP/GetCVFForExceptionalCases';
+  static const String UPDATE_PJP_EXCEPTIONAL_LIST =
+      '/api/PJP/ApproveCVFForExceptionalCases';
 
   static const String API_GET_TASKDETAILS = 'api/bp/GetPartnerTaskDetails';
   static const String API_UPDATE_TASKDETAILS = 'api/bp/UpdateTaskStatus';
   static const String API_GET_COMMENTS = 'api/bp/Getcomments';
   static const String API_INSERT_ATTACHMENT = 'api/bp/InserttaskAttachment';
-  static const String API_GET_FRANCHISEEDETAILS = 'api/bp/GetFranchiseeDetailInfo';
+  static const String API_GET_FRANCHISEEDETAILS =
+      'api/bp/GetFranchiseeDetailInfo';
   static const String API_GET_COMMUNICATION = 'api/bp/Getcommunication';
   static const String API_GET_BPMS_COUNTS = 'api/bp//GetDashboardCount';
   static const String API_GET_BPMS_ALL_PROJECTS = 'api/bp//GetAllProjectList';
@@ -65,5 +86,4 @@ class LocalStrings {
   static const String API_INSERT_BPMS_STATUS = 'api/bp//GetInputdata';
   static const String API_SEND_CREDENTIALS = 'api/bp/SendTempCredentialsEmail';
   static const String API_BPMS_DELETETASK = 'api/bp//deletetask';
-
 }
