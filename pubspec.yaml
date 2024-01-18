@@ -113,6 +113,8 @@ dependencies:
   flutter_native_timezone: ^2.0.0
   syncfusion_flutter_calendar: ^24.1.43
   fluttertoast: ^8.2.4
+  grouped_list: ^5.1.2
+  collection: ^1.18.0
   #overlay_support: ^2.0.1
 
   #flutter_background_service: ^2.4.3

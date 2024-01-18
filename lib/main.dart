@@ -40,6 +40,7 @@ import 'api/request/leave/leave_approve_request.dart';
 import 'api/response/apply_leave_response.dart';
 import 'api/response/approve_attendance_response.dart';
 import 'api/response/cvf/update_status_response.dart';
+import 'pages/pjp/cvf/getVisitplannerCvfcubit/cubit/getvisitplannercvf_cubit.dart';
 
 part 'main.g.dart';
 
@@ -287,6 +288,9 @@ Future<void> main() async {
     providers: [
       BlocProvider<GetplandetailsCubit>(
         create: (BuildContext context) => GetplandetailsCubit(),
+      ),
+      BlocProvider<GetvisitplannercvfCubit>(
+        create: (BuildContext context) => GetvisitplannercvfCubit(),
       ),
     ],
     child: const ProviderScope(

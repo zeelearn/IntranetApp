@@ -1,7 +1,6 @@
-import 'package:flutter/cupertino.dart';
+import 'package:Intranet/api/request/pjp/employee_request.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:Intranet/api/request/pjp/employee_request.dart';
 
 import '../../api/APIService.dart';
 import '../../api/response/pjp/employee_response.dart';
@@ -10,9 +9,8 @@ import '../helper/utils.dart';
 import '../model/filter.dart';
 
 class FiltersScreen extends StatefulWidget {
-  int employeeId=0;
-  FiltersScreen({Key? key,required this.employeeId}) : super(key: key);
-
+  int employeeId = 0;
+  FiltersScreen({Key? key, required this.employeeId}) : super(key: key);
 
   @override
   State<StatefulWidget> createState() {
@@ -21,23 +19,22 @@ class FiltersScreen extends StatefulWidget {
 }
 
 class _FiltersScreenState extends State<FiltersScreen> {
-
-
-  FilterSelection _selection=FilterSelection(filters: [], type: FILTERStatus.MYSELF);
-  List<EmployeeInfoModel> mEmployeeList=[];
+  FilterSelection _selection =
+      FilterSelection(filters: [], type: FILTERStatus.MYSELF);
+  List<EmployeeInfoModel> mEmployeeList = [];
   @override
   void initState() {
     super.initState();
     Future.delayed(Duration.zero, () {
       this.loadSummery();
     });
-
   }
 
   loadSummery() {
     Utility.showLoaderDialog(context);
     mEmployeeList.clear();
-    EmployeeListRequest request = EmployeeListRequest(SuperiorId: widget.employeeId);
+    EmployeeListRequest request =
+        EmployeeListRequest(SuperiorId: widget.employeeId);
     APIService apiService = APIService();
     apiService.getEmployeeListPJP(request).then((value) {
       debugPrint(' value is ${value.toString()}');
@@ -50,8 +47,11 @@ class _FiltersScreenState extends State<FiltersScreen> {
           EmployeeListPJPResponse response = value;
           if (response != null && response.responseData != null) {
             _selection.filters.clear();
-            for(int index=0;index<response.responseData.length;index++){
-              _selection.filters.add(new FilterModel(id: (index+2), name: response.responseData[index].ename, employeeId: 0));
+            for (int index = 0; index < response.responseData.length; index++) {
+              _selection.filters.add(new FilterModel(
+                  id: (index + 2),
+                  name: response.responseData[index].ename,
+                  employeeId: 0));
             }
             setState(() {});
           }
@@ -79,51 +79,45 @@ class _FiltersScreenState extends State<FiltersScreen> {
             tooltip: 'APPLY',
             onPressed: () {
               Navigator.pop(context, _selection);
-
             },
           ),
         ],
       ),
       body: SingleChildScrollView(
-        child: Column(
-            children: <Widget>[
-              CheckboxListTile(
-                  activeColor: Colors.pink[300],
-                  dense: true,
-                  //font change
-                  title: new Text(
-                    'My Self',
-                    style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 0.5),
-                  ),
-                  value: _selection.type == FILTERStatus.MYSELF ? true : false,
-                  onChanged: (val) {
-                    itemChange(val as bool, -1);
-                  }),
-              CheckboxListTile(
-                  activeColor: Colors.pink[300],
-                  dense: true,
-                  //font change
-                  title: new Text(
-                    'My Team',
-                    style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 0.5),
-                  ),
-                  value: _selection.type == FILTERStatus.MYTEAM ? true : false,
-                  onChanged: (val) {
-                    itemChange(val as bool, -2);
-                  }),
-              getFilterListView(),
-
-
-            ]
-        ),
+        child: Column(children: <Widget>[
+          CheckboxListTile(
+              activeColor: Colors.pink[300],
+              dense: true,
+              //font change
+              title: new Text(
+                'My Self',
+                style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0.5),
+              ),
+              value: _selection.type == FILTERStatus.MYSELF ? true : false,
+              onChanged: (val) {
+                itemChange(val as bool, -1);
+              }),
+          CheckboxListTile(
+              activeColor: Colors.pink[300],
+              dense: true,
+              //font change
+              title: Text(
+                'My Team',
+                style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0.5),
+              ),
+              value: _selection.type == FILTERStatus.MYTEAM ? true : false,
+              onChanged: (val) {
+                itemChange(val as bool, -2);
+              }),
+          getFilterListView(),
+        ]),
       ),
-
     );
   }
 
@@ -163,71 +157,69 @@ class _FiltersScreenState extends State<FiltersScreen> {
   getFilterListView() {
     if (_selection.filters.isEmpty) {
       debugPrint('PJP List not available');
-      return Utility.emptyDataSet(context,"Filters are not avaliable");
+      return Utility.emptyDataSet(context, "Filters are not avaliable");
     } else {
       return getListView();
     }
   }
 
-  getListView(){
-      return ListView.builder(
-          physics: NeverScrollableScrollPhysics(),
-          shrinkWrap: true,
-          itemCount: _selection.filters.length,
-          itemBuilder: (BuildContext context, int index) {
-            return new Card(
-              child: new Container(
-                padding: new EdgeInsets.all(10.0),
-                child: Column(
-                  children: <Widget>[
-                    new CheckboxListTile(
-                        activeColor: Colors.pink[300],
-                        dense: true,
-                        //font change
-                        title: new Text(
-                          _selection.filters[index].name,
-                          style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              letterSpacing: 0.5),
-                        ),
-                        value: _selection.filters[index].isSelected,
-                        onChanged: (val) {
-                          itemChange(val as bool, index);
-                        })
-                  ],
-                ),
+  getListView() {
+    return ListView.builder(
+        physics: NeverScrollableScrollPhysics(),
+        shrinkWrap: true,
+        itemCount: _selection.filters.length,
+        itemBuilder: (BuildContext context, int index) {
+          return new Card(
+            child: new Container(
+              padding: new EdgeInsets.all(10.0),
+              child: Column(
+                children: <Widget>[
+                  new CheckboxListTile(
+                      activeColor: Colors.pink[300],
+                      dense: true,
+                      //font change
+                      title: new Text(
+                        _selection.filters[index].name,
+                        style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: 0.5),
+                      ),
+                      value: _selection.filters[index].isSelected,
+                      onChanged: (val) {
+                        itemChange(val as bool, index);
+                      })
+                ],
               ),
-            );
-          });
+            ),
+          );
+        });
   }
 
   void itemChange(bool val, int index) {
     debugPrint('INDEX ${index}');
     setState(() {
-      if(index==-1){
+      if (index == -1) {
         _selection.type = FILTERStatus.MYSELF;
-        for(int index=0;index<_selection.filters.length;index++){
+        for (int index = 0; index < _selection.filters.length; index++) {
           _selection.filters[index].isSelected = false;
         }
-      }else if(index==-2){
-          if(val) {
-            _selection.type = FILTERStatus.MYTEAM;
-            for(int index=0;index<_selection.filters.length;index++){
-              _selection.filters[index].isSelected = val;
-            }
-          }
-          else
-            _selection.type = FILTERStatus.MYSELF;
-          for(int index=0;index<_selection.filters.length;index++){
+      } else if (index == -2) {
+        if (val) {
+          _selection.type = FILTERStatus.MYTEAM;
+          for (int index = 0; index < _selection.filters.length; index++) {
             _selection.filters[index].isSelected = val;
           }
-      }else {
+        } else
+          _selection.type = FILTERStatus.MYSELF;
+        for (int index = 0; index < _selection.filters.length; index++) {
+          _selection.filters[index].isSelected = val;
+        }
+      } else {
         debugPrint('in else');
         _selection.type = FILTERStatus.CUSTOM;
         _selection.filters[index].isSelected = val;
       }
     });
   }
-
 }

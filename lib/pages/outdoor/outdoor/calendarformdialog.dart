@@ -93,26 +93,29 @@ class _CalendarFormDialogState extends State<CalendarFormDialog> {
               ),
               TextField(
                 controller: eventTextController,
-                decoration: const InputDecoration(hintText: 'Enter event Name'),
+                decoration: const InputDecoration(
+                    hintText: 'Purpose',
+                    hintStyle: TextStyle(color: Colors.black26)),
               ),
               const SizedBox(
                 height: 20,
               ),
               TextField(
                 controller: descriptionTextController,
-                decoration:
-                    const InputDecoration(hintText: 'Enter Description'),
+                decoration: const InputDecoration(
+                    hintText: 'Description',
+                    hintStyle: TextStyle(color: Colors.black26)),
               ),
               const SizedBox(
                 height: 20,
               ),
-              TextField(
+              /*  TextField(
                 controller: urlTextController,
                 decoration: const InputDecoration(hintText: 'Enter Url'),
               ),
               const SizedBox(
                 height: 20,
-              ),
+              ), */
               widget.centerResponse != null
                   ? DropdownSearch<FranchiseeInfo>.multiSelection(
                       items: widget.centerResponse!.responseData,
@@ -179,130 +182,100 @@ class _CalendarFormDialogState extends State<CalendarFormDialog> {
               const SizedBox(
                 height: 20,
               ),
-              ElevatedButton(
-                  onPressed: () async {
-                    debugPrint(
-                        'Location of time zone is - $currentLocation and location date is - ${DateFormat('yyyy-MM-dd').format(TZDateTime(currentLocation!, widget.datetime.year, widget.datetime.month, widget.datetime.day))}');
-                    xmlRequest.clear();
-                    if (franchiseeInfo.isNotEmpty) {
-                      for (var franchiseeData in franchiseeInfo) {
-                        xmlRequest.add(XMLRequest(
-                            centerId: franchiseeData.franchiseeId.toInt(),
-                            fromDate: DateFormat('yyyy-MM-dd').format(
-                                TZDateTime(
-                                    currentLocation!,
-                                    widget.datetime.year,
-                                    widget.datetime.month,
-                                    widget.datetime.day)),
-                            toDate: DateFormat('yyyy-MM-dd').format(TZDateTime(
-                                currentLocation!,
-                                widget.datetime.year,
-                                widget.datetime.month,
-                                widget.datetime.day)),
-                            remark: descriptionTextController.text,
-                            eventName: eventTextController.text,
-                            url: urlTextController.text,
-                            id: 0));
-                      }
-                      if (xmlRequest.isNotEmpty) {
-                        BlocProvider.of<GetplandetailsCubit>(context)
-                            .createEmployeePlan(
-                                date: DateFormat('yyyy-MM-dd').format(
-                                    TZDateTime(
-                                        currentLocation!,
-                                        widget.datetime.year,
-                                        widget.datetime.month,
-                                        widget.datetime.day)),
-                                xmlRequest: xmlRequest);
-
-                        for (var request in xmlRequest) {
-                          var eventToCreate = Event(widget.calendarId,
-                              title: eventTextController.text,
-                              description: descriptionTextController.text,
-                              url: Uri.dataFromString(urlTextController.text),
-                              location: request.centerId.toString(),
-                              start: TZDateTime(
-                                  currentLocation!,
-                                  widget.datetime.year,
-                                  widget.datetime.month,
-                                  widget.datetime.day),
-                              end: TZDateTime(
-                                  currentLocation!,
-                                  widget.datetime.year,
-                                  widget.datetime.month,
-                                  widget.datetime.day),
-                              allDay: true);
-                          final createEventResult = await _deviceCalendarPlugin
-                              .createOrUpdateEvent(eventToCreate);
-                          if (createEventResult!.isSuccess) {
-                            debugPrint(
-                                'event inserted in calendar is - ${createEventResult.data}  and date is - ${TZDateTime(currentLocation!, widget.datetime.year, widget.datetime.month, widget.datetime.day)} and event is - ${eventTextController.text}');
-                          } else {
-                            for (var element in createEventResult.errors) {
+              BlocBuilder<GetplandetailsCubit, GetplandetailsState>(
+                builder: (context, getplandetailstate) {
+                  return ElevatedButton(
+                      onPressed: getplandetailstate
+                              is GetplandetailsLoadingState
+                          ? null
+                          : () async {
                               debugPrint(
-                                  'event inserted error for loop is - ${element.errorMessage}');
-                            }
-                          }
-                        }
-                      } else {
-                        ToastMessage()
-                            .showErrorToast('Please select center to visit.');
-                      }
-                    } else {
-                      ToastMessage()
-                          .showErrorToast('Please select center to visit.');
-                    }
+                                  'Location of time zone is - $currentLocation and location date is - ${DateFormat('yyyy-MM-dd').format(TZDateTime(currentLocation!, widget.datetime.year, widget.datetime.month, widget.datetime.day))}');
+                              xmlRequest.clear();
+                              if (franchiseeInfo.isNotEmpty) {
+                                for (var franchiseeData in franchiseeInfo) {
+                                  xmlRequest.add(XMLRequest(
+                                      centerId:
+                                          franchiseeData.franchiseeId.toInt(),
+                                      fromDate: DateFormat('yyyy-MM-dd').format(
+                                          TZDateTime(
+                                              currentLocation!,
+                                              widget.datetime.year,
+                                              widget.datetime.month,
+                                              widget.datetime.day)),
+                                      toDate: DateFormat('yyyy-MM-dd').format(
+                                          TZDateTime(
+                                              currentLocation!,
+                                              widget.datetime.year,
+                                              widget.datetime.month,
+                                              widget.datetime.day)),
+                                      remark: descriptionTextController.text,
+                                      eventName: eventTextController.text,
+                                      url: urlTextController.text,
+                                      id: 0));
+                                }
+                                if (xmlRequest.isNotEmpty) {
+                                  BlocProvider.of<GetplandetailsCubit>(context)
+                                      .createEmployeePlan(
+                                          date: DateFormat('yyyy-MM-dd').format(
+                                              TZDateTime(
+                                                  currentLocation!,
+                                                  widget.datetime.year,
+                                                  widget.datetime.month,
+                                                  widget.datetime.day)),
+                                          xmlRequest: xmlRequest);
 
-                    // if (widget.event != null) {
-                    //   widget.event?.title = eventTextController.text;
-                    //   widget.event?.description = descriptionTextController.text;
-                    //   widget.event?.url =
-                    //       Uri.dataFromString(urlTextController.text);
-                    //   widget.event?.location = franchiseeInfo!.franchiseeCity;
-                    //   final createEventResult = await _deviceCalendarPlugin
-                    //       .createOrUpdateEvent(widget.event);
-                    //   if (createEventResult!.isSuccess) {
-                    //     debugPrint(
-                    //         'event inserted in calendar is - ${createEventResult.data}  ');
-                    //   } else {
-                    //     for (var element in createEventResult.errors) {
-                    //       debugPrint(
-                    //           'event inserted error for loop is - ${element.errorMessage}');
-                    //     }
-                    //   }
-                    // } else {
-                    //   for (var request in xmlRequest) {
-                    //     var eventToCreate = Event(widget.calendarId,
-                    //         title: eventTextController.text,
-                    //         description: descriptionTextController.text,
-                    //         url: Uri.dataFromString(urlTextController.text),
-                    //         location: request.centerId.toString(),
-                    //         start: TZDateTime(
-                    //             currentLocation!,
-                    //             widget.datetime.year,
-                    //             widget.datetime.month,
-                    //             widget.datetime.day),
-                    //         end: TZDateTime(
-                    //             currentLocation!,
-                    //             widget.datetime.year,
-                    //             widget.datetime.month,
-                    //             widget.datetime.day),
-                    //         allDay: true);
-                    //     final createEventResult = await _deviceCalendarPlugin
-                    //         .createOrUpdateEvent(eventToCreate);
-                    //     if (createEventResult!.isSuccess) {
-                    //       debugPrint(
-                    //           'event inserted in calendar is - ${createEventResult.data}  and date is - ${TZDateTime(currentLocation!, widget.datetime.year, widget.datetime.month, widget.datetime.day)} and event is - ${eventTextController.text}');
-                    //     } else {
-                    //       for (var element in createEventResult.errors) {
-                    //         debugPrint(
-                    //             'event inserted error for loop is - ${element.errorMessage}');
-                    //       }
-                    //     }
-                    //   }
-                    // }
-                  },
-                  child: const Text('Add Event')),
+                                  for (var request in xmlRequest) {
+                                    var eventToCreate = Event(widget.calendarId,
+                                        title: eventTextController.text,
+                                        description:
+                                            descriptionTextController.text,
+                                        url: Uri.dataFromString(
+                                            urlTextController.text),
+                                        location: request.centerId.toString(),
+                                        start: TZDateTime(
+                                            currentLocation!,
+                                            widget.datetime.year,
+                                            widget.datetime.month,
+                                            widget.datetime.day),
+                                        end: TZDateTime(
+                                            currentLocation!,
+                                            widget.datetime.year,
+                                            widget.datetime.month,
+                                            widget.datetime.day),
+                                        allDay: true);
+                                    final createEventResult =
+                                        await _deviceCalendarPlugin
+                                            .createOrUpdateEvent(eventToCreate);
+                                    if (createEventResult!.isSuccess) {
+                                      debugPrint(
+                                          'event inserted in calendar is - ${createEventResult.data}  and date is - ${TZDateTime(currentLocation!, widget.datetime.year, widget.datetime.month, widget.datetime.day)} and event is - ${eventTextController.text}');
+                                    } else {
+                                      for (var element
+                                          in createEventResult.errors) {
+                                        debugPrint(
+                                            'event inserted error for loop is - ${element.errorMessage}');
+                                      }
+                                    }
+                                  }
+                                } else {
+                                  ToastMessage().showErrorToast(
+                                      'Please select center to visit.');
+                                }
+                              } else {
+                                ToastMessage().showErrorToast(
+                                    'Please select center to visit.');
+                              }
+                            },
+                      child: getplandetailstate is GetplandetailsLoadingState
+                          ? Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 30, vertical: 5),
+                              height: 45,
+                              child: const CircularProgressIndicator())
+                          : const Text('Add Event'));
+                },
+              ),
               const SizedBox(
                 height: 20,
               ),

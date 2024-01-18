@@ -1,6 +1,5 @@
 import 'package:Intranet/pages/outdoor/cubit/getplandetailscubit/getplandetails_cubit.dart';
 import 'package:Intranet/pages/outdoor/model/createemplyeeplanrequestmodel.dart';
-import 'package:Intranet/pages/outdoor/outdoor/calendarformupdateDialog.dart';
 import 'package:Intranet/pages/utils/toastmsg.dart';
 import 'package:device_calendar/device_calendar.dart';
 import 'package:flutter/material.dart';
@@ -18,6 +17,7 @@ import '../../helper/utils.dart';
 import '../model/getplandetails.dart';
 import 'calendar/utils/meetingDataSource.dart';
 import 'calendarformdialog.dart';
+import 'calendarformupdateDialog.dart';
 
 class SelectedMonthPlanner extends StatefulWidget {
   int year, month;
@@ -39,10 +39,13 @@ class _SelectedMonthPlannerState extends State<SelectedMonthPlanner> {
   final List<Event?> _multiDatePickerValueWithDefaultValue = [];
   final List<Meeting> allMeetings = <Meeting>[];
   final List<GetPlanData> meetings = <GetPlanData>[];
+  final List meetinginmap = [];
 
   final CalendarController calendarController = CalendarController();
 
   List<XMLRequest> updatedxmlrequestlist = [];
+
+  var groupbypriority;
 
   @override
   void initState() {
@@ -160,6 +163,7 @@ class _SelectedMonthPlannerState extends State<SelectedMonthPlanner> {
               getColor(widget.highlightDate[i].status),
               true))
           : null;
+
       widget.highlightDate[i].visitDate != null &&
               (isMonth
                   ? DateFormat('yyyy-MM-dd')
@@ -178,11 +182,11 @@ class _SelectedMonthPlannerState extends State<SelectedMonthPlanner> {
   Color getColor(String? type) {
     debugPrint('type is - $type');
     if (type == "FILL CVF") {
-      return Colors.yellowAccent.shade200;
+      return const Color(0xFFFFBF00);
     } else if (type == 'Pending') {
-      return Colors.redAccent.shade200;
+      return const Color(0xFFF08080);
     } else if (type == 'Completed') {
-      return Colors.greenAccent.shade200;
+      return const Color(0xFF2ECC71);
     } else {
       return Colors.transparent;
     }
@@ -193,8 +197,11 @@ class _SelectedMonthPlannerState extends State<SelectedMonthPlanner> {
     return BlocListener<GetplandetailsCubit, GetplandetailsState>(
       listener: (context, state) {
         if (state is DeleteEmplyeePlanSuccessState) {
-          widget.highlightDate
-              .removeWhere((element) => element.id == int.parse(state.id));
+          widget.highlightDate.removeWhere((element) {
+            debugPrint(
+                'highlight date id is - ${element.id} and - deleted id is - ${state.id}');
+            return element.id == int.parse(state.id);
+          });
 
           loadDataSource(selectedDate, false);
           setState(() {});
@@ -223,17 +230,17 @@ class _SelectedMonthPlannerState extends State<SelectedMonthPlanner> {
                           if (value != null) {
                             var listofgetplandate = value as List<GetPlanData>;
 
-                            for (var element in listofgetplandate) {
-                              debugPrint(
-                                  'Response from insert api is - ${element.toJson()}');
-                              if (!widget.highlightDate.contains(element)) {
-                                widget.highlightDate.add(element);
+                            for (GetPlanData newData in listofgetplandate) {
+                              bool isAlreadyPresent = widget.highlightDate
+                                  .any((item1) => item1.id == newData.id);
+
+                              if (!isAlreadyPresent) {
+                                widget.highlightDate.add(newData);
                               }
                             }
 
                             loadDataSource(selectedDate, false);
 
-                            // updatedxmlrequestlist.addAll(value);
                             setState(() {});
                           }
                         });
@@ -245,6 +252,9 @@ class _SelectedMonthPlannerState extends State<SelectedMonthPlanner> {
                 ],
               ),
               body: Column(children: [
+                const SizedBox(
+                  height: 20,
+                ),
                 SfCalendar(
                   view: CalendarView.month,
                   viewNavigationMode: ViewNavigationMode.none,
@@ -268,160 +278,244 @@ class _SelectedMonthPlannerState extends State<SelectedMonthPlanner> {
                   onTap: (CalendarTapDetails calendarTapDetails) async {
                     selectedDate = calendarTapDetails.date!;
 
-                    // await loadSelectedDateData();
                     loadDataSource(selectedDate, false);
 
                     setState(() {});
                   },
+                  resourceViewHeaderBuilder: (context, details) {
+                    return const Text('resourceHeader');
+                  },
+                  // loadMoreWidgetBuilder: (context, loadMoreAppointments) {
+                  //   return const Text('loadmoreHeader');
+                  // },
+                  scheduleViewMonthHeaderBuilder: (context, details) {
+                    return const Text('monthHeader');
+                  },
+                  // headerStyle:
+                  //     const CalendarHeaderStyle(backgroundColor: Colors.black),
+                  headerHeight: 0,
                   dataSource: MeetingDataSource(allMeetings),
-                  monthViewSettings: const MonthViewSettings(
-                    appointmentDisplayMode:
-                        MonthAppointmentDisplayMode.indicator,
-                  ),
+                  monthViewSettings: MonthViewSettings(
+                      appointmentDisplayMode:
+                          MonthAppointmentDisplayMode.indicator,
+                      appointmentDisplayCount: allMeetings.length),
+                  onSelectionChanged: (calendarSelectionDetails) {
+                    debugPrint('Is this getting clicked');
+                  },
                 ),
                 const SizedBox(
                   height: 10,
                 ),
                 Expanded(
-                  child: ListView.builder(
-                    shrinkWrap: true,
-                    itemBuilder: (context, index) {
-                      return Container(
-                        margin: const EdgeInsets.symmetric(
-                          horizontal: 8.0,
-                          vertical: 4.0,
-                        ),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8.0,
-                          // vertical: 4.0,
-                        ),
-                        decoration: BoxDecoration(
-                          border: Border.all(color: Colors.transparent),
-                          color: getColor(meetings[index].status),
-                          borderRadius: BorderRadius.circular(12.0),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  meetings[index].remarks ?? '',
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .headlineSmall!
-                                      .copyWith(
-                                          color: Colors.white, fontSize: 18),
-                                ),
-                                Text(
-                                  meetings[index].visitDate != null
-                                      ? DateFormat('yyyy-MM-dd').format(
-                                          DateTime.parse(
-                                              meetings[index].visitDate!))
-                                      : '',
+                  child: BlocBuilder<GetplandetailsCubit, GetplandetailsState>(
+                    builder: (context, getplanbuilderstate) =>
+                        getplanbuilderstate is GetplandetailsLoadingState
+                            ? const Center(child: CircularProgressIndicator())
+                            : meetings.isNotEmpty
+                                ? ListView.builder(
+                                    shrinkWrap: true,
+                                    itemBuilder: (context, index) {
+                                      bool isSamePriority = true;
+                                      final String priority =
+                                          meetings[index].priority!;
+
+                                      if (index == 0) {
+                                        isSamePriority = false;
+                                      } else {
+                                        final String prevPriority =
+                                            meetings[index - 1].priority!;
+
+                                        isSamePriority =
+                                            priority == prevPriority;
+                                      }
+                                      if (index == 0 || !(isSamePriority)) {
+                                        return Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Padding(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                        horizontal: 8.0,
+                                                        vertical: 4),
+                                                child: Text(
+                                                  priority == 'H'
+                                                      ? 'CVF'
+                                                      : 'Plan',
+                                                  style: Theme.of(context)
+                                                      .textTheme
+                                                      .headlineSmall,
+                                                ),
+                                              ),
+                                              listWidget(index, context)
+                                            ]);
+                                      } else {
+                                        return listWidget(index, context);
+                                      }
+                                    },
+                                    itemCount: meetings.length,
+                                  )
+                                : const Center(
+                                    child: Text('No Plan available.')),
+                  ),
+                ),
+              ]))),
+    );
+  }
+
+  Container listWidget(int index, BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.symmetric(
+        horizontal: 8.0,
+        vertical: 4.0,
+      ),
+      padding: const EdgeInsets.symmetric(
+        horizontal: 8.0,
+        vertical: 4.0,
+      ),
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.transparent),
+        color: getColor(meetings[index].status),
+        borderRadius: BorderRadius.circular(12.0),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                meetings[index].eventName == null ||
+                        meetings[index].eventName!.isEmpty
+                    ? const SizedBox.shrink()
+                    : Text(
+                        '${meetings[index].eventName} - ${meetings[index].franchiseeName}',
+                        overflow: TextOverflow.fade,
+                        style: Theme.of(context)
+                            .textTheme
+                            .headlineSmall!
+                            .copyWith(color: Colors.white, fontSize: 18),
+                      ),
+                meetings[index].remarks == null ||
+                        meetings[index].remarks!.isEmpty
+                    ? const SizedBox.shrink()
+                    : Text(
+                        'Remarks - ${meetings[index].remarks}',
+                        style: Theme.of(context)
+                            .textTheme
+                            .headlineSmall!
+                            .copyWith(color: Colors.white, fontSize: 18),
+                      ),
+                meetings[index].visitDate != null
+                    ? Text(
+                        'Schedule Date - ${DateFormat('yyyy-MM-dd').format(DateTime.parse(meetings[index].visitDate!))}',
+                        style: Theme.of(context)
+                            .textTheme
+                            .labelMedium!
+                            .copyWith(color: Colors.white, fontSize: 14),
+                      )
+                    : const SizedBox.shrink(),
+                meetings[index].priority == 'H'
+                    ? Column(
+                        children: [
+                          meetings[index].checkIn != null
+                              ? Text(
+                                  'Check In ${DateFormat('yyyy-MM-dd, hh:mm:ss').format(DateTime.parse(meetings[index].checkIn!))}',
+                                  overflow: TextOverflow.fade,
                                   style: Theme.of(context)
                                       .textTheme
                                       .labelMedium!
                                       .copyWith(
                                           color: Colors.white, fontSize: 14),
-                                ),
-                              ],
-                            ),
-                            Column(
-                              children: [
-                                IconButton(
-                                  icon: const Icon(Icons.edit,
-                                      color: Colors.white),
-                                  onPressed: () {
-                                    debugPrint(
-                                        'Getplandata in month planner update button is - ${meetings[index].toJson()}');
+                                )
+                              : const SizedBox.shrink(),
+                          meetings[index].checkOut != null
+                              ? Text(
+                                  'Check Out ${DateFormat('yyyy-MM-dd,hh:mm:ss').format(DateTime.parse(meetings[index].checkOut!))}',
+                                  overflow: TextOverflow.fade,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .labelMedium!
+                                      .copyWith(
+                                          color: Colors.white, fontSize: 14),
+                                )
+                              : const SizedBox.shrink(),
+                        ],
+                      )
+                    : const SizedBox.shrink()
+              ],
+            ),
+          ),
+          meetings[index].priority != null && meetings[index].priority == 'L'
+              ? Column(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.edit, color: Colors.white),
+                      onPressed: () {
+                        debugPrint(
+                            'Getplandata in month planner update button is - ${meetings[index].toJson()}');
 
-                                    showDialog(
-                                      context: context,
-                                      builder: (context) =>
-                                          CalendarFormUpdateDialog(
-                                              getPlandata: meetings[index],
-                                              calendarId: calendarId,
-                                              centerResponse: centerResponse),
-                                    ).then((value) async {
-                                      if (value != null) {
-                                        var listofgetplandate =
-                                            value as List<GetPlanData>;
+                        showDialog(
+                          context: context,
+                          builder: (context) => CalendarFormUpdateDialog(
+                              getPlandata: meetings[index],
+                              calendarId: calendarId,
+                              centerResponse: centerResponse),
+                        ).then((value) async {
+                          if (value != null) {
+                            var listofgetplandate = value as List<GetPlanData>;
 
-                                        // widget.highlightDate.firstWhere((element) => element.id == listofgetplandate[0].id) = listofgetplandate[0];
+                            widget.highlightDate[widget.highlightDate
+                                    .indexWhere((element) =>
+                                        element.id ==
+                                        listofgetplandate[0].id)] =
+                                listofgetplandate[0];
 
-                                        widget.highlightDate[widget
-                                                .highlightDate
-                                                .indexWhere((element) =>
-                                                    element.id ==
-                                                    listofgetplandate[0].id)] =
-                                            listofgetplandate[0];
-                                        /*  for (var element in listofgetplandate) {
-                                          if (!widget.highlightDate
-                                              .contains(element)) {
-                                            widget.highlightDate.add(element);
-                                          }
-                                        } */
+                            loadDataSource(selectedDate, false);
 
-                                        // for (int i = 0;
-                                        //     i < widget.highlightDate.length;
-                                        //     i++) {
-                                        //   if (widget.highlightDate[i].id ==
-                                        //       listofgetplandate[0].id) continue;
-                                        //   widget.highlightDate[i] =
-                                        //       listofgetplandate[0];
-                                        //   break;
-                                        // }
-
-                                        loadDataSource(selectedDate, false);
-
-                                        // updatedxmlrequestlist.addAll(value);
-                                        setState(() {});
-                                      }
-                                    });
-                                  },
-                                ),
-                                IconButton(
-                                  icon: const Icon(Icons.delete,
-                                      color: Colors.white),
+                            setState(() {});
+                          }
+                        });
+                      },
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.delete, color: Colors.white),
+                      onPressed: () {
+                        showAdaptiveDialog(
+                          context: context,
+                          builder: (context) {
+                            return AlertDialog(
+                              title: const Text("Warning"),
+                              content: const Text(
+                                  'Do you want to delete this plan.'),
+                              actions: [
+                                TextButton(
                                   onPressed: () {
                                     BlocProvider.of<GetplandetailsCubit>(
                                             context)
                                         .deleteEmployeePlan(
                                             id: meetings[index].id.toString());
+                                    Navigator.of(context).pop();
+                                  },
+                                  child: const Text("YES"),
+                                ),
+                                TextButton(
+                                  child: const Text("NO"),
+                                  onPressed: () {
+                                    Navigator.of(context).pop();
                                   },
                                 ),
                               ],
-                            )
-                          ],
-                        ),
-                      );
-                    },
-                    itemCount: meetings.length,
-                  ),
+                            );
+                          },
+                        );
+                      },
+                    )
+                  ],
                 )
-              ]))),
+              : const SizedBox.shrink()
+        ],
+      ),
     );
-  }
-
-  Future<void> loadSelectedDateData() async {
-    final startDate = DateTime(widget.year, widget.month);
-    final endDate =
-        DateTime(widget.year, widget.month).add(const Duration(days: 30));
-    var calendarEventsResult = await _deviceCalendarPlugin.retrieveEvents(
-        calendarId,
-        RetrieveEventsParams(startDate: startDate, endDate: endDate));
-
-    _multiDatePickerValueWithDefaultValue.clear();
-    if (calendarEventsResult.data != null) {
-      for (var element in calendarEventsResult.data!) {
-        debugPrint(
-            'List of available event is - ${element.start} and selectedDate is - $selectedDate');
-        if (element.start.toString().split('+')[0] == selectedDate.toString()) {
-          _multiDatePickerValueWithDefaultValue.add(element);
-        }
-      }
-    }
   }
 }

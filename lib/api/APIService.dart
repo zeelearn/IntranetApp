@@ -97,6 +97,7 @@ import '../pages/helper/LocalStrings.dart';
 import '../pages/helper/utils.dart';
 import '../pages/iface/onClick.dart';
 import '../pages/outdoor/model/getplandetails.dart';
+import '../pages/pjp/cvf/model/getvisitplandatewisemodel.dart';
 import 'aws_s3_upload.dart';
 
 class APIService {
@@ -158,13 +159,14 @@ class APIService {
     }
   }
 
-  Future<Either<String, List<GetPlanData>>> getEmployeeVisitDetails() async {
+  Future<Either<String, List<GetPlanData>>> getEmployeeVisitDetails(
+      int employeeID) async {
     try {
-      var hive = Hive.box(LocalConstant.KidzeeDB);
+      /* var hive = Hive.box(LocalConstant.KidzeeDB);
 
-      var employeeId = hive.get(LocalConstant.KEY_EMPLOYEE_ID);
+      var employeeId = hive.get(LocalConstant.KEY_EMPLOYEE_ID); */
 
-      var body = jsonEncode({'employee_id': employeeId});
+      var body = jsonEncode({'employee_id': employeeID});
 
       final response = await http.post(
           Uri.parse(url + LocalStrings.GET_EMPLOYEE_VISIT_DETAILS),
@@ -173,6 +175,7 @@ class APIService {
             "content-type": "application/json"
           },
           body: body);
+      debugPrint('Response in getVisitdetailsapi - ${response.body}');
       if (response.statusCode == 200) {
         return Right(List<GetPlanData>.from(
             jsonDecode(response.body)['responseData'].map((e) {
@@ -214,6 +217,43 @@ class APIService {
       }
     } catch (e) {
       debugPrint('Exception in create event - $e');
+
+      return Left(e.toString());
+    }
+  }
+
+  Future<Either<String, List<VisitPlanDateWise>>> getplanVisitDatevise(
+      {required String fromDate, required String toDate}) async {
+    try {
+      var hive = Hive.box(LocalConstant.KidzeeDB);
+
+      var employeeId = hive.get(LocalConstant.KEY_EMPLOYEE_ID);
+
+      debugPrint('Request  in getplanvisidatevise event - ${employeeId}');
+      final response = await http.post(
+          Uri.parse(url + LocalStrings.GET_VISIT_PLANNER_DATEWISE),
+          headers: {
+            "Accept": "application/json",
+            "content-type": "application/json"
+          },
+          body: jsonEncode({
+            "employee_id": employeeId,
+            "from_date": fromDate,
+            "to_date": toDate
+          }));
+
+      debugPrint(
+          'response from getplanvisidatevise - ${response.body.toString()}');
+      if (response.statusCode == 200) {
+        return Right(List<VisitPlanDateWise>.from(
+            jsonDecode(response.body)['responseData'].map((e) {
+          return VisitPlanDateWise.fromJson(e);
+        }).toList()));
+      } else {
+        return Left(response.body.toString());
+      }
+    } catch (e) {
+      debugPrint('Exception in getplanvisidatevise - $e');
 
       return Left(e.toString());
     }
