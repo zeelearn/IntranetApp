@@ -127,7 +127,7 @@ class APIService {
               "Access-Control-Allow-Methods": "*"
             },
             body: body);
-        debugPrint('Response ${response}');
+        debugPrint('ResponseBody ${response.body} ${response.statusCode}');
         debugPrint(Uri.parse(url + LocalStrings.GET_LOGIN).toString());
         if (response.statusCode == 200 || response.statusCode == 400) {
           if (response.body is LoginResponseInvalid) {

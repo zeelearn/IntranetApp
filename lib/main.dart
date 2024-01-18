@@ -555,13 +555,14 @@ syncLeaveApproval(ApproveLeaveRequestManager model) {
     //debugPrint('ATTENDANCE_MAN request');
     APIService apiService = APIService();
     apiService.approveAttendance(request).then((value) {
-      //debugPrint('approveAttendance response ${value}');
+      debugPrint('approveAttendance response ${value}');
       if (value != null) {
         if (value == null || value.responseData == null) {
-          //debugPrint('Serviceclosed NULL....................');
+          debugPrint('Serviceclosed NULL....................');
           if (mService != null) mService.stopSelf();
         } else if (value is ApproveAttendanceResponse) {
           ApproveAttendanceResponse response = value;
+          print('response ${response.toJson()}');
           if (response != null) {
             if(response.statusCode==200){
               if (model.index != null) {
