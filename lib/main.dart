@@ -4,32 +4,36 @@ import 'dart:io' show Directory, Platform;
 import 'dart:isolate';
 import 'dart:math';
 import 'dart:ui';
+
+import 'package:Intranet/pages/firebase/firebase_options.dart';
 import 'package:Intranet/pages/firebase/notification_service.dart';
+import 'package:Intranet/pages/helper/DatabaseHelper.dart';
+import 'package:Intranet/pages/helper/LocalConstant.dart';
 import 'package:Intranet/pages/helper/constants.dart';
+import 'package:Intranet/pages/helper/utils.dart';
+import 'package:Intranet/pages/intro/splash.dart';
+import 'package:Intranet/pages/model/NotificationDataModel.dart';
 import 'package:Intranet/pages/notification/UserNotification.dart';
+import 'package:Intranet/pages/outdoor/cubit/getplandetailscubit/getplandetails_cubit.dart';
+import 'package:Intranet/pages/pjp/cvf/CheckInModel.dart';
 import 'package:Intranet/pages/theme/extention.dart';
 import 'package:Intranet/pages/utils/theme/colors/light_colors.dart';
 import 'package:Intranet/pages/widget/VideoPlayer.dart';
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:Intranet/pages/firebase/firebase_options.dart';
-import 'package:Intranet/pages/helper/DatabaseHelper.dart';
-import 'package:Intranet/pages/helper/LightColor.dart';
-import 'package:Intranet/pages/helper/LocalConstant.dart';
-import 'package:Intranet/pages/helper/utils.dart';
-import 'package:Intranet/pages/intro/splash.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:flutter/foundation.dart';
-import 'package:Intranet/pages/model/NotificationDataModel.dart';
-import 'package:Intranet/pages/pjp/cvf/CheckInModel.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:get/get.dart';
 import 'package:hive_flutter/adapters.dart';
+import 'package:intl/intl.dart';
 import 'package:location/location.dart';
+import 'package:path_provider/path_provider.dart';
+
 import 'api/APIService.dart';
 import 'api/request/cvf/update_cvf_status_request.dart';
 import 'api/request/leave/leave_approve_request.dart';
@@ -37,12 +41,7 @@ import 'api/response/apply_leave_response.dart';
 import 'api/response/approve_attendance_response.dart';
 import 'api/response/cvf/update_status_response.dart';
 
-import 'package:hive/hive.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:intl/intl.dart';
-
 part 'main.g.dart';
-
 
 /*Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   try {
@@ -115,13 +114,8 @@ part 'main.g.dart';
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-
   NotificationService().parseNotification(message);
 }
-
-
-
-
 
 showNotification(RemoteMessage message) async {
   String cdate = DateFormat("yyyy-MM-dd hh:mm a").format(DateTime.now());
@@ -131,59 +125,62 @@ showNotification(RemoteMessage message) async {
   String title = "";
   String imageUrl = "";
   String body = "";
-  if (message.data != null) {
-    debugPrint(message.data.toString());
-    try {
-      String mData = message.data.toString();
-      if (!message.data.containsKey("URL")) {
-        NotificationActionModel model = NotificationActionModel.fromJson(
-          json.decode(mData),
-        );
-        type = model.type;
-        title = model.title;
-        imageUrl = '';
-        body = model.message;
-      } else if (message.data.containsKey('Status')) {
-        mData = mData.replaceAll('Purpose:', 'Purpose');
-        mData = mData.replaceAll('Status:', 'Status');
-        NotificationDataModel model = NotificationDataModel.fromJson(
-          json.decode(mData),
-        );
-        type = model.type;
-        title = model.title;
-        imageUrl = model.image;
-        body = model.message;
-      } else {
-        debugPrint('in else data ${mData}');
-        NotificationDataModel model = NotificationDataModel.fromJson(
-          json.decode(mData),
-        );
-        type = model.type;
-        title = model.title;
-        imageUrl = model.image;
-        body = model.message;
-      }
-      _showNotificationWithDefaultSound(message, title, body);
-    } catch (e) {
-      debugPrint(e.toString());
+  debugPrint(message.data.toString());
+  try {
+    String mData = message.data.toString();
+    if (!message.data.containsKey("URL")) {
+      NotificationActionModel model = NotificationActionModel.fromJson(
+        json.decode(mData),
+      );
+      type = model.type;
+      title = model.title;
+      imageUrl = '';
+      body = model.message;
+    } else if (message.data.containsKey('Status')) {
+      mData = mData.replaceAll('Purpose:', 'Purpose');
+      mData = mData.replaceAll('Status:', 'Status');
+      NotificationDataModel model = NotificationDataModel.fromJson(
+        json.decode(mData),
+      );
+      type = model.type;
+      title = model.title;
+      imageUrl = model.image;
+      body = model.message;
+    } else {
+      debugPrint('in else data $mData');
+      NotificationDataModel model = NotificationDataModel.fromJson(
+        json.decode(mData),
+      );
+      type = model.type;
+      title = model.title;
+      imageUrl = model.image;
+      body = model.message;
     }
+    _showNotificationWithDefaultSound(message, title, body);
+  } catch (e) {
+    debugPrint(e.toString());
   }
-  data.putIfAbsent('title', () => title.isNotEmpty ? title : message.data['title'] as String);
+  data.putIfAbsent('title',
+      () => title.isNotEmpty ? title : message.data['title'] as String);
   data.putIfAbsent(
       'description',
-          () => body.isNotEmpty ? body : message.data.containsKey('body')
-          ? message.data['body'] as String
-          : '');
+      () => body.isNotEmpty
+          ? body
+          : message.data.containsKey('body')
+              ? message.data['body'] as String
+              : '');
   data.putIfAbsent(
       'type',
-          () => type.isNotEmpty ? type : message.data.containsKey('type')
-          ? message.data['type'] as String
-          : '');
+      () => type.isNotEmpty
+          ? type
+          : message.data.containsKey('type')
+              ? message.data['type'] as String
+              : '');
   data.putIfAbsent('date', () => cdate);
   data.putIfAbsent(
       'imageurl',
-          () =>
-      message.data.containsKey('url') ? message.data['url'] as String : '');
+      () =>
+          message.data.containsKey('url') ? message.data['url'] as String : '');
   data.putIfAbsent('logoUrl', () => message.data['logo'] as String);
   data.putIfAbsent('bigImageUrl', () => message.data['bigimage'] as String);
   data.putIfAbsent('webViewLink', () => message.data['url'] as String);
@@ -211,11 +208,10 @@ showNotification(RemoteMessage message) async {
   }
 }
 
-updateCounter() async{
+updateCounter() async {
   var box = await Utility.openBox();
   var counter = box.get(LocalConstant.KEY_COUNTER) as int ?? 0;
-  var count = (counter +1);
-
+  var count = (counter + 1);
 }
 
 AndroidNotificationChannel? channel;
@@ -226,8 +222,9 @@ FlutterLocalNotificationsPlugin? flutterLocalNotificationsPlugin;
 late FirebaseMessaging messaging;
 
 Future<Box> _openBox() async {
-  if (!kIsWeb && !Hive.isBoxOpen(LocalConstant.KidzeeDB))
+  if (!kIsWeb && !Hive.isBoxOpen(LocalConstant.KidzeeDB)) {
     Hive.init((await getApplicationDocumentsDirectory()).path);
+  }
   return await Hive.openBox(LocalConstant.KidzeeDB);
 }
 
@@ -241,7 +238,7 @@ Future<void> main() async {
 
   NotificationController.startListeningNotificationEvents();
 
-  if(!kIsWeb) {
+  if (!kIsWeb) {
     await NotificationController.initializeIsolateReceivePort();
     messaging = FirebaseMessaging.instance;
     messaging.subscribeToTopic("intranet");
@@ -250,14 +247,12 @@ Future<void> main() async {
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
       print('A new onMessageOpenedApp event was published!');
-        Navigator.push(
-            MyApp.navigatorKey.currentState!.context,
-            MaterialPageRoute(
-                builder: (context) => UserNotification()));
+      Navigator.push(MyApp.navigatorKey.currentState!.context,
+          MaterialPageRoute(builder: (context) => const UserNotification()));
     });
   }
   if (!kIsWeb) {
-   channel = const AndroidNotificationChannel(
+    channel = const AndroidNotificationChannel(
         'intranet', // id
         'intranet', // title
         importance: Importance.defaultImportance,
@@ -270,7 +265,6 @@ Future<void> main() async {
     await notificationService.init();
     await notificationService.requestIOSPermissions();
 
-
     await FirebaseMessaging.instance
         .setForegroundNotificationPresentationOptions(
       alert: true,
@@ -278,7 +272,7 @@ Future<void> main() async {
       sound: true,
     );
 
-   await FirebaseMessaging.instance.setAutoInitEnabled(true);
+    await FirebaseMessaging.instance.setAutoInitEnabled(true);
   }
   _requestPermission();
 
@@ -289,36 +283,42 @@ Future<void> main() async {
 
   //await initializeService();
   //runApp(const MyApp());
-  runApp(ProviderScope(
-    child: MyApp(),
+  runApp(MultiBlocProvider(
+    providers: [
+      BlocProvider<GetplandetailsCubit>(
+        create: (BuildContext context) => GetplandetailsCubit(),
+      ),
+    ],
+    child: const ProviderScope(
+      child: MyApp(),
+    ),
   ));
 }
 
 _requestPermission() async {
-  Location location = new Location();
+  Location location = Location();
 
-  bool _serviceEnabled;
-  PermissionStatus _permissionGranted;
-  LocationData _locationData;
+  bool serviceEnabled;
+  PermissionStatus permissionGranted;
+  LocationData locationData;
 
-  _serviceEnabled = await location.serviceEnabled();
-  if (!_serviceEnabled) {
-    _serviceEnabled = await location.requestService();
-    if (!_serviceEnabled) {
+  serviceEnabled = await location.serviceEnabled();
+  if (!serviceEnabled) {
+    serviceEnabled = await location.requestService();
+    if (!serviceEnabled) {
       return;
     }
   }
 
-  _permissionGranted = await location.hasPermission();
-  if (_permissionGranted == PermissionStatus.denied) {
-    _permissionGranted = await location.requestPermission();
-    if (_permissionGranted != PermissionStatus.granted) {
+  permissionGranted = await location.hasPermission();
+  if (permissionGranted == PermissionStatus.denied) {
+    permissionGranted = await location.requestPermission();
+    if (permissionGranted != PermissionStatus.granted) {
       return;
     }
   }
 
-  _locationData = await location.getLocation();
-
+  locationData = await location.getLocation();
 }
 
 Future<void> initializeService() async {
@@ -328,7 +328,8 @@ Future<void> initializeService() async {
   const AndroidNotificationChannel channel = AndroidNotificationChannel(
     'my_foreground', // id
     'INTRANET FOREGROUND SERVICE', // title
-    description:'This channel is used for sync Data with Server.', // description
+    description:
+        'This channel is used for sync Data with Server.', // description
     importance: Importance.low, // importance must be at low or higher level
   );
 
@@ -442,7 +443,6 @@ Future<bool> onIosBackground(ServiceInstance service) async {
   WidgetsFlutterBinding.ensureInitialized();
   DartPluginRegistrant.ensureInitialized();
 
-
   return true;
 }
 
@@ -493,15 +493,14 @@ void onStart(ServiceInstance service) async {
 
 checkPendingLeaveApprovals(int action) async {
   bool isInternet = await Utility.isInternet();
-  if(isInternet) {
+  if (isInternet) {
     var hiveBox = await Utility.openBox();
     await Hive.openBox(LocalConstant.KidzeeDB);
     String userId = hiveBox.get(LocalConstant.KEY_EMPLOYEE_ID) as String;
-    DBHelper _helper = DBHelper();
-    List<ApproveLeaveRequestManager> list = await _helper.getUnSyncData(userId);
+    DBHelper helper = DBHelper();
+    List<ApproveLeaveRequestManager> list = await helper.getUnSyncData(userId);
     List<CheckInModel> checkInList = await DBHelper().getOfflineCheckInStatus();
-    if ((checkInList == null || checkInList.length == 0) &&
-        (list == null || list.length == 0)) {
+    if ((checkInList.isEmpty) && (list.isEmpty)) {
       if (action == 2) {
         NotificationService notificationService = NotificationService();
         notificationService.showNotification(
@@ -510,15 +509,13 @@ checkPendingLeaveApprovals(int action) async {
             'Leave/OUTDOOR Approval request has been successfully completed.',
             'Leave/OUTDOOR Approval request has been successfully completed.');
       }
-      if (mService != null) {
-        stopService(mService);
-      }
+      stopService(mService);
     } else {
-      if (checkInList.length > 0)
+      if (checkInList.isNotEmpty) {
         apicall(checkInList);
-      else if (list.length > 0) syncLeaveApproval(list[0]);
+      } else if (list.isNotEmpty) syncLeaveApproval(list[0]);
     }
-  }else{
+  } else {
     stopService(mService);
   }
 }
@@ -528,12 +525,10 @@ cancelNotification() async {
   notificationService.cancelNotification(888);
 }
 
-stopService(ServiceInstance mService){
+stopService(ServiceInstance mService) {
   Timer.periodic(const Duration(seconds: 3), (timer) async {
-    if (mService!=null) {
-      mService.stopSelf();
-      cancelNotification();
-    }
+    mService.stopSelf();
+    cancelNotification();
   });
 }
 
@@ -544,57 +539,49 @@ syncLeaveApproval(ApproveLeaveRequestManager model) {
     index: model.index,
     actionType: model.actionType,
   );
-  if(request.xml.contains('[]')){
+  if (request.xml.contains('[]')) {
     if (model.index != null) {
       DBHelper helper = DBHelper();
       //debugPrint('DELTE ID ${model.index!.toString()}');
       helper.delete(LocalConstant.TABLE_DATA_SYNC, model.index!.toString());
     }
     checkPendingLeaveApprovals(2);
-  }else if (model.actionType.isNotEmpty && model.actionType == 'ATTENDANCE_MAN') {
+  } else if (model.actionType.isNotEmpty &&
+      model.actionType == 'ATTENDANCE_MAN') {
     //debugPrint('ATTENDANCE_MAN request');
     APIService apiService = APIService();
     apiService.approveAttendance(request).then((value) {
-      debugPrint('approveAttendance response ${value}');
+      //debugPrint('approveAttendance response ${value}');
       if (value != null) {
         if (value == null || value.responseData == null) {
-          debugPrint('Serviceclosed NULL....................');
-          if (mService != null) mService.stopSelf();
+          //debugPrint('Serviceclosed NULL....................');
+          mService.stopSelf();
         } else if (value is ApproveAttendanceResponse) {
           ApproveAttendanceResponse response = value;
-          print('response ${response.toJson()}');
-          if (response != null) {
-            if(response.statusCode==200){
-              if (model.index != null) {
-                DBHelper helper = DBHelper();
-                //debugPrint('DELTE ID ${model.index!.toString()}');
-                helper.delete(LocalConstant.TABLE_DATA_SYNC, model.index!.toString());
-              }
-            }else{
-              if (model.index != null) {
-                DBHelper helper = DBHelper();
-                //debugPrint('DELTE ID ${model.index!.toString()}');
-                helper.delete(LocalConstant.TABLE_DATA_SYNC, model.index!.toString());
-              }
-            }
-            checkPendingLeaveApprovals(2);
-          }else{
+          if (response.statusCode == 200) {
             if (model.index != null) {
               DBHelper helper = DBHelper();
               //debugPrint('DELTE ID ${model.index!.toString()}');
-              helper.delete(LocalConstant.TABLE_DATA_SYNC, model.index!.toString());
+              helper.delete(
+                  LocalConstant.TABLE_DATA_SYNC, model.index!.toString());
             }
-            checkPendingLeaveApprovals(2);
+          } else {
+            if (model.index != null) {
+              DBHelper helper = DBHelper();
+              //debugPrint('DELTE ID ${model.index!.toString()}');
+              helper.delete(
+                  LocalConstant.TABLE_DATA_SYNC, model.index!.toString());
+            }
           }
-        }else if(value.toString().contains('Failed host lookup')){
+          checkPendingLeaveApprovals(2);
+        } else if (value.toString().contains('Failed host lookup')) {
           //debugPrint('Serviceclosed....................');
-          if (mService != null) mService.stopSelf();
-        }else{
+          mService.stopSelf();
+        } else {
           //debugPrint('Serviceclosed NULL.ELSE...................');
-          if (mService != null) mService.stopSelf();
+          mService.stopSelf();
         }
       }
-
     });
   } else {
     //debugPrint('approveLeaveManager request');
@@ -602,31 +589,20 @@ syncLeaveApproval(ApproveLeaveRequestManager model) {
     apiService.approveLeaveManager(request).then((value) {
       if (value != null) {
         if (value == null || value.responseData == null) {
-          if (mService != null) mService.stopSelf();
+          mService.stopSelf();
         } else if (value is ApplyLeaveResponse) {
           ApplyLeaveResponse response = value;
           //debugPrint(response.responseMessage);
-          if (response != null) {
-            //debugPrint('Serviceclosed NULL....523...........');
-            debugPrint(response.responseMessage);
-              if (model.index != null) {
-                DBHelper helper = DBHelper();
-                //debugPrint('DELTE ID ${model.index!.toString()}');
-                helper.delete(LocalConstant.TABLE_DATA_SYNC, model.index!.toString());
-              }
-          }else if(value.toString().contains('Failed host lookup')){
-            if (model.index != null) {
-              DBHelper helper = DBHelper();
-              //debugPrint('DELTE ID ${model.index!.toString()}');
-              helper.delete(LocalConstant.TABLE_DATA_SYNC, model.index!.toString());
-            }
-            if (mService != null) mService.stopSelf();
-          }else{
-            if (mService != null) mService.stopSelf();
+          //debugPrint('Serviceclosed NULL....523...........');
+          debugPrint(response.responseMessage);
+          if (model.index != null) {
+            DBHelper helper = DBHelper();
+            //debugPrint('DELTE ID ${model.index!.toString()}');
+            helper.delete(
+                LocalConstant.TABLE_DATA_SYNC, model.index!.toString());
           }
           checkPendingLeaveApprovals(2);
         }
-
       }
     });
   }
@@ -636,7 +612,7 @@ apicall(List<CheckInModel> list) async {
   //debugPrint('api calling...');
 
   //debugPrint('Offline Data found ${list.length}');
-  if (list.length > 0) {
+  if (list.isNotEmpty) {
     debugPrint('Offline Data found ${list.length}');
     debugPrint(list[0].body);
     UpdateCVFStatusRequest request = UpdateCVFStatusRequest.fromJson(
@@ -693,7 +669,7 @@ Future _showNotificationWithDefaultSound(
             considerWhiteSpaceAsEmpty: true) ||
         !AwesomeStringUtils.isNullOrEmpty(messageData,
             considerWhiteSpaceAsEmpty: true)) {
-      debugPrint('message also contained a notification: ${message}');
+      debugPrint('message also contained a notification: $message');
 
       String? imageUrl;
       try {
@@ -730,11 +706,11 @@ Future _showNotificationWithDefaultSound(
   debugPrint('Send Notification');
 }
 
-
 class MyApp extends StatelessWidget {
-  static final GlobalKey<NavigatorState> navigatorKey = new GlobalKey<NavigatorState>();
+  static final GlobalKey<NavigatorState> navigatorKey =
+      GlobalKey<NavigatorState>();
 
-  MyApp({Key? key}) : super(key: key);
+  const MyApp({Key? key}) : super(key: key);
 
   // This widget is the root of your application.
   @override
@@ -757,7 +733,7 @@ class MyApp extends StatelessWidget {
           checkColor: MaterialStateProperty.all(Colors.white),
           //fillColor: MaterialStateProperty.all(Colors.white),
           fillColor: MaterialStateColor.resolveWith(
-                (states) {
+            (states) {
               if (states.contains(MaterialState.selected)) {
                 return kPrimaryLightColor; // the color when checkbox is selected;
               }
@@ -765,20 +741,23 @@ class MyApp extends StatelessWidget {
             },
           ),
           overlayColor: MaterialStateProperty.all(Colors.black),
-          side: BorderSide(color: Color(0xff585858)),
+          side: const BorderSide(color: Color(0xff585858)),
         ),
-          tabBarTheme: const TabBarTheme(
-              labelColor: Colors.pink,
-              labelStyle: TextStyle(color: Colors.pink), // color for text
-              indicator: UnderlineTabIndicator( // color for indicator (underline)
-                  borderSide: BorderSide(color: LightColors.kLightGray1)),
-          ),
-
+        tabBarTheme: const TabBarTheme(
+          labelColor: Colors.pink,
+          labelStyle: TextStyle(color: Colors.pink), // color for text
+          indicator: UnderlineTabIndicator(
+              // color for indicator (underline)
+              borderSide: BorderSide(color: LightColors.kLightGray1)),
+        ),
         elevatedButtonTheme: ElevatedButtonThemeData(
             style: ElevatedButton.styleFrom(
-            primary: kPrimaryLightColor,
-              onPrimary: Colors.white,
-              textStyle: TextStyle(color: Colors.white,),)),
+          foregroundColor: Colors.white,
+          backgroundColor: kPrimaryLightColor,
+          textStyle: const TextStyle(
+            color: Colors.white,
+          ),
+        )),
         fontFamily: 'Roboto',
         /*colorScheme: ColorScheme.fromSeed(
           seedColor: kPrimaryLightColor,
@@ -788,10 +767,12 @@ class MyApp extends StatelessWidget {
         fontFamily: 'Roboto',
         primaryColorDark: kPrimaryLightColor,
         primaryColor: kPrimaryLightColor,*/
-        appBarTheme: AppBarTheme( // <-- SEE HERE
+        appBarTheme: const AppBarTheme(
+          // <-- SEE HERE
           color: kPrimaryLightColor,
           iconTheme: IconThemeData(color: Colors.white),
-          titleTextStyle: TextStyle(fontSize: 17, color: Colors.white, letterSpacing: 0.53),
+          titleTextStyle:
+              TextStyle(fontSize: 17, color: Colors.white, letterSpacing: 0.53),
         ),
         colorScheme: const ColorScheme(
           brightness: Brightness.light,
@@ -808,41 +789,41 @@ class MyApp extends StatelessWidget {
           onSurface: Colors.black87,
           outline: LightColors.kLightGrayM,
         ),
-        dialogTheme: DialogTheme(
+        dialogTheme: const DialogTheme(
           backgroundColor: Colors.white,
           titleTextStyle: TextStyle(
-              fontWeight: FontWeight.w500,
-              fontSize: 16,
-              color: Colors.black54),
+              fontWeight: FontWeight.w500, fontSize: 16, color: Colors.black54),
         ),
         inputDecorationTheme: InputDecorationTheme(
-          filled: true,
-          fillColor: Colors.white,
-          errorStyle: LightColors.textsubtitle,
-          helperStyle: LightColors.textsubtitle,
-          hintStyle: LightColors.textsubtitle,
-          focusedErrorBorder: LightColors.kRed.getOutlineBorder,
-          errorBorder: LightColors.kRed.getOutlineBorder,
-          focusedBorder: Colors.black45.getOutlineBorder,
-          iconColor: Colors.black38,
-          prefixIconColor: Colors.black38,
-          enabledBorder: Colors.black12.getOutlineBorder,
-          disabledBorder: Colors.black12.getOutlineBorder,
-          errorMaxLines: 1,
-          suffixIconColor: kPrimaryLightColor,
-          floatingLabelStyle: TextStyle(color: Colors.black38,backgroundColor: Colors.white,)
-        ),
+            filled: true,
+            fillColor: Colors.white,
+            errorStyle: LightColors.textsubtitle,
+            helperStyle: LightColors.textsubtitle,
+            hintStyle: LightColors.textsubtitle,
+            focusedErrorBorder: LightColors.kRed.getOutlineBorder,
+            errorBorder: LightColors.kRed.getOutlineBorder,
+            focusedBorder: Colors.black45.getOutlineBorder,
+            iconColor: Colors.black38,
+            prefixIconColor: Colors.black38,
+            enabledBorder: Colors.black12.getOutlineBorder,
+            disabledBorder: Colors.black12.getOutlineBorder,
+            errorMaxLines: 1,
+            suffixIconColor: kPrimaryLightColor,
+            floatingLabelStyle: const TextStyle(
+              color: Colors.black38,
+              backgroundColor: Colors.white,
+            )),
         textTheme: Theme.of(context).textTheme.apply(bodyColor: Colors.black),
-          primaryTextTheme: Typography().black,
+        primaryTextTheme: Typography().black,
         textSelectionTheme: const TextSelectionThemeData(
           cursorColor: kPrimaryLightColor,
           selectionColor: kPrimaryLightColor,
           selectionHandleColor: kPrimaryLightColor,
         ),
-          buttonTheme: ButtonThemeData(
-            buttonColor: kPrimaryLightColor,
-            textTheme: ButtonTextTheme.primary,
-          ),
+        buttonTheme: const ButtonThemeData(
+          buttonColor: kPrimaryLightColor,
+          textTheme: ButtonTextTheme.primary,
+        ),
         /*colorScheme: ColorScheme.fromSeed(
           seedColor: Colors.white,
           background: LightColors.kLightGray1,
@@ -856,7 +837,7 @@ class MyApp extends StatelessWidget {
 
         ),*/
       ),
-      home: Scaffold(
+      home: const Scaffold(
         body: SplashScreen(),
       ),
     );
@@ -934,7 +915,7 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
             Text(
               '$_counter',
-              style: Theme.of(context).textTheme.headline4,
+              style: Theme.of(context).textTheme.headlineMedium,
             ),
           ],
         ),
@@ -949,12 +930,11 @@ class _MyHomePageState extends State<MyHomePage> {
 }
 
 class NotificationController {
-
   static ReceivePort? receivePort;
   static Future<void> initializeIsolateReceivePort() async {
     receivePort = ReceivePort('Notification action port in main isolate')
       ..listen(
-              (silentData) => onActionReceivedImplementationMethod(silentData));
+          (silentData) => onActionReceivedImplementationMethod(silentData));
 
     // This initialization only happens on main isolate
     IsolateNameServer.registerPortWithName(
@@ -972,13 +952,12 @@ class NotificationController {
   static Future<void> onActionReceivedImplementationMethod(
       ReceivedAction receivedAction) async {
     print('onActionReceivedImplementationMethod 1192');
-    Navigator.push(
-        MyApp.navigatorKey.currentState!.context,
-        MaterialPageRoute(
-            builder: (context) => UserNotification()));
+    Navigator.push(MyApp.navigatorKey.currentState!.context,
+        MaterialPageRoute(builder: (context) => const UserNotification()));
   }
 
   static ReceivedAction? initialAction;
+
   ///  *********************************************
   ///     INITIALIZATIONS
   ///  *********************************************
@@ -1011,7 +990,8 @@ class NotificationController {
   ///  *********************************************
   ///  Notifications events are only delivered after call this method
   static Future<void> startListeningNotificationEvents() async {
-    AwesomeNotifications().setListeners(onActionReceivedMethod: onActionReceivedMethod);
+    AwesomeNotifications()
+        .setListeners(onActionReceivedMethod: onActionReceivedMethod);
   }
 
   ///  *********************************************
@@ -1025,28 +1005,26 @@ class NotificationController {
     if (receivedAction.actionType == ActionType.SilentAction ||
         receivedAction.actionType == ActionType.SilentBackgroundAction) {
       // For background actions, you must hold the execution until the end
-      print('Message sent via notification input: "${receivedAction.buttonKeyInput}"');
+      print(
+          'Message sent via notification input: "${receivedAction.buttonKeyInput}"');
       // await executeLongTaskInBackground();
-    } else if (receivedAction.payload != null && receivedAction.payload!['Video_path'] != null) {
+    } else if (receivedAction.payload != null &&
+        receivedAction.payload!['Video_path'] != null) {
       Navigator.push(
           MyApp.navigatorKey.currentState!.context,
           MaterialPageRoute(
               builder: (context) => VideoPlayer(
-                Title: receivedAction.payload!['Video_path']!,
-                path: receivedAction.payload!['Video_path']!,
-              )));
+                    Title: receivedAction.payload!['Video_path']!,
+                    path: receivedAction.payload!['Video_path']!,
+                  )));
     } else if (receivedAction.payload != null &&
         receivedAction.payload!['url'] != null &&
         receivedAction.payload!['url']!.isNotEmpty) {
-      Navigator.push(
-          MyApp.navigatorKey.currentState!.context,
-          MaterialPageRoute(
-              builder: (context) => UserNotification()));
-    }else{
-      Navigator.push(
-          MyApp.navigatorKey.currentState!.context,
-          MaterialPageRoute(
-              builder: (context) => UserNotification()));
+      Navigator.push(MyApp.navigatorKey.currentState!.context,
+          MaterialPageRoute(builder: (context) => const UserNotification()));
+    } else {
+      Navigator.push(MyApp.navigatorKey.currentState!.context,
+          MaterialPageRoute(builder: (context) => const UserNotification()));
     }
   }
 
@@ -1115,8 +1093,7 @@ class NotificationController {
   ///  *********************************************
   ///     BACKGROUND TASKS TEST
   ///  *********************************************
-  static Future<void> executeLongTaskInBackground() async {
-  }
+  static Future<void> executeLongTaskInBackground() async {}
 
   ///  *********************************************
   ///     NOTIFICATION CREATION METHODS
@@ -1133,7 +1110,7 @@ class NotificationController {
             channelKey: 'alerts',
             title: 'Huston! The eagle has landed!',
             body:
-            "A small step for a man, but a giant leap to Flutter's community!",
+                "A small step for a man, but a giant leap to Flutter's community!",
             bigPicture: 'https://storage.googleapis.com/cms-storage-bucket/d406c736e7c4c57f5f61.png',
             largeIcon: 'https://storage.googleapis.com/cms-storage-bucket/0dbfcc7a59cd1cf16282.png',
             //'asset://assets/images/balloons-in-sky.jpg',
@@ -1165,7 +1142,7 @@ class NotificationController {
             channelKey: 'alerts',
             title: "Huston! The eagle has landed!",
             body:
-            "A small step for a man, but a giant leap to Flutter's community!",
+                "A small step for a man, but a giant leap to Flutter's community!",
             bigPicture: 'https://storage.googleapis.com/cms-storage-bucket/d406c736e7c4c57f5f61.png',
             largeIcon: 'https://storage.googleapis.com/cms-storage-bucket/0dbfcc7a59cd1cf16282.png',
             //'asset://assets/images/balloons-in-sky.jpg',
@@ -1184,5 +1161,4 @@ class NotificationController {
         schedule: NotificationCalendar.fromDate(
             date: DateTime.now().add(const Duration(seconds: 10))));
   }
-
 }

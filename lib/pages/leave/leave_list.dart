@@ -509,7 +509,7 @@ class _LeaveSummeryScreenState extends State<LeaveSummeryScreen>
       padding: const EdgeInsets.only(top: 5),
       crossAxisSpacing: 1,
       mainAxisSpacing: 1,
-      maxCrossAxisExtent: 140.0,
+      maxCrossAxisExtent: 150.0,
       children: <Widget>[
         Container(
           color: LightColors.kLavender,

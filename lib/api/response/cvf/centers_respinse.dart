@@ -3,7 +3,10 @@ class CentersResponse {
   late int statusCode;
   late List<FranchiseeInfo> responseData;
 
-  CentersResponse({required this.responseMessage,required this.statusCode,required this.responseData});
+  CentersResponse(
+      {required this.responseMessage,
+      required this.statusCode,
+      required this.responseData});
 
   CentersResponse.fromJson(Map<String, dynamic> json) {
     responseMessage = json['responseMessage'];
@@ -37,11 +40,11 @@ class FranchiseeInfo {
 
   FranchiseeInfo(
       {required this.franchiseeId,
-        required this.franchiseeCode,
-        required this.franchiseeName,
-        required this.franchiseeZone,
-        required this.franchiseeState,
-        required this.franchiseeCity});
+      required this.franchiseeCode,
+      required this.franchiseeName,
+      required this.franchiseeZone,
+      required this.franchiseeState,
+      required this.franchiseeCity});
 
   FranchiseeInfo.fromJson(Map<String, dynamic> json) {
     franchiseeId = json['franchisee_Id'];
@@ -52,10 +55,14 @@ class FranchiseeInfo {
     franchiseeCity = json['franchisee_City'];
   }
 
-  isContain(String filter){
-    if(franchiseeName.toLowerCase().contains(filter.toLowerCase()) || franchiseeCode.toLowerCase().contains(filter.toLowerCase()) || franchiseeZone.toLowerCase().contains(filter.toLowerCase()) || franchiseeState.toLowerCase().contains(filter.toLowerCase())|| franchiseeState.toLowerCase().contains(filter.toLowerCase())){
+  isContain(String filter) {
+    if (franchiseeName.toLowerCase().contains(filter.toLowerCase()) ||
+        franchiseeCode.toLowerCase().contains(filter.toLowerCase()) ||
+        franchiseeZone.toLowerCase().contains(filter.toLowerCase()) ||
+        franchiseeState.toLowerCase().contains(filter.toLowerCase()) ||
+        franchiseeState.toLowerCase().contains(filter.toLowerCase())) {
       return true;
-    }else{
+    } else {
       return false;
     }
   }
@@ -73,11 +80,10 @@ class FranchiseeInfo {
 
   isEqual(FranchiseeInfo s) {
     print('isEqual ${s.franchiseeName}');
-    if(franchiseeName == s.franchiseeName){
+    if (franchiseeName == s.franchiseeName) {
       return true;
-    }else{
+    } else {
       return false;
     }
   }
-
 }

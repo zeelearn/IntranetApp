@@ -60,14 +60,15 @@ class _PjpState extends State<NewPJP> {
   bool isAddCVF = false;
   int employeeId = 0;
   int businessId = 0;
-  String appVersion='';
+  String appVersion = '';
   var hiveBox;
 
   Future<void> getUserInfo() async {
     hiveBox = Hive.box(LocalConstant.KidzeeDB);
     await Hive.openBox(LocalConstant.KidzeeDB);
-    employeeId =int.parse(hiveBox.get(LocalConstant.KEY_EMPLOYEE_ID) as String);
-    businessId =hiveBox.get(LocalConstant.KEY_EMPLOYEE_ID);
+    employeeId =
+        int.parse(hiveBox.get(LocalConstant.KEY_EMPLOYEE_ID) as String);
+    businessId = hiveBox.get(LocalConstant.KEY_EMPLOYEE_ID);
     getCvfList();
     fetchCategory();
     getFrichinseeList();
@@ -84,7 +85,8 @@ class _PjpState extends State<NewPJP> {
     Utility.showLoaderDialog(context);
     mCategoryList.clear();
     debugPrint('categoty');
-    CVFCategoryRequest request = CVFCategoryRequest(Category_Id: "0", Business_id: businessId);
+    CVFCategoryRequest request =
+        CVFCategoryRequest(Category_Id: "0", Business_id: businessId);
     APIService apiService = APIService();
     apiService.getCVFCategoties(request).then((value) {
       debugPrint(value.toString());
@@ -110,7 +112,8 @@ class _PjpState extends State<NewPJP> {
   getFrichinseeList() async {
     DBHelper helper = DBHelper();
 
-    List<FranchiseeInfo> franchiseeList = await helper.getFranchiseeList(businessId);
+    List<FranchiseeInfo> franchiseeList =
+        await helper.getFranchiseeList(businessId);
 
     if (franchiseeList == null || franchiseeList.length == 0) {
       debugPrint('data load ssss');
@@ -127,7 +130,7 @@ class _PjpState extends State<NewPJP> {
     DateTime time = DateTime.now();
     DateTime selectedDate = new DateTime(time.year, time.month - 1, time.day);
     CentersRequestModel requestModel =
-    CentersRequestModel(EmployeeId: employeeId, Brand: businessId);
+        CentersRequestModel(EmployeeId: employeeId, Brand: businessId);
     APIService apiService = APIService();
     apiService.getCVFCenters(requestModel).then((value) {
       debugPrint(value.toString());
@@ -176,17 +179,15 @@ class _PjpState extends State<NewPJP> {
     Future.delayed(Duration.zero, () {
       this.loadUserData();
     });
-
   }
 
-  loadUserData(){
+  loadUserData() {
     getUserInfo();
-
-
   }
 
   addPJPCentersinDB() async {
-    DateTime time = DateTime(cvfDate.year,cvfDate.month,cvfDate.day,vistitDateTime?.hour as int,vistitDateTime?.minute as int);
+    DateTime time = DateTime(cvfDate.year, cvfDate.month, cvfDate.day,
+        vistitDateTime?.hour as int, vistitDateTime?.minute as int);
     DBHelper dbHelper = DBHelper();
     Map<String, Object> data = {
       DBConstant.PJP_ID: widget.mPjpModel.pjpId,
@@ -195,7 +196,7 @@ class _PjpState extends State<NewPJP> {
       DBConstant.PURPOSE: _purposeMultiSelect,
       DBConstant.DATE: Utility.parseDate(time),
       DBConstant.IS_ACTIVE: 1,
-      DBConstant.IS_NOTIFY: _isNotify ==true ? 1 : 0,
+      DBConstant.IS_NOTIFY: _isNotify == true ? 1 : 0,
       /*DBConstant.IS_SYNC: 0,*/
       DBConstant.IS_CHECK_IN: 0,
       DBConstant.IS_CHECK_OUT: 0,
@@ -223,8 +224,7 @@ class _PjpState extends State<NewPJP> {
     debugPrint('getEvent----${mCVFList.length}');
     for (int index = 0; index < mCVFList.length; index++) {
       debugPrint(
-          '${Utility.shortDate(date)}  -- ${Utility.shortDate(
-              mCVFList[index].dateTime as DateTime)}');
+          '${Utility.shortDate(date)}  -- ${Utility.shortDate(mCVFList[index].dateTime as DateTime)}');
       if (Utility.shortDate(date) ==
           Utility.shortDate(mCVFList[index].dateTime as DateTime)) {
         list.add(mCVFList[index]);
@@ -242,9 +242,9 @@ class _PjpState extends State<NewPJP> {
         if(widget.mPjpModel.pjpId==cvfList[index].pjpId){
           mCVFList.add(cvfList[index]);
         }
-        *//*if(Utility.shortDate(cvfList[index].dateTime)==Utility.shortDate(widget.mPjpModel.fromDate) || Utility.shortDate(cvfList[index].dateTime)==Utility.shortDate(widget.mPjpModel.toDate) || (cvfList[index].dateTime.isAfter(widget.mPjpModel.fromDate) && cvfList[index].dateTime.isBefore(widget.mPjpModel.toDate))){
+        */ /*if(Utility.shortDate(cvfList[index].dateTime)==Utility.shortDate(widget.mPjpModel.fromDate) || Utility.shortDate(cvfList[index].dateTime)==Utility.shortDate(widget.mPjpModel.toDate) || (cvfList[index].dateTime.isAfter(widget.mPjpModel.fromDate) && cvfList[index].dateTime.isBefore(widget.mPjpModel.toDate))){
           mCVFList.add(cvfList[index]);
-        }*//*
+        }*/ /*
       }
       //mCVFList.addAll(cvfList);
     }
@@ -255,10 +255,7 @@ class _PjpState extends State<NewPJP> {
   }
 
   getCenterForm() {
-
-    Size size = MediaQuery
-        .of(context)
-        .size;
+    Size size = MediaQuery.of(context).size;
     return Container(
       child: Column(
         children: [
@@ -274,7 +271,9 @@ class _PjpState extends State<NewPJP> {
                       Utility.showMessage(context, value);
                       setState() {
                         _purposeMultiSelect = value;
-                      };
+                      }
+
+                      ;
                     },
                     child: Container(
                       alignment: Alignment.center,
@@ -340,21 +339,16 @@ class _PjpState extends State<NewPJP> {
   }
 
   addNewCVF() async {
-
-    if(!await Utility.isInternet()){
+    if (!await Utility.isInternet()) {
       //Navigator.of(context).pop();
       Utility.noInternetConnection(context);
-    }else {
+    } else {
       Utility.showLoaderDialog(context);
       mCategoryList.clear();
       debugPrint('categoty');
       String xml =
-          '<root><tblPJPCVF><Business_Id>${businessId}</Business_Id><Employee_Id>${employeeId}</Employee_Id><Franchisee_Id>${getFrichanseeId()}</Franchisee_Id><Visit_Date>${Utility
-          .convertShortDate(cvfDate)}</Visit_Date><Visit_Time>${vistitDateTime
-          ?.hour}:${vistitDateTime
-          ?.minute}</Visit_Time><Category_Id>1</Category_Id></tblPJPCVF></root>';
-      AddCVFRequest request =
-      AddCVFRequest(
+          '<root><tblPJPCVF><Business_Id>${businessId}</Business_Id><Employee_Id>${employeeId}</Employee_Id><Franchisee_Id>${getFrichanseeId()}</Franchisee_Id><Visit_Date>${Utility.convertShortDate(cvfDate)}</Visit_Date><Visit_Time>${vistitDateTime?.hour}:${vistitDateTime?.minute}</Visit_Time><Category_Id>1</Category_Id></tblPJPCVF></root>';
+      AddCVFRequest request = AddCVFRequest(
           PJP_Id: widget.mPjpModel.pjpId, DocXml: xml, UserId: employeeId);
       debugPrint(request.toJson().toString());
       APIService apiService = APIService();
@@ -383,29 +377,39 @@ class _PjpState extends State<NewPJP> {
     }
   }
 
-
-  getCenter(Size size){
+  getCenter(Size size) {
     return Column(
       children: [
-        FastDropdown(name: 'Select Center',
+        FastDropdown(
+          name: 'Select Center',
           hint: Text('Select Center'),
-          onChanged: (value){
+          onChanged: (value) {
             _CenterName = value as String;
             // Utility.showMessage(context, '${value}');
           },
-          items: getList(mFrianchiseeList),),
-        SizedBox(height: 10,),
-        FastCheckbox(name: 'Is Notify to Business Partner', titleText: 'Is Notify to Business Partner',
-          onChanged: (value){
+          items: getList(mFrianchiseeList),
+        ),
+        SizedBox(
+          height: 10,
+        ),
+        FastCheckbox(
+          name: 'Is Notify to Business Partner',
+          titleText: 'Is Notify to Business Partner',
+          onChanged: (value) {
             _isNotify = value as bool;
-            setState(){};
-          },),
-        SizedBox(height: 10,),
+            setState() {}
+            ;
+          },
+        ),
+        SizedBox(
+          height: 10,
+        ),
         GestureDetector(
           onTap: () {
             //formKey.currentState?.build(context);
 
-            DateTime time = DateTime(cvfDate.year,cvfDate.month,cvfDate.day,vistitDateTime?.hour as int,vistitDateTime?.minute as int);
+            DateTime time = DateTime(cvfDate.year, cvfDate.month, cvfDate.day,
+                vistitDateTime?.hour as int, vistitDateTime?.minute as int);
             /*mPjpModel.centerList.add(PJPCentersInfo(pjpId: mPjpModel.pjpId, dateTime: time, centerCode: getCenterCode(_CenterName),
                 centerName: _CenterName, isActive: true, isNotify: true, purpose: _purposeMultiSelect, isCheckIn: false, isCheckOut: false,
                 isSync: false, isCompleted: false, createdDate: DateTime.now(), modifiedDate: DateTime.now()));*/
@@ -416,7 +420,7 @@ class _PjpState extends State<NewPJP> {
           child: Container(
             alignment: Alignment.center,
             height: size.height / 20,
-            width: size.width/2,
+            width: size.width / 2,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(50.0),
               color: LightColor.brighter,
@@ -446,35 +450,35 @@ class _PjpState extends State<NewPJP> {
 
   Widget datePicker(BuildContext context) {
     return Container(
-        decoration: BoxDecoration(border: Border.all(color: LightColors.kLightGray1)),
+        decoration:
+            BoxDecoration(border: Border.all(color: LightColors.kLightGray1)),
         height: 60,
         child: Center(
             child: TextField(
-              //editing controller of this TextField
-              decoration: InputDecoration(
-                  icon: Icon(Icons.calendar_today), //icon of text field
-                  labelText: "Enter Date" //label text of field
+          //editing controller of this TextField
+          decoration: InputDecoration(
+              icon: Icon(Icons.calendar_today), //icon of text field
+              labelText: "Enter Date" //label text of field
               ),
-              readOnly: true,
-              //set it true, so that user will not able to edit text
-              onTap: () async {
-                DateTime? pickedDate = await showDatePicker(
-                    context: context,
-                    initialDate: widget.mPjpModel.fromDate,
-                    firstDate: widget.mPjpModel.fromDate,
-                    //DateTime.now() - not to allow to choose before today.
-                    lastDate: widget.mPjpModel.toDate);
+          readOnly: true,
+          //set it true, so that user will not able to edit text
+          onTap: () async {
+            DateTime? pickedDate = await showDatePicker(
+                context: context,
+                initialDate: widget.mPjpModel.fromDate,
+                firstDate: widget.mPjpModel.fromDate,
+                //DateTime.now() - not to allow to choose before today.
+                lastDate: widget.mPjpModel.toDate);
 
-                if (pickedDate != null) {
-                  cvfDate = pickedDate;
-                  String formattedDate =
+            if (pickedDate != null) {
+              cvfDate = pickedDate;
+              String formattedDate =
                   DateFormat('dd-MMM-yyyy').format(pickedDate);
-                  debugPrint(
-                      formattedDate); //formatted date output using intl package =>  2021-03-16
-
-                } else {}
-              },
-            )));
+              debugPrint(
+                  formattedDate); //formatted date output using intl package =>  2021-03-16
+            } else {}
+          },
+        )));
   }
 
   getActivity(Size size) {
@@ -565,12 +569,8 @@ class _PjpState extends State<NewPJP> {
   Widget build(BuildContext context) {
     FirebaseAnalyticsUtils().sendAnalyticsEvent('New PJP');
 
-    Size size = MediaQuery
-        .of(context)
-        .size;
-    var brightness = MediaQuery
-        .of(context)
-        .platformBrightness;
+    Size size = MediaQuery.of(context).size;
+    var brightness = MediaQuery.of(context).platformBrightness;
     bool isDarkMode = brightness == Brightness.light;
     return Scaffold(
       appBar: getAppbar(),
@@ -635,7 +635,6 @@ class _PjpState extends State<NewPJP> {
                 debugPrint('page changes');
               },
             ),
-
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
@@ -647,7 +646,7 @@ class _PjpState extends State<NewPJP> {
                   child: Container(
                     alignment: Alignment.center,
                     height: size.height / 30,
-                    width: size.width/3,
+                    width: size.width / 3,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(50.0),
                       color: LightColor.brighter,
@@ -673,13 +672,12 @@ class _PjpState extends State<NewPJP> {
                 ),
                 GestureDetector(
                   onTap: () {
-
                     setState(() {});
                   },
                   child: Container(
                     alignment: Alignment.center,
                     height: size.height / 30,
-                    width: size.width/3,
+                    width: size.width / 3,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(50.0),
                       color: LightColor.brighter,
@@ -705,8 +703,7 @@ class _PjpState extends State<NewPJP> {
                 ),
               ],
             ),
-            isAddCVF ==true ? getCenterForm() : loadCVFList(),
-
+            isAddCVF == true ? getCenterForm() : loadCVFList(),
           ],
         ),
       ),
@@ -752,35 +749,38 @@ class _PjpState extends State<NewPJP> {
     return decoration;
   }
 
-  loadCVFList(){
+  loadCVFList() {
     double width = MediaQuery.of(context).size.width;
-    if (mCVFList == null ||  mCVFList.length <= 0) {
+    if (mCVFList == null || mCVFList.length <= 0) {
       debugPrint('CVF LIST not added ');
       return Text('');
     } else {
       return Flexible(
           child: ListView.builder(
-            itemCount: mCVFList.length,
-            shrinkWrap: true,
-            itemBuilder: (context, index) {
-              return cvfView(mCVFList[index],width);
-            },
-          ));
+        itemCount: mCVFList.length,
+        shrinkWrap: true,
+        itemBuilder: (context, index) {
+          return cvfView(mCVFList[index], width);
+        },
+      ));
     }
   }
 
-  cvfView(PJPCentersInfo model,double width){
+  cvfView(PJPCentersInfo model, double width) {
     return GestureDetector(
-      onTap: (){
+      onTap: () {
         /*Navigator.push(
           context,
           MaterialPageRoute(
               builder: (context) => QuestionListScreen()),
         );*/
       },
-      child: Padding(padding: EdgeInsets.all(1),
+      child: Padding(
+          padding: EdgeInsets.all(1),
           child: Container(
-            decoration: BoxDecoration(color: Colors.grey,),
+            decoration: BoxDecoration(
+              color: Colors.grey,
+            ),
             padding: EdgeInsets.all(1),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -790,7 +790,9 @@ class _PjpState extends State<NewPJP> {
                   child: Container(
                     height: 80,
                     width: MediaQuery.of(context).size.width * 0.10,
-                    decoration: BoxDecoration(color: LightColors.kLightGray1,),
+                    decoration: BoxDecoration(
+                      color: LightColors.kLightGray1,
+                    ),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -845,11 +847,9 @@ class _PjpState extends State<NewPJP> {
                     ),
                   ),
                 ),
-
               ],
             ),
-          )
-      ),
+          )),
     );
   }
 
@@ -885,7 +885,7 @@ class _PjpState extends State<NewPJP> {
       _selectedDay = null;
       _focusedDay = focusedDay;
       _rangeStart = start;
-      _rangeEnd =end;
+      _rangeEnd = end;
       _rangeSelectionMode = RangeSelectionMode.toggledOn;
     });
     debugPrint('_onRangeSelected');
@@ -906,7 +906,7 @@ class _PjpState extends State<NewPJP> {
       title: Text(
         'Permanent Planner',
         style:
-        TextStyle(fontSize: 17, color: Colors.white, letterSpacing: 0.53),
+            TextStyle(fontSize: 17, color: Colors.white, letterSpacing: 0.53),
       ),
       /*shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(

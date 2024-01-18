@@ -2,6 +2,11 @@ import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
 
+import 'package:Intranet/api/request/apply_leave_request.dart';
+import 'package:Intranet/api/request/approve_leave_request.dart';
+import 'package:Intranet/api/request/attendance_marking_man_request.dart';
+import 'package:Intranet/api/request/attendance_marking_request.dart';
+import 'package:Intranet/api/request/attendance_summery_request.dart';
 import 'package:Intranet/api/request/bpms/bpms_stats.dart';
 import 'package:Intranet/api/request/bpms/bpms_task.dart';
 import 'package:Intranet/api/request/bpms/deletetask.dart';
@@ -14,34 +19,6 @@ import 'package:Intranet/api/request/bpms/newtask.dart';
 import 'package:Intranet/api/request/bpms/projects.dart';
 import 'package:Intranet/api/request/bpms/send_cred.dart';
 import 'package:Intranet/api/request/bpms/update_task.dart';
-import 'package:Intranet/api/request/pjp/pjp_exceptional_list.dart';
-import 'package:Intranet/api/response/bpms/bpms_stats.dart';
-import 'package:Intranet/api/response/bpms/bpms_status.dart';
-import 'package:Intranet/api/response/bpms/franchisee_details_response.dart';
-import 'package:Intranet/api/response/bpms/getTaskDetailsResponseModel.dart';
-import 'package:Intranet/api/response/bpms/get_comments_response.dart';
-import 'package:Intranet/api/response/bpms/get_communication_response.dart';
-import 'package:Intranet/api/response/bpms/insert_attachment_response.dart';
-import 'package:Intranet/api/response/bpms/newtask.dart';
-import 'package:Intranet/api/response/bpms/project_task.dart';
-import 'package:Intranet/api/response/bpms/send_cred.dart';
-import 'package:Intranet/api/response/bpms/update_task_response.dart';
-import 'package:Intranet/api/response/pjp/pjp_exceptional_list.dart';
-import 'package:Intranet/api/response/uploadimage.dart';
-import 'package:aws_s3_upload/aws_s3_upload.dart';
-import 'package:aws_s3_upload/enum/acl.dart';
-import 'package:camera/camera.dart';
-import 'package:dio/dio.dart';
-import 'package:either_dart/either.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
-import 'package:flutter_image_compress/flutter_image_compress.dart';
-import 'package:http/http.dart' as http;
-import 'package:Intranet/api/request/apply_leave_request.dart';
-import 'package:Intranet/api/request/approve_leave_request.dart';
-import 'package:Intranet/api/request/attendance_marking_man_request.dart';
-import 'package:Intranet/api/request/attendance_marking_request.dart';
-import 'package:Intranet/api/request/attendance_summery_request.dart';
 import 'package:Intranet/api/request/cvf/add_cvf_request.dart';
 import 'package:Intranet/api/request/cvf/category_request.dart';
 import 'package:Intranet/api/request/cvf/centers_request.dart';
@@ -62,6 +39,7 @@ import 'package:Intranet/api/request/pjp/add_pjp_request.dart';
 import 'package:Intranet/api/request/pjp/employee_request.dart';
 import 'package:Intranet/api/request/pjp/get_pjp_list_request.dart';
 import 'package:Intranet/api/request/pjp/get_pjp_report_request.dart';
+import 'package:Intranet/api/request/pjp/pjp_exceptional_list.dart';
 import 'package:Intranet/api/request/pjp/update_pjpstatus_request.dart';
 import 'package:Intranet/api/request/pjp/update_pjpstatuslist_request.dart';
 import 'package:Intranet/api/request/report/myreport_request.dart';
@@ -71,6 +49,17 @@ import 'package:Intranet/api/response/approve_attendance_response.dart';
 import 'package:Intranet/api/response/attendance_marking_man.dart';
 import 'package:Intranet/api/response/attendance_marking_response.dart';
 import 'package:Intranet/api/response/attendance_response.dart';
+import 'package:Intranet/api/response/bpms/bpms_stats.dart';
+import 'package:Intranet/api/response/bpms/bpms_status.dart';
+import 'package:Intranet/api/response/bpms/franchisee_details_response.dart';
+import 'package:Intranet/api/response/bpms/getTaskDetailsResponseModel.dart';
+import 'package:Intranet/api/response/bpms/get_comments_response.dart';
+import 'package:Intranet/api/response/bpms/get_communication_response.dart';
+import 'package:Intranet/api/response/bpms/insert_attachment_response.dart';
+import 'package:Intranet/api/response/bpms/newtask.dart';
+import 'package:Intranet/api/response/bpms/project_task.dart';
+import 'package:Intranet/api/response/bpms/send_cred.dart';
+import 'package:Intranet/api/response/bpms/update_task_response.dart';
 import 'package:Intranet/api/response/cvf/QuestionResponse.dart';
 import 'package:Intranet/api/response/cvf/add_cvf_response.dart';
 import 'package:Intranet/api/response/cvf/category_response.dart';
@@ -87,14 +76,27 @@ import 'package:Intranet/api/response/login_response.dart';
 import 'package:Intranet/api/response/outdoor_response.dart';
 import 'package:Intranet/api/response/pjp/add_pjp_response.dart';
 import 'package:Intranet/api/response/pjp/employee_response.dart';
+import 'package:Intranet/api/response/pjp/pjp_exceptional_list.dart';
 import 'package:Intranet/api/response/pjp/pjplistresponse.dart';
 import 'package:Intranet/api/response/pjp/update_pjpstatus_response.dart';
 import 'package:Intranet/api/response/report/my_report.dart';
+import 'package:Intranet/api/response/uploadimage.dart';
+import 'package:Intranet/pages/outdoor/model/createemplyeeplanrequestmodel.dart';
+import 'package:aws_s3_upload/aws_s3_upload.dart';
+import 'package:aws_s3_upload/enum/acl.dart';
+import 'package:dio/dio.dart';
+import 'package:either_dart/either.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
+import 'package:hive/hive.dart';
+import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 
+import '../pages/helper/LocalConstant.dart';
 import '../pages/helper/LocalStrings.dart';
 import '../pages/helper/utils.dart';
 import '../pages/iface/onClick.dart';
+import '../pages/outdoor/model/getplandetails.dart';
 import 'aws_s3_upload.dart';
 
 class APIService {
@@ -107,27 +109,33 @@ class APIService {
       var body = jsonEncode({
         'userName': requestModel.userName,
         'password': requestModel.password,
-        'AppType': kIsWeb ? 'Web' : Platform.isAndroid ? 'Android' : Platform.isIOS
-            ? 'IOS'
-            : 'unknown'
+        'AppType': kIsWeb
+            ? 'Web'
+            : Platform.isAndroid
+                ? 'Android'
+                : Platform.isIOS
+                    ? 'IOS'
+                    : 'unknown'
       });
       debugPrint('URL ${url + LocalStrings.GET_LOGIN}');
-      debugPrint('URL PARSE ${Uri.parse(url + LocalStrings.GET_LOGIN).toString()}');
+      debugPrint(
+          'URL PARSE ${Uri.parse(url + LocalStrings.GET_LOGIN).toString()}');
       try {
-        final response = await http.post(
-            Uri.parse(url + LocalStrings.GET_LOGIN),
-            headers: {
-              "Accept": "application/json",
-              "content-type": "application/json",
-              "Access-Control-Allow-Origin": "*",
-              // Required for CORS support to work
-              "Access-Control-Allow-Credentials": "false",
-              // Required for cookies, authorization headers with HTTPS
-              "Access-Control-Allow-Headers": "Origin,Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,locale",
-              "Access-Control-Allow-Methods": "*"
-            },
-            body: body);
-        debugPrint('ResponseBody ${response.body} ${response.statusCode}');
+        final response =
+            await http.post(Uri.parse(url + LocalStrings.GET_LOGIN),
+                headers: {
+                  "Accept": "application/json",
+                  "content-type": "application/json",
+                  "Access-Control-Allow-Origin": "*",
+                  // Required for CORS support to work
+                  "Access-Control-Allow-Credentials": "false",
+                  // Required for cookies, authorization headers with HTTPS
+                  "Access-Control-Allow-Headers":
+                      "Origin,Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,locale",
+                  "Access-Control-Allow-Methods": "*"
+                },
+                body: body);
+        debugPrint('Response ${response}');
         debugPrint(Uri.parse(url + LocalStrings.GET_LOGIN).toString());
         if (response.statusCode == 200 || response.statusCode == 400) {
           if (response.body is LoginResponseInvalid) {
@@ -142,7 +150,7 @@ class APIService {
         } else {
           return null; //LoginResponseModel(token:"",Status:"Invalid/Wrong Login Details");
         }
-      }catch(e){
+      } catch (e) {
         print(e.toString());
       }
     } catch (e) {
@@ -150,28 +158,119 @@ class APIService {
     }
   }
 
-  Future<dynamic> attendanceSummery(AttendanceSummeryRequestModel requestModel) async {
+  Future<Either<String, List<GetPlanData>>> getEmployeeVisitDetails() async {
     try {
-      var body = jsonEncode( {
+      var hive = Hive.box(LocalConstant.KidzeeDB);
+
+      var employeeId = hive.get(LocalConstant.KEY_EMPLOYEE_ID);
+
+      var body = jsonEncode({'employee_id': employeeId});
+
+      final response = await http.post(
+          Uri.parse(url + LocalStrings.GET_EMPLOYEE_VISIT_DETAILS),
+          headers: {
+            "Accept": "application/json",
+            "content-type": "application/json"
+          },
+          body: body);
+      if (response.statusCode == 200) {
+        return Right(List<GetPlanData>.from(
+            jsonDecode(response.body)['responseData'].map((e) {
+          return GetPlanData.fromJson(e);
+        }).toList()));
+      } else {
+        return Left(response.body.toString());
+      }
+    } catch (e) {
+      debugPrint('Exception in getVisitdetailsapi - $e');
+
+      return Left(e.toString());
+    }
+  }
+
+  Future<Either<String, List<GetPlanData>>> createEmployeeVisitPlan(
+      {required String date, required List<XMLRequest> xmlRequest}) async {
+    try {
+      CreateEmployeeRequestModel request =
+          CreateEmployeeRequestModel(date: date, xmlrequest: xmlRequest);
+
+      debugPrint('Request  in create event - ${request}');
+      final response = await http.post(
+          Uri.parse(url + LocalStrings.CREATE_EMPLYEE_VISIT_PLANNER),
+          headers: {
+            "Accept": "application/json",
+            "content-type": "application/json"
+          },
+          body: request.toString());
+
+      debugPrint('response from create event - ${response.body.toString()}');
+      if (response.statusCode == 200) {
+        return Right(List<GetPlanData>.from(
+            jsonDecode(response.body)['responseData'].map((e) {
+          return GetPlanData.fromJson(e);
+        }).toList()));
+      } else {
+        return Left(response.body.toString());
+      }
+    } catch (e) {
+      debugPrint('Exception in create event - $e');
+
+      return Left(e.toString());
+    }
+  }
+
+  Future<Either<String, String>> deleteEmployeeVisitPlan(
+      {required String id}) async {
+    try {
+      final response = await http.post(
+          Uri.parse(url + LocalStrings.DELETE_EMPLOYEE_VISIT_PLAN),
+          headers: {
+            "Accept": "application/json",
+            "content-type": "application/json"
+          },
+          body: jsonEncode({"id": id}));
+
+      debugPrint('response from delete event - ${response.body.toString()}');
+      if (response.statusCode == 200) {
+        return Right(jsonDecode(response.body)['responseMessage']);
+      } else {
+        return Left(response.body.toString());
+      }
+    } catch (e) {
+      debugPrint('Exception in delete event - $e');
+
+      return Left(e.toString());
+    }
+  }
+
+  Future<dynamic> attendanceSummery(
+      AttendanceSummeryRequestModel requestModel) async {
+    try {
+      var body = jsonEncode({
         'Employee_Id': requestModel.Employee_Id,
         'PayrollFromMonth': requestModel.PayrollFromMonth,
         'PayrollFromYear': requestModel.PayrollFromYear,
         'PayrollToMonth': requestModel.PayrollToMonth,
         'PayrollToYear': requestModel.PayrollToYear,
-        'AppType' :Platform.isAndroid ? 'Android' : Platform.isIOS ? 'IOS' : 'unknown'
+        'AppType': Platform.isAndroid
+            ? 'Android'
+            : Platform.isIOS
+                ? 'IOS'
+                : 'unknown'
       });
-      final response = await http.post(Uri.parse(url + LocalStrings.GET_ATTENDANCE_SUMMERY),
+      final response = await http.post(
+          Uri.parse(url + LocalStrings.GET_ATTENDANCE_SUMMERY),
           headers: {
             "Accept": "application/json",
             "content-type": "application/json"
           },
-          body:body);
+          body: body);
       if (response.statusCode == 200 || response.statusCode == 400) {
-        if(response.body is AttendanceSummeryResponse){
+        if (response.body is AttendanceSummeryResponse) {
           return AttendanceSummeryResponse.fromJson(
             json.decode(response.body),
           );
-        }else {
+        } else {
           return AttendanceSummeryResponse.fromJson(
             json.decode(response.body),
           );
@@ -186,24 +285,29 @@ class APIService {
 
   Future<dynamic> LeaveBalance(LeaveBalanceRequest requestModel) async {
     try {
-      var body = jsonEncode( {
+      var body = jsonEncode({
         'Employee_Id': requestModel.Employee_Id,
         'FDay': requestModel.FDay,
         'TDay': requestModel.TDay,
-        'AppType' :Platform.isAndroid ? 'Android' : Platform.isIOS ? 'IOS' : 'unknown'
+        'AppType': Platform.isAndroid
+            ? 'Android'
+            : Platform.isIOS
+                ? 'IOS'
+                : 'unknown'
       });
-      final response = await http.post(Uri.parse(url + LocalStrings.GET_LEAVE_SUMMERY),
+      final response = await http.post(
+          Uri.parse(url + LocalStrings.GET_LEAVE_SUMMERY),
           headers: {
             "Accept": "application/json",
             "content-type": "application/json"
           },
-          body:body);
+          body: body);
       if (response.statusCode == 200 || response.statusCode == 400) {
-        if(response.body is AttendanceSummeryResponse){
+        if (response.body is AttendanceSummeryResponse) {
           return LeaveBalanceResponse.fromJson(
             json.decode(response.body),
           );
-        }else {
+        } else {
           return LeaveBalanceResponse.fromJson(
             json.decode(response.body),
           );
@@ -220,7 +324,7 @@ class APIService {
   Future<dynamic> LeaveRequisition(LeaveListRequest requestModel) async {
     try {
       debugPrint(requestModel.toJson().toString());
-      var body = jsonEncode( {
+      var body = jsonEncode({
         'device': requestModel.device,
         'Employee_ID': requestModel.Employee_ID,
         'Employee_Name': requestModel.Employee_Name,
@@ -228,22 +332,28 @@ class APIService {
         'Role': requestModel.Role,
         'Status': requestModel.Status,
         'ToDate': requestModel.ToDate,
-        'AppType' :Platform.isAndroid ? 'Android' : Platform.isIOS ? 'IOS' : 'unknown'
+        'AppType': Platform.isAndroid
+            ? 'Android'
+            : Platform.isIOS
+                ? 'IOS'
+                : 'unknown'
       });
-      debugPrint(Uri.parse(url + LocalStrings.GET_LEAVE_REQUISITION).toString());
-      final response = await http.post(Uri.parse(url + LocalStrings.GET_LEAVE_REQUISITION),
+      debugPrint(
+          Uri.parse(url + LocalStrings.GET_LEAVE_REQUISITION).toString());
+      final response = await http.post(
+          Uri.parse(url + LocalStrings.GET_LEAVE_REQUISITION),
           headers: {
             "Accept": "application/json",
             "content-type": "application/json"
           },
-          body:body);
+          body: body);
       debugPrint(response.body);
       if (response.statusCode == 200 || response.statusCode == 400) {
-        if(response.body is AttendanceSummeryResponse){
+        if (response.body is AttendanceSummeryResponse) {
           return LeaveRequisitionResponse.fromJson(
             json.decode(response.body),
           );
-        }else {
+        } else {
           return LeaveRequisitionResponse.fromJson(
             json.decode(response.body),
           );
@@ -257,32 +367,39 @@ class APIService {
     }
   }
 
-  Future<dynamic> leaveRequisitionManager(ApplyLeaveManRequest requestModel) async {
+  Future<dynamic> leaveRequisitionManager(
+      ApplyLeaveManRequest requestModel) async {
     try {
       debugPrint(requestModel.toJson().toString());
-      var body = jsonEncode( {
+      var body = jsonEncode({
         'Employee_Id': requestModel.Employee_Id,
         'device': requestModel.device,
         'ToDate': requestModel.ToDate,
         'Role': requestModel.Role,
         'FromDate': requestModel.FromDate,
         'LeaveType': requestModel.LeaveType,
-        'AppType' :Platform.isAndroid ? 'Android' : Platform.isIOS ? 'IOS' : 'unknown'
+        'AppType': Platform.isAndroid
+            ? 'Android'
+            : Platform.isIOS
+                ? 'IOS'
+                : 'unknown'
       });
-      debugPrint(Uri.parse(url + LocalStrings.GET_LEAVE_REQUISITION_MANAGER).toString());
-      final response = await http.post(Uri.parse(url + LocalStrings.GET_LEAVE_REQUISITION_MANAGER),
+      debugPrint(Uri.parse(url + LocalStrings.GET_LEAVE_REQUISITION_MANAGER)
+          .toString());
+      final response = await http.post(
+          Uri.parse(url + LocalStrings.GET_LEAVE_REQUISITION_MANAGER),
           headers: {
             "Accept": "application/json",
             "content-type": "application/json"
           },
-          body:body);
+          body: body);
       debugPrint(response.body);
       if (response.statusCode == 200 || response.statusCode == 400) {
-        if(response.body is AttendanceSummeryResponse){
+        if (response.body is AttendanceSummeryResponse) {
           return LeaveListManagerResponse.fromJson(
             json.decode(response.body),
           );
-        }else {
+        } else {
           return LeaveListManagerResponse.fromJson(
             json.decode(response.body),
           );
@@ -299,7 +416,7 @@ class APIService {
   Future<dynamic> approveLeave(ApproveLeaveRequest requestModel) async {
     try {
       debugPrint(requestModel.toJson().toString());
-      var body = jsonEncode( {
+      var body = jsonEncode({
         'User_Id': requestModel.User_Id,
         'RequisitionTypeCode': requestModel.RequisitionTypeCode,
         'Is_Approved': requestModel.Is_Approved,
@@ -308,22 +425,28 @@ class APIService {
         'Workflow_Remark': requestModel.Workflow_Remark,
         'Workflow_UserType': requestModel.Workflow_UserType,
         'WorkflowTypeCode': requestModel.WorkflowTypeCode,
-        'AppType' :Platform.isAndroid ? 'Android' : Platform.isIOS ? 'IOS' : 'unknown'
+        'AppType': Platform.isAndroid
+            ? 'Android'
+            : Platform.isIOS
+                ? 'IOS'
+                : 'unknown'
       });
-      debugPrint(Uri.parse(url + LocalStrings.GET_APPROVE_LEAVE_REQUISITION).toString());
-      final response = await http.post(Uri.parse(url + LocalStrings.GET_APPROVE_LEAVE_REQUISITION),
+      debugPrint(Uri.parse(url + LocalStrings.GET_APPROVE_LEAVE_REQUISITION)
+          .toString());
+      final response = await http.post(
+          Uri.parse(url + LocalStrings.GET_APPROVE_LEAVE_REQUISITION),
           headers: {
             "Accept": "application/json",
             "content-type": "application/json"
           },
-          body:body);
+          body: body);
       debugPrint(response.body);
       if (response.statusCode == 200 || response.statusCode == 400) {
-        if(response.body is AttendanceSummeryResponse){
+        if (response.body is AttendanceSummeryResponse) {
           return ApplyLeaveResponse.fromJson(
             json.decode(response.body),
           );
-        }else {
+        } else {
           return ApplyLeaveResponse.fromJson(
             json.decode(response.body),
           );
@@ -337,30 +460,38 @@ class APIService {
     }
   }
 
-  Future<dynamic> approveLeaveManager(ApproveLeaveRequestManager request) async {
+  Future<dynamic> approveLeaveManager(
+      ApproveLeaveRequestManager request) async {
     try {
       debugPrint(request.toJson().toString());
-      var body = jsonEncode( {
+      var body = jsonEncode({
         'xml': request.xml,
         'User_Id': request.userId,
-        'AppType' :Platform.isAndroid ? 'Android' : Platform.isIOS ? 'IOS' : 'unknown'
+        'AppType': Platform.isAndroid
+            ? 'Android'
+            : Platform.isIOS
+                ? 'IOS'
+                : 'unknown'
       });
       debugPrint('request body');
       debugPrint(body);
-      debugPrint(Uri.parse(url + LocalStrings.GET_APPROVE_LEAVE_REQUISITION_MULTIPLE).toString());
-      final response = await http.post(Uri.parse(url + LocalStrings.GET_APPROVE_LEAVE_REQUISITION_MULTIPLE),
+      debugPrint(
+          Uri.parse(url + LocalStrings.GET_APPROVE_LEAVE_REQUISITION_MULTIPLE)
+              .toString());
+      final response = await http.post(
+          Uri.parse(url + LocalStrings.GET_APPROVE_LEAVE_REQUISITION_MULTIPLE),
           headers: {
             "Accept": "application/json",
             "content-type": "application/json"
           },
-          body:body);
+          body: body);
       debugPrint(response.body);
       if (response.statusCode == 200) {
-        if(response.body is ApplyLeaveResponse){
+        if (response.body is ApplyLeaveResponse) {
           return ApplyLeaveResponse.fromJson(
             json.decode(response.body),
           );
-        }else {
+        } else {
           return ApplyLeaveResponse.fromJson(
             json.decode(response.body),
           );
@@ -378,7 +509,7 @@ class APIService {
     try {
       debugPrint(requestModel.toJson().toString());
 
-      var body = jsonEncode( {
+      var body = jsonEncode({
         'Employee_Id': requestModel.Employee_Id,
         'End_Date': requestModel.End_Date,
         'IsMaternityLeave': requestModel.IsMaternityLeave,
@@ -391,23 +522,28 @@ class APIService {
         'RequisitionTypeCode': requestModel.RequisitionTypeCode,
         'WorkLocation': requestModel.WorkLocation,
         'IsHappinessLeave': requestModel.IsHappinessLeave,
-        'AppType' :Platform.isAndroid ? 'Android' : Platform.isIOS ? 'IOS' : 'unknown'
+        'AppType': Platform.isAndroid
+            ? 'Android'
+            : Platform.isIOS
+                ? 'IOS'
+                : 'unknown'
       });
       debugPrint(body);
       debugPrint(Uri.parse(url + LocalStrings.GET_APPLY_LEAVE).toString());
-      final response = await http.post(Uri.parse(url + LocalStrings.GET_APPLY_LEAVE),
+      final response = await http.post(
+          Uri.parse(url + LocalStrings.GET_APPLY_LEAVE),
           headers: {
             "Accept": "application/json",
             "content-type": "application/json"
           },
-          body:body);
+          body: body);
       debugPrint(response.body);
       if (response.statusCode == 200 || response.statusCode == 400) {
-        if(response.body is AttendanceSummeryResponse){
+        if (response.body is AttendanceSummeryResponse) {
           return ApplyLeaveResponse.fromJson(
             json.decode(response.body),
           );
-        }else {
+        } else {
           return ApplyLeaveResponse.fromJson(
             json.decode(response.body),
           );
@@ -421,24 +557,27 @@ class APIService {
     }
   }
 
-  Future<dynamic> attendanceMarking(AttendanceMarkingRequest requestModel) async {
+  Future<dynamic> attendanceMarking(
+      AttendanceMarkingRequest requestModel) async {
     try {
       debugPrint(requestModel.getJson());
-      debugPrint(Uri.parse(url + LocalStrings.GET_ATTENDANCE_MARKING).toString());
-      final response = await http.post(Uri.parse(url + LocalStrings.GET_ATTENDANCE_MARKING),
+      debugPrint(
+          Uri.parse(url + LocalStrings.GET_ATTENDANCE_MARKING).toString());
+      final response = await http.post(
+          Uri.parse(url + LocalStrings.GET_ATTENDANCE_MARKING),
           headers: {
             "Accept": "application/json",
             "content-type": "application/json"
           },
-          body:requestModel.getJson());
+          body: requestModel.getJson());
       debugPrint(response.body);
       debugPrint(requestModel.getJson());
       if (response.statusCode == 200 || response.statusCode == 400) {
-        if(response.body is AttendanceSummeryResponse){
+        if (response.body is AttendanceSummeryResponse) {
           return AttendanceMarkingResponse.fromJson(
             json.decode(response.body),
           );
-        }else {
+        } else {
           return AttendanceMarkingResponse.fromJson(
             json.decode(response.body),
           );
@@ -456,20 +595,22 @@ class APIService {
     try {
       debugPrint(requestModel.toJson().toString());
 
-      debugPrint(Uri.parse(url + LocalStrings.GET_OUTDOOR_REQUISITION).toString());
-      final response = await http.post(Uri.parse(url + LocalStrings.GET_OUTDOOR_REQUISITION),
+      debugPrint(
+          Uri.parse(url + LocalStrings.GET_OUTDOOR_REQUISITION).toString());
+      final response = await http.post(
+          Uri.parse(url + LocalStrings.GET_OUTDOOR_REQUISITION),
           headers: {
             "Accept": "application/json",
             "content-type": "application/json"
           },
-          body:requestModel.getJson());
+          body: requestModel.getJson());
       debugPrint(response.body);
       if (response.statusCode == 200 || response.statusCode == 400) {
-        if(response.body is AttendanceSummeryResponse){
+        if (response.body is AttendanceSummeryResponse) {
           return OutdoorResponse.fromJson(
             json.decode(response.body),
           );
-        }else {
+        } else {
           return OutdoorResponse.fromJson(
             json.decode(response.body),
           );
@@ -483,23 +624,26 @@ class APIService {
     }
   }
 
-  Future<dynamic> getAttendanceRequisitionMan(AttendanceMarkingManRequest requestModel) async {
+  Future<dynamic> getAttendanceRequisitionMan(
+      AttendanceMarkingManRequest requestModel) async {
     try {
       debugPrint(requestModel.toJson().toString());
-      debugPrint(Uri.parse(url + LocalStrings.GET_ATTENDANCE_REQUISITION_MAN).toString());
-      final response = await http.post(Uri.parse(url + LocalStrings.GET_ATTENDANCE_REQUISITION_MAN),
+      debugPrint(Uri.parse(url + LocalStrings.GET_ATTENDANCE_REQUISITION_MAN)
+          .toString());
+      final response = await http.post(
+          Uri.parse(url + LocalStrings.GET_ATTENDANCE_REQUISITION_MAN),
           headers: {
             "Accept": "application/json",
             "content-type": "application/json"
           },
-          body:requestModel.getJson());
+          body: requestModel.getJson());
       debugPrint(response.body);
       if (response.statusCode == 200 || response.statusCode == 400) {
-        if(response.body is AttendanceSummeryResponse){
+        if (response.body is AttendanceSummeryResponse) {
           return AttendanceMarkingManResponse.fromJson(
             json.decode(response.body),
           );
-        }else {
+        } else {
           return AttendanceMarkingManResponse.fromJson(
             json.decode(response.body),
           );
@@ -513,30 +657,38 @@ class APIService {
     }
   }
 
-  Future<dynamic> approveAttendance(ApproveLeaveRequestManager requestModel) async {
+  Future<dynamic> approveAttendance(
+      ApproveLeaveRequestManager requestModel) async {
     try {
-      var body = jsonEncode( {
+      var body = jsonEncode({
         'xml': requestModel.xml,
         'Modified_By': requestModel.userId,
-        'AppType' :Platform.isAndroid ? 'Android' : Platform.isIOS ? 'IOS' : 'unknown'
+        'AppType': Platform.isAndroid
+            ? 'Android'
+            : Platform.isIOS
+                ? 'IOS'
+                : 'unknown'
       });
       debugPrint('request body');
       debugPrint(body);
-      debugPrint(Uri.parse(url + LocalStrings.GET_APPROVE_ATTENDANCE_REQUISITION_NEW).toString());
-      final response = await http.post(Uri.parse(url + LocalStrings.GET_APPROVE_ATTENDANCE_REQUISITION_NEW),
+      debugPrint(
+          Uri.parse(url + LocalStrings.GET_APPROVE_ATTENDANCE_REQUISITION_NEW)
+              .toString());
+      final response = await http.post(
+          Uri.parse(url + LocalStrings.GET_APPROVE_ATTENDANCE_REQUISITION_NEW),
           headers: {
             "Accept": "application/json",
             "content-type": "application/json"
           },
-          body:body);
+          body: body);
       debugPrint(response.body);
       debugPrint(response.statusCode.toString());
       if (response.statusCode == 200) {
-        if(response.body is AttendanceSummeryResponse){
+        if (response.body is AttendanceSummeryResponse) {
           return ApproveAttendanceResponse.fromJson(
             json.decode(response.body),
           );
-        }else {
+        } else {
           return ApproveAttendanceResponse.fromJson(
             json.decode(response.body),
           );
@@ -554,18 +706,20 @@ class APIService {
   Future<dynamic> getEmployeeList() async {
     try {
       debugPrint(Uri.parse(url + LocalStrings.GET_EMPLOYEE_LIST).toString());
-      final response = await http.get(Uri.parse(url + LocalStrings.GET_EMPLOYEE_LIST),
-          headers: {
-            "Accept": "application/json",
-            "content-type": "application/json"
-          },);
+      final response = await http.get(
+        Uri.parse(url + LocalStrings.GET_EMPLOYEE_LIST),
+        headers: {
+          "Accept": "application/json",
+          "content-type": "application/json"
+        },
+      );
       debugPrint(response.body);
       if (response.statusCode == 200 || response.statusCode == 400) {
-        if(response.body is EmployeeListResponse){
+        if (response.body is EmployeeListResponse) {
           return EmployeeListResponse.fromJson(
             json.decode(response.body),
           );
-        }else {
+        } else {
           return EmployeeListResponse.fromJson(
             json.decode(response.body),
           );
@@ -582,20 +736,21 @@ class APIService {
   Future<dynamic> getCVFCategoties(CVFCategoryRequest requestModel) async {
     try {
       debugPrint(Uri.parse(url + LocalStrings.GET_CVF_CATEGORY).toString());
-      final response = await http.post(Uri.parse(url + LocalStrings.GET_CVF_CATEGORY),
+      final response = await http.post(
+          Uri.parse(url + LocalStrings.GET_CVF_CATEGORY),
           headers: {
             "Accept": "application/json",
             "content-type": "application/json"
           },
-          body:requestModel.getJson());
+          body: requestModel.getJson());
       debugPrint(requestModel.getJson());
       debugPrint(response.body);
       if (response.statusCode == 200 || response.statusCode == 400) {
-        if(response.body is CVFCategoryResponse){
+        if (response.body is CVFCategoryResponse) {
           return CVFCategoryResponse.fromJson(
             json.decode(response.body),
           );
-        }else {
+        } else {
           return CVFCategoryResponse.fromJson(
             json.decode(response.body),
           );
@@ -612,20 +767,21 @@ class APIService {
   Future<dynamic> getCVFCenters(CentersRequestModel requestModel) async {
     try {
       debugPrint(Uri.parse(url + LocalStrings.GET_CVF_CENTER_LIST).toString());
-      final response = await http.post(Uri.parse(url + LocalStrings.GET_CVF_CENTER_LIST),
+      final response = await http.post(
+          Uri.parse(url + LocalStrings.GET_CVF_CENTER_LIST),
           headers: {
             "Accept": "application/json",
             "content-type": "application/json"
           },
-          body:requestModel.getJson());
+          body: requestModel.getJson());
       debugPrint(requestModel.getJson());
       debugPrint(response.body);
       if (response.statusCode == 200 || response.statusCode == 400) {
-        if(response.body is CentersResponse){
+        if (response.body is CentersResponse) {
           return CentersResponse.fromJson(
             json.decode(response.body),
           );
-        }else {
+        } else {
           return CentersResponse.fromJson(
             json.decode(response.body),
           );
@@ -642,19 +798,20 @@ class APIService {
   Future<dynamic> addNewPJP(AddPJPRequest requestModel) async {
     try {
       debugPrint(Uri.parse(url + LocalStrings.SAVE_NEW_PJP).toString());
-      final response = await http.post(Uri.parse(url + LocalStrings.SAVE_NEW_PJP),
+      final response = await http.post(
+          Uri.parse(url + LocalStrings.SAVE_NEW_PJP),
           headers: {
             "Accept": "application/json",
             "content-type": "application/json"
           },
-          body:requestModel.getJson());
+          body: requestModel.getJson());
       debugPrint(response.body);
       if (response.statusCode == 200 || response.statusCode == 400) {
-        if(response.body is NewPJPResponse){
+        if (response.body is NewPJPResponse) {
           return NewPJPResponse.fromJson(
             json.decode(response.body),
           );
-        }else {
+        } else {
           return NewPJPResponse.fromJson(
             json.decode(response.body),
           );
@@ -671,20 +828,21 @@ class APIService {
   Future<dynamic> saveCVF(AddCVFRequest requestModel) async {
     try {
       debugPrint(Uri.parse(url + LocalStrings.SAVE_CVF_PJP).toString());
-      final response = await http.post(Uri.parse(url + LocalStrings.SAVE_CVF_PJP),
+      final response = await http.post(
+          Uri.parse(url + LocalStrings.SAVE_CVF_PJP),
           headers: {
             "Accept": "application/json",
             "content-type": "application/json"
           },
-          body:requestModel.getJson());
+          body: requestModel.getJson());
       debugPrint(response.statusCode.toString());
       debugPrint(response.body);
       if (response.statusCode == 200 || response.statusCode == 400) {
-        if(response.body is NewCVFResponse){
+        if (response.body is NewCVFResponse) {
           return NewCVFResponse.fromJson(
             json.decode(response.body),
           );
-        }else {
+        } else {
           return NewCVFResponse.fromJson(
             json.decode(response.body),
           );
@@ -701,20 +859,21 @@ class APIService {
   Future<dynamic> getCVFQuestions(QuestionsRequest requestModel) async {
     try {
       debugPrint(Uri.parse(url + LocalStrings.GET_CVF_QUESTIONS).toString());
-      final response = await http.post(Uri.parse(url + LocalStrings.GET_CVF_QUESTIONS),
+      final response = await http.post(
+          Uri.parse(url + LocalStrings.GET_CVF_QUESTIONS),
           headers: {
             "Accept": "application/json",
             "content-type": "application/json"
           },
-          body:requestModel.getJson());
+          body: requestModel.getJson());
       debugPrint(requestModel.toJson().toString());
       //debugPrint(response.body);
       if (response.statusCode == 200 || response.statusCode == 400) {
-        if(response.body is QuestionResponse){
+        if (response.body is QuestionResponse) {
           return QuestionResponse.fromJson(
             json.decode(response.body),
           );
-        }else {
+        } else {
           return QuestionResponse.fromJson(
             json.decode(response.body),
           );
@@ -731,12 +890,13 @@ class APIService {
   Future<dynamic> getPJPList(PJPListRequest requestModel) async {
     try {
       print('pjp list ');
-      final response = await http.post(Uri.parse(url + LocalStrings.GET_PJP_LIST),
+      final response = await http.post(
+          Uri.parse(url + LocalStrings.GET_PJP_LIST),
           headers: {
             "Accept": "application/json",
             "content-type": "application/json"
           },
-          body:requestModel.getJson());
+          body: requestModel.getJson());
       print('RRR ${response.body.toString()}');
       print('status ${response.statusCode}');
       if (response.statusCode == 200 || response.statusCode == 400) {
@@ -754,15 +914,17 @@ class APIService {
     }
   }
 
-  Future<dynamic> getPJPExceptionalList(PJPExceptionalRequest requestModel) async {
+  Future<dynamic> getPJPExceptionalList(
+      PJPExceptionalRequest requestModel) async {
     try {
       print('pjp list ');
-      final response = await http.post(Uri.parse(url + LocalStrings.GET_PJP_EXCEPTIONAL_LIST),
+      final response = await http.post(
+          Uri.parse(url + LocalStrings.GET_PJP_EXCEPTIONAL_LIST),
           headers: {
             "Accept": "application/json",
             "content-type": "application/json"
           },
-          body:requestModel.getJson());
+          body: requestModel.getJson());
       print('RRR ${response.body.toString()}');
       print('status ${response.statusCode}');
       if (response.statusCode == 200 || response.statusCode == 400) {
@@ -782,12 +944,13 @@ class APIService {
     try {
       //debugPrint('in getPJP list ');
       debugPrint(Uri.parse(url + LocalStrings.GET_PJP_REPORT).toString());
-      final response = await http.post(Uri.parse(url + LocalStrings.GET_PJP_REPORT),
+      final response = await http.post(
+          Uri.parse(url + LocalStrings.GET_PJP_REPORT),
           headers: {
             "Accept": "application/json",
             "content-type": "application/json"
           },
-          body:requestModel.getJson());
+          body: requestModel.getJson());
       print(response.body);
       print(response.statusCode);
       if (response.statusCode == 200 || response.statusCode == 400) {
@@ -808,20 +971,21 @@ class APIService {
   Future<dynamic> getEmployeeListPJP(EmployeeListRequest requestModel) async {
     try {
       debugPrint(Uri.parse(url + LocalStrings.GET_PJP_EMPLOYEELIST).toString());
-      final response = await http.post(Uri.parse(url + LocalStrings.GET_PJP_EMPLOYEELIST),
+      final response = await http.post(
+          Uri.parse(url + LocalStrings.GET_PJP_EMPLOYEELIST),
           headers: {
             "Accept": "application/json",
             "content-type": "application/json"
           },
-          body:requestModel.getJson());
+          body: requestModel.getJson());
       debugPrint(requestModel.getJson());
       debugPrint(response.body);
       if (response.statusCode == 200 || response.statusCode == 400) {
-        if(response.body is EmployeeListPJPResponse){
+        if (response.body is EmployeeListPJPResponse) {
           return EmployeeListPJPResponse.fromJson(
             json.decode(response.body),
           );
-        }else {
+        } else {
           return EmployeeListPJPResponse.fromJson(
             json.decode(response.body),
           );
@@ -837,21 +1001,22 @@ class APIService {
 
   Future<dynamic> getAllCVF(GetAllCVF requestModel) async {
     try {
-      final response = await http.post(Uri.parse(url + LocalStrings.GET_ALL_CVF),
+      final response = await http.post(
+          Uri.parse(url + LocalStrings.GET_ALL_CVF),
           headers: {
             "Accept": "application/json",
             "content-type": "application/json"
           },
-          body:requestModel.getJson());
+          body: requestModel.getJson());
       debugPrint(response.body);
       if (response.statusCode == 200 || response.statusCode == 400) {
         String data = response.body.replaceAll('null', 'NA');
         debugPrint(data);
-        if(response.body is GetAllCVFResponse){
+        if (response.body is GetAllCVFResponse) {
           return GetAllCVFResponse.fromJson(
             json.decode(data),
           );
-        }else {
+        } else {
           return GetAllCVFResponse.fromJson(
             json.decode(response.body),
           );
@@ -868,20 +1033,21 @@ class APIService {
   Future<dynamic> saveCVFAnswers(SaveCVFAnswers requestModel) async {
     try {
       debugPrint(Uri.parse(url + LocalStrings.GET_SAVE_CVF_ANSWERS).toString());
-      final response = await http.post(Uri.parse(url + LocalStrings.GET_SAVE_CVF_ANSWERS),
+      final response = await http.post(
+          Uri.parse(url + LocalStrings.GET_SAVE_CVF_ANSWERS),
           headers: {
             "Accept": "application/json",
             "content-type": "application/json"
           },
-          body:requestModel.getJson());
+          body: requestModel.getJson());
       debugPrint(requestModel.getJson());
       //debugPrint(response.body);
       if (response.statusCode == 200 || response.statusCode == 400) {
-        if(response.body is CVFAnswersResponse){
+        if (response.body is CVFAnswersResponse) {
           return CVFAnswersResponse.fromJson(
             json.decode(response.body),
           );
-        }else {
+        } else {
           return CVFAnswersResponse.fromJson(
             json.decode(response.body),
           );
@@ -897,21 +1063,23 @@ class APIService {
 
   Future<dynamic> updateCVFStatus(UpdateCVFStatusRequest requestModel) async {
     try {
-      debugPrint(Uri.parse(url + LocalStrings.GET_UPDATE_CVF_STATUS).toString());
-      final response = await http.post(Uri.parse(url + LocalStrings.GET_UPDATE_CVF_STATUS),
+      debugPrint(
+          Uri.parse(url + LocalStrings.GET_UPDATE_CVF_STATUS).toString());
+      final response = await http.post(
+          Uri.parse(url + LocalStrings.GET_UPDATE_CVF_STATUS),
           headers: {
             "Accept": "application/json",
             "content-type": "application/json"
           },
-          body:requestModel.getJson());
+          body: requestModel.getJson());
       //debugPrint(requestModel.toJson());
       //debugPrint(response.body);
       if (response.statusCode == 200 || response.statusCode == 400) {
-        if(response.body is UpdateCVFStatusResponse){
+        if (response.body is UpdateCVFStatusResponse) {
           return UpdateCVFStatusResponse.fromJson(
             json.decode(response.body),
           );
-        }else {
+        } else {
           return UpdateCVFStatusResponse.fromJson(
             json.decode(response.body),
           );
@@ -928,19 +1096,20 @@ class APIService {
   Future<dynamic> getMyReports(MyReportRequest requestModel) async {
     try {
       debugPrint(Uri.parse(url + LocalStrings.GET_GETPJPREPORT).toString());
-      final response = await http.post(Uri.parse(url + LocalStrings.GET_GETPJPREPORT),
+      final response = await http.post(
+          Uri.parse(url + LocalStrings.GET_GETPJPREPORT),
           headers: {
             "Accept": "application/json",
             "content-type": "application/json"
           },
-          body:requestModel.getJson());
+          body: requestModel.getJson());
       debugPrint(response.body);
       if (response.statusCode == 200 || response.statusCode == 400) {
-        if(response.body is MyReportResponse){
+        if (response.body is MyReportResponse) {
           return MyReportResponse.fromJson(
             json.decode(response.body),
           );
-        }else {
+        } else {
           return MyReportResponse.fromJson(
             json.decode(response.body),
           );
@@ -957,19 +1126,20 @@ class APIService {
   Future<dynamic> updatePjpStatus(UpdatePJPStatusRequest requestModel) async {
     try {
       debugPrint(Uri.parse(url + LocalStrings.UPDATE_MODIFY_STATUS).toString());
-      final response = await http.post(Uri.parse(url + LocalStrings.UPDATE_MODIFY_STATUS),
+      final response = await http.post(
+          Uri.parse(url + LocalStrings.UPDATE_MODIFY_STATUS),
           headers: {
             "Accept": "application/json",
             "content-type": "application/json"
           },
-          body:requestModel.getJson());
+          body: requestModel.getJson());
       debugPrint(response.body);
       if (response.statusCode == 200 || response.statusCode == 400) {
-        if(response.body is UpdatePJPStatusResponse){
+        if (response.body is UpdatePJPStatusResponse) {
           return UpdatePJPStatusResponse.fromJson(
             json.decode(response.body),
           );
-        }else {
+        } else {
           return UpdatePJPStatusResponse.fromJson(
             json.decode(response.body),
           );
@@ -983,22 +1153,25 @@ class APIService {
     }
   }
 
-  Future<dynamic> updatePjpStatusList(UpdatePJPStatusListRequest requestModel) async {
+  Future<dynamic> updatePjpStatusList(
+      UpdatePJPStatusListRequest requestModel) async {
     try {
-      debugPrint(Uri.parse(url + LocalStrings.UPDATE_MODIFY_STATUS_MULTIPLE).toString());
-      final response = await http.post(Uri.parse(url + LocalStrings.UPDATE_MODIFY_STATUS_MULTIPLE),
+      debugPrint(Uri.parse(url + LocalStrings.UPDATE_MODIFY_STATUS_MULTIPLE)
+          .toString());
+      final response = await http.post(
+          Uri.parse(url + LocalStrings.UPDATE_MODIFY_STATUS_MULTIPLE),
           headers: {
             "Accept": "application/json",
             "content-type": "application/json"
           },
-          body:requestModel.getJson());
+          body: requestModel.getJson());
       debugPrint(response.body);
       if (response.statusCode == 200 || response.statusCode == 400) {
-        if(response.body is GeneralResponse){
+        if (response.body is GeneralResponse) {
           return GeneralResponse.fromJson(
             json.decode(response.body),
           );
-        }else {
+        } else {
           return GeneralResponse.fromJson(
             json.decode(response.body),
           );
@@ -1012,23 +1185,26 @@ class APIService {
     }
   }
 
-  Future<dynamic> updatePjpStatusExceptionalList(UpdatePJPStatusListRequest requestModel) async {
+  Future<dynamic> updatePjpStatusExceptionalList(
+      UpdatePJPStatusListRequest requestModel) async {
     try {
-      print(Uri.parse(url + LocalStrings.UPDATE_PJP_EXCEPTIONAL_LIST).toString());
-      final response = await http.post(Uri.parse(url + LocalStrings.UPDATE_PJP_EXCEPTIONAL_LIST),
+      print(
+          Uri.parse(url + LocalStrings.UPDATE_PJP_EXCEPTIONAL_LIST).toString());
+      final response = await http.post(
+          Uri.parse(url + LocalStrings.UPDATE_PJP_EXCEPTIONAL_LIST),
           headers: {
             "Accept": "application/json",
             "content-type": "application/json"
           },
-          body:requestModel.getExJson());
+          body: requestModel.getExJson());
       print(requestModel.getExJson());
       print(response.body);
       if (response.statusCode == 200 || response.statusCode == 400) {
-        if(response.body is GeneralResponse){
+        if (response.body is GeneralResponse) {
           return GeneralResponse.fromJson(
             json.decode(response.body),
           );
-        }else {
+        } else {
           return GeneralResponse.fromJson(
             json.decode(response.body),
           );
@@ -1051,15 +1227,15 @@ class APIService {
             "Accept": "application/json",
             "content-type": "application/json"
           },
-          body:requestModel.getJson());
+          body: requestModel.getJson());
       print('Updatting fcm token');
       print(response.body);
       if (response.statusCode == 200 || response.statusCode == 400) {
-        if(response.body is FcmResponse){
+        if (response.body is FcmResponse) {
           return FcmResponse.fromJson(
             json.decode(response.body),
           );
-        }else {
+        } else {
           return FcmResponse.fromJson(
             json.decode(response.body),
           );
@@ -1077,19 +1253,20 @@ class APIService {
     try {
       debugPrint(Uri.parse(url + LocalStrings.GET_PHPSTATUSBYEMPID).toString());
       debugPrint(requestModel.toJson());
-      final response = await http.post(Uri.parse(url + LocalStrings.GET_PHPSTATUSBYEMPID),
+      final response = await http.post(
+          Uri.parse(url + LocalStrings.GET_PHPSTATUSBYEMPID),
           headers: {
             "Accept": "application/json",
             "content-type": "application/json"
           },
-          body:requestModel.toJson());
+          body: requestModel.toJson());
       debugPrint(response.body);
       if (response.statusCode == 200 || response.statusCode == 400) {
-        if(response.body is PJPListResponse){
+        if (response.body is PJPListResponse) {
           return PJPListResponse.fromJson(
             json.decode(response.body),
           );
-        }else {
+        } else {
           return PJPListResponse.fromJson(
             json.decode(response.body),
           );
@@ -1138,7 +1315,7 @@ class APIService {
           contentType: "image/jpeg",
           acl: ACL.public_read_write,
           bucket:
-          "https://s3.console.aws.amazon.com/s3/buckets/pentemindimg/intranet/",
+              "https://s3.console.aws.amazon.com/s3/buckets/pentemindimg/intranet/",
           region: "ap-south-1",
           metadata: {"accept-encoding": "gzip"},
         );
@@ -1168,7 +1345,7 @@ class APIService {
           data: formData,
           options: Options(headers: {
             'Authorization':
-            'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkb21haW5AemVlbGVhcm4uY29tIiwianRpIjoiNmRlNjRlZDgtMzAxNC00ZmMyLWI5MDMtZTcxZDhmYjIzNWE5IiwidXNlcklkIjoiNjBmZWFhYWU3Yzc1ZDU5YWI1NDM3NzcyIiwiYWNjb3VudElkIjoiWFBXYURQQUVFV2k2a3VjVjhDYnciLCJleHAiOjI1MzQwMjMwMDgwMCwiaXNzIjoiaHR0cHM6Ly9keW50dWJlLmNvbSIsImF1ZCI6Ik1hbmFnZSJ9.gmyVqUAVVg-kFlIK3obEl2zj-EDVMeO_lPfP1Cvv0lY'
+                'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkb21haW5AemVlbGVhcm4uY29tIiwianRpIjoiNmRlNjRlZDgtMzAxNC00ZmMyLWI5MDMtZTcxZDhmYjIzNWE5IiwidXNlcklkIjoiNjBmZWFhYWU3Yzc1ZDU5YWI1NDM3NzcyIiwiYWNjb3VudElkIjoiWFBXYURQQUVFV2k2a3VjVjhDYnciLCJleHAiOjI1MzQwMjMwMDgwMCwiaXNzIjoiaHR0cHM6Ly9keW50dWJlLmNvbSIsImF1ZCI6Ik1hbmFnZSJ9.gmyVqUAVVg-kFlIK3obEl2zj-EDVMeO_lPfP1Cvv0lY'
             // 'Content-Type': 'multipart/form-data',
           }),
           onReceiveProgress: (count, total) async {
@@ -1188,15 +1365,16 @@ class APIService {
             final fileID = dynFileUpload.data['videoId'];
             // Future.delayed(const Duration(seconds: 2));
             var fileLocation =
-            await Dio().get('https://api.dyntube.com/v1/videos/$fileID',
-                options: Options(headers: {
-                  'Authorization':
-                  'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkb21haW5AemVlbGVhcm4uY29tIiwianRpIjoiNmRlNjRlZDgtMzAxNC00ZmMyLWI5MDMtZTcxZDhmYjIzNWE5IiwidXNlcklkIjoiNjBmZWFhYWU3Yzc1ZDU5YWI1NDM3NzcyIiwiYWNjb3VudElkIjoiWFBXYURQQUVFV2k2a3VjVjhDYnciLCJleHAiOjI1MzQwMjMwMDgwMCwiaXNzIjoiaHR0cHM6Ly9keW50dWJlLmNvbSIsImF1ZCI6Ik1hbmFnZSJ9.gmyVqUAVVg-kFlIK3obEl2zj-EDVMeO_lPfP1Cvv0lY'
-                }));
+                await Dio().get('https://api.dyntube.com/v1/videos/$fileID',
+                    options: Options(headers: {
+                      'Authorization':
+                          'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkb21haW5AemVlbGVhcm4uY29tIiwianRpIjoiNmRlNjRlZDgtMzAxNC00ZmMyLWI5MDMtZTcxZDhmYjIzNWE5IiwidXNlcklkIjoiNjBmZWFhYWU3Yzc1ZDU5YWI1NDM3NzcyIiwiYWNjb3VudElkIjoiWFBXYURQQUVFV2k2a3VjVjhDYnciLCJleHAiOjI1MzQwMjMwMDgwMCwiaXNzIjoiaHR0cHM6Ly9keW50dWJlLmNvbSIsImF1ZCI6Ik1hbmFnZSJ9.gmyVqUAVVg-kFlIK3obEl2zj-EDVMeO_lPfP1Cvv0lY'
+                    }));
             if (fileLocation.statusCode == 200) {
               log('Response from Location api is - ${fileLocation.data}');
               //debugPrint('Response from Location is - ${fileLocation.data['hlsLink']}');
-              return Right('https://api.dyntube.com/v1/apps/hls/${fileLocation.data['hlsLink']}.m3u8');
+              return Right(
+                  'https://api.dyntube.com/v1/apps/hls/${fileLocation.data['hlsLink']}.m3u8');
             } else {
               return Left(fileLocation.toString());
             }
@@ -1215,18 +1393,17 @@ class APIService {
     }
   }
 
-
   Future<Either<String, UploadImageResponse>> uploadImage(
       String userId, String image,
       {onClickListener? listener,
-        bool isVideoFile =  false,
-        Function(int bytes, int totalBytes)? progress}) async {
+      bool isVideoFile = false,
+      Function(int bytes, int totalBytes)? progress}) async {
     print('uploading images ...');
-    isVideoFile= image.contains('.mp4')  ? true : false;
+    isVideoFile = image.contains('.mp4') ? true : false;
     var result = await uploadFileDYNTube(
       image,
       isVideoFile,
-          (int bytes, int totalBytes) async {
+      (int bytes, int totalBytes) async {
         log('Uploading file progress in ApiService is - $bytes $totalBytes');
         await progress!(bytes, totalBytes);
       },
@@ -1291,7 +1468,8 @@ class APIService {
     } else {
       Either<String, UploadImageResponse>? eitherReturn;
       result.fold((left) async {
-        var postUri = Uri.parse(''/*pentemind_url + LocalStrings.API_GET_PENTEMIND_LG_CHILD_ADVANCEMENT_UPLOAD_IMAGE*/);
+        var postUri = Uri.parse(
+            '' /*pentemind_url + LocalStrings.API_GET_PENTEMIND_LG_CHILD_ADVANCEMENT_UPLOAD_IMAGE*/);
         var request = http.MultipartRequest('POST', postUri);
         request.files
             .add(await http.MultipartFile.fromPath('inputFile', image));
@@ -1312,7 +1490,8 @@ class APIService {
           } catch (e) {
             print('error');
             print(e.toString());
-            listener?.onClick(Utility.ACTION_IMAGE_UPLOAD_RESPONSE_ERROR, e.toString());
+            listener?.onClick(
+                Utility.ACTION_IMAGE_UPLOAD_RESPONSE_ERROR, e.toString());
             eitherReturn = Left(e.toString());
           }
         });
@@ -1411,11 +1590,13 @@ class APIService {
       "content-type": "application/json",
       //'Authorization': 'Bearer $token',
       'dbid': '1',
-      'source': kIsWeb ? 'web' : Platform.isAndroid
-          ? 'Android'
-          : Platform.isIOS
-          ? 'IOS'
-          : 'unknown',
+      'source': kIsWeb
+          ? 'web'
+          : Platform.isAndroid
+              ? 'Android'
+              : Platform.isIOS
+                  ? 'IOS'
+                  : 'unknown',
     };
   }
 
@@ -1470,7 +1651,8 @@ class APIService {
     }
   }
 
-  Future<GetTaskDetailsResponseModel> getBPMSTaskDetails(GetTaskDetailsRequest requestModel) async {
+  Future<GetTaskDetailsResponseModel> getBPMSTaskDetails(
+      GetTaskDetailsRequest requestModel) async {
     try {
       print(getHeader(''));
       final response = await http.post(
@@ -1585,7 +1767,7 @@ class APIService {
               json.decode(response.body) as Map<String, dynamic>,
             );
           }
-        }catch(e){
+        } catch (e) {
           print(e.toString());
         }
       } else {
@@ -1648,8 +1830,8 @@ class APIService {
       final response = await http.post(
           Uri.parse(bpms_url + LocalStrings.API_INSERT_BPMS_NEW_TASK),
           headers: getHeader(''),
-      body: request.toJson());
-      print('addNewTask request ${ request.toJson()}');
+          body: request.toJson());
+      print('addNewTask request ${request.toJson()}');
       print('addNewTask ${response}');
       if (response.statusCode == 200) {
         return AddNewTaskResponse.fromJson(
@@ -1671,8 +1853,8 @@ class APIService {
       final response = await http.post(
           Uri.parse(bpms_url + LocalStrings.API_BPMS_DELETETASK),
           headers: getHeader(''),
-      body: request.toJson());
-      print('delte request ${ request.toJson()}');
+          body: request.toJson());
+      print('delte request ${request.toJson()}');
       print('deleteTask ${response.toString()}');
       if (response.statusCode == 200) {
         return CommonResponse.fromJson1(
