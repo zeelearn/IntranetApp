@@ -441,7 +441,28 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
             padding: const EdgeInsets.all(10),
             itemBuilder: (context, index) {
               return InkWell(
-                onTap: () {},
+                onTap: () {
+                  if (listofplandata[index].fromDate != null) {
+                    cvfDate = DateTime.parse(listofplandata[index].fromDate!);
+                    String formattedDate =
+                        DateFormat('dd-MMM-yyyy').format(cvfDate);
+                    _dateController.text = formattedDate;
+                  }
+                  if (mFrianchiseeList.firstWhereOrNull((element) =>
+                          element.franchiseeId ==
+                          listofplandata[index].centerId) !=
+                      null) {
+                    franchiseeInfo = mFrianchiseeList.firstWhereOrNull(
+                        (element) =>
+                            element.franchiseeId ==
+                            listofplandata[index].centerId);
+                    selectCenter(mFrianchiseeList.firstWhereOrNull((element) =>
+                        element.franchiseeId ==
+                        listofplandata[index].centerId)!);
+                  }
+
+                  setState(() {});
+                },
                 child: Card(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -612,7 +633,11 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
     String purpose = getCategoryList();
     debugPrint('Purpose $_purposeMultiSelect');
     debugPrint(_dateController.text);
-    if (_purposeMultiSelect.isEmpty) {
+    if (_categoryController.text.isEmpty ||
+        _categoryController.text == 'Select Purpose') {
+      Utility.showMessages(context, "Please Select Purpose");
+      return false;
+    } else if (_purposeMultiSelect.isEmpty) {
       Utility.showMessages(context, "Please Select Purpose");
       return false;
     } else if (_dateController.text.isEmpty ||

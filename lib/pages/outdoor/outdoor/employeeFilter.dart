@@ -141,12 +141,13 @@ class _EmplyeeFilterState extends State<EmplyeeFilter> {
                 margin: const EdgeInsets.only(right: 20, left: 20, bottom: 20),
                 child: TextField(
                     onChanged: _runFilter,
-                    decoration: InputDecoration(
-                        hintText: 'Emplyee name',
-                        hintStyle: const TextStyle(
-                            color: Colors.black, fontWeight: FontWeight.normal),
-                        border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8)))),
+                    decoration: const InputDecoration(
+                      hintText: 'Employee name',
+                      border: UnderlineInputBorder(),
+                      labelText: 'Employee name',
+                      hintStyle: TextStyle(
+                          color: Colors.black, fontWeight: FontWeight.normal),
+                    )),
               ),
               getFilterListView(),
             ]),

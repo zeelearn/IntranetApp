@@ -22,10 +22,12 @@ import 'calendarformupdateDialog.dart';
 class SelectedMonthPlanner extends StatefulWidget {
   int year, month;
   List<GetPlanData> highlightDate;
+  String selectedEmplyee;
   SelectedMonthPlanner(
       {required this.month,
       required this.year,
       required this.highlightDate,
+      required this.selectedEmplyee,
       super.key});
 
   @override
@@ -36,6 +38,7 @@ class _SelectedMonthPlannerState extends State<SelectedMonthPlanner> {
   late DeviceCalendarPlugin _deviceCalendarPlugin;
   String? calendarId;
   CentersResponse? centerResponse;
+  DateTime? firstTimeNullableDateTime;
   final List<Event?> _multiDatePickerValueWithDefaultValue = [];
   final List<Meeting> allMeetings = <Meeting>[];
   final List<GetPlanData> meetings = <GetPlanData>[];
@@ -45,11 +48,16 @@ class _SelectedMonthPlannerState extends State<SelectedMonthPlanner> {
 
   List<XMLRequest> updatedxmlrequestlist = [];
 
+  Box? kidzeebox;
+
+  String? empolyeeId;
+
   var groupbypriority;
 
   @override
   void initState() {
     _deviceCalendarPlugin = DeviceCalendarPlugin();
+    selectedDate = DateTime(widget.year, widget.month);
     super.initState();
     getCVFCenters();
     _retrieveCalendars();
@@ -123,9 +131,13 @@ class _SelectedMonthPlannerState extends State<SelectedMonthPlanner> {
   }
 
   getCVFCenters() async {
-    var hive = Hive.box(LocalConstant.KidzeeDB);
-    var employeeID = hive.get(LocalConstant.KEY_EMPLOYEE_ID, defaultValue: 0);
-    var businessID = hive.get(LocalConstant.KEY_BUSINESS_ID, defaultValue: 0);
+    kidzeebox = Hive.box(LocalConstant.KidzeeDB);
+    var employeeID =
+        kidzeebox?.get(LocalConstant.KEY_EMPLOYEE_ID, defaultValue: 0);
+    var businessID =
+        kidzeebox?.get(LocalConstant.KEY_BUSINESS_ID, defaultValue: 0);
+
+    empolyeeId = employeeID;
     CentersRequestModel requestModel = CentersRequestModel(
         EmployeeId: int.parse(employeeID), Brand: businessID);
     await APIService().getCVFCenters(requestModel).then((value) {
@@ -203,7 +215,12 @@ class _SelectedMonthPlannerState extends State<SelectedMonthPlanner> {
             return element.id == int.parse(state.id);
           });
 
-          loadDataSource(selectedDate, false);
+          if (firstTimeNullableDateTime == null) {
+            loadDataSource(selectedDate, true);
+          } else {
+            loadDataSource(selectedDate, false);
+          }
+
           setState(() {});
         } else if (state is GetplandetailsErrorState) {
           ToastMessage().showErrorToast(state.error);
@@ -215,40 +232,44 @@ class _SelectedMonthPlannerState extends State<SelectedMonthPlanner> {
                 title: Text(
                     'User Plan for ${DateFormat('MMM').format(DateTime(0, widget.month))}'),
                 actions: [
-                  IconButton(
-                      onPressed: () {
-                        showDialog(
-                          context: context,
-                          builder: (context) {
-                            return CalendarFormDialog(
-                              datetime: selectedDate,
-                              calendarId: calendarId,
-                              centerResponse: centerResponse,
-                            );
-                          },
-                        ).then((value) async {
-                          if (value != null) {
-                            var listofgetplandate = value as List<GetPlanData>;
+                  firstTimeNullableDateTime != null ||
+                          empolyeeId != widget.selectedEmplyee
+                      ? IconButton(
+                          onPressed: () {
+                            showDialog(
+                              context: context,
+                              builder: (context) {
+                                return CalendarFormDialog(
+                                  datetime: selectedDate,
+                                  calendarId: calendarId,
+                                  centerResponse: centerResponse,
+                                );
+                              },
+                            ).then((value) async {
+                              if (value != null) {
+                                var listofgetplandate =
+                                    value as List<GetPlanData>;
 
-                            for (GetPlanData newData in listofgetplandate) {
-                              bool isAlreadyPresent = widget.highlightDate
-                                  .any((item1) => item1.id == newData.id);
+                                for (GetPlanData newData in listofgetplandate) {
+                                  bool isAlreadyPresent = widget.highlightDate
+                                      .any((item1) => item1.id == newData.id);
 
-                              if (!isAlreadyPresent) {
-                                widget.highlightDate.add(newData);
+                                  if (!isAlreadyPresent) {
+                                    widget.highlightDate.add(newData);
+                                  }
+                                }
+
+                                loadDataSource(selectedDate, false);
+
+                                setState(() {});
                               }
-                            }
-
-                            loadDataSource(selectedDate, false);
-
-                            setState(() {});
-                          }
-                        });
-                      },
-                      icon: const Icon(
-                        Icons.add,
-                        color: Colors.white,
-                      ))
+                            });
+                          },
+                          icon: const Icon(
+                            Icons.add,
+                            color: Colors.white,
+                          ))
+                      : const SizedBox.shrink()
                 ],
               ),
               body: Column(children: [
@@ -277,7 +298,7 @@ class _SelectedMonthPlannerState extends State<SelectedMonthPlanner> {
                   controller: calendarController,
                   onTap: (CalendarTapDetails calendarTapDetails) async {
                     selectedDate = calendarTapDetails.date!;
-
+                    firstTimeNullableDateTime = calendarTapDetails.date;
                     loadDataSource(selectedDate, false);
 
                     setState(() {});
@@ -374,8 +395,7 @@ class _SelectedMonthPlannerState extends State<SelectedMonthPlanner> {
         vertical: 4.0,
       ),
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.transparent),
-        color: getColor(meetings[index].status),
+        border: Border.all(color: getColor(meetings[index].status)),
         borderRadius: BorderRadius.circular(12.0),
       ),
       child: Row(
@@ -394,50 +414,105 @@ class _SelectedMonthPlannerState extends State<SelectedMonthPlanner> {
                         style: Theme.of(context)
                             .textTheme
                             .headlineSmall!
-                            .copyWith(color: Colors.white, fontSize: 18),
+                            .copyWith(color: Colors.black, fontSize: 16),
                       ),
                 meetings[index].remarks == null ||
                         meetings[index].remarks!.isEmpty
                     ? const SizedBox.shrink()
-                    : Text(
-                        'Remarks - ${meetings[index].remarks}',
-                        style: Theme.of(context)
-                            .textTheme
-                            .headlineSmall!
-                            .copyWith(color: Colors.white, fontSize: 18),
+                    : Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Remarks - ',
+                            style: Theme.of(context)
+                                .textTheme
+                                .headlineSmall!
+                                .copyWith(color: Colors.black, fontSize: 13),
+                          ),
+                          Text(
+                            '${meetings[index].remarks}',
+                            style: Theme.of(context)
+                                .textTheme
+                                .labelMedium!
+                                .copyWith(color: Colors.black, fontSize: 15),
+                          ),
+                        ],
                       ),
                 meetings[index].visitDate != null
-                    ? Text(
-                        'Schedule Date - ${DateFormat('yyyy-MM-dd').format(DateTime.parse(meetings[index].visitDate!))}',
-                        style: Theme.of(context)
-                            .textTheme
-                            .labelMedium!
-                            .copyWith(color: Colors.white, fontSize: 14),
+                    ? Row(
+                        children: [
+                          Text('Schedule Date - ',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .headlineSmall!
+                                  .copyWith(color: Colors.black, fontSize: 13)),
+                          Text(
+                            ' ${DateFormat('yyyy-MM-dd').format(DateTime.parse(meetings[index].visitDate!))}',
+                            style: Theme.of(context)
+                                .textTheme
+                                .labelMedium!
+                                .copyWith(color: Colors.black, fontSize: 15),
+                          ),
+                        ],
                       )
                     : const SizedBox.shrink(),
                 meetings[index].priority == 'H'
                     ? Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           meetings[index].checkIn != null
-                              ? Text(
-                                  'Check In ${DateFormat('yyyy-MM-dd, hh:mm:ss').format(DateTime.parse(meetings[index].checkIn!))}',
-                                  overflow: TextOverflow.fade,
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .labelMedium!
-                                      .copyWith(
-                                          color: Colors.white, fontSize: 14),
+                              ? Row(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Check In - ',
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .headlineSmall!
+                                          .copyWith(
+                                              color: Colors.black,
+                                              fontSize: 13),
+                                    ),
+                                    Text(
+                                      DateFormat('yyyy-MM-dd, hh:mm:ss').format(
+                                          DateTime.parse(
+                                              meetings[index].checkIn!)),
+                                      overflow: TextOverflow.fade,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .labelMedium!
+                                          .copyWith(
+                                              color: Colors.black,
+                                              fontSize: 14),
+                                    ),
+                                  ],
                                 )
                               : const SizedBox.shrink(),
                           meetings[index].checkOut != null
-                              ? Text(
-                                  'Check Out ${DateFormat('yyyy-MM-dd,hh:mm:ss').format(DateTime.parse(meetings[index].checkOut!))}',
-                                  overflow: TextOverflow.fade,
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .labelMedium!
-                                      .copyWith(
-                                          color: Colors.white, fontSize: 14),
+                              ? Row(
+                                  children: [
+                                    Text(
+                                      'Check Out - ',
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .headlineSmall!
+                                          .copyWith(
+                                              color: Colors.black,
+                                              fontSize: 13),
+                                    ),
+                                    Text(
+                                      DateFormat('yyyy-MM-dd,hh:mm:ss').format(
+                                          DateTime.parse(
+                                              meetings[index].checkOut!)),
+                                      overflow: TextOverflow.fade,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .labelMedium!
+                                          .copyWith(
+                                              color: Colors.black,
+                                              fontSize: 14),
+                                    ),
+                                  ],
                                 )
                               : const SizedBox.shrink(),
                         ],
@@ -446,11 +521,13 @@ class _SelectedMonthPlannerState extends State<SelectedMonthPlanner> {
               ],
             ),
           ),
-          meetings[index].priority != null && meetings[index].priority == 'L'
+          meetings[index].priority != null &&
+                  meetings[index].priority == 'L' &&
+                  empolyeeId == widget.selectedEmplyee
               ? Column(
                   children: [
                     IconButton(
-                      icon: const Icon(Icons.edit, color: Colors.white),
+                      icon: const Icon(Icons.edit, color: Colors.black),
                       onPressed: () {
                         debugPrint(
                             'Getplandata in month planner update button is - ${meetings[index].toJson()}');
@@ -479,7 +556,7 @@ class _SelectedMonthPlannerState extends State<SelectedMonthPlanner> {
                       },
                     ),
                     IconButton(
-                      icon: const Icon(Icons.delete, color: Colors.white),
+                      icon: const Icon(Icons.delete, color: Colors.black),
                       onPressed: () {
                         showAdaptiveDialog(
                           context: context,

@@ -1,10 +1,7 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
-import "dart:convert";
-
 import "package:flutter/material.dart";
 import "package:hive/hive.dart";
 
-import "../../../api/response/login_response.dart";
 import "../../helper/LocalConstant.dart";
 
 class CreateEmployeeRequestModel {
@@ -16,9 +13,11 @@ class CreateEmployeeRequestModel {
   CreateEmployeeRequestModel({required this.date, required this.xmlrequest}) {
     employeeID = hive.get(LocalConstant.KEY_EMPLOYEE_ID);
     businessID = hive.get(LocalConstant.KEY_BUSINESS_ID, defaultValue: 0);
-    var loginresponse = hive.get(LocalConstant.KEY_LOGIN_RESPONSE);
+    businessuserID =
+        hive.get(LocalConstant.KEY_BUSINESS_USERID, defaultValue: 0);
+    // var loginresponse = hive.get(LocalConstant.KEY_LOGIN_RESPONSE);
 
-    try {
+    /*  try {
       LoginResponseModel response = LoginResponseModel.fromJson(
         json.decode(loginresponse),
       );
@@ -27,7 +26,7 @@ class CreateEmployeeRequestModel {
           response.responseData.businessApplications[0].business_UserID;
     } catch (e) {
       debugPrint("error - $e");
-    }
+    } */
   }
 
   @override

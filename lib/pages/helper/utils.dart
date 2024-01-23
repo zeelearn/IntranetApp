@@ -853,10 +853,10 @@ class Utility {
         IconsButton(
           onPressed: () {
             //Navigator.of(context, rootNavigator: true).pop();
-            Future.delayed(const Duration(milliseconds: 50)).then((_) {
-              Navigator.of(context, rootNavigator: true).pop('dialog');
-              response.onSuccess('SUCCESS');
-            });
+            // Future.delayed(const Duration(milliseconds: 100)).then((_) {
+            Navigator.of(context, rootNavigator: true).pop('dialog');
+            response.onSuccess('SUCCESS');
+            // });
           },
           text: 'OK',
           iconData: Icons.done,
