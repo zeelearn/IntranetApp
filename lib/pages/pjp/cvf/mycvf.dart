@@ -109,12 +109,9 @@ class _MyCVFListScreen extends State<MyCVFListScreen>
 
   loadAllCVF() {
     isLoading = true;
-    if (mounted) {
-      debugPrint('Screen is mounted while loading cvf data');
-      Utility.showLoaderDialog(context);
-    } else {
-      debugPrint('Screen is not mounted while loading cvf data');
-    }
+
+    Utility.showLoaderDialog(context);
+
     mCvfList.clear();
     GetAllCVF request =
         GetAllCVF(Employee_id: employeeId, Business_id: businessId);
@@ -142,8 +139,6 @@ class _MyCVFListScreen extends State<MyCVFListScreen>
         }
       }
       if (mounted) {
-        debugPrint(
-            'Screen is mounted while loading cvf data and removing loader');
         setState(() {
           //mPjpList.addAll(response.responseData);
         });

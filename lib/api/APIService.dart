@@ -177,10 +177,14 @@ class APIService {
           body: body);
       debugPrint('Response in getVisitdetailsapi - ${response.body}');
       if (response.statusCode == 200) {
-        return Right(List<GetPlanData>.from(
-            jsonDecode(response.body)['responseData'].map((e) {
-          return GetPlanData.fromJson(e);
-        }).toList()));
+        if (jsonDecode(response.body)['responseData'] is List) {
+          return Right(List<GetPlanData>.from(
+              jsonDecode(response.body)['responseData'].map((e) {
+            return GetPlanData.fromJson(e);
+          }).toList()));
+        } else {
+          return const Right([]);
+        }
       } else {
         return Left(response.body.toString());
       }

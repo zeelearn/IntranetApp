@@ -635,7 +635,7 @@ class Utility {
     }
   }
 
-  static showLoaderDialog(BuildContext context) {
+  static showLoaderDialog(BuildContext context) async {
     AlertDialog alert = AlertDialog(
       content: Row(
         children: [
@@ -646,7 +646,7 @@ class Utility {
         ],
       ),
     );
-    showDialog(
+    await showDialog(
       barrierDismissible: false,
       context: context,
       builder: (BuildContext context) {

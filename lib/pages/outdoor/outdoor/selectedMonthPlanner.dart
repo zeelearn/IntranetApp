@@ -59,10 +59,11 @@ class _SelectedMonthPlannerState extends State<SelectedMonthPlanner> {
     _deviceCalendarPlugin = DeviceCalendarPlugin();
     selectedDate = DateTime(widget.year, widget.month);
     super.initState();
-    getCVFCenters();
+
     _retrieveCalendars();
     _retrieveCalendarEvents();
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      getCVFCenters();
       loadDataSource(DateTime(widget.year, widget.month), true);
       calendarController.view = CalendarView.month;
       // calendarController.forward = null;
@@ -138,9 +139,14 @@ class _SelectedMonthPlannerState extends State<SelectedMonthPlanner> {
         kidzeebox?.get(LocalConstant.KEY_BUSINESS_ID, defaultValue: 0);
 
     empolyeeId = employeeID;
+
+    debugPrint(
+        'Selected empid -  ${widget.selectedEmplyee} and current emp is $empolyeeId');
+    Utility.showLoaderDialog(context);
     CentersRequestModel requestModel = CentersRequestModel(
         EmployeeId: int.parse(employeeID), Brand: businessID);
     await APIService().getCVFCenters(requestModel).then((value) {
+      Navigator.pop(context);
       if (value != null) {
         if (value is CentersResponse) {
           debugPrint('Response from CVF api is - $value');
@@ -222,6 +228,8 @@ class _SelectedMonthPlannerState extends State<SelectedMonthPlanner> {
           }
 
           setState(() {});
+
+          ToastMessage().showErrorToast('Plan deleted successfully');
         } else if (state is GetplandetailsErrorState) {
           ToastMessage().showErrorToast(state.error);
         }
@@ -232,8 +240,8 @@ class _SelectedMonthPlannerState extends State<SelectedMonthPlanner> {
                 title: Text(
                     'User Plan for ${DateFormat('MMM').format(DateTime(0, widget.month))}'),
                 actions: [
-                  firstTimeNullableDateTime != null ||
-                          empolyeeId != widget.selectedEmplyee
+                  firstTimeNullableDateTime != null &&
+                          empolyeeId == widget.selectedEmplyee
                       ? IconButton(
                           onPressed: () {
                             showDialog(
