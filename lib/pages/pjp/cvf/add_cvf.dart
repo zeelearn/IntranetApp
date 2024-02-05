@@ -436,142 +436,151 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
             alignment: Alignment.centerLeft,
             child: const Text('Your Previous Plan'),
           ),
-          ListView.builder(
-            shrinkWrap: true,
-            padding: const EdgeInsets.all(10),
-            itemBuilder: (context, index) {
-              return InkWell(
-                onTap: () {
-                  if (listofplandata[index].fromDate != null) {
-                    cvfDate = DateTime.parse(listofplandata[index].fromDate!);
-                    String formattedDate =
-                        DateFormat('dd-MMM-yyyy').format(cvfDate);
-                    _dateController.text = formattedDate;
-                  }
-                  if (mFrianchiseeList.firstWhereOrNull((element) =>
-                          element.franchiseeId ==
-                          listofplandata[index].centerId) !=
-                      null) {
-                    franchiseeInfo = mFrianchiseeList.firstWhereOrNull(
-                        (element) =>
+          Expanded(
+            child: ListView.builder(
+              shrinkWrap: true,
+              padding: const EdgeInsets.all(10),
+              itemBuilder: (context, index) {
+                return InkWell(
+                  onTap: () {
+                    if (listofplandata[index].fromDate != null) {
+                      cvfDate = DateTime.parse(listofplandata[index].fromDate!);
+                      String formattedDate =
+                          DateFormat('dd-MMM-yyyy').format(cvfDate);
+                      _dateController.text = formattedDate;
+                    }
+                    if (mFrianchiseeList.firstWhereOrNull((element) =>
                             element.franchiseeId ==
-                            listofplandata[index].centerId);
-                    selectCenter(mFrianchiseeList.firstWhereOrNull((element) =>
-                        element.franchiseeId ==
-                        listofplandata[index].centerId)!);
-                  }
+                            listofplandata[index].centerId) !=
+                        null) {
+                      franchiseeInfo = mFrianchiseeList.firstWhereOrNull(
+                          (element) =>
+                              element.franchiseeId ==
+                              listofplandata[index].centerId);
+                      selectCenter(mFrianchiseeList.firstWhereOrNull(
+                          (element) =>
+                              element.franchiseeId ==
+                              listofplandata[index].centerId)!);
+                    }
 
-                  setState(() {});
-                },
-                child: Card(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                          margin: const EdgeInsets.all(10),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(listofplandata[index].remarks!),
-                                  mFrianchiseeList.isNotEmpty
-                                      ? Text(mFrianchiseeList.firstWhereOrNull(
-                                                  (element) =>
-                                                      element.franchiseeId ==
-                                                      listofplandata[index]
-                                                          .centerId) !=
-                                              null
-                                          ? mFrianchiseeList
-                                              .firstWhereOrNull((element) =>
-                                                  element.franchiseeId ==
-                                                  listofplandata[index]
-                                                      .centerId)!
-                                              .franchiseeName
-                                          : '')
-                                      : const SizedBox.shrink(),
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    children: [
-                                      listofplandata[index].fromDate != null
-                                          ? Text(DateFormat('yyyy-MM-dd')
-                                              .format(DateTime.parse(
-                                                  listofplandata[index]
-                                                      .fromDate!))
-                                              .toString())
-                                          : const SizedBox.shrink(),
-                                      listofplandata[index].toDate != null
-                                          ? const Text(' - ')
-                                          : const SizedBox.shrink(),
-                                      listofplandata[index].toDate != null
-                                          ? Text(DateFormat('yyyy-MM-dd')
-                                              .format(DateTime.parse(
-                                                  listofplandata[index]
-                                                      .toDate!))
-                                              .toString())
-                                          : const SizedBox.shrink(),
-                                    ],
-                                  ),
-                                  InkWell(
-                                      onTap: () async {
-                                        String? selectedCategory =
-                                            await openCategory();
+                    setState(() {});
+                  },
+                  child: Card(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                            margin: const EdgeInsets.all(10),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(listofplandata[index].remarks!),
+                                    mFrianchiseeList.isNotEmpty
+                                        ? Text(mFrianchiseeList
+                                                    .firstWhereOrNull(
+                                                        (element) =>
+                                                            element
+                                                                .franchiseeId ==
+                                                            listofplandata[
+                                                                    index]
+                                                                .centerId) !=
+                                                null
+                                            ? mFrianchiseeList
+                                                .firstWhereOrNull((element) =>
+                                                    element.franchiseeId ==
+                                                    listofplandata[index]
+                                                        .centerId)!
+                                                .franchiseeName
+                                            : '')
+                                        : const SizedBox.shrink(),
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.start,
+                                      children: [
+                                        listofplandata[index].fromDate != null
+                                            ? Text(DateFormat('yyyy-MM-dd')
+                                                .format(DateTime.parse(
+                                                    listofplandata[index]
+                                                        .fromDate!))
+                                                .toString())
+                                            : const SizedBox.shrink(),
+                                        listofplandata[index].toDate != null
+                                            ? const Text(' - ')
+                                            : const SizedBox.shrink(),
+                                        listofplandata[index].toDate != null
+                                            ? Text(DateFormat('yyyy-MM-dd')
+                                                .format(DateTime.parse(
+                                                    listofplandata[index]
+                                                        .toDate!))
+                                                .toString())
+                                            : const SizedBox.shrink(),
+                                      ],
+                                    ),
+                                    InkWell(
+                                        onTap: () async {
+                                          String? selectedCategory =
+                                              await openCategory();
 
-                                        selectedCategoryValue[index] =
-                                            selectedCategory ??
-                                                'Select Category';
+                                          selectedCategoryValue[index] =
+                                              selectedCategory ??
+                                                  'Select Category';
 
-                                        setState(() {});
-                                      },
-                                      child: Row(
-                                        children: [
-                                          Text(selectedCategoryValue[index]),
-                                          const Icon(Icons.arrow_drop_down)
-                                        ],
-                                      ))
-                                ],
-                              ),
-                              GestureDetector(
-                                onTap: () {
-                                  if (listofplandata[index].fromDate != null) {
-                                    cvfDate = DateTime.parse(
-                                        listofplandata[index].fromDate!);
-                                    String formattedDate =
-                                        DateFormat('dd-MMM-yyyy')
-                                            .format(cvfDate);
-                                    _dateController.text = formattedDate;
-                                  }
-                                  if (mFrianchiseeList.firstWhereOrNull(
-                                          (element) =>
+                                          setState(() {});
+                                        },
+                                        child: Row(
+                                          children: [
+                                            Text(selectedCategoryValue[index]),
+                                            const Icon(Icons.arrow_drop_down)
+                                          ],
+                                        ))
+                                  ],
+                                ),
+                                GestureDetector(
+                                  onTap: () {
+                                    if (listofplandata[index].fromDate !=
+                                        null) {
+                                      cvfDate = DateTime.parse(
+                                          listofplandata[index].fromDate!);
+                                      String formattedDate =
+                                          DateFormat('dd-MMM-yyyy')
+                                              .format(cvfDate);
+                                      _dateController.text = formattedDate;
+                                    }
+                                    if (mFrianchiseeList.firstWhereOrNull(
+                                            (element) =>
+                                                element.franchiseeId ==
+                                                listofplandata[index]
+                                                    .centerId) !=
+                                        null) {
+                                      franchiseeInfo = mFrianchiseeList
+                                          .firstWhereOrNull((element) =>
                                               element.franchiseeId ==
-                                              listofplandata[index].centerId) !=
-                                      null) {
-                                    franchiseeInfo = mFrianchiseeList
-                                        .firstWhereOrNull((element) =>
-                                            element.franchiseeId ==
-                                            listofplandata[index].centerId);
-                                    selectCenter(mFrianchiseeList
-                                        .firstWhereOrNull((element) =>
-                                            element.franchiseeId ==
-                                            listofplandata[index].centerId)!);
-                                  }
+                                              listofplandata[index].centerId);
+                                      selectCenter(mFrianchiseeList
+                                          .firstWhereOrNull((element) =>
+                                              element.franchiseeId ==
+                                              listofplandata[index].centerId)!);
+                                    }
 
-                                  setState(() {});
-                                },
-                                child: Lottie.asset(
-                                    'assets/json/tap_animation.json',
-                                    height: 90,
-                                    width: 90),
-                              ),
-                            ],
-                          )),
-                    ],
+                                    setState(() {});
+                                  },
+                                  child: Lottie.asset(
+                                      'assets/json/tap_animation.json',
+                                      height: 90,
+                                      width: 90),
+                                ),
+                              ],
+                            )),
+                      ],
+                    ),
                   ),
-                ),
-              );
-            },
-            itemCount: listofplandata.length,
+                );
+              },
+              itemCount: listofplandata.length,
+            ),
           )
         ],
       ),
