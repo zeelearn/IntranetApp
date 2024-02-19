@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:hive/hive.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:Intranet/api/request/cvf/questions_request.dart';
@@ -23,6 +24,7 @@ import '../../../api/response/cvf/update_status_response.dart';
 import '../../../api/response/pjp/pjplistresponse.dart';
 import '../../firebase/anylatics.dart';
 import '../../helper/DBConstant.dart';
+import '../../helper/LightColor.dart';
 import '../../helper/constants.dart';
 import '../../helper/utils.dart';
 import '../../iface/onClick.dart';
@@ -366,6 +368,21 @@ class _QuestionListScreenState extends State<QuestionListScreen>
     print('Answer is ${answerId}');
     return answerId;
   }
+
+  String getRating(List<Answers> answerList, String answerType, String answer) {
+    String rating = '';
+    if (answerType == 'YesNo') {
+      print('Answer YesNo...${answer}');
+      for (int index = 0; index < answerList.length; index++) {
+        if (answer == answerList[index].answerName) {
+          rating = answerList[index].rating;
+          print('Answer AnswerId...${rating}');
+        }
+      }
+    }
+    print('Answer is ${rating}');
+    return rating;
+  }
 bool isOffline=false;
   isFileUpload() {
     isOffline=false;
@@ -408,14 +425,14 @@ bool isOffline=false;
                       .allquestion[jIndex]
                       .files
                       .isNotEmpty)) {
-            print('===========IF YESNO ${mQuestionMaster[index].allquestion[jIndex].Question_Id} uid-${mQuestionMaster[index].allquestion[jIndex].userAnswers},${userAnswerMap[mQuestionMaster[index].allquestion[jIndex].Question_Id]}');
+            //print('===========IF YESNO ${mQuestionMaster[index].allquestion[jIndex].Question_Id} uid-${mQuestionMaster[index].allquestion[jIndex].userAnswers},${userAnswerMap[mQuestionMaster[index].allquestion[jIndex].Question_Id]}');
             docXml =
                 '${docXml}<tblPJPCVF_Answer><SubmissionDate>${Utility.convertShortDate(DateTime.now())}</SubmissionDate><Question_Id>${mQuestionMaster[index].allquestion[jIndex].Question_Id}</Question_Id><AnswerId>${getAnswerId(mQuestionMaster[index].allquestion[jIndex].answers, mQuestionMaster[index].allquestion[jIndex].answers[0].answerType, mQuestionMaster[index].allquestion[jIndex].userAnswers.isNotEmpty ? mQuestionMaster[index].allquestion[jIndex].userAnswers : userAnswerMap[mQuestionMaster[index].allquestion[jIndex].Question_Id].toString() )
                 /* mQuestionMaster[index].allquestion[jIndex].answers[0].answerType == 'YesNo' ?
                   mQuestionMaster[index].allquestion[jIndex].userAnswers : ''*/
                 }</AnswerId>'
-                '<Files>${encodeFile(mQuestionMaster[index].allquestion[jIndex].files)}</Files><Remarks>${mQuestionMaster[index].allquestion[jIndex].answers[0].answerType == 'YesNo' ? '' : mQuestionMaster[index].allquestion[jIndex].userAnswers.isNotEmpty ? mQuestionMaster[index].allquestion[jIndex].userAnswers : ''}</Remarks></tblPJPCVF_Answer>';
-
+                '<StartDate>${mQuestionMaster[index].allquestion[jIndex].startDate}</StartDate><EndDate>${mQuestionMaster[index].allquestion[jIndex].endDate}</EndDate><Rating>${getRating(mQuestionMaster[index].allquestion[jIndex].answers, mQuestionMaster[index].allquestion[jIndex].answers[0].answerType, mQuestionMaster[index].allquestion[jIndex].userAnswers.isNotEmpty ? mQuestionMaster[index].allquestion[jIndex].userAnswers : userAnswerMap[mQuestionMaster[index].allquestion[jIndex].Question_Id].toString())}</Rating><Files>${encodeFile(mQuestionMaster[index].allquestion[jIndex].files)}</Files><Remarks>${mQuestionMaster[index].allquestion[jIndex].Remarks.isNotEmpty ? mQuestionMaster[index].allquestion[jIndex].Remarks : mQuestionMaster[index].allquestion[jIndex].answers[0].answerType == 'YesNo' ? '' : mQuestionMaster[index].allquestion[jIndex].userAnswers.isNotEmpty ? mQuestionMaster[index].allquestion[jIndex].userAnswers : ''}</Remarks></tblPJPCVF_Answer>';
+            print(docXml);
           } else if (/*mQuestionMaster[index]
                       .allquestion[jIndex]
                       .answers[0]
@@ -979,7 +996,129 @@ bool isOffline=false;
         ));
   }
 
-  _getAnswerWidget(Allquestion questions) {
+  _getAnswerWidget(Allquestion questions){
+    if (questions.answers[0].answerType == 'YesNo') {
+      String path = getImagePath(questions);
+      if (path.isNotEmpty) {
+        questions.files = path;
+        updateImage(questions, path);
+      }
+
+      return Padding(padding: EdgeInsets.only(bottom: 15),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Container(
+                margin: EdgeInsets.only(bottom: 10),
+                constraints: BoxConstraints.tightFor(width: MediaQuery.of(context).size.width * 0.7, height: questions.IsProgressive=='1' ? questions.answers.length * 50 : 120),
+                child: Column(
+                  children: _generateDynamicYesNo(questions),
+                ),
+              ),
+
+              GestureDetector(
+                onTap: () {
+                  if (widget.isViewOnly) {
+                    if (questions.files.isNotEmpty) {
+                      if (questions.files.contains('.png') ||
+                          questions.files.contains('.jpg') ||
+                          questions.files.contains('.jpeg')) {
+                        Navigator.push(context, MaterialPageRoute(builder: (_) {
+                          return DetailScreen(
+                              imageUrl: getImageUrl(questions.files),
+                              question: questions,
+                              listener: this,
+                              isViewOnly: widget.isViewOnly);
+                        }));
+                      } else {
+                        openFile(questions);
+                      }
+                    }
+                  } else if (_Status == 'Completed') {
+                    Utility.showMessages(
+                        context, 'CVF Already submitted and not able to update');
+                  } else if (questions.files.isNotEmpty) {
+                    if (questions.files.contains('.png') ||
+                        questions.files.contains('.jpg') ||
+                        questions.files.contains('.jpeg')) {
+                      Navigator.push(context, MaterialPageRoute(builder: (_) {
+                        return DetailScreen(
+                            imageUrl: getImageUrl(questions.files),
+                            question: questions,
+                            listener: this,
+                            isViewOnly: widget.isViewOnly);
+                      }));
+                    } else {
+                      openFile(questions);
+                    }
+                  } else {
+                    showImageOption(questions);
+                  }
+                },
+                child: Padding(
+                  padding: EdgeInsets.all(8.0),
+                  child: questions.files.isNotEmpty && questions.files != null
+                      ? isImage(questions.files) && questions.files.contains('data/user')
+                      ? Image.file(File(questions.files),height: 30,width: 30,) : isImage(questions.files)
+                      ? getIcon(questions.files)
+                      : getIcon(questions.files)
+                      : (getImagePath(questions)).isNotEmpty
+                      ? !isImage(questions.files)
+                      ? getIcon(questions.files)
+                      : Image.network(
+                      getImageUrl((getImagePath(questions))),
+                      // width: 300,
+                      height: 80,
+                      fit: BoxFit.fill)
+                      : questions.files.isEmpty
+                      ? Icon(
+                    Icons.photo,
+                    size: 20,
+                  )
+                      : Image.network(getImageUrl(questions.files),
+                      // width: 300,
+                      height: 80,
+                      fit: BoxFit.fill),
+                ),
+              )
+              // More rows
+            ],
+          ),
+          questions.IsProgressive=='1' ? getDateLatyout(questions) : Container()
+        ],
+      ),);
+    }else {
+      return Column(
+        children: getDescriptionWidget(questions),
+      );
+    }
+  }
+
+  getDateLatyout(Allquestion questions) {
+    return Container(
+      color: LightColors.kLightGrayM,
+      child: Row(
+        children: [
+          Expanded(child: datePicker(context,questions.Question_Id,'Start',questions.startDate)),
+          Expanded(child: datePicker(context,questions.Question_Id,'End',questions.endDate))
+        ],
+      ),
+    );
+  }
+
+  getRemark(Allquestion questions) {
+    return Container(
+      color: LightColors.kLightGrayM,
+      width: MediaQuery.of(context).size.width*0.8,
+      child: Row(
+        children: [
+          Expanded(child: InkWell(onTap:() => showRemarkDialog(questions),child: Text(questions.Remarks.isEmpty ? 'Remark' : questions.Remarks),))
+        ],
+      ),
+    );
+  }
+  _getAnswerWidget1(Allquestion questions) {
     if (questions.answers[0].answerType == 'YesNo') {
       String path = getImagePath(questions);
       if (path.isNotEmpty) {
@@ -990,7 +1129,10 @@ bool isOffline=false;
       return Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          Expanded(
+          Expanded(child: Row(
+            children: _generateDynamicYesNo(questions),
+          ),),
+          /*Expanded(
             flex: 1,
             child: CheckboxListTile(
               value: (!userAnswerMap.containsKey(questions.Question_Id) &&
@@ -1046,7 +1188,7 @@ bool isOffline=false;
                 }
               },
             ),
-          ),
+          ),*/
           GestureDetector(
             onTap: () {
               if (widget.isViewOnly) {
@@ -1342,45 +1484,164 @@ bool isOffline=false;
     );
   }
 
+  _generateDynamicYesNo(Allquestion questions){
+    print('_generate yesno=====================');
+    List<Widget> list = [];
+    for(int index=0;index<questions.answers.length;index++){
+      list.add(Expanded(
+        child: CheckboxListTile(
+          value: (!userAnswerMap.containsKey(questions.Question_Id) &&
+              questions.SelectedAnswer == questions.answers[index].answerName) ||
+              (userAnswerMap.containsKey(questions.Question_Id) &&
+                  userAnswerMap[questions.Question_Id] == questions.answers[index].answerName)
+              ? true
+              : false,
+          title:  Text(
+            questions.answers[index].answerName,
+            style: TextStyle(fontSize: 12),
+          ),
+          controlAffinity: ListTileControlAffinity.leading,
+          onChanged: (checked) {
+            if (widget.isViewOnly) {
+              Utility.showMessages(context, 'Unable to Edit ${widget.isViewOnly}');
+            } else if (_Status == 'Completed') {
+              Utility.showMessages(
+                  context, 'CVF Already submitted and not able to update');
+            } else {
+              //ischeck[getCheckboxIndex(player.question)] = false;
+              questions.SelectedAnswer = questions.answers[index].answerName;
+              setState(() {
+                updateAnswers(questions, questions.answers[index].answerName);
+              });
+            }
+          },
+        ),
+      ));
+    }
+    list.add(getRemark(questions));
+    return list;
+  }
+
+  updateRemark(Allquestion questions,String remark){
+    print('remark updated ${remark}');
+    for (int index = 0; index < mQuestionMaster.length; index++) {
+      for (int jIndex = 0;jIndex < mQuestionMaster[index].allquestion.length;jIndex++) {
+        if (mQuestionMaster[index].allquestion[jIndex].Question_Id ==questions.Question_Id) {
+          mQuestionMaster[index].allquestion[jIndex].Remarks = remark;
+          break;
+        }
+      }
+    }
+  }
+
+  showRemarkDialog(Allquestion questions){
+    TextEditingController _controlelr = TextEditingController();
+    showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        builder: (context) => Padding(
+          padding: EdgeInsets.only(
+              bottom: MediaQuery.of(context).viewInsets.bottom),
+          child: Container(
+            margin: EdgeInsets.all(10),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(onPressed: (){
+                      updateRemark(questions,_controlelr.text.toString());
+                      //questions.Remarks=_controlelr.text.toString();
+                      Navigator.of(context).pop();
+                    }, child: Text('Submit'))
+                  ],
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                  child: Text('Enter Remark',
+                      style: LightColors.subTextStyle),
+                ),
+                SizedBox(
+                  height: 8.0,
+                ),
+                TextField(
+                  controller: _controlelr,
+                  decoration: InputDecoration(
+                      hintText: 'Remark'
+                  ),
+                  autofocus: true,
+                ),
+              ],
+            ),
+          ),
+        ));
+  }
+  var _dateController = TextEditingController();
+  Widget datePicker(BuildContext context,String Question_Id,String label,String text) {
+    return Container(
+      margin: EdgeInsets.all(5),
+      child: InkWell(
+        onTap: (){
+          _showDatePicker(context,Question_Id,label,text);
+        },
+        child: Row(
+          children: [
+            Icon(Icons.date_range,size: 14,),
+            SizedBox(width: 10,),
+            Text(text.isEmpty ? 'Select ${label} Date' : Utility.parseSimpleDate(text),style: TextStyle(fontSize: text.isEmpty ? 10 :12, color: text.isEmpty ? Colors.grey : Colors.black87),),
+          ],
+        ),
+      ),
+    );
+  }
+
+  updateDate(String questionId,String label,String date){
+    for (int index = 0; index < mQuestionMaster.length; index++) {
+      for (int jIndex = 0; jIndex <
+          mQuestionMaster[index].allquestion.length; jIndex++) {
+          if(mQuestionMaster[index].allquestion[jIndex].Question_Id==questionId){
+            if(label=='Start')
+              mQuestionMaster[index].allquestion[jIndex].startDate = date;
+            else
+              mQuestionMaster[index].allquestion[jIndex].endDate = date;
+          }
+      }
+    }
+  }
+
+  _showDatePicker(BuildContext context,String questionId,String label,String text) async {
+    DateTime? pickedDate = await showDatePicker(
+        context: context,
+        initialDate: DateTime.now(),
+        firstDate: DateTime(DateTime.now().year - 1, 5),
+        //DateTime.now() - not to allow to choose before today.
+        lastDate: DateTime(DateTime.now().year + 1, 9));
+
+    if (pickedDate != null) {
+      setState(() {
+        updateDate(questionId,label,Utility.getDate(pickedDate));
+      });
+    } else {}
+  }
+
   _getYesNo(Allquestion question) {
-    return Row(
+    return Column(
       mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: [
-        Expanded(
-          child: CheckboxListTile(
-            value: question.userAnswers == 'Yes' ? true : false,
-            title: Text(
-              'Yes',
-              style: TextStyle(fontSize: 12),
+        Column(
+          children: [
+            Expanded(
+              flex: 4,
+              child: Column(
+                children: _generateDynamicYesNo(question),
+              ),
             ),
-            controlAffinity: ListTileControlAffinity.leading,
-            onChanged: (checked) {
-              if (!widget.isViewOnly) {
-                question.userAnswers = 'Yes';
-                updateAnswers(question, 'Yes');
-                setState(() {});
-              }
-            },
-          ),
-        ),
-        Expanded(
-          child: CheckboxListTile(
-            value: question.userAnswers == 'No' ? true : false,
-            title: Text(
-              'No',
-              style: TextStyle(fontSize: 12),
-              textAlign: TextAlign.left,
-            ),
-            controlAffinity: ListTileControlAffinity.leading,
-            onChanged: (checked) {
-              if (!widget.isViewOnly) {
-                question.userAnswers = 'No';
-                updateAnswers(question, 'No');
-                setState(() {});
-              }
-            },
-          ),
-        ),
+            question.IsProgressive=='1' ? Container(color: Colors.lightBlue, child: Text('Date'),) : Container()
+          ],
+        )
+          ,
         const Expanded(
             child: Padding(
           padding: EdgeInsets.all(8.0),

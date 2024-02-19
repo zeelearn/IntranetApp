@@ -93,9 +93,12 @@ class Allquestion {
   late List<Answers> answers;
   late String userAnswers='';
   late String Remarks='';
+  late String IsProgressive='';
+  late String startDate='';
+  late String endDate='';
 
   Allquestion(
-      {required this.Question_Id, required this.question,required this.businessId,required this.isCompulsory,required this.SelectedAnswer,required this.files, required this.categoryName,required this.answers, required this.Remarks});
+      {required this.Question_Id, required this.question,required this.businessId,required this.isCompulsory,required this.SelectedAnswer,required this.files, required this.categoryName,required this.answers, required this.Remarks,required this.IsProgressive,required this.startDate,required this.endDate});
 
   Allquestion.fromJson(Map<String, dynamic> json) {
     try {
@@ -107,6 +110,9 @@ class Allquestion {
       SelectedAnswer = json['SelectedAnswer'] ?? '';
       files = json['files'] ?? '';
       Remarks = json['Remarks'] ?? '';
+      IsProgressive = json['IsProgressive'] ?? '0';
+      startDate = json['StartDate'] ?? '';
+      endDate = json['EndDate'] ?? '';
       answers = <Answers>[];
       if (json.containsKey('answers')) {
         if (json['answers'] is List) {
@@ -132,6 +138,9 @@ class Allquestion {
     data['SelectedAnswer'] = this.SelectedAnswer;
     data['files'] = this.files;
     data['Remarks'] = this.Remarks;
+    data['IsProgressive'] = this.IsProgressive;
+    data['StartDate'] = this.startDate;
+    data['EndDate'] = this.endDate;
     if (this.answers != null) {
       data['answers'] = this.answers.map((v) => v.toJson()).toList();
     }
@@ -143,6 +152,7 @@ class Answers {
   late String answerName;
   late String answerType;
   late String answerId;
+  late String rating;
 
   Answers({required this.answerName,required  this.answerType});
 
@@ -150,6 +160,7 @@ class Answers {
     answerName = json['Answer_Name'];
     answerType = json['Answer_Type'];
     answerId = json['Answer_Id'];
+    rating = json['Rating'] ?? '';
   }
 
   Map<String, dynamic> toJson() {
@@ -157,6 +168,7 @@ class Answers {
     data['Answer_Name'] = this.answerName;
     data['Answer_Type'] = this.answerType;
     data['Answer_Id'] = this.answerId;
+    data['Rating'] = this.rating;
     return data;
   }
 }

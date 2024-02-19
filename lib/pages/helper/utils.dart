@@ -778,6 +778,21 @@ class Utility{
     return DateFormat('yyyy-MM-dd HH:mm').format(DateTime.now());
   }
 
+  static getDate(DateTime date){
+    return DateFormat('yyyy-MM-dd').format(date);
+  }
+
+  static parseSimpleDate(String value) {
+    DateTime dt = DateTime.now();
+    //2022-07-18T00:00:00
+    try {
+      dt = new DateFormat('yyyy-MM-dd').parse(value);
+    } catch (e) {
+      e.toString();
+    }
+    return DateFormat('MMM-dd').format(dt);
+  }
+
 
   static getAlertDialog(BuildContext context,String message,onClickListener response){
     Dialogs.materialDialog(
