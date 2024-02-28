@@ -54,6 +54,7 @@ class _NotificationListScreenState extends State<NotificationListScreen>
     DBHelper helper=new DBHelper();
     mNotificationList.clear();
     List<NotificationDataModel> notificationList =  await helper.getNotificationList();
+    print('length ${notificationList.length}');
     for(int index=0;index<notificationList.length;index++){
       try {
         if(notificationList[index].type.isEmpty){

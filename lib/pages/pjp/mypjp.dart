@@ -662,20 +662,20 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse,onCli
         if (response != null && response.responseData != null) {
           if (widget.mFilterSelection == null ||
               widget.mFilterSelection.type == FILTERStatus.MYTEAM) {
-            //debugdebugPrint('FOR MY TEAM'));
+            debugPrint('FOR MY TEAM');
             for (int index = 0;
             index < response.responseData.length;
             index++) {
               if (response.responseData[index].isSelfPJP == '0') {
                 for(int jIndex=0;jIndex<widget.mFilterSelection.filters.length;jIndex++){
-                  if(widget.mFilterSelection.filters[jIndex].isSelected && response.responseData[index].displayName==widget.mFilterSelection.filters[jIndex].name){
+                  if(widget.mFilterSelection.filters[jIndex].isSelected && response.responseData[index].displayName.trim()==widget.mFilterSelection.filters[jIndex].name.trim()){
                     mPjpList.add(response.responseData[index]);
                   }
                 }
               }
             }
           } else if (widget.mFilterSelection.type == FILTERStatus.MYSELF) {
-            //debugdebugPrint('FOR MY SELF'));
+            debugPrint('FOR MY SELF');
             for (int index = 0;
             index < response.responseData.length;
             index++) {
@@ -684,7 +684,7 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse,onCli
               }
             }
           } else if (widget.mFilterSelection.type == FILTERStatus.NONE) {
-            //debugdebugPrint('FOR MY CUSTOM TEAM'));
+            debugPrint('FOR MY CUSTOM TEAM');
             for (int index = 0;
             index < response.responseData.length;
             index++) {
@@ -693,7 +693,7 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse,onCli
               }
             }
           } else {
-            //debugPrint('In else');
+            debugPrint('In else');
             for (int index = 0;
             index < response.responseData.length;
             index++) {
@@ -717,6 +717,7 @@ class _MyPjpListState extends State<MyPjpListScreen> implements onResponse,onCli
         }
       }
     }
+    print(mPjpList.length);
     setState(() {
       isLoading=false;
     });

@@ -255,8 +255,9 @@ class DBHelper {
   /// @param data: data map to be inserted
   Future<void> insert(String table, Map<String, Object> data) async {
     final dbClient = await db;
-    dbClient.insert(table, data,
+    int affectedRow = await dbClient.insert(table, data,
         conflictAlgorithm: sql.ConflictAlgorithm.replace);
+    print('notification ${affectedRow} insert ${data}');
   }
 
   Future<void> deleteCategory(int categotyId)
@@ -570,6 +571,7 @@ class DBHelper {
         notificaitonList.add(NotificationDataModel(message: map['data']!=null && map['data']!='' ?  map['data'] : map['notification'], title: map['title'], image: map['imageurl'], URL: '', type: map['type'],time:time));
       }
     }
+    print('length is ${notificaitonList.length}');
     return notificaitonList;
   }
 

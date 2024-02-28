@@ -251,12 +251,12 @@ class HomePageMenu extends StatelessWidget {
                   ],
                 )
             ),
-            Row(
+            /*Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
               isBpms ? _getMenu(context, 'PJP-CVF Approval (Exp)', Icons.approval ,PJPManagerExceptionalScreen()) : SizedBox(width: 0,),
               _getMenu(context, 'My Planning',Icons.approval , MyOutdoorPlanner())
-            ],)
+            ],)*/
 
           ]
           ),

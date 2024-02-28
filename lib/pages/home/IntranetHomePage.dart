@@ -528,9 +528,9 @@ class _IntranetHomePageState extends State<IntranetHomePage>
       final firebaseMessaging = FCM();
       //useragent= Platform.isIOS ? 'IOS' : 'Android';
       firebaseMessaging.setNotifications(employeeId.toString(), id, useragent);
-      FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      /*FirebaseMessaging.onMessage.listen((RemoteMessage message) {
         NotificationService().parseNotification(message);
-      });
+      });*/
     }
   }
 
