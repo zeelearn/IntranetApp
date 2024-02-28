@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
+
 class PJPListRequest {
   final int Employee_id;
   final int Business_id;
@@ -18,7 +20,7 @@ class PJPListRequest {
       'Employee_id': Employee_id,
       'Business_id': Business_id,
       'PJP_id':PJP_id,
-      'AppType' :Platform.isAndroid ? 'Android' : Platform.isIOS ? 'IOS' : 'unknown'
+      'AppType' : kIsWeb ? 'web' :  Platform.isAndroid ? 'Android' : Platform.isIOS ? 'IOS' : 'unknown'
     });
   }
 

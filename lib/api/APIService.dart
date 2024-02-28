@@ -130,6 +130,7 @@ class APIService {
                   // Required for CORS support to work
                   "Access-Control-Allow-Credentials": "false",
                   // Required for cookies, authorization headers with HTTPS
+                "Access-Control-Allow-Methods": "POST, OPTIONS,POST,GET",
                   "Access-Control-Allow-Headers":
                       "Origin,Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,locale",
                   "Access-Control-Allow-Methods": "*"
@@ -151,6 +152,7 @@ class APIService {
           return null; //LoginResponseModel(token:"",Status:"Invalid/Wrong Login Details");
         }
       } catch (e) {
+        print('Error 155');
         print(e.toString());
       }
     } catch (e) {
@@ -378,7 +380,7 @@ class APIService {
         'Role': requestModel.Role,
         'FromDate': requestModel.FromDate,
         'LeaveType': requestModel.LeaveType,
-        'AppType': Platform.isAndroid
+        'AppType': kIsWeb ? 'web' : Platform.isAndroid
             ? 'Android'
             : Platform.isIOS
                 ? 'IOS'

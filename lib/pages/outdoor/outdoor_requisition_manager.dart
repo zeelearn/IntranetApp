@@ -304,7 +304,7 @@ class _OutdoorReqManagerScreen extends State<OutdoorReqManagerScreen>
 
     });
     DateTime selectedDate = DateTime.now();
-    DateTime _from = DateTime(selectedDate.year, selectedDate.month - 1, selectedDate.day);
+    DateTime _from = DateTime(selectedDate.year, selectedDate.month - 3, selectedDate.day);
     DateTime _to = DateTime(selectedDate.year, selectedDate.month + 1, selectedDate.day);
     requisitionList.clear();
     ApplyLeaveManRequest request = ApplyLeaveManRequest(device: 0,

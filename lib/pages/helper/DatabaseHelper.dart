@@ -426,14 +426,18 @@ class DBHelper {
   Future<void> updateCVFQuestions(String cvfId,String categoryId,String json,int isSync) async{
     var dbclient = await db;
     try {
-      await dbclient.rawUpdate('update ${LocalConstant
-          .TABLE_CVF_QUESTION_JSON} set is_sync = \'${json}\' ,${DBConstant
+      int value = await dbclient.rawUpdate('update ${LocalConstant
+          .TABLE_CVF_QUESTION_JSON} set ${DBConstant.QUESTION} = \'${json}\' ,${DBConstant
           .IS_SYNC} = \'${isSync}\' ,${DBConstant.MODIFIED_DATE} = \'${Utility
           .parseDate(DateTime.now())}\'   where ${DBConstant.CVF_ID}=${cvfId} and ${DBConstant.CATEGORY_ID}=${categoryId}');
+      print('updated affected row ${value}');
+      print('updated affected row ${json}');
     }catch(e){
       debugPrint(e.toString());
     }
   }
+
+
 
   Future<void> updateCheckInStatus(int id,int isSync) async{
     var dbclient = await db;

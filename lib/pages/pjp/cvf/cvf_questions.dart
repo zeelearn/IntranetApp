@@ -189,14 +189,13 @@ class _QuestionListScreenState extends State<QuestionListScreen>
       var cvfQuestions = hiveBox.get(widget.PJPCVF_Id.toString() +
           categoryid +
           LocalConstant.KEY_CVF_QUESTIONS);
-      debugPrint(
-          'cvfQES --- ${widget.PJPCVF_Id.toString() + categoryid + LocalConstant.KEY_CVF_QUESTIONS}');
+      //debugPrint('cvfQES --- ${widget.PJPCVF_Id.toString() + categoryid + LocalConstant.KEY_CVF_QUESTIONS}');
       /*if (cvfQuestions is QuestionResponse) {
         debugPrint('localdata');
         QuestionResponse response = cvfQuestions as QuestionResponse;
         loadData();
       } else */
-      if (true || cvfQuestions.toString().isEmpty) {
+      if (cvfQuestions.toString().isEmpty) {
         //debugPrint('empty');
         loadData();
       } else {
@@ -207,6 +206,7 @@ class _QuestionListScreenState extends State<QuestionListScreen>
           );
           debugPrint('Data from the Preference ${cvfQuestionsModel}');
           mQuestionMaster.addAll(cvfQuestionsModel.responseData);
+          questionResponse = QuestionResponse(responseMessage: '', statusCode: 200, responseData: cvfQuestionsModel.responseData);
           isLoading = false;
           setState(() {});
         } catch (e) {
@@ -240,8 +240,10 @@ class _QuestionListScreenState extends State<QuestionListScreen>
 
   loadData() async {
     DBHelper helper = DBHelper();
-    questionResponse = await helper.getQuestions(
-        widget.PJPCVF_Id.toString(), widget.mCategory, widget.mCategoryId);
+    questionResponse = await helper.getQuestions(widget.PJPCVF_Id.toString(), widget.mCategory, widget.mCategoryId);
+
+    //print('offline ${questionResponse!.toJson()}');
+
     bool isInternet = await Utility.isInternet();
 
     if (!isInternet && (questionResponse != null && questionResponse!.responseData.length > 0)) {
@@ -253,7 +255,9 @@ class _QuestionListScreenState extends State<QuestionListScreen>
       isLoading = false;
       setState(() {});
     } else {
-      isLoading = true;
+      setState(() {
+        isLoading = true;
+      });
       mQuestionMaster.clear();
       QuestionsRequest request = QuestionsRequest(
           Category_Id: widget.mCategoryId,
@@ -270,8 +274,7 @@ class _QuestionListScreenState extends State<QuestionListScreen>
 
             if (questionResponse != null &&
                 questionResponse!.responseData != null) {
-              saveCvfQuestionsPref(
-                  widget.mCategoryId, questionResponse!.toJson());
+              saveCvfQuestionsPref(widget.mCategoryId, questionResponse!.toJson());
               mQuestionMaster.addAll(questionResponse!.responseData);
               DBHelper dbHelper = DBHelper();
               dbHelper.insertCVFQuestions(
@@ -354,33 +357,33 @@ class _QuestionListScreenState extends State<QuestionListScreen>
   String getAnswerId(List<Answers> answerList, String answerType, String answer) {
     String answerId = answer;
     if (answerType == 'YesNo') {
-      print('Answer YesNo...${answer}');
+      //print('Answer YesNo...${answer}');
       for (int index = 0; index < answerList.length; index++) {
         if (answer == answerList[index].answerName) {
           answerId = answerList[index].answerId;
-          print('Answer AnswerId...${answerId}');
+      //    print('Answer AnswerId...${answerId}');
         }
       }
     } else {
       answerId = answerList[0].answerId;
-      print('Answer AnswerId...else');
+      //print('Answer AnswerId...else');
     }
-    print('Answer is ${answerId}');
+    //print('Answer is ${answerId}');
     return answerId;
   }
 
   String getRating(List<Answers> answerList, String answerType, String answer) {
     String rating = '';
     if (answerType == 'YesNo') {
-      print('Answer YesNo...${answer}');
+      //print('Answer YesNo...${answer}');
       for (int index = 0; index < answerList.length; index++) {
-        if (answer == answerList[index].answerName) {
+        if (answer == answerList[index].answerId) {
           rating = answerList[index].rating;
-          print('Answer AnswerId...${rating}');
+        //  print('Answer AnswerId...${rating}');
         }
       }
     }
-    print('Answer is ${rating}');
+    //print('Answer is ${rating}');
     return rating;
   }
 bool isOffline=false;
@@ -412,7 +415,7 @@ bool isOffline=false;
         for (int jIndex = 0;
             jIndex < mQuestionMaster[index].allquestion.length;
             jIndex++) {
-          if (mQuestionMaster[index]
+          if (mQuestionMaster[index].allquestion[jIndex].endDate!='NA' || mQuestionMaster[index].allquestion[jIndex].startDate!='NA' || mQuestionMaster[index].allquestion[jIndex].Remarks.isNotEmpty || mQuestionMaster[index]
                       .allquestion[jIndex]
                       .answers[0]
                       .answerType ==
@@ -431,7 +434,7 @@ bool isOffline=false;
                 /* mQuestionMaster[index].allquestion[jIndex].answers[0].answerType == 'YesNo' ?
                   mQuestionMaster[index].allquestion[jIndex].userAnswers : ''*/
                 }</AnswerId>'
-                '<StartDate>${mQuestionMaster[index].allquestion[jIndex].startDate}</StartDate><EndDate>${mQuestionMaster[index].allquestion[jIndex].endDate}</EndDate><Rating>${getRating(mQuestionMaster[index].allquestion[jIndex].answers, mQuestionMaster[index].allquestion[jIndex].answers[0].answerType, mQuestionMaster[index].allquestion[jIndex].userAnswers.isNotEmpty ? mQuestionMaster[index].allquestion[jIndex].userAnswers : userAnswerMap[mQuestionMaster[index].allquestion[jIndex].Question_Id].toString())}</Rating><Files>${encodeFile(mQuestionMaster[index].allquestion[jIndex].files)}</Files><Remarks>${mQuestionMaster[index].allquestion[jIndex].Remarks.isNotEmpty ? mQuestionMaster[index].allquestion[jIndex].Remarks : mQuestionMaster[index].allquestion[jIndex].answers[0].answerType == 'YesNo' ? '' : mQuestionMaster[index].allquestion[jIndex].userAnswers.isNotEmpty ? mQuestionMaster[index].allquestion[jIndex].userAnswers : ''}</Remarks></tblPJPCVF_Answer>';
+                '${mQuestionMaster[index].allquestion[jIndex].toStartDateXml()}${mQuestionMaster[index].allquestion[jIndex].toEndDateXml()}<Rating>${getRating(mQuestionMaster[index].allquestion[jIndex].answers, mQuestionMaster[index].allquestion[jIndex].answers[0].answerType, mQuestionMaster[index].allquestion[jIndex].SelectedAnswer.isNotEmpty ? mQuestionMaster[index].allquestion[jIndex].SelectedAnswer : userAnswerMap[mQuestionMaster[index].allquestion[jIndex].Question_Id].toString())}</Rating><Files>${encodeFile(mQuestionMaster[index].allquestion[jIndex].files)}</Files><Remarks>${mQuestionMaster[index].allquestion[jIndex].Remarks.isNotEmpty ? mQuestionMaster[index].allquestion[jIndex].Remarks : mQuestionMaster[index].allquestion[jIndex].answers[0].answerType == 'YesNo' ? '' : mQuestionMaster[index].allquestion[jIndex].userAnswers.isNotEmpty ? mQuestionMaster[index].allquestion[jIndex].userAnswers : ''}</Remarks></tblPJPCVF_Answer>';
             print(docXml);
           } else if (/*mQuestionMaster[index]
                       .allquestion[jIndex]
@@ -514,6 +517,13 @@ bool isOffline=false;
           title: const Text('Questions'),
           actions: !widget.isViewOnly
               ? [
+                  IconButton(
+                    icon: const Icon(Icons.refresh),
+                    tooltip: 'Refresh',
+                    onPressed: () {
+                      loadData();
+                    },
+                  ),
                   IconButton(
                     icon: const Icon(Icons.done),
                     tooltip: 'Filter',
@@ -859,23 +869,18 @@ bool isOffline=false;
         decoration: BoxDecoration(
             shape: BoxShape.rectangle, // BoxShape.circle or BoxShape.retangle
             /*color: Colors.red,*/
+            color: LightColors.kLightBlue,
             boxShadow: [
               BoxShadow(
                 color: Colors.grey,
-                blurRadius: 10.0,
+                blurRadius: 5.0,
               ),
             ]),
         child: Padding(
-          padding: EdgeInsets.only(left: 0, right: 0, top: 0, bottom: 0),
+          padding: EdgeInsets.all(5),
           child: Text(cvfView.Status,
               textAlign: TextAlign.center,
               style: TextStyle(
-                  background: Paint()
-                    ..color = LightColors.kLightBlue
-                    ..strokeWidth = 15
-                    ..strokeJoin = StrokeJoin.round
-                    ..strokeCap = StrokeCap.round
-                    ..style = PaintingStyle.stroke,
                   color: Colors.black,
                   fontSize: 12)),
         ),
@@ -953,7 +958,7 @@ bool isOffline=false;
         if (mQuestionMaster[index].allquestion[jIndex].Question_Id ==questions.Question_Id) {
           mQuestionMaster[index].allquestion[jIndex].SelectedAnswer = answers;
           mQuestionMaster[index].allquestion[jIndex].userAnswers = answers;
-          debugPrint('Answer updated for ${questions.Question_Id} ${answers}');
+          //debugPrint('Answer updated for ${questions.Question_Id} ${answers}');
           DBHelper helper = DBHelper();
           helper.updateUserAnswer(
               widget.PJPCVF_Id,
@@ -965,6 +970,7 @@ bool isOffline=false;
         }
       }
     }
+    saveCvfQuestionsPref(widget.mCategoryId, questionResponse!.toJson());
     /*DBHelper helper = DBHelper();
     helper.updateCVFQuestions(
         widget.PJPCVF_Id.toString(), questionResponse.toJson(), 0);*/
@@ -1100,20 +1106,24 @@ bool isOffline=false;
       color: LightColors.kLightGrayM,
       child: Row(
         children: [
-          Expanded(child: datePicker(context,questions.Question_Id,'Start',questions.startDate)),
-          Expanded(child: datePicker(context,questions.Question_Id,'End',questions.endDate))
+          Expanded(child: datePicker(context,questions.Question_Id,'Start',questions.startDate,questions.startDate)),
+          questions.startDate.isNotEmpty ?
+          Expanded(child: datePicker(context,questions.Question_Id,'End',questions.endDate,questions.startDate)) : Container()
         ],
       ),
     );
   }
 
   getRemark(Allquestion questions) {
+    //print(questions.toJson());
     return Container(
       color: LightColors.kLightGrayM,
-      width: MediaQuery.of(context).size.width*0.8,
+      width: MediaQuery.of(context).size.width,
+      height: 35,
       child: Row(
         children: [
-          Expanded(child: InkWell(onTap:() => showRemarkDialog(questions),child: Text(questions.Remarks.isEmpty ? 'Remark' : questions.Remarks),))
+          Expanded(child: InkWell(onTap:() => showRemarkDialog(questions),child: Text(maxLines: 2,
+              overflow: TextOverflow.ellipsis, questions.Remarks.isEmpty ? 'Remark' : questions.Remarks),))
         ],
       ),
     );
@@ -1463,8 +1473,7 @@ bool isOffline=false;
                             if (_textEditingController.text
                                 .toString()
                                 .isNotEmpty) {
-                              updateAnswers(question,
-                                  _textEditingController.text.toString());
+                              updateAnswers(question,_textEditingController.text.toString());
                               Navigator.of(context).pop();
                             }
                           },
@@ -1485,15 +1494,15 @@ bool isOffline=false;
   }
 
   _generateDynamicYesNo(Allquestion questions){
-    print('_generate yesno=====================');
+    //print('_generate yesno=====================');
     List<Widget> list = [];
     for(int index=0;index<questions.answers.length;index++){
       list.add(Expanded(
         child: CheckboxListTile(
           value: (!userAnswerMap.containsKey(questions.Question_Id) &&
-              questions.SelectedAnswer == questions.answers[index].answerName) ||
+              questions.SelectedAnswer == questions.answers[index].answerId) ||
               (userAnswerMap.containsKey(questions.Question_Id) &&
-                  userAnswerMap[questions.Question_Id] == questions.answers[index].answerName)
+                  userAnswerMap[questions.Question_Id] == questions.answers[index].answerId)
               ? true
               : false,
           title:  Text(
@@ -1509,9 +1518,9 @@ bool isOffline=false;
                   context, 'CVF Already submitted and not able to update');
             } else {
               //ischeck[getCheckboxIndex(player.question)] = false;
-              questions.SelectedAnswer = questions.answers[index].answerName;
+              questions.SelectedAnswer = questions.answers[index].answerId;
               setState(() {
-                updateAnswers(questions, questions.answers[index].answerName);
+                updateAnswers(questions, questions.answers[index].answerId);
               });
             }
           },
@@ -1522,8 +1531,8 @@ bool isOffline=false;
     return list;
   }
 
-  updateRemark(Allquestion questions,String remark){
-    print('remark updated ${remark}');
+  updateRemark(Allquestion questions,String remark) async{
+
     for (int index = 0; index < mQuestionMaster.length; index++) {
       for (int jIndex = 0;jIndex < mQuestionMaster[index].allquestion.length;jIndex++) {
         if (mQuestionMaster[index].allquestion[jIndex].Question_Id ==questions.Question_Id) {
@@ -1532,92 +1541,145 @@ bool isOffline=false;
         }
       }
     }
+    questionResponse!.responseData.clear();
+    questionResponse!.responseData.addAll(mQuestionMaster);
+    //print(questionResponse!.toJson());
+    saveCvfQuestionsPref(widget.mCategoryId, questionResponse!.toJson());
+    DBHelper dbHelper = DBHelper();
+    await dbHelper.updateCVFQuestions(widget.PJPCVF_Id.toString(), widget.mCategory,json.encode(questionResponse!.toJson()),0);
   }
 
   showRemarkDialog(Allquestion questions){
-    TextEditingController _controlelr = TextEditingController();
-    showModalBottomSheet(
-        context: context,
-        isScrollControlled: true,
-        builder: (context) => Padding(
-          padding: EdgeInsets.only(
-              bottom: MediaQuery.of(context).viewInsets.bottom),
-          child: Container(
-            margin: EdgeInsets.all(10),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    TextButton(onPressed: (){
-                      updateRemark(questions,_controlelr.text.toString());
-                      //questions.Remarks=_controlelr.text.toString();
-                      Navigator.of(context).pop();
-                    }, child: Text('Submit'))
-                  ],
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                  child: Text('Enter Remark',
-                      style: LightColors.subTextStyle),
-                ),
-                SizedBox(
-                  height: 8.0,
-                ),
-                TextField(
-                  controller: _controlelr,
-                  decoration: InputDecoration(
-                      hintText: 'Remark'
+    if (widget.isViewOnly) {
+    } else if (widget.cvfView.Status == 'Completed') {
+      Utility.showMessages(context, 'CVF Already submitted and not able to update');
+    }else {
+      TextEditingController _controlelr = TextEditingController();
+      _controlelr.text = questions.Remarks;
+      showModalBottomSheet(
+          context: context,
+          isScrollControlled: true,
+          builder: (context) =>
+              Padding(
+                padding: EdgeInsets.only(
+                    bottom: MediaQuery
+                        .of(context)
+                        .viewInsets
+                        .bottom),
+                child: Container(
+                  margin: EdgeInsets.all(10),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          TextButton(onPressed: () {
+                            updateRemark(questions, _controlelr.text
+                                .toString());
+                            //questions.Remarks=_controlelr.text.toString();
+                            Navigator.of(context).pop();
+                          }, child: Text('Submit'))
+                        ],
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                        child: Text('Enter Remark',
+                            style: LightColors.subTextStyle),
+                      ),
+                      SizedBox(
+                        height: 8.0,
+                      ),
+                      TextField(
+                        controller: _controlelr,
+                        maxLines: 3,
+                        maxLength: 100,
+                        decoration: InputDecoration(
+                            hintText: 'Remark'
+                        ),
+                        autofocus: true,
+                      ),
+                    ],
                   ),
-                  autofocus: true,
                 ),
-              ],
-            ),
-          ),
-        ));
+              ));
+    }
   }
   var _dateController = TextEditingController();
-  Widget datePicker(BuildContext context,String Question_Id,String label,String text) {
+  Widget datePicker(BuildContext context,String Question_Id,String label,String text,String start) {
     return Container(
       margin: EdgeInsets.all(5),
+      height: 35,
       child: InkWell(
         onTap: (){
-          _showDatePicker(context,Question_Id,label,text);
+          if (widget.isViewOnly) {
+          } else if (widget.cvfView.Status == 'Completed') {
+            Utility.showMessages(context, 'CVF Already submitted and not able to update');
+          }else {
+            DateTime startDate = label == 'Start' ? DateTime(DateTime
+                .now()
+                .year, DateTime
+                .now()
+                .month - 1, DateTime
+                .now()
+                .day) : Utility.parseDateTime(start);
+            DateTime endDate = DateTime(DateTime
+                .now()
+                .year, DateTime
+                .now()
+                .month + 1, DateTime
+                .now()
+                .day);
+            _showDatePicker(
+                context, Question_Id, label, text, startDate, endDate);
+          }
         },
         child: Row(
           children: [
             Icon(Icons.date_range,size: 14,),
             SizedBox(width: 10,),
-            Text(text.isEmpty ? 'Select ${label} Date' : Utility.parseSimpleDate(text),style: TextStyle(fontSize: text.isEmpty ? 10 :12, color: text.isEmpty ? Colors.grey : Colors.black87),),
+            Text(text.isEmpty || text=='NA' ? 'Timeline ${label} Date' : Utility.parseSimpleDate(text),style: TextStyle(fontSize: text.isEmpty ? 10 :12, color: text.isEmpty ? Colors.grey : Colors.black87),),
           ],
         ),
       ),
     );
   }
 
-  updateDate(String questionId,String label,String date){
+  updateDate(String questionId,String label,String date) async{
     for (int index = 0; index < mQuestionMaster.length; index++) {
       for (int jIndex = 0; jIndex <
           mQuestionMaster[index].allquestion.length; jIndex++) {
           if(mQuestionMaster[index].allquestion[jIndex].Question_Id==questionId){
-            if(label=='Start')
+            if(label=='Start') {
               mQuestionMaster[index].allquestion[jIndex].startDate = date;
-            else
+              if(mQuestionMaster[index].allquestion[jIndex].endDate.isNotEmpty) {
+                DateTime startDate = Utility.parseDateTime(date);
+                DateTime endDate = Utility.parseDateTime(mQuestionMaster[index].allquestion[jIndex].endDate);
+                if(startDate.isAfter(endDate)){
+                  mQuestionMaster[index].allquestion[jIndex].endDate ='';
+                }
+              }
+            }else {
               mQuestionMaster[index].allquestion[jIndex].endDate = date;
+            }
           }
       }
     }
+    //print(questionResponse);
+    questionResponse!.responseData.clear();
+    questionResponse!.responseData.addAll(mQuestionMaster);
+    saveCvfQuestionsPref(widget.mCategoryId, questionResponse!.toJson());
+    //print('save -- ${questionResponse!.toJson()}');
   }
 
-  _showDatePicker(BuildContext context,String questionId,String label,String text) async {
+  _showDatePicker(BuildContext context,String questionId,String label,String text,DateTime start,DateTime lastDate) async {
     DateTime? pickedDate = await showDatePicker(
         context: context,
-        initialDate: DateTime.now(),
-        firstDate: DateTime(DateTime.now().year - 1, 5),
+        initialDate: start.isAfter(DateTime.now()) ? start : DateTime.now(),
+        firstDate: start /*DateTime(DateTime.now().year - 1, 5)*/,
         //DateTime.now() - not to allow to choose before today.
-        lastDate: DateTime(DateTime.now().year + 1, 9));
+        lastDate: lastDate /*DateTime(DateTime.now().year + 1, 9)*/);
 
     if (pickedDate != null) {
       setState(() {
@@ -1723,10 +1785,22 @@ bool isOffline=false;
                         mQuestionMaster[index].allquestion[jIndex].Question_Id]
                     .toString()
                 : '';
-        if (mQuestionMaster[index].allquestion[jIndex].isCompulsory == '1' &&
-            (userAnswer.isEmpty || userAnswer == 'null')) {
-          inCompleteQuestions =
-              'Please complete all Required answers, Questions in Category ${mQuestionMaster[index].allquestion[jIndex].categoryName} is pending';
+        if(mQuestionMaster[index].allquestion[jIndex].IsProgressive=='1' && mQuestionMaster[index].allquestion[jIndex].SelectedAnswer.trim()!='1' &&  (mQuestionMaster[index].allquestion[jIndex].Remarks.isEmpty || mQuestionMaster[index].allquestion[jIndex].startDate=='NA' || mQuestionMaster[index].allquestion[jIndex].endDate=='NA')){
+          //print('${mQuestionMaster[index].allquestion[jIndex].Question_Id} ${mQuestionMaster[index].allquestion[jIndex].SelectedAnswer} ${mQuestionMaster[index].allquestion[jIndex].Remarks} ${mQuestionMaster[index].allquestion[jIndex].startDate} ${mQuestionMaster[index].allquestion[jIndex].endDate}');
+          pendingQuestion = 'Please submit the below observation \n\n - ' +
+              mQuestionMaster[index].allquestion[jIndex].categoryName +
+              ',  Ques No : ' +
+              mQuestionMaster[index].allquestion[jIndex].question;
+          //debugPrint('isComplete ${pendingQuestion}');
+          token = ',';
+          inCompleteCounts = inCompleteCounts + 1;
+          isCompleted = false;
+          break;
+          //break;
+        }
+        if (mQuestionMaster[index].allquestion[jIndex].isCompulsory == '1' && (userAnswer.isEmpty || userAnswer == 'null')) {
+          inCompleteQuestions = 'Please complete all Required answers, Questions in Category ${mQuestionMaster[index].allquestion[jIndex].categoryName} is pending';
+
           if (pendingQuestion.isEmpty) {
             pendingQuestion = 'Please submit the below observation \n\n - ' +
                 mQuestionMaster[index].allquestion[jIndex].categoryName;
@@ -1735,7 +1809,7 @@ bool isOffline=false;
                 ' \n - ' +
                 mQuestionMaster[index].allquestion[jIndex].categoryName;
           }
-          debugPrint(pendingQuestion);
+          //debugPrint(pendingQuestion);
           token = ',';
           inCompleteCounts = inCompleteCounts + 1;
           isCompleted = false;
@@ -1771,9 +1845,6 @@ bool isOffline=false;
     DBHelper helper = DBHelper();
     helper.getPjpList();
     mQuestionMaster = mQuestionMaster;
-    //debugPrint('data updated');
-
-    //debugPrint('data updated');
   }
 
   void onItemChanged(bool? checked) {
@@ -2015,8 +2086,7 @@ bool isOffline=false;
     Navigator.of(context).pop();
     if (value is UpdateCVFStatusResponse) {
       UpdateCVFStatusResponse response = value;
-      Utility.showMessageSingleButton(
-          context, 'Thank you for submitting the CVF', this);
+      Utility.showMessageSingleButton(context, 'Thank you for submitting the CVF', this);
     }
   }
 

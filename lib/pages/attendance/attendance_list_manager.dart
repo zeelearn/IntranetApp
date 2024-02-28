@@ -49,7 +49,7 @@ class _AttendanceSummeryState extends State<AttendanceSummeryManagerScreen> {
 
   loadSummery() {
     Utility.showLoaderDialog(context);
-    int _FromMonth = selectedDate.month - 1;
+    int _FromMonth = selectedDate.month - 4;
     int _fromYear = selectedDate.year;
     if (selectedDate.month == 1) {
       _FromMonth = 12;

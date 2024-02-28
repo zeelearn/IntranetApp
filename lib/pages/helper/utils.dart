@@ -332,6 +332,18 @@ class Utility{
     return date;
   }
 
+  static DateTime parseDateTime(String value) {
+    DateTime date = DateTime.now();
+    print('value ${value}');
+    try {
+      date = new DateFormat('yyyy-MM-dd').parse(value);
+      print(date.toString());
+    } catch (e) {
+      e.toString();
+    }
+    return date;
+  }
+
   static String parseDateOnly(String value) {
     String date =value;
     DateTime dt = DateTime.now();

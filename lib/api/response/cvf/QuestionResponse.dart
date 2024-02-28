@@ -97,6 +97,18 @@ class Allquestion {
   late String startDate='';
   late String endDate='';
 
+  toStartDateXml(){
+    if(this.startDate.isEmpty || this.startDate=='NA')
+      return '';
+    else return '<StartDate>${this.startDate}</StartDate>';
+  }
+
+  toEndDateXml(){
+    if(this.endDate.isEmpty || this.endDate=='NA')
+      return  '';
+    else return '<EndDate>${this.endDate}</EndDate>';
+  }
+
   Allquestion(
       {required this.Question_Id, required this.question,required this.businessId,required this.isCompulsory,required this.SelectedAnswer,required this.files, required this.categoryName,required this.answers, required this.Remarks,required this.IsProgressive,required this.startDate,required this.endDate});
 
@@ -111,8 +123,8 @@ class Allquestion {
       files = json['files'] ?? '';
       Remarks = json['Remarks'] ?? '';
       IsProgressive = json['IsProgressive'] ?? '0';
-      startDate = json['StartDate'] ?? '';
-      endDate = json['EndDate'] ?? '';
+      startDate = json['StartDate'] ?? 'NA';
+      endDate = json['EndDate'] ?? 'NA';
       answers = <Answers>[];
       if (json.containsKey('answers')) {
         if (json['answers'] is List) {

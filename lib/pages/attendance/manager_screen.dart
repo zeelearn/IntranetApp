@@ -255,7 +255,7 @@ class _AttendanceManagerScreen extends State<AttendanceManagerScreen>
     //Utility.showLoaderDialog(context);
     DateTime selectedDate = DateTime.now();
     DateTime prevDate =
-        DateTime(selectedDate.year, selectedDate.month - 1, selectedDate.day);
+        DateTime(selectedDate.year, selectedDate.month - 3, selectedDate.day);
     DateTime nextDate =
         DateTime(selectedDate.year, selectedDate.month + 1, selectedDate.day);
     requisitionList.clear();

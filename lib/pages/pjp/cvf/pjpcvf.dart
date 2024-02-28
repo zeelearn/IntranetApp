@@ -354,10 +354,8 @@ class _MyCVFListScreen extends State<CVFListScreen> implements onResponse,onClic
       //return '';
       Utility.showMessageSingleButton(context, 'Category Not mapped for this CVF, Please create another CVF', this);
     }else if(cvfView.purpose!.length==1){
-      debugPrint('onTap detected...354');
       navigateQuestions(cvfView, cvfView.purpose![0].categoryId,cvfView.purpose![0].categoryName);
     }else{
-      debugPrint('onTap detected...357');
       showModalBottomSheet(
         useSafeArea: true,
           isScrollControlled: true,
@@ -445,21 +443,17 @@ class _MyCVFListScreen extends State<CVFListScreen> implements onResponse,onClic
     }
     return GestureDetector(
       onTap: () {
-        debugPrint('onTap detected...');
         if(widget.mPjpInfo.isSelfPJP=='0'){
-          debugPrint('onTap detected...0');
           selectCategory(context, cvfView);
         }else if (cvfView.Status == 'Check In' || cvfView.Status == ' Check In' || cvfView.Status == 'NA') {
-          debugPrint('onTap detected...1');
           Utility.onConfirmationBox(context,'Check In','Cancel', 'PJP Status Update?', 'Would you like to Check In?',cvfView, this);
         }else if(cvfView.Status =='Completed'){
-          debugPrint('onTap detected...2');
           selectCategory(context, cvfView);
         }else if (cvfView.Status == 'Check In' || cvfView.Status == ' Check In' || cvfView.Status == 'NA') {
           //Utility.showMessage(context, 'Please Click on Check In button');
-          debugPrint('onTap detected...3');
+
         } else {
-          debugPrint('onTap detected...4');
+
           selectCategory(context, cvfView);
         }
       },
