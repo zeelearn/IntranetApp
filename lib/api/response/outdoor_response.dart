@@ -62,21 +62,21 @@ class OutdoorModel {
         required this.workPlannerActiveStatus});
 
   OutdoorModel.fromJson(Map<String, dynamic> json) {
-    requisitionId = json['requisition_Id'];
-    employeeId = json['employee_Id'];
-    employeeName = json['employee_Name'];
-    superiorName = json['superior_Name'];
-    leaveType = json['leaveType'];
-    date = json['date'];
-    fromTime = json['fromTime'];
-    toTime = json['toTime'];
-    noOfDays = json['noOfDays'];
-    reason = json['reason'];
-    status = json['status'];
-    requisitionTypeCode = json['requisitionTypeCode'];
-    workflowTypeCode = json['workflowTypeCode'];
-    workPlannerStatus = json['workPlannerStatus'];
-    workPlannerActiveStatus = json['workPlannerActiveStatus'];
+    requisitionId = json['requisition_Id'] ?? 0.0;
+    employeeId = json['employee_Id'] ?? 0;
+    employeeName = json['employee_Name'] ?? 'NA';
+    superiorName = json['superior_Name'] ?? 'NA';
+    leaveType = json['leaveType'] ?? 'NA';
+    date = json['date'] ?? 'NA';
+    fromTime = json['fromTime'] ?? 'NA';
+    toTime = json['toTime'] ?? 'NA';
+    noOfDays = json['noOfDays'] ?? 0.0;
+    reason = json['reason']  ?? 'NA';
+    status = json['status'] ?? 'NA';
+    requisitionTypeCode = json['requisitionTypeCode'] ?? 'NA';
+    workflowTypeCode = json['workflowTypeCode'] ?? 'NA';
+    workPlannerStatus = json['workPlannerStatus'] ?? 'NA';
+    workPlannerActiveStatus = json['workPlannerActiveStatus'] ?? 'NA';
   }
 
   Map<String, dynamic> toJson() {

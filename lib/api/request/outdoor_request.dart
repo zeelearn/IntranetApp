@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
+
 class OutdoorRequest {
   String Employee_Id;
   String LeaveType;
@@ -27,7 +29,7 @@ class OutdoorRequest {
       'Role': Role.trim(),
       'FromDate': FromDate.trim(),
       'ToDate': ToDate.trim(),
-      'AppType' :Platform.isAndroid ? 'Android' : Platform.isIOS ? 'IOS' : 'unknown'
+      'AppType' :kIsWeb ?'web' : Platform.isAndroid ? 'Android' : Platform.isIOS ? 'IOS' : 'unknown'
     });
   }
 
