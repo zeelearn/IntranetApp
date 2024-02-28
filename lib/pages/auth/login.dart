@@ -1,15 +1,14 @@
 import 'dart:convert';
 
+import 'package:Intranet/pages/firebase/anylatics.dart';
+import 'package:Intranet/pages/widget/MyWidget.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hive/hive.dart';
-import 'package:Intranet/pages/auth/social_button.dart';
-import 'package:Intranet/pages/firebase/anylatics.dart';
-import 'package:Intranet/pages/widget/MyWidget.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-
 import 'package:url_launcher/url_launcher.dart';
+
 import '../../api/APIService.dart';
 import '../../api/request/login_request.dart';
 import '../../api/response/login_response.dart';
@@ -18,7 +17,6 @@ import '../helper/LocalConstant.dart';
 import '../helper/utils.dart';
 import '../home/IntranetHomePage.dart';
 import '../login/PrivacyPolicyScreen.dart';
-
 
 class LoginPage extends StatefulWidget {
   bool isAutoLogin;
@@ -29,42 +27,41 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPage extends State<LoginPage> {
-
 /*class LoginPage extends StatelessWidget {*/
   //LoginPage({Key? key}) : super(key: key);
 
-  TextEditingController _userNameController = TextEditingController();
-  TextEditingController _userPasswordController = TextEditingController();
+  final TextEditingController _userNameController = TextEditingController();
+  final TextEditingController _userPasswordController = TextEditingController();
 
   bool isChecked = false;
   bool isApiCallProcess = false;
 
-  String appVersion='';
+  String appVersion = '';
   bool passwordVisible = false;
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    passwordVisible=true;
+    passwordVisible = true;
     Future.delayed(Duration.zero, () {
-      this.getDeviceInfo();
-      if(widget.isAutoLogin){
+      getDeviceInfo();
+      if (widget.isAutoLogin) {
         autoLogin();
-      }else {
-        setState(() {
-
-        });
+      } else {
+        setState(() {});
       }
     });
   }
 
-  autoLogin() async{
+  autoLogin() async {
     var box = await Utility.openBox();
     _userNameController.text = box.get(LocalConstant.KEY_USER_NAME) as String;
-    _userPasswordController.text = box.get(LocalConstant.KEY_USER_PASSWORD) as String;
+    _userPasswordController.text =
+        box.get(LocalConstant.KEY_USER_PASSWORD) as String;
     isChecked = true;
     validate(context);
   }
+
   Future<void> getDeviceInfo() async {
     PackageInfo.fromPlatform().then((PackageInfo packageInfo) {
       String appName = packageInfo.appName;
@@ -82,13 +79,13 @@ class _LoginPage extends State<LoginPage> {
       alignment: Alignment.topLeft,
       children: [
         Container(
-          color: Colors.white,// Your screen background color
+          color: Colors.white, // Your screen background color
         ),
         Scaffold(
           resizeToAvoidBottomInset: false,
           body: SafeArea(
             child: Padding(
-              padding: const EdgeInsets.only(left: 30,right: 30,top: 30),
+              padding: const EdgeInsets.only(left: 30, right: 30, top: 30),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.start,
                 crossAxisAlignment: CrossAxisAlignment.center,
@@ -105,11 +102,12 @@ class _LoginPage extends State<LoginPage> {
 
                   //email & password section
                   /*emailTextField(size),*/
-                  MyWidget().normalTextField(context, 'UserName', _userNameController),
+                  MyWidget().normalTextField(
+                      context, 'UserName', _userNameController),
                   SizedBox(
                     height: size.height * 0.02,
                   ),
-                  passwordTextField(size,_userPasswordController),
+                  passwordTextField(size, _userPasswordController),
 
                   SizedBox(
                     height: size.height * 0.02,
@@ -128,7 +126,8 @@ class _LoginPage extends State<LoginPage> {
                             });
                           },
                         ),
-                      ),GestureDetector(
+                      ),
+                      GestureDetector(
                         onTap: () {
                           if (kIsWeb) {
                             _launchURL();
@@ -138,7 +137,7 @@ class _LoginPage extends State<LoginPage> {
                                     PrivacyPolicyScreen()));
                           }
                         },
-                        child: Text(
+                        child: const Text(
                           'I have read and accept terms \nand conditions',
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
@@ -160,20 +159,20 @@ class _LoginPage extends State<LoginPage> {
           ),
           bottomNavigationBar: Utility.footer(appVersion),
         ),
-        new Positioned(
+        Positioned(
           top: 0.0,
           left: 0.0,
           right: 0.0,
           child: AppBar(
-            title: Text(''),// You can add title here
+            title: const Text(''), // You can add title here
             /*leading: new IconButton(
               icon: new Icon(Icons.arrow_back_ios, color: Colors.grey),
               onPressed: () => Navigator.of(context).pop(),
             ),*/
             backgroundColor: Colors.transparent, //You can make this transparent
             elevation: 0.0, //No shadow
-          ),),
-
+          ),
+        ),
       ],
     );
   }
@@ -188,7 +187,10 @@ class _LoginPage extends State<LoginPage> {
   }
 
   Widget logo(double height_, double width_) {
-    return Image.asset('assets/icons/app_logo.png',width: 150,); /*SvgPicture.asset(
+    return Image.asset(
+      'assets/icons/app_logo.png',
+      width: 150,
+    ); /*SvgPicture.asset(
       'assets/icons/app_logo.png',
       height: height_,
       width: width_,
@@ -260,7 +262,7 @@ class _LoginPage extends State<LoginPage> {
     );
   }
 
-  Widget passwordTextField(Size size,TextEditingController _controller) {
+  Widget passwordTextField(Size size, TextEditingController controller) {
     return Container(
       alignment: Alignment.center,
       height: size.height / 14,
@@ -273,25 +275,23 @@ class _LoginPage extends State<LoginPage> {
       ),
       child: TextField(
         obscureText: passwordVisible,
-        controller: _controller,
+        controller: controller,
         style: GoogleFonts.inter(
           fontSize: 20.0,
           color: LightColor.primarydark_color,
         ),
         maxLines: 1,
-
         keyboardType: TextInputType.visiblePassword,
         cursorColor: const Color(0xFF15224F),
         decoration: InputDecoration(
-            prefixIcon: Icon(Icons.password),
+            prefixIcon: const Icon(Icons.password),
             suffixIcon: IconButton(
-              icon: Icon(passwordVisible
-                  ? Icons.visibility
-                  : Icons.visibility_off),
+              icon: Icon(
+                  passwordVisible ? Icons.visibility : Icons.visibility_off),
               onPressed: () {
                 setState(
-                      () {
-                        debugPrint('password visibility ${passwordVisible}');
+                  () {
+                    debugPrint('password visibility $passwordVisible');
                     passwordVisible = !passwordVisible;
                   },
                 );
@@ -305,7 +305,6 @@ class _LoginPage extends State<LoginPage> {
               color: LightColor.black,
             ),
             border: InputBorder.none),
-
       ),
     );
   }
@@ -321,10 +320,10 @@ class _LoginPage extends State<LoginPage> {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(50.0),
           color: LightColor.primary_color,
-          boxShadow: [
+          boxShadow: const [
             BoxShadow(
               color: LightColor.seeBlue,
-              offset: const Offset(0, 5.0),
+              offset: Offset(0, 5.0),
               blurRadius: 10.0,
             ),
           ],
@@ -344,9 +343,9 @@ class _LoginPage extends State<LoginPage> {
   }
 
   void validate(BuildContext context) async {
-    if(!isChecked){
+    if (!isChecked) {
       Utility.showMessage(context, "Please accept the Terms and Conditions 1");
-    }else if (_userNameController.text.toString() != "" &&
+    } else if (_userNameController.text.toString() != "" &&
         _userPasswordController.text.toString() != "") {
       Utility.showLoaderDialog(context);
       LoginRequestModel loginRequestModel = LoginRequestModel(
@@ -356,56 +355,50 @@ class _LoginPage extends State<LoginPage> {
       //loginRequestModel.User_Name = 'F2354';
       //loginRequestModel.User_Password = 'Niharika#123';
       APIService apiService = APIService();
-      apiService.login(loginRequestModel).then((value) {
+      apiService.login(loginRequestModel).then((value) async {
         debugPrint(value.toString());
         if (value != null) {
           setState(() {
             isApiCallProcess = false;
           });
-          if(value==null || value.responseData==null){
-            Utility.showMessage(context,'Invalid UserName/Password');
-          }else if(value is LoginResponseInvalid){
+          if (value == null || value.responseData == null) {
+            Utility.showMessage(context, 'Invalid UserName/Password');
+          } else if (value is LoginResponseInvalid) {
             LoginResponseInvalid responseInvalid = value;
             Utility.showMessage(context, responseInvalid.responseData);
-          }else {
+          } else {
             List<EmployeeDetails> infoList = value.responseData.employeeDetails;
-            if (infoList == null || infoList.length <= 0) {
+            if (infoList.isEmpty) {
               Utility.showMessage(context, 'Invalid UserName/Password');
             } else {
               EmployeeDetails info = value.responseData.employeeDetails[0];
+              await Hive.openBox(LocalConstant.KidzeeDB);
               var hive = Hive.box(LocalConstant.KidzeeDB);
               // // Save an integer value to 'counter' key.
-              hive.put(
-                  LocalConstant.KEY_EMPLOYEE_ID, info.employeeId.toInt().toString());
-              hive.put(
-                  LocalConstant.KEY_EMPLOYEE_CODE, info.employeeCode as String);
-              hive.put(
-                  LocalConstant.KEY_FIRST_NAME,
-                  info.employeeFirstName as String);
-              hive.put(LocalConstant.KEY_LAST_NAME, info.employeeLastName as String);
-              hive.put(LocalConstant.KEY_DOJ, info.employeeDateOfJoining as String);
+              hive.put(LocalConstant.KEY_EMPLOYEE_ID,
+                  info.employeeId.toInt().toString());
+              hive.put(LocalConstant.KEY_EMPLOYEE_CODE, info.employeeCode);
+              hive.put(LocalConstant.KEY_FIRST_NAME, info.employeeFirstName);
+              hive.put(LocalConstant.KEY_LAST_NAME, info.employeeLastName);
+              hive.put(LocalConstant.KEY_DOJ, info.employeeDateOfJoining);
               hive.put(LocalConstant.KEY_EMP_SUPERIOR_ID,
                   info.employeeSuperiorId.toInt().toString());
-              hive.put(LocalConstant.KEY_DEPARTMENT,
-                  info.employeeDepartmentName as String);
-              hive.put(LocalConstant.KEY_DESIGNATION,
-                  info.employeeDesignation as String);
               hive.put(
-                  LocalConstant.KEY_EMAIL, info.employeeEmailId as String);
-              hive.put(LocalConstant.KEY_CONTACT,
-                  info.employeeContactNumber as String);
+                  LocalConstant.KEY_DEPARTMENT, info.employeeDepartmentName);
+              hive.put(LocalConstant.KEY_DESIGNATION, info.employeeDesignation);
+              hive.put(LocalConstant.KEY_EMAIL, info.employeeEmailId);
+              hive.put(LocalConstant.KEY_CONTACT, info.employeeContactNumber);
               hive.put(LocalConstant.KEY_IS_ACTIVE, info.isActive);
               hive.put(LocalConstant.KEY_ISCEO, info.isCEO);
-              hive.put(
-                  LocalConstant.KEY_IS_BUSINESS_HEAD, info.isBusinessHead);
-              hive.put(
-                  LocalConstant.KEY_USER_NAME, info.userName as String);
-              hive.put(LocalConstant.KEY_USER_PASSWORD, info.userPassword as String);
-              hive.put(LocalConstant.KEY_DOB, info.employeeDateOfBirth as String);
-              hive.put(LocalConstant.KEY_GRADE, info.employeeGrade as String);
-              hive.put(LocalConstant.KEY_DATE_OF_MARRAGE,info.employeeDateOfMarriage as String);
-              hive.put(LocalConstant.KEY_LOCATION, info.employeeLocation as String);
-              hive.put(LocalConstant.KEY_GENDER, info.gender as String);
+              hive.put(LocalConstant.KEY_IS_BUSINESS_HEAD, info.isBusinessHead);
+              hive.put(LocalConstant.KEY_USER_NAME, info.userName);
+              hive.put(LocalConstant.KEY_USER_PASSWORD, info.userPassword);
+              hive.put(LocalConstant.KEY_DOB, info.employeeDateOfBirth);
+              hive.put(LocalConstant.KEY_GRADE, info.employeeGrade);
+              hive.put(LocalConstant.KEY_DATE_OF_MARRAGE,
+                  info.employeeDateOfMarriage);
+              hive.put(LocalConstant.KEY_LOCATION, info.employeeLocation);
+              hive.put(LocalConstant.KEY_GENDER, info.gender);
 
               FirebaseAnalyticsUtils.sendEvent(info.userName);
               hive.put(LocalConstant.KEY_LOGIN_RESPONSE, jsonEncode(value));
@@ -413,34 +406,31 @@ class _LoginPage extends State<LoginPage> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                    builder: (context) =>
-                        IntranetHomePage(userId: info.employeeId.toInt().toString())),
+                    builder: (context) => IntranetHomePage(
+                        userId: info.employeeId.toInt().toString())),
               );
             }
-
           }
-
         } else {
           Navigator.pop(context);
           Utility.showMessage(context, "Invalid User Name and Password");
           debugPrint("null value");
         }
       });
-
     } else {
-      _userNameController.text='';
-      _userPasswordController.text='';
+      _userNameController.text = '';
+      _userPasswordController.text = '';
       Utility.showMessage(context, "Invalid User Name and Password");
     }
   }
 
   Widget signInWithText() {
-    return Row(
+    return const Row(
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        const Expanded(child: Divider()),
-        const SizedBox(
+        Expanded(child: Divider()),
+        SizedBox(
           width: 16,
           height: 20,
         ),
@@ -452,10 +442,10 @@ class _LoginPage extends State<LoginPage> {
           ),
           textAlign: TextAlign.center,
         ),*/
-        const SizedBox(
+        SizedBox(
           width: 16,
         ),
-        const Expanded(child: Divider()),
+        Expanded(child: Divider()),
       ],
     );
   }

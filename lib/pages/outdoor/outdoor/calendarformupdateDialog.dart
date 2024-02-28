@@ -53,7 +53,7 @@ class _CalendarFormUpdateDialogState extends State<CalendarFormUpdateDialog> {
     getCurrentTimeZone();
 
     debugPrint(
-        'getplandata in initstate  is - ${widget.getPlandata.franchiseeId} ');
+        'getplandata in initstate  is - ${widget.getPlandata.centerId} ');
 
     eventTextController.text = widget.getPlandata.eventName ?? '';
     descriptionTextController.text = widget.getPlandata.remarks ?? '';
@@ -61,7 +61,7 @@ class _CalendarFormUpdateDialogState extends State<CalendarFormUpdateDialog> {
     // locationValue = widget.event!.location ?? '';
 
     for (var element in widget.centerResponse!.responseData) {
-      if (element.franchiseeId == widget.getPlandata.franchiseeId) {
+      if (element.franchiseeId == widget.getPlandata.centerId) {
         franchiseeInfo = element;
       }
     }
@@ -114,13 +114,13 @@ class _CalendarFormUpdateDialogState extends State<CalendarFormUpdateDialog> {
               const SizedBox(
                 height: 20,
               ),
-              TextField(
+              /*  TextField(
                 controller: urlTextController,
                 decoration: const InputDecoration(hintText: 'Enter Url'),
               ),
               const SizedBox(
                 height: 20,
-              ),
+              ), */
               widget.centerResponse != null
                   ? DropdownButton<FranchiseeInfo>(
                       elevation: 0,
@@ -147,84 +147,48 @@ class _CalendarFormUpdateDialogState extends State<CalendarFormUpdateDialog> {
               const SizedBox(
                 height: 20,
               ),
-              ElevatedButton(
-                  onPressed: () async {
-                    xmlRequest.clear();
-                    var selectedDateTime =
-                        DateTime.parse(widget.getPlandata.visitDate!);
+              BlocBuilder<GetplandetailsCubit, GetplandetailsState>(
+                builder: (context, getplandetailstate) => ElevatedButton(
+                    onPressed: getplandetailstate is GetplandetailsLoadingState
+                        ? null
+                        : () async {
+                            xmlRequest.clear();
+                            var selectedDateTime =
+                                DateTime.parse(widget.getPlandata.visitDate!);
 
-                    debugPrint(
-                        'Location of time zone is - $currentLocation and location date is - ${DateFormat('yyyy-MM-dd').format(TZDateTime(currentLocation!, selectedDateTime.year, selectedDateTime.month, selectedDateTime.day))}');
-
-                    debugPrint(
-                        'getplandata is - ${widget.getPlandata.franchiseeId} ');
-
-                    xmlRequest.add(XMLRequest(
-                        id: widget.getPlandata.id!,
-                        centerId: franchiseeInfo!.franchiseeId.toInt(),
-                        fromDate: '',
-                        toDate: '',
-                        remark: descriptionTextController.text,
-                        eventName: eventTextController.text,
-                        url: urlTextController.text));
-
-                    BlocProvider.of<GetplandetailsCubit>(context)
-                        .createEmployeePlan(
-                            date: DateFormat('yyyy-MM-dd').format(TZDateTime(
-                                currentLocation!,
-                                selectedDateTime.year,
-                                selectedDateTime.month,
-                                selectedDateTime.day)),
-                            xmlRequest: xmlRequest);
-
-                    // if (widget.getPlandata != null) {
-                    //   widget.getPlandata?.remarks = eventTextController.text;
-                    //   widget.getPlandata?.remarks =
-                    //       descriptionTextController.text;
-                    //   widget.getPlandata?.remarks = urlTextController.text;
-                    //   // Uri.dataFromString(urlTextController.text);
-                    //   widget.getPlandata. = franchiseeInfo!.franchiseeCity;
-                    //   final createEventResult = await _deviceCalendarPlugin
-                    //       .createOrUpdateEvent(widget.event);
-                    //   if (createEventResult!.isSuccess) {
-                    //     debugPrint(
-                    //         'event inserted in calendar is - ${createEventResult.data}  ');
-                    //   } else {
-                    //     for (var element in createEventResult.errors) {
-                    //       debugPrint(
-                    //           'event inserted error for loop is - ${element.errorMessage}');
-                    //     }
-                    //   }
-                    // } else {
-                    /*   for (var request in xmlRequest) {
-                        var eventToCreate = Event(widget.calendarId,
-                            title: eventTextController.text,
-                            description: descriptionTextController.text,
-                            url: Uri.dataFromString(urlTextController.text),
-                            location: request.centerId.toString(),
-                            start: TZDateTime(
-                                currentLocation!,
-                                selectedDateTime.year,
-                                selectedDateTime.month,
-                                selectedDateTime.day),
-                            end: TZDateTime(currentLocation!, selectedDateTime.year,
-                                selectedDateTime.month, selectedDateTime.day),
-                            allDay: true);
-                        final createEventResult = await _deviceCalendarPlugin
-                            .createOrUpdateEvent(eventToCreate);
-                        if (createEventResult!.isSuccess) {
-                          debugPrint(
-                              'event inserted in calendar is - ${createEventResult.data}  and date is - ${TZDateTime(currentLocation!, widget.datetime.year, widget.datetime.month, widget.datetime.day)} and event is - ${eventTextController.text}');
-                        } else {
-                          for (var element in createEventResult.errors) {
                             debugPrint(
-                                'event inserted error for loop is - ${element.errorMessage}');
-                          }
-                        }
-                      } */
-                    // }
-                  },
-                  child: const Text('update Event')),
+                                'Location of time zone is - $currentLocation and location date is - ${DateFormat('yyyy-MM-dd').format(TZDateTime(currentLocation!, selectedDateTime.year, selectedDateTime.month, selectedDateTime.day))}');
+
+                            debugPrint(
+                                'getplandata is - ${widget.getPlandata.centerId} ');
+
+                            xmlRequest.add(XMLRequest(
+                                id: widget.getPlandata.id!,
+                                centerId: franchiseeInfo!.franchiseeId.toInt(),
+                                fromDate: '',
+                                toDate: '',
+                                remark: descriptionTextController.text,
+                                eventName: eventTextController.text,
+                                url: urlTextController.text));
+
+                            BlocProvider.of<GetplandetailsCubit>(context)
+                                .createEmployeePlan(
+                                    date: DateFormat('yyyy-MM-dd').format(
+                                        TZDateTime(
+                                            currentLocation!,
+                                            selectedDateTime.year,
+                                            selectedDateTime.month,
+                                            selectedDateTime.day)),
+                                    xmlRequest: xmlRequest);
+                          },
+                    child: getplandetailstate is GetplandetailsLoadingState
+                        ? Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 30, vertical: 5),
+                            height: 45,
+                            child: const CircularProgressIndicator())
+                        : const Text('update Event')),
+              ),
               const SizedBox(
                 height: 20,
               ),

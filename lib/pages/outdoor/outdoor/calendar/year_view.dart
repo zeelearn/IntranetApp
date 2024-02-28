@@ -3,10 +3,10 @@ import 'package:flutter/material.dart';
 import 'month_view.dart';
 import 'utils/dates.dart';
 import 'utils/screen_sizes.dart';
-import 'year_title.dart';
 
 class YearView extends StatelessWidget {
   const YearView({
+    super.key,
     required this.context,
     required this.year,
     required this.currentDateColor,

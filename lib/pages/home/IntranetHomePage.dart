@@ -1,11 +1,18 @@
 import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
+
+import 'package:Intranet/api/response/login_response.dart';
+import 'package:Intranet/pages/helper/LocalConstant.dart';
+import 'package:Intranet/pages/helper/utils.dart';
+import 'package:Intranet/pages/leave/leave_list.dart';
 import 'package:Intranet/pages/notification/UserNotification.dart';
+import 'package:Intranet/pages/outdoor/outdoor_list.dart';
+import 'package:Intranet/pages/pjp/models/PjpModel.dart';
+import 'package:Intranet/pages/pjp/mypjp.dart';
+import 'package:Intranet/pages/userinfo/employee_list.dart';
 import 'package:app_version_update/app_version_update.dart';
 import 'package:device_info_plus/device_info_plus.dart';
-import 'package:firebase_analytics/firebase_analytics.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -15,14 +22,6 @@ import 'package:hive/hive.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:in_app_update/in_app_update.dart';
 import 'package:intl/intl.dart';
-import 'package:Intranet/api/response/login_response.dart';
-import 'package:Intranet/pages/helper/LocalConstant.dart';
-import 'package:Intranet/pages/helper/utils.dart';
-import 'package:Intranet/pages/leave/leave_list.dart';
-import 'package:Intranet/pages/outdoor/outdoor_list.dart';
-import 'package:Intranet/pages/pjp/models/PjpModel.dart';
-import 'package:Intranet/pages/pjp/mypjp.dart';
-import 'package:Intranet/pages/userinfo/employee_list.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:table_calendar/table_calendar.dart';
 
@@ -32,7 +31,6 @@ import '../attendance/attendance_list.dart';
 import '../attendance/attendance_marking.dart';
 import '../attendance/manager_screen.dart';
 import '../firebase/anylatics.dart';
-import '../firebase/firebase_options.dart';
 import '../firebase/notification.dart';
 import '../firebase/notification_service.dart';
 import '../firebase/storageutil.dart';
@@ -40,16 +38,15 @@ import '../helper/DatabaseHelper.dart';
 import '../helper/constants.dart';
 import '../iface/onClick.dart';
 import '../iface/onUploadResponse.dart';
+import '../intro/intro.dart';
 import '../leave/leave_list_manager.dart';
 import '../model/filter.dart';
-import '../notification.dart';
 import '../outdoor/outdoor_requisition_manager.dart';
 import '../pjp/IntranetEvents.dart';
 import '../pjp/cvf/mycvf.dart';
 import '../pjp/pjp_list_manager.dart';
 import '../utils/theme/colors/light_colors.dart';
 import 'home_page_menus.dart';
-import 'package:app_version_update/app_version_update.dart';
 
 class IntranetHomePage extends StatefulWidget {
   String userId;
@@ -64,7 +61,8 @@ class IntranetHomePage extends StatefulWidget {
 }
 
 class _IntranetHomePageState extends State<IntranetHomePage>
-    with WidgetsBindingObserver implements onUploadResponse,onClickListener {
+    with WidgetsBindingObserver
+    implements onUploadResponse, onClickListener {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   static const int MENU_HOME = 1;
@@ -96,7 +94,8 @@ class _IntranetHomePageState extends State<IntranetHomePage>
   int businessId = 0;
   String _currentBusinessName = '';
   String mDesignation = '';
-  String _profileImage = 'https://cdn-icons-png.flaticon.com/128/149/149071.png';
+  String _profileImage =
+      'https://cdn-icons-png.flaticon.com/128/149/149071.png';
   Uint8List? _profileAvtar;
   List<PJPModel> mPjpList = [];
   late String mTitle = "";
@@ -108,27 +107,28 @@ class _IntranetHomePageState extends State<IntranetHomePage>
   /*FirebaseAnalytics analytics = FirebaseAnalytics.instance;
   FirebaseMessaging messaging = FirebaseMessaging.instance;*/
   String appVersion = '';
-  List<BusinessApplications> businessApplications =[];
+  List<BusinessApplications> businessApplications = [];
 
-  updateCurrentBusiness(int bid,String name,int uid) async {
+  updateCurrentBusiness(int bid, String name, int uid) async {
     hiveBox = await Utility.openBox();
     await Hive.openBox(LocalConstant.KidzeeDB);
     hiveBox.put(LocalConstant.KEY_BUSINESS_ID, bid);
     hiveBox.put(LocalConstant.KEY_BUSINESS_NAME, name);
+    hiveBox.put(LocalConstant.KEY_BUSINESS_USERID, uid);
     //hiveBox.put(LocalConstant.KEY_FRANCHISEE_ID,uid);
     setState(() {
       _currentBusinessName = name;
     });
   }
 
-
   void validate(BuildContext context) async {
     hiveBox = await Utility.openBox();
     await Hive.openBox(LocalConstant.KidzeeDB);
-    String userName  = hiveBox.get(LocalConstant.KEY_USER_NAME);
-    String userPassword  = hiveBox.get(LocalConstant.KEY_USER_PASSWORD);
-    String loginResponse  = hiveBox.get(LocalConstant.KEY_LOGIN_RESPONSE);
-    if(loginResponse.isEmpty || userName.isNotEmpty && userPassword.isNotEmpty){
+    String userName = hiveBox.get(LocalConstant.KEY_USER_NAME);
+    String userPassword = hiveBox.get(LocalConstant.KEY_USER_PASSWORD);
+    String loginResponse = hiveBox.get(LocalConstant.KEY_LOGIN_RESPONSE);
+    if (loginResponse.isEmpty ||
+        userName.isNotEmpty && userPassword.isNotEmpty) {
       Utility.showLoaderDialog(context);
       LoginRequestModel loginRequestModel = LoginRequestModel(
         userName: userName,
@@ -141,12 +141,12 @@ class _IntranetHomePageState extends State<IntranetHomePage>
           setState(() {
             //isApiCallProcess = false;
           });
-          if(value==null || value.responseData==null){
+          if (value == null || value.responseData == null) {
             //Utility.showMessage(context,'Invalid UserName/Password');
-          }else if(value is LoginResponseInvalid){
+          } else if (value is LoginResponseInvalid) {
             LoginResponseInvalid responseInvalid = value;
             //Utility.showMessage(context, responseInvalid.responseData);
-          }else {
+          } else {
             List<EmployeeDetails> infoList = value.responseData.employeeDetails;
             if (infoList == null || infoList.length <= 0) {
               //Utility.showMessage(context, 'Invalid UserName/Password');
@@ -154,68 +154,74 @@ class _IntranetHomePageState extends State<IntranetHomePage>
               EmployeeDetails info = value.responseData.employeeDetails[0];
               var hive = Hive.box(LocalConstant.KidzeeDB);
               // // Save an integer value to 'counter' key.
-              hive.put(
-                  LocalConstant.KEY_EMPLOYEE_ID, info.employeeId.toInt().toString());
+              hive.put(LocalConstant.KEY_EMPLOYEE_ID,
+                  info.employeeId.toInt().toString());
               hive.put(
                   LocalConstant.KEY_EMPLOYEE_CODE, info.employeeCode as String);
-              hive.put(
-                  LocalConstant.KEY_FIRST_NAME,
+              hive.put(LocalConstant.KEY_FIRST_NAME,
                   info.employeeFirstName as String);
-              hive.put(LocalConstant.KEY_LAST_NAME, info.employeeLastName as String);
-              hive.put(LocalConstant.KEY_DOJ, info.employeeDateOfJoining as String);
+              hive.put(
+                  LocalConstant.KEY_LAST_NAME, info.employeeLastName as String);
+              hive.put(
+                  LocalConstant.KEY_DOJ, info.employeeDateOfJoining as String);
               hive.put(LocalConstant.KEY_EMP_SUPERIOR_ID,
                   info.employeeSuperiorId.toInt().toString());
               hive.put(LocalConstant.KEY_DEPARTMENT,
                   info.employeeDepartmentName as String);
               hive.put(LocalConstant.KEY_DESIGNATION,
                   info.employeeDesignation as String);
-              hive.put(
-                  LocalConstant.KEY_EMAIL, info.employeeEmailId as String);
+              hive.put(LocalConstant.KEY_EMAIL, info.employeeEmailId as String);
               hive.put(LocalConstant.KEY_CONTACT,
                   info.employeeContactNumber as String);
               hive.put(LocalConstant.KEY_IS_ACTIVE, info.isActive);
               hive.put(LocalConstant.KEY_ISCEO, info.isCEO);
-              hive.put(
-                  LocalConstant.KEY_IS_BUSINESS_HEAD, info.isBusinessHead);
+              hive.put(LocalConstant.KEY_IS_BUSINESS_HEAD, info.isBusinessHead);
               hive.put(LocalConstant.KEY_USER_NAME, info.userName as String);
-              hive.put(LocalConstant.KEY_USER_PASSWORD, info.userPassword as String);
-              hive.put(LocalConstant.KEY_DOB, info.employeeDateOfBirth as String);
+              hive.put(
+                  LocalConstant.KEY_USER_PASSWORD, info.userPassword as String);
+              hive.put(
+                  LocalConstant.KEY_DOB, info.employeeDateOfBirth as String);
               hive.put(LocalConstant.KEY_GRADE, info.employeeGrade as String);
-              hive.put(LocalConstant.KEY_DATE_OF_MARRAGE,info.employeeDateOfMarriage as String);
-              hive.put(LocalConstant.KEY_LOCATION, info.employeeLocation as String);
+              hive.put(LocalConstant.KEY_DATE_OF_MARRAGE,
+                  info.employeeDateOfMarriage as String);
+              hive.put(
+                  LocalConstant.KEY_LOCATION, info.employeeLocation as String);
               hive.put(LocalConstant.KEY_GENDER, info.gender as String);
 
               FirebaseAnalyticsUtils.sendEvent(info.userName);
               hive.put(LocalConstant.KEY_LOGIN_RESPONSE, jsonEncode(value));
               try {
-                hive.put(LocalConstant.KEY_BUSINESS_ID,value.responseData.businessApplications[0].businessID);
-                List<BusinessApplications> businessApplications = value.responseData.businessApplications;
-                for(int index=0;index<businessApplications.length;index++){
+                hive.put(LocalConstant.KEY_BUSINESS_ID,
+                    value.responseData.businessApplications[0].businessID);
+                List<BusinessApplications> businessApplications =
+                    value.responseData.businessApplications;
+                for (int index = 0;
+                    index < businessApplications.length;
+                    index++) {
                   //BP Management
-                  if(businessApplications[index].businessName =='BP Management'){
+                  if (businessApplications[index].businessName ==
+                      'BP Management') {
                     isBpms = true;
-                    hive.put(LocalConstant.KEY_FRANCHISEE_ID,value.responseData.businessApplications[index].business_UserID);
+                    hive.put(
+                        LocalConstant.KEY_FRANCHISEE_ID,
+                        value.responseData.businessApplications[index]
+                            .business_UserID);
                   }
                 }
-              }catch(e){}
+              } catch (e) {}
               debugPrint('========Login Form ====== ${jsonEncode(value)}');
               getLoginResponse();
             }
           }
           Navigator.of(context).pop();
-          setState(() {
-
-          });
+          setState(() {});
         } else {
           Navigator.pop(context);
           //Utility.showMessage(context, "Invalid User Name and Password");
           debugPrint("null value");
         }
       });
-
-    } else {
-
-    }
+    } else {}
   }
 
   getLoginResponse() async {
@@ -224,19 +230,22 @@ class _IntranetHomePageState extends State<IntranetHomePage>
     hiveBox = await Utility.openBox();
     await Hive.openBox(LocalConstant.KidzeeDB);
     var loginresponse = hiveBox.get(LocalConstant.KEY_LOGIN_RESPONSE);
-      debugPrint('login Response is : '+loginresponse);
+    debugPrint('login Response is : ' + loginresponse);
     try {
       LoginResponseModel response = LoginResponseModel.fromJson(
         json.decode(loginresponse),
       );
       debugPrint('response received.....');
-      if (response != null && response.responseData.businessApplications != null)
+      if (response != null &&
+          response.responseData.businessApplications != null)
         businessApplications.addAll(response.responseData.businessApplications);
-      if(_currentBusinessName.isNotEmpty && businessApplications!=null && businessApplications.length>0){
+      if (_currentBusinessName.isNotEmpty &&
+          businessApplications != null &&
+          businessApplications.length > 0) {
         _currentBusinessName = businessApplications[0].businessName;
       }
       setState(() {});
-    }catch(e){
+    } catch (e) {
       debugPrint('Error in getting login response');
       debugPrint(e.toString());
       //IntranetServiceHandler.loadPjpSummery(employeeId, 0, this);
@@ -244,16 +253,17 @@ class _IntranetHomePageState extends State<IntranetHomePage>
   }
 
   Future<void> showBusinessListDialog(isFromDrawar) {
-    if(businessApplications==null || businessApplications.length<=0){
+    if (businessApplications == null || businessApplications.length <= 0) {
       return showDialog(
           context: context,
           builder: (context) {
             return AlertDialog(
               title: Text("Alert"),
-              content: Text('Business not assigned in your account, please connect with your manager'),
+              content: Text(
+                  'Business not assigned in your account, please connect with your manager'),
             );
           });
-    }else
+    } else
       return showDialog(
           context: context,
           builder: (context) {
@@ -266,21 +276,26 @@ class _IntranetHomePageState extends State<IntranetHomePage>
                   shrinkWrap: true,
                   itemBuilder: (context, index) {
                     return Container(
-                        child:  Card(
-                            color: businessId == businessApplications[index].businessID ? Colors.white54 : Colors.white,
+                        child: Card(
+                            color: businessId ==
+                                    businessApplications[index].businessID
+                                ? Colors.white54
+                                : Colors.white,
                             child: GestureDetector(
-                              onTap: (){
+                              onTap: () {
                                 Navigator.pop(context);
-                                if(isFromDrawar)
-                                  Navigator.pop(context);
-                                updateCurrentBusiness(businessApplications[index].businessID,businessApplications[index].businessName,businessApplications[index].business_UserID);
+                                if (isFromDrawar) Navigator.pop(context);
+                                updateCurrentBusiness(
+                                    businessApplications[index].businessID,
+                                    businessApplications[index].businessName,
+                                    businessApplications[index]
+                                        .business_UserID);
                               },
                               child: ListTile(
-                                title: Text(businessApplications[index].businessName),
+                                title: Text(
+                                    businessApplications[index].businessName),
                               ),
-                            )
-                        )
-                    );
+                            )));
                   },
                 ),
               ),
@@ -304,15 +319,12 @@ class _IntranetHomePageState extends State<IntranetHomePage>
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
       print('A new onMessageOpenedApp event was published!');
       Navigator.push(
-          context,
-          MaterialPageRoute(
-              builder: (context) => UserNotification()));
+          context, MaterialPageRoute(builder: (context) => UserNotification()));
     });
     //_listenForMessages();
-    if(!kIsWeb)
-    if (Platform.isAndroid) {
+    if (!kIsWeb) if (Platform.isAndroid) {
       checkForUpdate();
-    }else if(Platform.isIOS){
+    } else if (Platform.isIOS) {
       _verifyVersion();
     }
   }
@@ -326,15 +338,16 @@ class _IntranetHomePageState extends State<IntranetHomePage>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      if (!kDebugMode ) {
+      if (!kDebugMode) {
         if (Platform.isAndroid) {
           checkForUpdate();
-        }else if(Platform.isIOS){
+        } else if (Platform.isIOS) {
           _verifyVersion();
         }
       }
     }
   }
+
   void _verifyVersion() async {
     await AppVersionUpdate.checkForUpdates(
       appleId: '6443464060',
@@ -342,8 +355,13 @@ class _IntranetHomePageState extends State<IntranetHomePage>
       country: 'in',
     ).then((result) async {
       if (result.canUpdate!) {
-        await AppVersionUpdate.showBottomSheetUpdate(context: context, appVersionResult: result,mandatory: true,title: 'App Update Avaliable',
-        content: const Text('New version of our Intranet application is now available, and we highly recommend that you install it to benefit from its enhanced features and improved security.'));
+        await AppVersionUpdate.showBottomSheetUpdate(
+            context: context,
+            appVersionResult: result,
+            mandatory: true,
+            title: 'App Update Avaliable',
+            content: const Text(
+                'New version of our Intranet application is now available, and we highly recommend that you install it to benefit from its enhanced features and improved security.'));
       }
     });
     // TODO: implement initState
@@ -353,9 +371,9 @@ class _IntranetHomePageState extends State<IntranetHomePage>
   Future<void> setupInteractedMessage() async {
     // Get any messages which caused the application to open from
     // a terminated state.
-    if(!kIsWeb) {
+    if (!kIsWeb) {
       RemoteMessage? initialMessage =
-      await FirebaseMessaging.instance.getInitialMessage();
+          await FirebaseMessaging.instance.getInitialMessage();
 
       // If the message also contains a data property with a "type" of "chat",
       // navigate to a chat screen
@@ -399,8 +417,9 @@ class _IntranetHomePageState extends State<IntranetHomePage>
     });
   }*/
 
-  decodeJsonValue(){
-    String message="{type: ATNDC, title: ATNDC, message: Sudhir Patil has sent a new ATNDC requisition - 1103397 for approval.}";
+  decodeJsonValue() {
+    String message =
+        "{type: ATNDC, title: ATNDC, message: Sudhir Patil has sent a new ATNDC requisition - 1103397 for approval.}";
     message = message.replaceAll("{", "{\"");
     message = message.replaceAll("}", "\"}");
     message = message.replaceAll(":", "\":\"");
@@ -410,33 +429,36 @@ class _IntranetHomePageState extends State<IntranetHomePage>
     debugPrint(json);
   }
 
-  updateProfileImage() async{
+  updateProfileImage() async {
     var hiveBox = await Utility.openBox();
     await Hive.openBox(LocalConstant.KidzeeDB);
-    if(_profileImage.isNotEmpty)
+    if (_profileImage.isNotEmpty)
       hiveBox.put(LocalConstant.KEY_EMPLOYEE_AVTAR, _profileImage);
   }
+
   Future<void> getUserInfo() async {
     var hiveBox = await Utility.openBox();
     await Hive.openBox(LocalConstant.KidzeeDB);
-    employeeId = int.parse(hiveBox.get(LocalConstant.KEY_EMPLOYEE_ID) as String);
+    employeeId =
+        int.parse(hiveBox.get(LocalConstant.KEY_EMPLOYEE_ID) as String);
     mDesignation = hiveBox.get(LocalConstant.KEY_DESIGNATION) as String;
-    var imageUrl = hiveBox.get(LocalConstant.KEY_EMPLOYEE_AVTAR) ;
-    if(hiveBox.containsKey(LocalConstant.KEY_FRANCHISEE_ID)){
+    var imageUrl = hiveBox.get(LocalConstant.KEY_EMPLOYEE_AVTAR);
+    if (hiveBox.containsKey(LocalConstant.KEY_FRANCHISEE_ID)) {
       isBpms = true;
     }
     mTitle = hiveBox.get(LocalConstant.KEY_FIRST_NAME).toString() +
         " " +
         hiveBox.get(LocalConstant.KEY_LAST_NAME).toString();
-    _currentBusinessName = hiveBox.get(LocalConstant.KEY_BUSINESS_NAME).toString();
+    _currentBusinessName =
+        hiveBox.get(LocalConstant.KEY_BUSINESS_NAME).toString();
     _profileImage = 'https://cdn-icons-png.flaticon.com/128/149/149071.png';
     String sex = hiveBox.get(LocalConstant.KEY_GENDER) as String;
-    if(imageUrl!=null){
+    if (imageUrl != null) {
       _profileImage = imageUrl;
-    }else if(sex == 'Male'){
+    } else if (sex == 'Male') {
       _profileImage = 'https://cdn-icons-png.flaticon.com/128/149/149071.png';
-    }else{
-      _profileImage='https://cdn-icons-png.flaticon.com/128/727/727393.png';
+    } else {
+      _profileImage = 'https://cdn-icons-png.flaticon.com/128/727/727393.png';
     }
     _getId(employeeId.toString());
     getProfileImage();
@@ -446,33 +468,32 @@ class _IntranetHomePageState extends State<IntranetHomePage>
       String version = packageInfo.version;
       String buildNumber = packageInfo.buildNumber;
       appVersion = version;
-
     });
 
     //decodeJsonValue();
     setState(() {});
   }
 
-  getProfileImage() async{
-    try{
+  getProfileImage() async {
+    try {
       var hiveBox = await Utility.openBox();
       await Hive.openBox(LocalConstant.KidzeeDB);
       debugPrint('Avtar getProfileImaage-----');
       var avtar = hiveBox.get(LocalConstant.KEY_EMPLOYEE_AVTAR_LIST);
       debugPrint('Avtar ${avtar}');
-      if(avtar!=null && avtar !='') {
+      if (avtar != null && avtar != '') {
         debugPrint('getProfile pic decode');
         _profileAvtar = base64.decode(avtar);
-      }else {
+      } else {
         debugPrint('getProfile pic in else');
         FirebaseStorageUtil().getProfileImage(employeeId.toString(), this);
       }
-    }catch(e){
-        debugPrint(e.toString());
+    } catch (e) {
+      debugPrint(e.toString());
     }
   }
 
-  uploadProfilePicture() async{
+  uploadProfilePicture() async {
     try {
       final XFile? pickedFileList = await _picker.pickImage(
           source: ImageSource.camera, maxHeight: 800, imageQuality: 100);
@@ -491,24 +512,25 @@ class _IntranetHomePageState extends State<IntranetHomePage>
   Future<String?> _getId(String employeeId) async {
     var deviceInfo = DeviceInfoPlugin();
     var id;
-    String useragent='Android';
-    if (Platform.isIOS) { // import 'dart:io'
+    String useragent = 'Android';
+    if (Platform.isIOS) {
+      // import 'dart:io'
       var iosDeviceInfo = await deviceInfo.iosInfo;
-      id= iosDeviceInfo.identifierForVendor; // unique ID on iOS
-      useragent='IOS_${iosDeviceInfo.model}_${appVersion}';
-    } else if(Platform.isAndroid) {
+      id = iosDeviceInfo.identifierForVendor; // unique ID on iOS
+      useragent = 'IOS_${iosDeviceInfo.model}_${appVersion}';
+    } else if (Platform.isAndroid) {
       var androidDeviceInfo = await deviceInfo.androidInfo;
-      id= androidDeviceInfo.id; // unique ID on Android
-      useragent='Android_${androidDeviceInfo.brand}_${androidDeviceInfo.model}';
+      id = androidDeviceInfo.id; // unique ID on Android
+      useragent =
+          'Android_${androidDeviceInfo.brand}_${androidDeviceInfo.model}';
     }
-    if(!kIsWeb) {
+    if (!kIsWeb) {
       final firebaseMessaging = FCM();
       //useragent= Platform.isIOS ? 'IOS' : 'Android';
       firebaseMessaging.setNotifications(employeeId.toString(), id, useragent);
       FirebaseMessaging.onMessage.listen((RemoteMessage message) {
         NotificationService().parseNotification(message);
       });
-
     }
   }
 
@@ -719,8 +741,6 @@ class _IntranetHomePageState extends State<IntranetHomePage>
     );
   }
 
-
-
   // Platform messages are asynchronous, so we initialize in an async method.
   Future<void> checkForUpdate() async {
     InAppUpdate.checkForUpdate().then((info) {
@@ -748,26 +768,34 @@ class _IntranetHomePageState extends State<IntranetHomePage>
     return AppBar(
       backgroundColor: kPrimaryLightColor,
       centerTitle: false,
-      title: Column(mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
+      title: Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
           Text(
             mTitle,
-            style:
-            TextStyle(fontSize: 17, color: Colors.white, letterSpacing: 0.53),
+            style: TextStyle(
+                fontSize: 17, color: Colors.white, letterSpacing: 0.53),
           ),
-        _currentBusinessName==null || _currentBusinessName=='null' ?  SizedBox(width: 0,) :
-        InkWell(
-            onTap: () {
-              showBusinessListDialog(false);
-            },
-            child: Padding(
-              padding: const EdgeInsets.all(0),
-              child: Text(_currentBusinessName,style:
-              TextStyle(fontSize: 12, color: Colors.white, letterSpacing: 0.53)),
-            ),
-          ),
-      ],),
+          _currentBusinessName == null || _currentBusinessName == 'null'
+              ? SizedBox(
+                  width: 0,
+                )
+              : InkWell(
+                  onTap: () {
+                    showBusinessListDialog(false);
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.all(0),
+                    child: Text(_currentBusinessName,
+                        style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.white,
+                            letterSpacing: 0.53)),
+                  ),
+                ),
+        ],
+      ),
       /*shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
           bottom: Radius.circular(20),
@@ -800,8 +828,8 @@ class _IntranetHomePageState extends State<IntranetHomePage>
         ),
         InkWell(
           onTap: () {
-            Navigator.push(
-                context, MaterialPageRoute(builder: (context) => UserNotification()));
+            Navigator.push(context,
+                MaterialPageRoute(builder: (context) => UserNotification()));
           },
           child: Padding(
             padding: const EdgeInsets.all(8.0),
@@ -831,12 +859,12 @@ class _IntranetHomePageState extends State<IntranetHomePage>
         break;
       case MENU_ATTENDANCE_MARKING:
         return AttendanceMarkingScreen(
-          isManager: false,
-            employeeId: employeeId, displayName: '--');
+            isManager: false, employeeId: employeeId, displayName: '--');
         break;
       case MENU_OUTDOOR:
         return OutdoorScreen(
-          displayName: mTitle, businessId: businessId,
+          displayName: mTitle,
+          businessId: businessId,
         );
         break;
       case MENU_LEAVE:
@@ -845,7 +873,10 @@ class _IntranetHomePageState extends State<IntranetHomePage>
         );
         break;
       case MENU_ATTENDANCE_MARKING_APPROVAL:
-        return AttendanceManagerScreen(employeeId: employeeId, listener: this,);
+        return AttendanceManagerScreen(
+          employeeId: employeeId,
+          listener: this,
+        );
         break;
       case MENU_LEAVE_APPROVAL:
         return LeaveManagerScreen(
@@ -869,122 +900,120 @@ class _IntranetHomePageState extends State<IntranetHomePage>
 
   Widget getHomeScreen() {
     return Container(
-          padding: const EdgeInsetsDirectional.fromSTEB(0, 20, 0, 12),
-          child: Row(
-            mainAxisSize: MainAxisSize.max,
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              GestureDetector(
-                onTap: () => selectDestination(MENU_PJP),
-                child: /*Expanded(
-                  child:*/ Padding(
-                    padding: const EdgeInsetsDirectional.fromSTEB(8, 8, 8, 8),
-                    child: Container(
-                      width: MediaQuery.of(context).size.width * 0.4,
-                      height: 150,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF4B39EF),
-                        boxShadow: const [
-                          BoxShadow(
-                            blurRadius: 3,
-                            color: Color(0x39000000),
-                            offset: Offset(0, 1),
-                          )
-                        ],
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.max,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: const [
-                          Padding(
-                            padding:
-                                EdgeInsetsDirectional.fromSTEB(0, 16, 0, 0),
-                            child: Icon(
-                              Icons.electric_car,
-                              color: Colors.white,
-                              size: 44,
-                            ),
-                          ),
-                          Padding(
-                            padding: EdgeInsetsDirectional.fromSTEB(0, 8, 0, 0),
-                            child: Text(
-                              'My PJP',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontFamily: 'Lexend Deca',
-                                color: Colors.white,
-                                fontSize: 18,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                        ],
+      padding: const EdgeInsetsDirectional.fromSTEB(0, 20, 0, 12),
+      child: Row(
+        mainAxisSize: MainAxisSize.max,
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          GestureDetector(
+            onTap: () => selectDestination(MENU_PJP),
+            child: /*Expanded(
+                  child:*/
+                Padding(
+              padding: const EdgeInsetsDirectional.fromSTEB(8, 8, 8, 8),
+              child: Container(
+                width: MediaQuery.of(context).size.width * 0.4,
+                height: 150,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF4B39EF),
+                  boxShadow: const [
+                    BoxShadow(
+                      blurRadius: 3,
+                      color: Color(0x39000000),
+                      offset: Offset(0, 1),
+                    )
+                  ],
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.max,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: const [
+                    Padding(
+                      padding: EdgeInsetsDirectional.fromSTEB(0, 16, 0, 0),
+                      child: Icon(
+                        Icons.electric_car,
+                        color: Colors.white,
+                        size: 44,
                       ),
                     ),
-                  ),
-                /*),*/
-              ),
-              GestureDetector(
-                onTap: () {
-                  debugPrint('CVF CLICKED');
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => MyCVFListScreen()));
-                },
-                child: /*Expanded(
-                  child:*/ Padding(
-                    padding: EdgeInsetsDirectional.fromSTEB(8, 8, 8, 8),
-                    child: Container(
-                      width: MediaQuery.of(context).size.width * 0.4,
-                      height: 150,
-                      decoration: BoxDecoration(
-                        color: Color(0xFF4B39EF),
-                        boxShadow: const [
-                          BoxShadow(
-                            blurRadius: 3,
-                            color: Color(0x39000000),
-                            offset: Offset(0, 1),
-                          )
-                        ],
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.max,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: const [
-                          Padding(
-                            padding:
-                                EdgeInsetsDirectional.fromSTEB(0, 16, 0, 0),
-                            child: Icon(
-                              Icons.calendar_today,
-                              color: Colors.white,
-                              size: 44,
-                            ),
-                          ),
-                          Padding(
-                            padding: EdgeInsetsDirectional.fromSTEB(0, 8, 0, 0),
-                            child: Text(
-                              'My CVF',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontFamily: 'Lexend Deca',
-                                color: Colors.white,
-                                fontSize: 18,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                        ],
+                    Padding(
+                      padding: EdgeInsetsDirectional.fromSTEB(0, 8, 0, 0),
+                      child: Text(
+                        'My PJP',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontFamily: 'Lexend Deca',
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ),
-                 /* ),*/
+                  ],
                 ),
               ),
-            ],
+            ),
+            /*),*/
           ),
-        );
+          GestureDetector(
+            onTap: () {
+              debugPrint('CVF CLICKED');
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => MyCVFListScreen()));
+            },
+            child: /*Expanded(
+                  child:*/
+                Padding(
+              padding: EdgeInsetsDirectional.fromSTEB(8, 8, 8, 8),
+              child: Container(
+                width: MediaQuery.of(context).size.width * 0.4,
+                height: 150,
+                decoration: BoxDecoration(
+                  color: Color(0xFF4B39EF),
+                  boxShadow: const [
+                    BoxShadow(
+                      blurRadius: 3,
+                      color: Color(0x39000000),
+                      offset: Offset(0, 1),
+                    )
+                  ],
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.max,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: const [
+                    Padding(
+                      padding: EdgeInsetsDirectional.fromSTEB(0, 16, 0, 0),
+                      child: Icon(
+                        Icons.calendar_today,
+                        color: Colors.white,
+                        size: 44,
+                      ),
+                    ),
+                    Padding(
+                      padding: EdgeInsetsDirectional.fromSTEB(0, 8, 0, 0),
+                      child: Text(
+                        'My CVF',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontFamily: 'Lexend Deca',
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              /* ),*/
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget getNavigationalDrawar() {
@@ -994,14 +1023,12 @@ class _IntranetHomePageState extends State<IntranetHomePage>
     );
   }
 
-
   getImageUrl(String url) {
     String weburl = url.replaceAll('___', '&');
     weburl = Uri.decodeFull(weburl);
     debugPrint(weburl);
     return weburl;
   }
-
 
   getMenu() {
     return ListView(
@@ -1014,9 +1041,8 @@ class _IntranetHomePageState extends State<IntranetHomePage>
               border: Border.all(
                 color: LightColors.kYallow,
               ),
-              borderRadius: BorderRadius.all(Radius.circular(5))
-          ),
-          onDetailsPressed: (){
+              borderRadius: BorderRadius.all(Radius.circular(5))),
+          onDetailsPressed: () {
 //            uploadProfilePicture();
             showBusinessListDialog(true);
           },
@@ -1024,25 +1050,29 @@ class _IntranetHomePageState extends State<IntranetHomePage>
             mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(mDesignation,style: LightColors.subWhiteTextStyle),
-              Text(_currentBusinessName==null || _currentBusinessName=='null' ? '' : _currentBusinessName,style: LightColors.subWhiteTextStyle,),
+              Text(mDesignation, style: LightColors.subWhiteTextStyle),
+              Text(
+                _currentBusinessName == null || _currentBusinessName == 'null'
+                    ? ''
+                    : _currentBusinessName,
+                style: LightColors.subWhiteTextStyle,
+              ),
             ],
           ),
-          accountName: Text(mTitle,style: LightColors.titleWhiteTextStyle),
+          accountName: Text(mTitle, style: LightColors.titleWhiteTextStyle),
           currentAccountPictureSize: const Size.square(60.0),
           currentAccountPicture: GestureDetector(
-            onTap: (){
-              if(_profileImage.isNotEmpty){
+            onTap: () {
+              if (_profileImage.isNotEmpty) {
                 Navigator.push(context, MaterialPageRoute(builder: (_) {
                   return DetailScreen(
                       imageUrl: _profileImage,
-                      imageList:_profileAvtar,
+                      imageList: _profileAvtar,
                       userName: mTitle,
                       listener: this,
-                      isViewOnly: false
-                  );
+                      isViewOnly: false);
                 }));
-              }else {
+              } else {
                 uploadProfilePicture();
               }
             },
@@ -1052,10 +1082,12 @@ class _IntranetHomePageState extends State<IntranetHomePage>
               decoration: BoxDecoration(
                 color: kPrimaryLightColor /*const Color(0xff7c94b6)*/,
                 image: DecorationImage(
-                  image: _profileAvtar!=null ? Image.memory(_profileAvtar!).image : NetworkImage(_profileImage),
+                  image: _profileAvtar != null
+                      ? Image.memory(_profileAvtar!).image
+                      : NetworkImage(_profileImage),
                   fit: BoxFit.cover,
                 ),
-                borderRadius: BorderRadius.all( Radius.circular(50.0)),
+                borderRadius: BorderRadius.all(Radius.circular(50.0)),
                 border: Border.all(
                   color: Colors.green,
                   width: 1.0,
@@ -1068,123 +1100,150 @@ class _IntranetHomePageState extends State<IntranetHomePage>
           color: widget._selectedDestination == MENU_HOME
               ? LightColors.kLightBlue
               : Colors.white,
-          child:
-        ListTile(
-          leading: SizedBox(
-              height: 32.0,
-              width: 32.0,
-              child: Image.asset('assets/icons/ic_home.png')),
-          trailing: widget._selectedDestination == MENU_HOME
-              ? Icon(Icons.bookmark,color: kPrimaryLightColor,)
-              : null,
-          title: Text('Home',style: widget._selectedDestination == MENU_HOME ? LightColors.headerTitleSelected : LightColors.headerTilte,),
-          selected: widget._selectedDestination == MENU_HOME,
-          onTap: () => selectDestination(MENU_HOME),
-        ),),
+          child: ListTile(
+            leading: SizedBox(
+                height: 32.0,
+                width: 32.0,
+                child: Image.asset('assets/icons/ic_home.png')),
+            trailing: widget._selectedDestination == MENU_HOME
+                ? Icon(
+                    Icons.bookmark,
+                    color: kPrimaryLightColor,
+                  )
+                : null,
+            title: Text(
+              'Home',
+              style: widget._selectedDestination == MENU_HOME
+                  ? LightColors.headerTitleSelected
+                  : LightColors.headerTilte,
+            ),
+            selected: widget._selectedDestination == MENU_HOME,
+            onTap: () => selectDestination(MENU_HOME),
+          ),
+        ),
         Divider(),
         Ink(
           color: widget._selectedDestination == MENU_LEAVE
               ? LightColors.kLightBlue
               : Colors.white,
-          child:
-        ListTile(
-          leading: SizedBox(
-              height: 32.0,
-              width: 32.0,
-              child: Image.asset('assets/icons/ic_leave.png')),
-          title: Text('Leave',style: widget._selectedDestination == MENU_LEAVE ? LightColors.headerTitleSelected : LightColors.headerTilte,),
-          trailing: widget._selectedDestination == MENU_LEAVE
-              ? Icon(Icons.bookmark)
-              : null,
-          selected: widget._selectedDestination == MENU_LEAVE,
-          onTap: () => selectDestination(MENU_LEAVE),
-        ),),
+          child: ListTile(
+            leading: SizedBox(
+                height: 32.0,
+                width: 32.0,
+                child: Image.asset('assets/icons/ic_leave.png')),
+            title: Text(
+              'Leave',
+              style: widget._selectedDestination == MENU_LEAVE
+                  ? LightColors.headerTitleSelected
+                  : LightColors.headerTilte,
+            ),
+            trailing: widget._selectedDestination == MENU_LEAVE
+                ? Icon(Icons.bookmark)
+                : null,
+            selected: widget._selectedDestination == MENU_LEAVE,
+            onTap: () => selectDestination(MENU_LEAVE),
+          ),
+        ),
         Ink(
           color: widget._selectedDestination == MENU_OUTDOOR
               ? LightColors.kLightBlue
               : Colors.white,
-          child:
-        ListTile(
-          leading: SizedBox(
-              height: 32.0,
-              width: 32.0,
-              child: Image.asset('assets/icons/ic_outdoor.png')),
-          title: Text('Outdoor Duty',style: widget._selectedDestination == MENU_OUTDOOR ? LightColors.headerTitleSelected : LightColors.headerTilte,),
-          trailing: widget._selectedDestination == MENU_OUTDOOR
-              ? Icon(Icons.bookmark)
-              : null,
-          selected: widget._selectedDestination == MENU_OUTDOOR,
-          onTap: () => selectDestination(MENU_OUTDOOR),
-        ),),
-    Ink(
-    color: widget._selectedDestination == MENU_ATTENDANCE
-    ? LightColors.kLightBlue
-        : Colors.white,
-    child:
-        ListTile(
-          leading: SizedBox(
-              height: 32.0,
-              width: 32.0,
-              child: Image.asset('assets/icons/ic_attendance.png')),
-          title: Text('Attendance Summary',style: widget._selectedDestination == MENU_ATTENDANCE ? LightColors.headerTitleSelected : LightColors.headerTilte,),
-          trailing: widget._selectedDestination == MENU_ATTENDANCE
-              ? const Icon(Icons.bookmark)
-              : null,
-          selected: widget._selectedDestination == MENU_ATTENDANCE,
-          onTap: () => selectDestination(MENU_ATTENDANCE),
-        ),),
+          child: ListTile(
+            leading: SizedBox(
+                height: 32.0,
+                width: 32.0,
+                child: Image.asset('assets/icons/ic_outdoor.png')),
+            title: Text(
+              'Outdoor Duty',
+              style: widget._selectedDestination == MENU_OUTDOOR
+                  ? LightColors.headerTitleSelected
+                  : LightColors.headerTilte,
+            ),
+            trailing: widget._selectedDestination == MENU_OUTDOOR
+                ? Icon(Icons.bookmark)
+                : null,
+            selected: widget._selectedDestination == MENU_OUTDOOR,
+            onTap: () => selectDestination(MENU_OUTDOOR),
+          ),
+        ),
+        Ink(
+          color: widget._selectedDestination == MENU_ATTENDANCE
+              ? LightColors.kLightBlue
+              : Colors.white,
+          child: ListTile(
+            leading: SizedBox(
+                height: 32.0,
+                width: 32.0,
+                child: Image.asset('assets/icons/ic_attendance.png')),
+            title: Text(
+              'Attendance Summary',
+              style: widget._selectedDestination == MENU_ATTENDANCE
+                  ? LightColors.headerTitleSelected
+                  : LightColors.headerTilte,
+            ),
+            trailing: widget._selectedDestination == MENU_ATTENDANCE
+                ? const Icon(Icons.bookmark)
+                : null,
+            selected: widget._selectedDestination == MENU_ATTENDANCE,
+            onTap: () => selectDestination(MENU_ATTENDANCE),
+          ),
+        ),
         Ink(
           color: Colors.white,
-          child:
-        ListTile(
-          leading: SizedBox(
-              height: 32.0,
-              width: 32.0,
-              child: Image.asset('assets/icons/ic_journey.png')),
-          title: const Text('PJP'),
-          onTap: () {
-            Navigator.pop(context);
-            Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => MyPjpListScreen(
-                          mFilterSelection: FilterSelection(
-                              filters: [], type: FILTERStatus.MYSELF),
-                        )));
-          },
-        ),),
+          child: ListTile(
+            leading: SizedBox(
+                height: 32.0,
+                width: 32.0,
+                child: Image.asset('assets/icons/ic_journey.png')),
+            title: const Text('PJP'),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => MyPjpListScreen(
+                            mFilterSelection: FilterSelection(
+                                filters: [], type: FILTERStatus.MYSELF),
+                          )));
+            },
+          ),
+        ),
         Ink(
           color: Colors.white,
-          child:
-        ListTile(
-          leading: SizedBox(
-              height: 32.0,
-              width: 32.0,
-              child: Image.asset('assets/icons/ic_checklist.png')),
-          title: Text('CVF'),
-          onTap: () {
-            Navigator.pop(context);
-            Navigator.push(context,
-                MaterialPageRoute(builder: (context) => MyCVFListScreen()));
-          },
-        ),),
+          child: ListTile(
+            leading: SizedBox(
+                height: 32.0,
+                width: 32.0,
+                child: Image.asset('assets/icons/ic_checklist.png')),
+            title: Text('CVF'),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => MyCVFListScreen()));
+            },
+          ),
+        ),
         Ink(
           color: widget._selectedDestination == MENU_ATTENDANCE_MARKING
               ? LightColors.kLightBlue
               : Colors.white,
-          child:
-        ListTile(
-          leading: SizedBox(
-              height: 32.0,
-              width: 32.0,
-              child: Image.asset('assets/icons/ic_attendance_marking.png')),
-          title:  Text('Attendance Marking',style: widget._selectedDestination == MENU_ATTENDANCE_MARKING ? LightColors.headerTitleSelected : LightColors.headerTilte,),
-          trailing: widget._selectedDestination == MENU_ATTENDANCE_MARKING
-              ? const Icon(Icons.bookmark)
-              : null,
-          selected: widget._selectedDestination == MENU_ATTENDANCE_MARKING,
-          onTap: () => selectDestination(MENU_ATTENDANCE_MARKING),
-        ),
+          child: ListTile(
+            leading: SizedBox(
+                height: 32.0,
+                width: 32.0,
+                child: Image.asset('assets/icons/ic_attendance_marking.png')),
+            title: Text(
+              'Attendance Marking',
+              style: widget._selectedDestination == MENU_ATTENDANCE_MARKING
+                  ? LightColors.headerTitleSelected
+                  : LightColors.headerTilte,
+            ),
+            trailing: widget._selectedDestination == MENU_ATTENDANCE_MARKING
+                ? const Icon(Icons.bookmark)
+                : null,
+            selected: widget._selectedDestination == MENU_ATTENDANCE_MARKING,
+            onTap: () => selectDestination(MENU_ATTENDANCE_MARKING),
+          ),
         ),
         Container(
           color: LightColors.kLightGray,
@@ -1204,40 +1263,50 @@ class _IntranetHomePageState extends State<IntranetHomePage>
           color: widget._selectedDestination == MENU_LEAVE_APPROVAL
               ? LightColors.kLightBlue
               : Colors.white,
-          child:
-        ListTile(
-          leading: SizedBox(
-              height: 32.0,
-              width: 32.0,
-              child: Image.asset('assets/icons/ic_leave.png')),
-          title: Text('Leave',style: widget._selectedDestination == MENU_LEAVE_APPROVAL ? LightColors.headerTitleSelected : LightColors.headerTilte,),
-          trailing: widget._selectedDestination == MENU_LEAVE_APPROVAL
-              ? const Icon(Icons.bookmark)
-              : null,
-          selected: widget._selectedDestination == MENU_LEAVE_APPROVAL,
-          onTap: () => selectDestination(MENU_LEAVE_APPROVAL),
-        ),),
+          child: ListTile(
+            leading: SizedBox(
+                height: 32.0,
+                width: 32.0,
+                child: Image.asset('assets/icons/ic_leave.png')),
+            title: Text(
+              'Leave',
+              style: widget._selectedDestination == MENU_LEAVE_APPROVAL
+                  ? LightColors.headerTitleSelected
+                  : LightColors.headerTilte,
+            ),
+            trailing: widget._selectedDestination == MENU_LEAVE_APPROVAL
+                ? const Icon(Icons.bookmark)
+                : null,
+            selected: widget._selectedDestination == MENU_LEAVE_APPROVAL,
+            onTap: () => selectDestination(MENU_LEAVE_APPROVAL),
+          ),
+        ),
         Ink(
           color: widget._selectedDestination == MENU_OUTDOOR_APPROVAL
               ? LightColors.kLightBlue
               : Colors.white,
-          child:
-        ListTile(
-          leading: SizedBox(
-              height: 32.0,
-              width: 32.0,
-              child: Image.asset('assets/icons/ic_outdoor.png')),
-          title: Text('Outdoor Duty',style: widget._selectedDestination == MENU_OUTDOOR_APPROVAL ? LightColors.headerTitleSelected : LightColors.headerTilte,),
-          trailing: widget._selectedDestination == MENU_OUTDOOR_APPROVAL
-              ? const Icon(Icons.bookmark)
-              : null,
-          selected: widget._selectedDestination == MENU_OUTDOOR_APPROVAL,
-          onTap: () => selectDestination(MENU_OUTDOOR_APPROVAL),
-        ),),
+          child: ListTile(
+            leading: SizedBox(
+                height: 32.0,
+                width: 32.0,
+                child: Image.asset('assets/icons/ic_outdoor.png')),
+            title: Text(
+              'Outdoor Duty',
+              style: widget._selectedDestination == MENU_OUTDOOR_APPROVAL
+                  ? LightColors.headerTitleSelected
+                  : LightColors.headerTilte,
+            ),
+            trailing: widget._selectedDestination == MENU_OUTDOOR_APPROVAL
+                ? const Icon(Icons.bookmark)
+                : null,
+            selected: widget._selectedDestination == MENU_OUTDOOR_APPROVAL,
+            onTap: () => selectDestination(MENU_OUTDOOR_APPROVAL),
+          ),
+        ),
         Ink(
           color: widget._selectedDestination == MENU_ATTENDANCE_MARKING_APPROVAL
-          ? LightColors.kLightBlue
-        : Colors.white,
+              ? LightColors.kLightBlue
+              : Colors.white,
           child: ListTile(
             leading: SizedBox(
                 height: 32.0,
@@ -1247,7 +1316,13 @@ class _IntranetHomePageState extends State<IntranetHomePage>
                 widget._selectedDestination == MENU_ATTENDANCE_MARKING_APPROVAL
                     ? LightColors.kLightBlue
                     : Colors.white,
-            title: Text('Attendance Marking',style: widget._selectedDestination == MENU_ATTENDANCE_MARKING_APPROVAL ? LightColors.headerTitleSelected : LightColors.headerTilte,),
+            title: Text(
+              'Attendance Marking',
+              style: widget._selectedDestination ==
+                      MENU_ATTENDANCE_MARKING_APPROVAL
+                  ? LightColors.headerTitleSelected
+                  : LightColors.headerTilte,
+            ),
             trailing:
                 widget._selectedDestination == MENU_ATTENDANCE_MARKING_APPROVAL
                     ? const Icon(Icons.bookmark)
@@ -1259,24 +1334,27 @@ class _IntranetHomePageState extends State<IntranetHomePage>
         ),
         Ink(
           color: Colors.white,
-          child:
-        ListTile(
-          leading: SizedBox(
-              height: 32.0,
-              width: 32.0,
-              child: Image.asset('assets/icons/ic_journey.png')),
-          title: const Text('PJP'),
-          onTap: () {
-            Navigator.pop(context);
-            Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => PJPManagerScreen(employeeId: employeeId) /*MyPjpListScreen(
+          child: ListTile(
+            leading: SizedBox(
+                height: 32.0,
+                width: 32.0,
+                child: Image.asset('assets/icons/ic_journey.png')),
+            title: const Text('PJP'),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => PJPManagerScreen(
+                          employeeId:
+                              employeeId) /*MyPjpListScreen(
                           mFilterSelection: FilterSelection(
                               filters: [], type: FILTERStatus.NONE),
-                        )*/));
-          },
-        ),),
+                        )*/
+                      ));
+            },
+          ),
+        ),
         Divider(),
         ListTile(
           leading: SizedBox(
@@ -1306,16 +1384,22 @@ class _IntranetHomePageState extends State<IntranetHomePage>
     await Hive.openBox(LocalConstant.KidzeeDB);
     hiveBox.clear();
     hiveBox.close();
-    DBHelper helper=DBHelper();
+    DBHelper helper = DBHelper();
     helper.deleteAllData();
     await Future.delayed(Duration(seconds: 1));
-    if (Platform.isAndroid) {
+    Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(
+          builder: (context) => IntroPage(),
+        ),
+        (route) => false);
+    /* if (Platform.isAndroid) {
       Future.delayed(const Duration(milliseconds: 100), () {
         SystemChannels.platform.invokeMethod('SystemNavigator.pop');
       });
     } else if (Platform.isIOS) {
       exit(0);
-    }
+    } */
   }
 
   Widget _homeScreen(BuildContext context) {
@@ -1382,25 +1466,26 @@ class _IntranetHomePageState extends State<IntranetHomePage>
           ),
           const SizedBox(height: 8.0),
           /*Expanded(
-            child:*/ ValueListenableBuilder<List<PJPModel>>(
-              valueListenable: _selectedEvents,
-              builder: (context, value, _) {
-                return ListView.builder(
-                  itemCount: value.length,
-                  itemBuilder: (context, index) {
-                    return Container(
-                      margin: const EdgeInsets.symmetric(
-                        horizontal: 12.0,
-                        vertical: 4.0,
-                      ),
-                      child: IntranetEventContainer(
-                        event: value[index],
-                      ),
-                    );
-                  },
-                );
-              },
-            ),
+            child:*/
+          ValueListenableBuilder<List<PJPModel>>(
+            valueListenable: _selectedEvents,
+            builder: (context, value, _) {
+              return ListView.builder(
+                itemCount: value.length,
+                itemBuilder: (context, index) {
+                  return Container(
+                    margin: const EdgeInsets.symmetric(
+                      horizontal: 12.0,
+                      vertical: 4.0,
+                    ),
+                    child: IntranetEventContainer(
+                      event: value[index],
+                    ),
+                  );
+                },
+              );
+            },
+          ),
           //),
         ])));
   }
@@ -1416,34 +1501,30 @@ class _IntranetHomePageState extends State<IntranetHomePage>
   }
 
   @override
-  void onUploadProgress(int value) {
-
-  }
+  void onUploadProgress(int value) {}
 
   @override
   void onUploadSuccess(value) async {
-
     if (value is String) {
       Navigator.of(context).pop();
       _profileImage = getImageUrl(value.toString());
       updateProfileImage();
       FirebaseStorageUtil().getProfileImage(employeeId.toString(), this);
-
-    }else if(value is Uint8List){
+    } else if (value is Uint8List) {
       var hiveBox = await Utility.openBox();
       await Hive.openBox(LocalConstant.KidzeeDB);
       var profileImage = base64.encode(value);
       _profileAvtar = base64.decode(profileImage);
-        hiveBox.put(LocalConstant.KEY_EMPLOYEE_AVTAR_LIST,profileImage);
+      hiveBox.put(LocalConstant.KEY_EMPLOYEE_AVTAR_LIST, profileImage);
     }
     setState(() {});
   }
 
   @override
   void onClick(int action, value) {
-    if(action==LocalConstant.ACTION_BACK){
+    if (action == LocalConstant.ACTION_BACK) {
       onBackClickListener();
-    }else if(action==ACTION_ADD_NEW_IMAGE){
+    } else if (action == ACTION_ADD_NEW_IMAGE) {
       uploadProfilePicture();
     }
   }
@@ -1458,11 +1539,11 @@ class DetailScreen extends StatelessWidget {
 
   DetailScreen(
       {Key? key,
-        required this.imageUrl,
-        required this.imageList,
-        required this.userName,
-        required this.listener,
-        required this.isViewOnly})
+      required this.imageUrl,
+      required this.imageList,
+      required this.userName,
+      required this.listener,
+      required this.isViewOnly})
       : super(key: key);
 
   @override
@@ -1474,25 +1555,29 @@ class DetailScreen extends StatelessWidget {
         title: Text(
           'Intranet',
           style:
-          TextStyle(fontSize: 17, color: Colors.white, letterSpacing: 0.53),
+              TextStyle(fontSize: 17, color: Colors.white, letterSpacing: 0.53),
         ),
-        actions: !isViewOnly ? [
-          InkWell(
-            onTap: () {
-              Navigator.of(context).pop();
-              listener.onClick(ACTION_ADD_NEW_IMAGE, userName);
-            },
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Icon(
-                Icons.add,
-                size: 20,
-              ),
-            ),
-          ),
-        ] : null,
+        actions: !isViewOnly
+            ? [
+                InkWell(
+                  onTap: () {
+                    Navigator.of(context).pop();
+                    listener.onClick(ACTION_ADD_NEW_IMAGE, userName);
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Icon(
+                      Icons.add,
+                      size: 20,
+                    ),
+                  ),
+                ),
+              ]
+            : null,
       ),
-      body: imageList!=null ? Image.memory(imageList!) : Image.network(imageUrl),
+      body: imageList != null
+          ? Image.memory(imageList!)
+          : Image.network(imageUrl),
     );
   }
 }

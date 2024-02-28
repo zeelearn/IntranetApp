@@ -43,6 +43,9 @@ class LocalStrings {
   static const String CREATE_EMPLYEE_VISIT_PLANNER =
       '/api/PJP/CreateEmployeeVisitPlanner';
 
+  static const String GET_VISIT_PLANNER_DATEWISE =
+      '/api/PJP/GetVisitPlannerDateWise';
+
   static const String GET_EMPLOYEE_VISIT_DETAILS =
       '/api/PJP/GetEmployeeVisitDetails';
 

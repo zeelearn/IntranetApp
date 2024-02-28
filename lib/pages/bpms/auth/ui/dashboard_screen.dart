@@ -35,7 +35,9 @@ class BPMSDashboardScreen extends ConsumerWidget {
                           ),
                           ElevatedButton(
                             onPressed: () {
-                              ref.read(authNotifierProvider.notifier).logout();
+                              ref
+                                  .read(authNotifierProvider.notifier)
+                                  .logout(context);
                             },
                             child: Text(auth.action == PAGE_INDENT
                                 ? 'Indents'
