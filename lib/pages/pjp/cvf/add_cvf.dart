@@ -9,7 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_google_places/flutter_google_places.dart';
-import 'package:flutter_native_timezone/flutter_native_timezone.dart';
+//import 'package:flutter_native_timezone/flutter_native_timezone.dart';
 import 'package:get/get.dart';
 import 'package:google_api_headers/google_api_headers.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -89,11 +89,11 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
   List<String> selectedCategoryValue = [];
 
   getCurrentTimeZone() async {
-    try {
+    /*try {
       timezone = await FlutterNativeTimezone.getLocalTimezone();
     } catch (e) {
       debugPrint('Could not get the local timezone');
-    }
+    }*/
 
     currentLocation = timeZoneDatabase.locations[timezone];
   }

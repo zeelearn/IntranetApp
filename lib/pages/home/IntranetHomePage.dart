@@ -93,6 +93,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
   int employeeId = 0;
   int businessId = 0;
   String _currentBusinessName = '';
+  String mUserName = '';
   String mDesignation = '';
   String _profileImage =
       'https://cdn-icons-png.flaticon.com/128/149/149071.png';
@@ -124,14 +125,14 @@ class _IntranetHomePageState extends State<IntranetHomePage>
   void validate(BuildContext context) async {
     hiveBox = await Utility.openBox();
     await Hive.openBox(LocalConstant.KidzeeDB);
-    String userName = hiveBox.get(LocalConstant.KEY_USER_NAME);
+    mUserName = hiveBox.get(LocalConstant.KEY_USER_NAME);
     String userPassword = hiveBox.get(LocalConstant.KEY_USER_PASSWORD);
     String loginResponse = hiveBox.get(LocalConstant.KEY_LOGIN_RESPONSE);
     if (loginResponse.isEmpty ||
-        userName.isNotEmpty && userPassword.isNotEmpty) {
+        mUserName.isNotEmpty && userPassword.isNotEmpty) {
       Utility.showLoaderDialog(context);
       LoginRequestModel loginRequestModel = LoginRequestModel(
-        userName: userName,
+        userName: mUserName,
         password: userPassword,
       );
       APIService apiService = APIService();
@@ -850,7 +851,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
     debugPrint('getscreen--------');
     switch (widget._selectedDestination) {
       case MENU_HOME:
-        return HomePageMenu(isBpms);
+        return HomePageMenu(isBpms,mUserName);
         break;
       case MENU_ATTENDANCE:
         return AttendanceSummeryScreen(

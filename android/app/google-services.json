@@ -1,36 +1,26 @@
 {
   "project_info": {
-    "project_number": "411998223312",
-    "project_id": "intranet-9fda2",
-    "storage_bucket": "intranet-9fda2.appspot.com"
+    "project_number": "92536473318",
+    "project_id": "intranetweb-68536",
+    "storage_bucket": "intranetweb-68536.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:411998223312:android:176ef77cd8fca5e4dd97d5",
+        "mobilesdk_app_id": "1:92536473318:android:b224e4319ee42b8b179d27",
         "android_client_info": {
           "package_name": "com.zeelearn.intranet"
         }
       },
-      "oauth_client": [
-        {
-          "client_id": "411998223312-juu50f8edujn2h99tahfd01t7t3bgjov.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
+      "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyBGUg3e_G7TzpwXWcX3KOyxCmYyCXiroDE"
+          "current_key": "AIzaSyDQSHQpIgT4Ouh3vwZHyVkqu-6AltfntEc"
         }
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "411998223312-juu50f8edujn2h99tahfd01t7t3bgjov.apps.googleusercontent.com",
-              "client_type": 3
-            }
-          ]
+          "other_platform_oauth_client": []
         }
       }
     }

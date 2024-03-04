@@ -2171,7 +2171,7 @@ class DetailScreen extends StatelessWidget {
       body: GestureDetector(
         child: PinchZoom(
           child:  imageUrl.contains('data/user') ? Image.file(File(imageUrl)) : Image.network(imageUrl),
-          resetDuration: const Duration(milliseconds: 100),
+          //resetDuration: const Duration(milliseconds: 100),
           maxScale: 2.5,
           onZoomStart: () {
             debugPrint('Start zooming');

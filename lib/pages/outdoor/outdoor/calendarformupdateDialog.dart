@@ -2,7 +2,7 @@ import 'package:Intranet/api/response/cvf/centers_respinse.dart';
 import 'package:device_calendar/device_calendar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_native_timezone/flutter_native_timezone.dart';
+//import 'package:flutter_native_timezone/flutter_native_timezone.dart';
 import 'package:intl/intl.dart';
 
 import '../../utils/toastmsg.dart';
@@ -69,11 +69,11 @@ class _CalendarFormUpdateDialogState extends State<CalendarFormUpdateDialog> {
   }
 
   getCurrentTimeZone() async {
-    try {
+    /*try {
       timezone = await FlutterNativeTimezone.getLocalTimezone();
     } catch (e) {
       debugPrint('Could not get the local timezone');
-    }
+    }*/
 
     currentLocation = timeZoneDatabase.locations[timezone];
   }

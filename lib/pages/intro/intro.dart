@@ -98,7 +98,7 @@ class _IntroPageState extends State<IntroPage> {
             child: TextButton(
               style: TextButton.styleFrom(
                 backgroundColor: Colors.red,
-                primary: Colors.white, // foreground
+                //primary: Colors.white, // foreground
               ),
               onPressed: () {
                 Navigator.pushReplacement(

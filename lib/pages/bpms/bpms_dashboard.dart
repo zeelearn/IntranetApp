@@ -316,7 +316,7 @@ class HorizontalCard extends StatelessWidget {
                   Padding(
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        primary: Color(0xffEBEAEC),
+//                        primary: Color(0xffEBEAEC),
                         elevation: 5,
                         padding: const EdgeInsets.all(12.0),
                         shape: RoundedRectangleBorder(

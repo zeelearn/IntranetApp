@@ -1,26 +1,26 @@
 import 'dart:math';
 
-import 'package:Intranet/pages/bpms/auth/ui/bpms_home.dart';
 import 'package:Intranet/pages/helper/LocalConstant.dart';
+import 'package:flutter/foundation.dart';
 
 import 'package:flutter/material.dart';
-import 'package:Intranet/pages/home/task_category_entity.dart';
 import 'package:Intranet/pages/pjp/cvf/mycvf.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../bpms/bpms_dashboard.dart';
-import '../bpms/bpms_projects.dart';
 import '../helper/utils.dart';
+import '../login/PrivacyPolicyScreen.dart';
 import '../model/filter.dart';
-import '../outdoor/outdoor/myoutdoorplanner.dart';
 import '../pjp/mypjp.dart';
 import '../pjp/pjp_list_manager_exceptional.dart';
 import '../report/myreport.dart';
 import '../utils/theme/colors/light_colors.dart';
-import '../utils/theme/theme.dart';
+import '../widget/MyWebSiteView.dart';
 
 class HomePageMenu extends StatelessWidget {
   bool isBpms;
-  HomePageMenu(this.isBpms);
+  String mUserName;
+  HomePageMenu(this.isBpms,this.mUserName);
 
 
   Text subheading(String title) {
@@ -251,6 +251,70 @@ class HomePageMenu extends StatelessWidget {
                   ],
                 )
             ),
+            Padding(
+                padding: const EdgeInsetsDirectional.fromSTEB(8, 8, 8, 8),
+                child:
+                Row(
+                  mainAxisSize: MainAxisSize.max,
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    //_getMenu(context, 'BPMS', BPMSHome()),
+                    GestureDetector(
+                      onTap: () {
+                        openSaarthi(context);
+                      },
+                      child: Padding(
+                        padding: EdgeInsetsDirectional.fromSTEB(8, 8, 8, 8),
+                        child: Container(
+                          width: MediaQuery
+                              .of(context)
+                              .size
+                              .width * 0.4,
+                          height: 150,
+                          decoration: BoxDecoration(
+                            color: Colors.blue,
+                            boxShadow: const [
+                              BoxShadow(
+                                blurRadius: 3,
+                                color: Colors.indigoAccent,
+                                offset: Offset(0, 1),
+                              )
+                            ],
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.max,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Padding(
+                                padding:
+                                EdgeInsetsDirectional.fromSTEB(0, 16, 0, 0),
+                                child: Icon(
+                                  Icons.ac_unit,
+                                  color: Colors.white,
+                                  size: 44,
+                                ),
+                              ),
+                              Padding(
+                                padding: EdgeInsetsDirectional.fromSTEB(0, 8, 0, 0),
+                                child: Text('ZeeSarthi',
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(
+                                    fontFamily: 'Lexend Deca',
+                                    color: Colors.white,
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    )
+                  ],
+                )
+            ),
             /*Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -263,6 +327,22 @@ class HomePageMenu extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  openSaarthi(BuildContext context) async{
+    String _url = 'https://intranet-9fda2.web.app/dashboard?u_name=${mUserName}';
+    print('opening zeeSarthi...................');
+    if(kIsWeb){
+      final Uri url = Uri.parse(_url);
+      if (!await launchUrl(url)) {
+        throw Exception('Could not launch $_url');
+      }
+    }else{
+      Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) => PrivacyPolicyScreen()));
+    }
   }
 
   _getMenu(BuildContext context, String title,IconData icon, action) {

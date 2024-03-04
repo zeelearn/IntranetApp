@@ -93,6 +93,7 @@ class MyWebsiteViewState extends State<MyWebsiteView> {
               return NavigationDecision.navigate;
             },
             onPageStarted: (String url) {
+              print('page started .. ${url}');
               //isUrlLoadingCompleted = false;
               //showLoaderDialog(context);
               //debugPrint('FLWEB-Page started loading: $url');

@@ -220,7 +220,7 @@ AndroidNotificationChannel? channel;
 late ServiceInstance mService;
 
 FlutterLocalNotificationsPlugin? flutterLocalNotificationsPlugin;
-late FirebaseMessaging messaging;
+//late FirebaseMessaging messaging;
 
 Future<Box> _openBox() async {
   if (!kIsWeb && !Hive.isBoxOpen(LocalConstant.KidzeeDB)) {
@@ -232,17 +232,15 @@ Future<Box> _openBox() async {
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   _openBox();
-  await Firebase.initializeApp(
-      name: "Intranet", options: DefaultFirebaseOptions.currentPlatform);
-
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   await NotificationController.initializeLocalNotifications();
 
   NotificationController.startListeningNotificationEvents();
 
   if (!kIsWeb) {
     await NotificationController.initializeIsolateReceivePort();
-    messaging = FirebaseMessaging.instance;
-    messaging.subscribeToTopic("intranet");
+    //messaging = FirebaseMessaging.instance;
+    //messaging.subscribeToTopic("intranet");
 
     // Set the background messaging handler early on, as a named top-level function
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
@@ -263,8 +261,8 @@ Future<void> main() async {
         playSound: true);
 
     NotificationService notificationService = NotificationService();
-    await notificationService.init();
-    await notificationService.requestIOSPermissions();
+    /*await notificationService.init();
+    await notificationService.requestIOSPermissions();*/
 
     await FirebaseMessaging.instance
         .setForegroundNotificationPresentationOptions(

@@ -119,8 +119,7 @@ class APIService {
                     : 'unknown'
       });
       debugPrint('URL ${url + LocalStrings.GET_LOGIN}');
-      debugPrint(
-          'URL PARSE ${Uri.parse(url + LocalStrings.GET_LOGIN).toString()}');
+      debugPrint('URL PARSE ${Uri.parse(url + LocalStrings.GET_LOGIN).toString()}');
       try {
         final response =
             await http.post(Uri.parse(url + LocalStrings.GET_LOGIN),
@@ -137,7 +136,7 @@ class APIService {
                   "Access-Control-Allow-Methods": "*"
                 },
                 body: body);
-        debugPrint('Response ${response}');
+        debugPrint('Response ${response.body}');
         debugPrint(Uri.parse(url + LocalStrings.GET_LOGIN).toString());
         if (response.statusCode == 200 || response.statusCode == 400) {
           if (response.body is LoginResponseInvalid) {
