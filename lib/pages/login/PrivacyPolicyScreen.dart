@@ -11,6 +11,8 @@ class PrivacyPolicyScreen extends StatefulWidget {
 }
 
 class WebViewExampleState extends State<PrivacyPolicyScreen> {
+  late final WebViewController _webviewController;
+
   @override
   void initState() {
     super.initState();
@@ -26,19 +28,33 @@ class WebViewExampleState extends State<PrivacyPolicyScreen> {
         primaryColor: kPrimaryLightColor,
       ),
       home: Scaffold(
-        appBar:  AppBar(
-
-          title: Text('ZeeSarthi',style: TextStyle(color: Colors.black54),),// You can add title here
+        appBar: AppBar(
+          title: Text(
+            'ZeeSarthi',
+            style: TextStyle(color: Colors.black54),
+          ), // You can add title here
           leading: new IconButton(
             icon: new Icon(Icons.arrow_back_ios, color: Colors.grey),
             onPressed: () => Navigator.of(context).pop(),
           ),
-          backgroundColor: Colors.blue.withOpacity(0.3), //You can make this transparent
+          backgroundColor:
+              Colors.blue.withOpacity(0.3), //You can make this transparent
           elevation: 0.0, //No shadow
         ),
         body: WebView(
           javascriptMode: JavascriptMode.unrestricted,
-          initialUrl: 'https://intranet-9fda2.web.app/dashboard?u_name=14001782',
+          onWebViewCreated: (c) {
+            _webviewController = c;
+            print("cleaning the cache");
+            _webviewController.clearCache();
+          },
+          onPageFinished: (String page) async {
+            setState(() {
+              //_isPageLoaded = true;
+            });
+          },
+          initialUrl:
+              'https://intranet-9fda2.web.app/dashboard?u_name=14001782',
         ),
       ),
     );

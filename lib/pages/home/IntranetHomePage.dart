@@ -318,7 +318,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
     validate(context);
 
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-      print('A new onMessageOpenedApp event was published!');
+      print('A new onMessageOpenedApp event was published123!');
       Navigator.push(
           context, MaterialPageRoute(builder: (context) => UserNotification()));
     });

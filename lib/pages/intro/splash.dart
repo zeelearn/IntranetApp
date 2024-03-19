@@ -2,14 +2,12 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
 
 import '../auth/login.dart';
 import '../helper/LocalConstant.dart';
 import '../helper/utils.dart';
 import '../home/IntranetHomePage.dart';
 import 'intro.dart';
-import 'package:path_provider/path_provider.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({Key? key}) : super(key: key);

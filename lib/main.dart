@@ -220,7 +220,7 @@ AndroidNotificationChannel? channel;
 late ServiceInstance mService;
 
 FlutterLocalNotificationsPlugin? flutterLocalNotificationsPlugin;
-//late FirebaseMessaging messaging;
+late FirebaseMessaging messaging;
 
 Future<Box> _openBox() async {
   if (!kIsWeb && !Hive.isBoxOpen(LocalConstant.KidzeeDB)) {
@@ -239,8 +239,9 @@ Future<void> main() async {
 
   if (!kIsWeb) {
     await NotificationController.initializeIsolateReceivePort();
-    //messaging = FirebaseMessaging.instance;
-    //messaging.subscribeToTopic("intranet");
+    messaging = FirebaseMessaging.instance;
+    messaging.subscribeToTopic("intranet");
+    messaging.subscribeToTopic("saathi");
 
     // Set the background messaging handler early on, as a named top-level function
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
@@ -1004,6 +1005,7 @@ class NotificationController {
   static Future<void> onActionReceivedMethod(
       ReceivedAction receivedAction) async {
     debugPrint('Received action is - ${receivedAction.actionType}');
+    debugPrint('Received payload - ${receivedAction.payload}');
     if (receivedAction.actionType == ActionType.SilentAction ||
         receivedAction.actionType == ActionType.SilentBackgroundAction) {
       // For background actions, you must hold the execution until the end
