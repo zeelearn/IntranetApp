@@ -311,7 +311,8 @@ class HomePageMenu extends StatelessWidget {
                           ),
                         ),
                       ),
-                    )
+                    ),
+                    //_getMenu(context, 'My Report',Icons.multiline_chart, MyReportsScreen()),
                   ],
                 )
             ),
@@ -341,7 +342,7 @@ class HomePageMenu extends StatelessWidget {
       Navigator.push(
           context,
           MaterialPageRoute(
-              builder: (context) => PrivacyPolicyScreen()));
+              builder: (context) => PrivacyPolicyScreen(url: _url,)));
     }
   }
 

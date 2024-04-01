@@ -6,6 +6,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_webview_pro/webview_flutter.dart';
 
 class PrivacyPolicyScreen extends StatefulWidget {
+  String url;
+  PrivacyPolicyScreen({
+    Key? key,
+    required this.url
+  }) : super(key: key);
+  
   @override
   WebViewExampleState createState() => WebViewExampleState();
 }
@@ -22,6 +28,8 @@ class WebViewExampleState extends State<PrivacyPolicyScreen> {
 
   @override
   Widget build(BuildContext context) {
+
+    print('-----------------URL ${widget.url}');
     return MaterialApp(
       title: "ZeeSarthi",
       theme: ThemeData(
@@ -53,8 +61,7 @@ class WebViewExampleState extends State<PrivacyPolicyScreen> {
               //_isPageLoaded = true;
             });
           },
-          initialUrl:
-              'https://intranet-9fda2.web.app/dashboard?u_name=14001782',
+          initialUrl: widget.url
         ),
       ),
     );
@@ -63,7 +70,7 @@ class WebViewExampleState extends State<PrivacyPolicyScreen> {
   @override
   Widget buildBK(BuildContext context) {
     return WebView(
-      initialUrl: 'https://intranet-9fda2.web.app/dashboard?u_name=14001782',
+      initialUrl: widget.url,
       //initialUrl: 'https://kidzee.com/PrivacyPolicy',
     );
   }

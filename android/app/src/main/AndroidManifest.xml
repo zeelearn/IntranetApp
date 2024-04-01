@@ -33,10 +33,19 @@
         <meta-data android:name="com.google.firebase.messaging.default_notification_channel_id" android:value="Intranet" />
         <service android:name="id.flutter.flutter_background_service.BackgroundService" android:foregroundServiceType="dataSync" tools:replace="android:foregroundServiceType">
             <intent-filter>
-                <action android:name="com.example.app.action.START_DATA_SYNC_SERVICE" />
+                <action android:name="com.zeelearn.intranet.action.START_DATA_SYNC_SERVICE" />
             </intent-filter>
         </service>
 
 
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="com.zeelearn.intranet.fileprovider"
+            android:grantUriPermissions="true"
+            android:exported="false">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/provider_paths" />
+        </provider>
     </application>
 </manifest>

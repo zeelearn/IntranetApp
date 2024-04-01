@@ -848,9 +848,10 @@ class _IntranetHomePageState extends State<IntranetHomePage>
   }
 
   Widget getScreen() {
-    debugPrint('getscreen--------');
+    debugPrint('getscreen-------- ');
     switch (widget._selectedDestination) {
       case MENU_HOME:
+      debugPrint('getscreen-------- $mUserName');
         return HomePageMenu(isBpms,mUserName);
         break;
       case MENU_ATTENDANCE:

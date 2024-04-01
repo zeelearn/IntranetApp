@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:Intranet/pages/widget/MyWebSiteView.dart';
 import 'package:custom_date_range_picker/custom_date_range_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -689,13 +690,13 @@ class _MyPjpReportListState extends State<MyPjpReportScreen> implements onRespon
   }) {
     return TimelineTile(
       alignment: TimelineAlign.manual,
-      lineXY: 0.3,
+      lineXY: 0.2,
       beforeLineStyle: LineStyle(color: Colors.white.withOpacity(0.7)),
       indicatorStyle: IndicatorStyle(
         indicatorXY: 0.3,
         drawGap: true,
-        width: 30,
-        height: 30,
+        width: 18,
+        height: 18,
         indicator: indicator,
       ),
       isLast: isLast,
@@ -705,7 +706,7 @@ class _MyPjpReportListState extends State<MyPjpReportScreen> implements onRespon
             child: Text(
               hour,
               style: GoogleFonts.lato(
-                fontSize: 18,
+                fontSize: 14,
                 color: Colors.black87,
                 fontWeight: FontWeight.w800,
               ),
@@ -743,6 +744,50 @@ class _MyPjpReportListState extends State<MyPjpReportScreen> implements onRespon
                 color: Colors.black87,
                 fontWeight: FontWeight.normal,
               ),
+            ),
+            const SizedBox(height: 4),
+            Row(
+              children: [
+                Text(
+                'CVF ID ${cvf.PJPCVF_Id}',
+                style: GoogleFonts.lato(
+                  fontSize: 14,
+                  color: Colors.black87,
+                  fontWeight: FontWeight.normal,
+                ),
+              ),
+              cvf.Status=='Completed' ? 
+            Container(child: 
+            Column(
+              children: [
+                const SizedBox(height: 4),
+                Container(
+                  padding: EdgeInsets.only(left: 20,right: 20),
+                  color: kPrimaryLightColor.withOpacity(0.4),
+                  child: InkWell(
+                    onTap: (){
+                       Navigator.of(context).push(MaterialPageRoute(
+                            builder: (BuildContext context) => MyWebsiteView(
+                              title: 'CVF Report - ${cvf.PJPCVF_Id}',
+                              url: 'https://intranet.zeelearn.com/cvfreport.html?cid=${cvf.PJPCVF_Id
+                              }',
+                            )));
+                    },
+                    child: Text(
+                    'View Report',
+                    style: GoogleFonts.lato(
+                      fontSize: 14,
+                      color: Colors.black87,
+                      fontWeight: FontWeight.normal,
+                    ),
+                  ),
+                  ),
+                )
+              ],
+            ),) 
+            : 
+            Container()
+              ],
             )
           ],
         ),
