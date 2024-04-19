@@ -19,7 +19,7 @@ class PathBar extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     return Container(
       color: LightColors.kLightGray,
-      padding: EdgeInsets.only(left: 10,right: 10),
+      padding: EdgeInsets.only(left: 10, right: 10),
       height: 40,
       child: Align(
         alignment: Alignment.centerLeft,
@@ -36,7 +36,7 @@ class PathBar extends StatelessWidget implements PreferredSizeWidget {
                   Icons.home,
                   color: index == paths.length - 1
                       ? Theme.of(context).hintColor
-                      : Theme.of(context).textTheme.headline6!.color,
+                      : Theme.of(context).textTheme.titleLarge!.color,
                 ),
                 onPressed: () => onChanged(index),
               );
@@ -55,7 +55,7 @@ class PathBar extends StatelessWidget implements PreferredSizeWidget {
                         fontWeight: FontWeight.normal,
                         color: index == paths.length - 1
                             ? Theme.of(context).hintColor
-                            : Theme.of(context).textTheme.headline6!.color,
+                            : Theme.of(context).textTheme.titleLarge!.color,
                       ),
                     ),
                   ),
@@ -64,10 +64,15 @@ class PathBar extends StatelessWidget implements PreferredSizeWidget {
             );
           },
           separatorBuilder: (BuildContext context, int index) {
-            return IconButton(color: Colors.blue,
-              icon: Icon(Icons.arrow_back_ios_new_rounded,weight: 20,),
+            return IconButton(
+              color: Colors.blue,
+              icon: Icon(
+                Icons.arrow_back_ios_new_rounded,
+                weight: 20,
+              ),
               onPressed: () {},
-            );;//Image.asset('assets/icons/ic_arrow_right.png');
+            );
+            ; //Image.asset('assets/icons/ic_arrow_right.png');
           },
         ),
       ),

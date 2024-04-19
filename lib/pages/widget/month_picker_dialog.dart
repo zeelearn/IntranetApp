@@ -1,4 +1,5 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -91,13 +92,13 @@ class _MonthPickerDialogState extends State<_MonthPickerDialog> {
     final pager = _buildPager(theme.colorScheme, locale);
 
     final borderRadius =
-    MediaQuery.of(context).orientation == Orientation.portrait
-        ? const BorderRadius.only(
-        bottomLeft: Radius.circular(4.0),
-        bottomRight: Radius.circular(4.0))
-        : const BorderRadius.only(
-        topRight: Radius.circular(4.0),
-        bottomRight: Radius.circular(4.0));
+        MediaQuery.of(context).orientation == Orientation.portrait
+            ? const BorderRadius.only(
+                bottomLeft: Radius.circular(4.0),
+                bottomRight: Radius.circular(4.0))
+            : const BorderRadius.only(
+                topRight: Radius.circular(4.0),
+                bottomRight: Radius.circular(4.0));
 
     final content = Material(
       clipBehavior: Clip.antiAlias,
@@ -157,12 +158,12 @@ class _MonthPickerDialogState extends State<_MonthPickerDialog> {
 
   Widget _buildHeader(ThemeData theme, String locale) {
     final borderRadius =
-    MediaQuery.of(context).orientation == Orientation.portrait
-        ? const BorderRadius.only(
-        topLeft: Radius.circular(4.0), topRight: Radius.circular(4.0))
-        : const BorderRadius.only(
-        topLeft: Radius.circular(4.0),
-        bottomLeft: Radius.circular(4.0));
+        MediaQuery.of(context).orientation == Orientation.portrait
+            ? const BorderRadius.only(
+                topLeft: Radius.circular(4.0), topRight: Radius.circular(4.0))
+            : const BorderRadius.only(
+                topLeft: Radius.circular(4.0),
+                bottomLeft: Radius.circular(4.0));
 
     return Material(
       clipBehavior: Clip.antiAlias,
@@ -178,10 +179,10 @@ class _MonthPickerDialogState extends State<_MonthPickerDialog> {
           children: <Widget>[
             Text(
               DateFormat.yMMM(locale).format(_selectedDate),
-              style: theme.primaryTextTheme.subtitle1,
+              style: theme.primaryTextTheme.titleMedium,
             ),
             DefaultTextStyle(
-              style: theme.primaryTextTheme.headline5!,
+              style: theme.primaryTextTheme.headlineSmall!,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: <Widget>[
@@ -258,22 +259,22 @@ class _MonthPickerDialogState extends State<_MonthPickerDialog> {
               crossAxisCount: 4,
               children: _isYearSelection
                   ? List<int>.generate(12, (i) => page * 12 + i)
-                  .map(
-                    (year) => Padding(
-                  padding: const EdgeInsets.all(4.0),
-                  child: _getYearButton(year, colorScheme, locale),
-                ),
-              )
-                  .toList()
+                      .map(
+                        (year) => Padding(
+                          padding: const EdgeInsets.all(4.0),
+                          child: _getYearButton(year, colorScheme, locale),
+                        ),
+                      )
+                      .toList()
                   : List<int>.generate(12, (i) => i + 1)
-                  .map((month) => DateTime(page, month))
-                  .map(
-                    (date) => Padding(
-                  padding: const EdgeInsets.all(4.0),
-                  child: _getMonthButton(date, colorScheme, locale),
-                ),
-              )
-                  .toList(),
+                      .map((month) => DateTime(page, month))
+                      .map(
+                        (date) => Padding(
+                          padding: const EdgeInsets.all(4.0),
+                          child: _getMonthButton(date, colorScheme, locale),
+                        ),
+                      )
+                      .toList(),
             );
           }),
     );
@@ -285,8 +286,8 @@ class _MonthPickerDialogState extends State<_MonthPickerDialog> {
     final int? lastDateCompared = _lastDate.compareTo(date);
 
     VoidCallback? callback = (firstDateCompared == null ||
-        firstDateCompared <= 0) &&
-        (lastDateCompared == null || lastDateCompared >= 0)
+                firstDateCompared <= 0) &&
+            (lastDateCompared == null || lastDateCompared >= 0)
         ? () => setState(() => _selectedDate = DateTime(date.year, date.month))
         : null;
 
@@ -299,9 +300,10 @@ class _MonthPickerDialogState extends State<_MonthPickerDialog> {
         foregroundColor: isSelected
             ? colorScheme.onPrimary
             : date.month == DateTime.now().month &&
-            date.year == DateTime.now().year
-            ? colorScheme.primary
-            : colorScheme.onSurface.withOpacity(0.87), backgroundColor: isSelected ? colorScheme.primary : null,
+                    date.year == DateTime.now().year
+                ? colorScheme.primary
+                : colorScheme.onSurface.withOpacity(0.87),
+        backgroundColor: isSelected ? colorScheme.primary : null,
         shape: const StadiumBorder(),
       ),
       child: Text(DateFormat.MMM(locale).format(date)),
@@ -314,13 +316,13 @@ class _MonthPickerDialogState extends State<_MonthPickerDialog> {
     final int? lastDateCompared = _lastDate.compareTo(DateTime(year));
 
     VoidCallback? callback =
-    (firstDateCompared == null || firstDateCompared <= 0) &&
-        (lastDateCompared == null || lastDateCompared >= 0)
-        ? () => setState(() {
-      _pageController.jumpToPage(year);
-      setState(() => _isYearSelection = false);
-    })
-        : null;
+        (firstDateCompared == null || firstDateCompared <= 0) &&
+                (lastDateCompared == null || lastDateCompared >= 0)
+            ? () => setState(() {
+                  _pageController.jumpToPage(year);
+                  setState(() => _isYearSelection = false);
+                })
+            : null;
 
     bool isSelected = year == _selectedDate.year;
 
@@ -330,8 +332,9 @@ class _MonthPickerDialogState extends State<_MonthPickerDialog> {
         foregroundColor: isSelected
             ? colorScheme.onPrimary
             : year == DateTime.now().year
-            ? colorScheme.primary
-            : colorScheme.onSurface.withOpacity(0.87), backgroundColor: isSelected ? colorScheme.primary : null,
+                ? colorScheme.primary
+                : colorScheme.onSurface.withOpacity(0.87),
+        backgroundColor: isSelected ? colorScheme.primary : null,
         shape: const StadiumBorder(),
       ),
       child: Text(DateFormat.y(locale).format(DateTime(year))),

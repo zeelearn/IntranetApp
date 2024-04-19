@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:get/get.dart';
 
 import '../../../helper/constants.dart';
 import '../../../utils/theme/colors/light_colors.dart';
 import '../../../utils/widgets/top_container.dart';
 import '../question_controller.dart';
-import 'progress_bar.dart';
 import 'question_card.dart';
 
 class Body extends StatelessWidget {
@@ -108,28 +107,36 @@ class Body extends StatelessWidget {
               /*SizedBox(height: kDefaultPadding),*/
 
               new Container(
-                  margin: EdgeInsets.only(left: 10.0,right: 10.0),
-                  height: 32.0,
-                  child: ListView.builder(
-                    shrinkWrap:  true,
-                    scrollDirection: Axis.horizontal,
-                    itemCount: _questionController.questions.length,
-                    itemBuilder: (context,index){
-                      return ClipOval(
-                        child: Container(
-                          color: _questionController.questionNumber.value==index ? LightColors.kLavender : Colors.white,
-                          margin: EdgeInsets.only(left: 20),
-                          padding: EdgeInsets.symmetric(horizontal: 10),
-                          child: Center(
-                            child: Text(
-                              '${_questionController.questions[index].id.toString()}',
-                              style: TextStyle(color: _questionController.questionNumber.value==index ? LightColors.kDarkBlue : Colors.grey, fontSize: 20),
-                            ),
+                margin: EdgeInsets.only(left: 10.0, right: 10.0),
+                height: 32.0,
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  scrollDirection: Axis.horizontal,
+                  itemCount: _questionController.questions.length,
+                  itemBuilder: (context, index) {
+                    return ClipOval(
+                      child: Container(
+                        color: _questionController.questionNumber.value == index
+                            ? LightColors.kLavender
+                            : Colors.white,
+                        margin: EdgeInsets.only(left: 20),
+                        padding: EdgeInsets.symmetric(horizontal: 10),
+                        child: Center(
+                          child: Text(
+                            '${_questionController.questions[index].id.toString()}',
+                            style: TextStyle(
+                                color:
+                                    _questionController.questionNumber.value ==
+                                            index
+                                        ? LightColors.kDarkBlue
+                                        : Colors.grey,
+                                fontSize: 20),
                           ),
                         ),
-                      );
-                    },
-                  ),
+                      ),
+                    );
+                  },
+                ),
               ),
               Divider(thickness: 1.5),
               Padding(
@@ -142,14 +149,14 @@ class Body extends StatelessWidget {
                           "Question ${_questionController.questionNumber.value}",
                       style: Theme.of(context)
                           .textTheme
-                          .subtitle1
+                          .titleMedium
                           ?.copyWith(color: kSecondaryColor),
                       children: [
                         TextSpan(
                           text: "/${_questionController.questions.length}",
                           style: Theme.of(context)
                               .textTheme
-                              .headline6
+                              .titleLarge
                               ?.copyWith(color: kSecondaryColor),
                         ),
                       ],
@@ -189,7 +196,7 @@ class Body extends StatelessWidget {
                             'Previous',
                             style: Theme.of(context)
                                 .textTheme
-                                .subtitle1
+                                .titleMedium
                                 ?.copyWith(color: kBlackColor),
                           ),
                         ],
@@ -214,7 +221,7 @@ class Body extends StatelessWidget {
                             '  Next  ',
                             style: Theme.of(context)
                                 .textTheme
-                                .subtitle1
+                                .titleMedium
                                 ?.copyWith(color: kBlackColor),
                           ),
                         ],

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
 import '../../../helper/constants.dart';
 import '../Questions.dart';
 import '../question_controller.dart';
@@ -31,13 +32,13 @@ class QuestionCard extends StatelessWidget {
               question.question,
               style: Theme.of(context)
                   .textTheme
-                  .subtitle1
+                  .titleMedium
                   ?.copyWith(color: kBlackColor),
             ),
             SizedBox(height: kDefaultPadding / 2),
             ...List.generate(
               question.options.length,
-                  (index) => Option(
+              (index) => Option(
                 index: index,
                 text: question.options[index],
                 press: () => _controller.checkAns(question, index),

@@ -97,6 +97,10 @@ class FastChoiceChip
 
   @override
   bool get isEnabled => enabled;
+
+  @override
+  // TODO: implement avatarBoxConstraints
+  BoxConstraints? get avatarBoxConstraints => throw UnimplementedError();
 }
 
 typedef FastChoiceChipBuilder = Widget Function(

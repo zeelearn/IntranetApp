@@ -33,6 +33,11 @@ import 'package:hive_flutter/adapters.dart';
 import 'package:intl/intl.dart';
 import 'package:location/location.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:responsive_framework/responsive_framework.dart';
+import 'package:saathi/core/hiveDatabase/hiveConstant.dart';
+import 'package:saathi/dependency_Injection/dependency_injection.dart';
+import 'package:saathi/model/notificationModel/notificationModel.dart';
+import 'package:saathi/model/ticketModel/ticket_model.dart';
 
 import 'api/APIService.dart';
 import 'api/request/cvf/update_cvf_status_request.dart';
@@ -280,6 +285,16 @@ Future<void> main() async {
   await Hive.openBox(LocalConstant.communicationKey); // settings
   await Hive.openBox(LocalConstant.authStorageKey);
   await Hive.openBox(LocalConstant.indent);
+  DependencyInjection.init();
+
+  if (!Hive.isAdapterRegistered(0)) {
+    Hive.registerAdapter(TicketModelAdapter());
+    Hive.registerAdapter(NotificationModelAdapter());
+  }
+  await Hive.openBox<TicketModel>(HiveConstant.key_TicketListData);
+  //await Hive.openBox<NotificationModel>(HiveConstant.key_NotificationList);
+  await Hive.openBox(HiveConstant.box_SSOUser);
+  await Hive.openBox(HiveConstant.key_logindetails);
 
   //await initializeService();
   //runApp(const MyApp());
@@ -730,6 +745,16 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Intranet',
       themeMode: ThemeMode.light,
+      builder: (context, child) => ResponsiveBreakpoints.builder(
+        child: child!,
+        breakpoints: [
+          const Breakpoint(start: 0, end: 360, name: 'SMALL_MOBILE'),
+          const Breakpoint(start: 361, end: 450, name: MOBILE),
+          const Breakpoint(start: 451, end: 800, name: TABLET),
+          const Breakpoint(start: 801, end: 1920, name: DESKTOP),
+          const Breakpoint(start: 1921, end: double.infinity, name: '4K'),
+        ],
+      ),
       theme: ThemeData(
         useMaterial3: true,
         checkboxTheme: CheckboxThemeData(

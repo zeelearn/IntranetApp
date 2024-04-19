@@ -141,12 +141,13 @@ class FastDatePickerState extends FastFormFieldState<DateTime> {
 
 Text datePickerTextBuilder(FastDatePickerState field) {
   final theme = Theme.of(field.context);
-  final format =field.widget.dateFormat?.format ?? _datePickerFormat(field).format;
+  final format =
+      field.widget.dateFormat?.format ?? _datePickerFormat(field).format;
   final value = field.value;
 
   return Text(
     value != null ? format(field.value!) : '',
-    style: theme.textTheme.subtitle1,
+    style: theme.textTheme.titleMedium,
     textAlign: TextAlign.left,
   );
 }
@@ -254,10 +255,11 @@ Widget materialDatePickerBuilder(FormFieldState<DateTime> field) {
   }
 
   final textBuilder = widget.textBuilder ?? datePickerTextBuilder;
-  final iconButtonBuilder = widget.iconButtonBuilder ?? datePickerIconButtonBuilder;
+  final iconButtonBuilder =
+      widget.iconButtonBuilder ?? datePickerIconButtonBuilder;
 
   return Container(
-    margin: EdgeInsets.only(right: 15,left: 15),
+    margin: EdgeInsets.only(right: 15, left: 15),
     decoration: BoxDecoration(
       color: const Color(0xffF7F8F8),
       borderRadius: const BorderRadius.all(Radius.circular(10)),
@@ -277,7 +279,7 @@ Widget materialDatePickerBuilder(FormFieldState<DateTime> field) {
         ),
       ),
     ),
-  ) ;
+  );
 }
 
 Widget cupertinoDatePickerBuilder(FormFieldState<DateTime> field) {

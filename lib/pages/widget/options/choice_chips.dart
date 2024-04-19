@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../form.dart';
 
 @immutable
-class FastChoiceChip
+abstract class FastChoiceChip
     implements
         ChipAttributes,
         SelectableChipAttributes,

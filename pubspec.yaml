@@ -60,7 +60,7 @@ dependencies:
   styled_widget: ^0.4.1
   device_info_plus: ^9.0.2
   #webviewx: ^0.2.2
-  google_fonts: ^6.2.0
+  google_fonts: ^4.0.1
   get: ^4.6.5
   square_percent_indicater: ^0.1.0
   flutter_screenutil: ^5.8.4
@@ -120,6 +120,9 @@ dependencies:
   #flutter_background_service: ^2.4.3
   #flutter_slidable: ^2.0.0
 
+  saathi:
+    path: D:/Sudhir/flutterWorkspace/ZllSaathiNative/ZeeSathi/
+
 dependency_overrides:
   intl: ^0.17.0
   http: ^1.0.0
@@ -127,6 +130,7 @@ dependency_overrides:
   share_plus: ^7.1.0
   package_info_plus: ^4.0.0
   win32: ^5.0.9
+  lottie: ^3.1.0
 
 
 dev_dependencies:
