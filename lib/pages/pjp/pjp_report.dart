@@ -274,7 +274,7 @@ class _MyPjpReportListState extends State<MyPjpReportScreen> implements onRespon
         for(int index=0;index<filter.filters.length;index++){
           if(filter.filters[index].isSelected){
             widget.mFilterSelection.filters.add(filter.filters[index]);
-            //debugPrint('--${filter.filters[index].name}');
+            debugPrint('--${filter.filters[index].name}');
           }
         }
         //debugPrint(filter.filters.toList());
@@ -813,7 +813,7 @@ class _MyPjpReportListState extends State<MyPjpReportScreen> implements onRespon
         Utility.getConfirmationDialogPJP(context, this);
       }
     }else if(value is PjpListResponse){
-      debugPrint('PJP List onSuccess PjpListResponse');
+      debugPrint('PJP List onSuccess PjpListResponse 816');
       PjpListResponse response = value;
       //debugPrint(response.toString());
       String json = jsonEncode(response);
@@ -824,6 +824,7 @@ class _MyPjpReportListState extends State<MyPjpReportScreen> implements onRespon
       debugPrint('PJP List onSuccess ${response.responseData.toString()}');
       if(response.responseData!=null && response.responseData.length>0){
         if (response != null && response.responseData != null) {
+          debugPrint('FOR MY TEAM------CHECK');
           if (widget.mFilterSelection == null || widget.mFilterSelection.type == FILTERStatus.MYTEAM) {
             debugPrint('FOR MY TEAM');
             //mPjpList.addAll(response.responseData);
@@ -850,7 +851,7 @@ class _MyPjpReportListState extends State<MyPjpReportScreen> implements onRespon
               }
             }
           } else {
-            //debugPrint('In else');
+            debugPrint('In else 854');
             for (int index = 0;
             index < response.responseData.length;
             index++) {

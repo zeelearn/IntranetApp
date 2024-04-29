@@ -274,6 +274,15 @@ Future<void> main() async {
 
     await FirebaseMessaging.instance.setAutoInitEnabled(true);
   }
+
+  await FirebaseMessaging.instance.requestPermission(
+      alert: true,
+      announcement: true,
+      badge: true,
+      carPlay: true,
+      criticalAlert: true,
+      provisional: true,
+      sound: true);
   _requestPermission();
 
   await Hive.initFlutter();

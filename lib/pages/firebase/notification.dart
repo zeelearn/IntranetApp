@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:Intranet/pages/notification/NotificationService.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
@@ -36,7 +37,10 @@ class FCM {
     FirebaseMessaging.onBackgroundMessage(onBackgroundMessage);
     FirebaseMessaging.onMessage.listen(
           (message) async {
-            debugPrint(message.toString());
+            debugPrint('Remote message is - ${message.data.toString()}');
+
+            NotificationService().showNotification(0, message.data['title'], message.data['body'], message.toString());
+            
         if (message.data.containsKey('data')) {
           // Handle data message
           streamCtlr.sink.add(message.data['data']);

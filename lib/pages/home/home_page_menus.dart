@@ -297,7 +297,7 @@ class HomePageMenu extends StatelessWidget {
                               ),
                               Padding(
                                 padding: EdgeInsetsDirectional.fromSTEB(0, 8, 0, 0),
-                                child: Text('ZeeSarthi',
+                                child: Text('ZLLSaathi',
                                   textAlign: TextAlign.center,
                                   style: const TextStyle(
                                     fontFamily: 'Lexend Deca',
@@ -331,7 +331,7 @@ class HomePageMenu extends StatelessWidget {
   }
 
   openSaarthi(BuildContext context) async{
-    String _url = 'https://intranet-9fda2.web.app/dashboard?u_name=${mUserName}';
+    String _url = 'https://zllsaathi.zeelearn.com/dashboard?u_name=${mUserName}';
     print('opening zeeSarthi...................');
     if(kIsWeb){
       final Uri url = Uri.parse(_url);
