@@ -121,7 +121,7 @@ dependencies:
   #flutter_slidable: ^2.0.0
 
   saathi:
-    path: D:/Sudhir/flutterWorkspace/ZllSaathiNative/ZeeSathi/
+    path: ../ZeeSathi/
 
 dependency_overrides:
   intl: ^0.17.0
