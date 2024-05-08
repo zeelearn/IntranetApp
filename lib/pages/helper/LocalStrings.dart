@@ -9,7 +9,7 @@ class LocalStrings {
 
   static const String bpms = "https://commonapi.zeelearn.com/";
   static const String productionBaseUrl = "https://app.ekidzee.com";
-  static const String developmentBaseUrl = "http://intranetapi.zeelearn.com";
+  static const String developmentBaseUrl = "https://intranetapi.zeelearn.com";
   static const kGoogleApiKey = "AIzaSyD-x4HqYO1O0kwDpkxIc128nM4f1bZ3oDM";
   static const String GET_TOKEN = "/snltoken";
   static const String GET_LOGIN = '/api/Account/Login';
