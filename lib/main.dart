@@ -9,6 +9,7 @@ import 'package:Intranet/pages/firebase/firebase_options.dart';
 import 'package:Intranet/pages/firebase/notification_service.dart';
 import 'package:Intranet/pages/helper/DatabaseHelper.dart';
 import 'package:Intranet/pages/helper/LocalConstant.dart';
+import 'package:Intranet/pages/helper/PermissionHandler.dart';
 import 'package:Intranet/pages/helper/constants.dart';
 import 'package:Intranet/pages/helper/utils.dart';
 import 'package:Intranet/pages/intro/splash.dart';
@@ -46,6 +47,7 @@ import 'api/response/apply_leave_response.dart';
 import 'api/response/approve_attendance_response.dart';
 import 'api/response/cvf/update_status_response.dart';
 import 'pages/pjp/cvf/getVisitplannerCvfcubit/cubit/getvisitplannercvf_cubit.dart';
+
 
 part 'main.g.dart';
 
@@ -282,7 +284,8 @@ Future<void> main() async {
 
     await FirebaseMessaging.instance.setAutoInitEnabled(true);
   }
-  _requestPermission();
+  //_requestPermission();
+  await PermissionUtil.requestPermission();
 
   await Hive.initFlutter();
   await Hive.openBox(LocalConstant.communicationKey); // settings
@@ -1118,8 +1121,7 @@ class NotificationController {
             ],
           );
         });*/
-    return userAuthorized &&
-        await AwesomeNotifications().requestPermissionToSendNotifications();
+    return await AwesomeNotifications().requestPermissionToSendNotifications();
   }
 
   ///  *********************************************
