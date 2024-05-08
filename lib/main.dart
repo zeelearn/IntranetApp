@@ -237,7 +237,10 @@ Future<Box> _openBox() async {
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   _openBox();
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  if(!kIsWeb && Platform.isAndroid)
+    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  else
+    await Firebase.initializeApp();
   await NotificationController.initializeLocalNotifications();
 
   NotificationController.startListeningNotificationEvents();

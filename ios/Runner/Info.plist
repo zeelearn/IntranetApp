@@ -38,16 +38,14 @@
 	<string>This app requires access to the camera.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>$(PRODUCT_NAME) needs Location access for getting location!</string>
-
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>$(PRODUCT_NAME) needs Location access for getting location!</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>This app requires access to the photo library.</string>
 	<key>NSCalendarsUsageDescription</key>
 	<string>Access most functions for calendar viewing and editing.</string>
-
 	<key>NSContactsUsageDescription</key>
- 	<string>Access contacts for event attendee editing.</string>
+	<string>Access contacts for event attendee editing.</string>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>fetch</string>
@@ -56,7 +54,8 @@
 	</array>
 	<key>NSAppTransportSecurity</key>
 	<dict>
-	    <key>NSAllowsArbitraryLoads</key><true/>
+		<key>NSAllowsArbitraryLoads</key>
+		<true/>
 	</dict>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>

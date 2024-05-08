@@ -39,17 +39,17 @@ dependencies:
   flutter_svg: ^2.0.6
   url_launcher: ^6.1.11
   font_awesome_flutter: ^10.4.0
-  flutter_local_notifications: ^16.3.2
+  flutter_local_notifications: ^17.1.1
   #equatable: ^2.0.3
   bloc: ^8.1.2
   flutter_bloc: ^8.1.3
   flutter_easyloading: 3.0.5
   #shimmer: ^2.0.0
-  firebase_crashlytics: ^3.2.2
-  firebase_core: ^2.25.5
-  firebase_analytics: ^10.8.7
-  firebase_messaging: ^14.7.17
-  firebase_storage: ^11.6.7
+  firebase_crashlytics: ^3.5.4
+  firebase_core: ^2.30.1
+  firebase_analytics: ^10.10.4
+  firebase_messaging: ^14.9.1
+  firebase_storage: ^11.7.4
   sqflite: ^2.3.2
   path: ^1.8.3
   table_calendar: ^3.0.9
@@ -66,7 +66,7 @@ dependencies:
   flutter_screenutil: ^5.8.4
   flutter_icons_null_safety: ^1.1.0
   flutter_google_places: ^0.3.0
-  geocoding: ^2.1.0
+  geocoding: ^3.0.0
   syncfusion_flutter_datepicker: ^24.1.43
   image_picker: ^1.0.7
   material_dialogs: ^1.1.4
@@ -75,7 +75,7 @@ dependencies:
   flutter_image_compress: ^2.0.3
   flutter_staggered_grid_view: ^0.7.0
   auto_size_text: ^3.0.0
-  upgrader: ^9.0.0
+  upgrader: ^10.3.0
   in_app_update: ^4.0.1
 
   flutter_launcher_icons: ^0.13.1
@@ -96,7 +96,7 @@ dependencies:
   location_geocoder: ^1.0.5
   order_tracker_zen: ^1.0.0+4
   app_version_update: ^4.0.1
-  location: ^5.0.3
+  location: ^6.0.1
   flutter_riverpod: ^2.3.10
   dio: ^5.3.2
   camera: ^0.10.5+4
@@ -121,7 +121,7 @@ dependencies:
   #flutter_slidable: ^2.0.0
 
   saathi:
-    path: D:/Sudhir/flutterWorkspace/ZllSaathiNative/ZeeSathi/
+    path: ../ZeeSathi/
 
 dependency_overrides:
   intl: ^0.17.0
