@@ -122,6 +122,7 @@ part 'main.g.dart';
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  print('A new onMessageOpenedApp event was published! main 125 ${message.data.toString()}');
   NotificationService().parseNotification(message);
 }
 
@@ -243,16 +244,17 @@ Future<void> main() async {
     await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   else
     await Firebase.initializeApp();
-  await NotificationController.initializeLocalNotifications();
+  
 
   NotificationController.startListeningNotificationEvents();
 
   if (!kIsWeb) {
+    await NotificationController.initializeLocalNotifications();
     await NotificationController.initializeIsolateReceivePort();
     messaging = FirebaseMessaging.instance;
     messaging.subscribeToTopic("intranet");
     messaging.subscribeToTopic("saathi");
-
+    print('saathi topic subscribed');
     // Set the background messaging handler early on, as a named top-level function
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {

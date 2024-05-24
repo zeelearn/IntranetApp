@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hive/hive.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 import 'package:path_provider/path_provider.dart';
@@ -101,7 +102,8 @@ class NotificationService {
             'url': message != null ? (message.data['url'] ?? '') : '',
             'type': message != null ? (message.data['type'] ?? '') : '',
             'topic': message != null ? (message.data['topic'] ?? '') : '',
-            'bigimage': message != null ? (message.data['bigimage'] ?? '') : ''
+            'bigimage': message != null ? (message.data['bigimage'] ?? '') : '',
+            'webViewLink': message != null ? (message.data['webViewLink'] ?? '') : '',
           },
         ));
     print('showSimpleNotification');
@@ -214,10 +216,11 @@ class NotificationService {
 
 
   void parseNotification(RemoteMessage message) {
+    print('parse Notification 217');
     String cdate = DateFormat("yyyy-MM-dd hh:mm a").format(DateTime.now());
     String? imsageUrl = '';
     if(kIsWeb){
-
+        print('its web Notification 220');
     }else if (Platform.isAndroid) {
       imsageUrl = message.notification?.android?.imageUrl.toString();
     } else if (Platform.isIOS) {
@@ -244,6 +247,9 @@ class NotificationService {
     } else {
       print('its data Notification 143');
       if(message.data.containsKey('type') && message.data['type']=='td'){
+        print('Identifying notification');
+        identifySaathiNotification(message);
+      }else if(message.data.containsKey('topic')){
         print('Identifying notification');
         identifyNotification(message);
       }else{
@@ -279,10 +285,35 @@ class NotificationService {
     }
   }
 }
+
+void identifySaathiNotification(RemoteMessage message, [WidgetRef? ref]) async {
+  var hiveBox = await Utility.openBox();
+  var hive = Hive.box(LocalConstant.KidzeeDB);
+  String employeeCode = hiveBox.get(LocalConstant.KEY_EMPLOYEE_CODE) as String;
+  print(' 291 Intranet user Name ${employeeCode}');
+  if (employeeCode.isNotEmpty && message.data.containsKey('employee_code') && message.data['employee_code']==employeeCode) {
+    DBHelper helper = DBHelper();
+    Map<String, String> data = {};
+    String cdate = DateFormat("yyyy-MM-dd hh:mm a").format(DateTime.now());
+    data.putIfAbsent('title', () => message.data['title']);
+    data.putIfAbsent('description', () => message.data['body']);
+    data.putIfAbsent('type', () => message.data.containsKey('type') ?  message.data['type'] : 'push');
+    data.putIfAbsent('date', () => cdate);
+    data.putIfAbsent('imageurl', () =>  message.data.containsKey('imageurl') ?  message.data['imageurl'] : '');
+    data.putIfAbsent('logoUrl', () => message.data.containsKey('logoUrl') ?  message.data['logoUrl'] : '');
+    data.putIfAbsent('bigImageUrl', () =>  message.data.containsKey('bigimage') ? message.data['bigimage'] as String : '');
+    data.putIfAbsent('webViewLink', () => message.data.containsKey('id') ? message.data['id'] as String : '');
+    helper.insert(LocalConstant.TABLE_NOTIFICATION, data);
+    NotificationService notificationService = NotificationService();
+      notificationService.showSimpleNotification(
+          message.data['title'], message.data['body'], message);
+  }
+}
+
 void identifyNotification(RemoteMessage message, [WidgetRef? ref]) async {
   var box = await Utility.openBox();
   String userName = box.get(LocalConstant.KEY_EMPLOYEE_ID) as String;
-  print('user Name ${userName}');
+  print('Intranet user Name ${userName}');
   if (userName.isNotEmpty && message.data.containsKey('user_id') && message.data['user_id']==userName) {
     print('notificaiton found...');
     DBHelper helper = DBHelper();

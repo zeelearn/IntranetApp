@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'dart:typed_data';
 
 import 'package:Intranet/pages/helper/LocalConstant.dart';
 import 'package:Intranet/pages/pjp/cvf/mycvf.dart';
@@ -16,7 +17,8 @@ import '../utils/theme/colors/light_colors.dart';
 class HomePageMenu extends StatelessWidget {
   bool isBpms;
   String mUserName;
-  HomePageMenu(this.isBpms, this.mUserName);
+  Uint8List? profileAvtar;
+  HomePageMenu(this.isBpms, this.mUserName, Uint8List? profileAvtar);
 
   Text subheading(String title) {
     return Text(
@@ -279,7 +281,7 @@ class HomePageMenu extends StatelessWidget {
                                 padding:
                                     EdgeInsetsDirectional.fromSTEB(0, 8, 0, 0),
                                 child: Text(
-                                  'ZeeSarthi',
+                                  'ZllSaathi',
                                   textAlign: TextAlign.center,
                                   style: const TextStyle(
                                     fontFamily: 'Lexend Deca',
@@ -312,7 +314,7 @@ class HomePageMenu extends StatelessWidget {
   openSaarthi(BuildContext context) async {
     print(mUserName);
     //main();
-    ZllSaathi(context, mUserName);
+    ZllSaathi(context, mUserName,profileAvtar);
     // Navigator.push(
     //     context,
     //     MaterialPageRoute(

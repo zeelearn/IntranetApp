@@ -1,0 +1,84 @@
+{
+  "project_info": {
+    "project_number": "411998223312",
+    "project_id": "intranet-9fda2",
+    "storage_bucket": "intranet-9fda2.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:411998223312:android:176ef77cd8fca5e4dd97d5",
+        "android_client_info": {
+          "package_name": "com.zeelearn.intranet"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "411998223312-juu50f8edujn2h99tahfd01t7t3bgjov.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBGUg3e_G7TzpwXWcX3KOyxCmYyCXiroDE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "411998223312-juu50f8edujn2h99tahfd01t7t3bgjov.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "411998223312-0svaok9ad4mid7v6t4f6vj8vi7q30a3g.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.zeelearn.intranet",
+                "app_store_id": "6443464060"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:411998223312:android:a8e03eb2f4b474eadd97d5",
+        "android_client_info": {
+          "package_name": "com.zeelearn.saathi"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "411998223312-juu50f8edujn2h99tahfd01t7t3bgjov.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBGUg3e_G7TzpwXWcX3KOyxCmYyCXiroDE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "411998223312-juu50f8edujn2h99tahfd01t7t3bgjov.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "411998223312-0svaok9ad4mid7v6t4f6vj8vi7q30a3g.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.zeelearn.intranet",
+                "app_store_id": "6443464060"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

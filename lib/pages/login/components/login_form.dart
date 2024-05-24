@@ -201,8 +201,7 @@ class _LoginFormState extends State<LoginForm>
               EmployeeDetails info = value.responseData.employeeDetails[0];
 
               //// Save an integer value to 'counter' key.
-              hiveBox.put(
-                  LocalConstant.KEY_EMPLOYEE_ID, info.employeeId as String);
+              hiveBox.put(LocalConstant.KEY_EMPLOYEE_ID, info.employeeId as String);
               hiveBox.put(LocalConstant.KEY_EMPLOYEE_CODE, info.employeeCode);
               hiveBox.put(LocalConstant.KEY_FIRST_NAME, info.employeeFirstName);
               hiveBox.put(LocalConstant.KEY_LAST_NAME, info.employeeLastName);

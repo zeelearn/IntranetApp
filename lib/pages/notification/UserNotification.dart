@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:lottie/lottie.dart';
+import 'package:saathi/screens/ticket/web/details.dart';
 
 import '../../main.dart';
 import '../helper/DatabaseHelper.dart';
@@ -38,7 +39,7 @@ class _ListPageState extends State<UserNotification> {
     List<Map<String, dynamic>> list =
         await DBHelper().getData(LocalConstant.TABLE_NOTIFICATION);
     //print('----${list.length}');
-    for (int index = 0; index < list.length; index++) {
+    for (int index = list.length; index >0; index--) {
       Map<String, dynamic> map = list[index];
       //print('----${map['title']}');
       print(map.toString());
@@ -136,11 +137,25 @@ class _ListPageState extends State<UserNotification> {
           ),
 
           onTap: () {
-            Navigator.push(
+            if(notificationModel.notificationtype=='td'){
+                Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => TicketDetailInfo(
+                  ticketId: notificationModel.webViewUrl,
+                  businessID:  '0',
+                  //businessUserID: receivedAction.payload!['business_user_id']!,
+                  //userID: routingData['u_id'],
+                  //role: routingData['r'],
+                  //dashboardClickListener: arguments?.$2,
+                )));
+            }else{
+              Navigator.push(
                 context,
                 MaterialPageRoute(
                     builder: (context) =>
                         DetailPage(notificationModel: notificationModel)));
+            }
           },
         );
 

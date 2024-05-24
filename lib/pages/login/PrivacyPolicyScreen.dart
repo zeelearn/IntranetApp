@@ -31,14 +31,14 @@ class WebViewExampleState extends State<PrivacyPolicyScreen> {
 
     print('-----------------URL ${widget.url}');
     return MaterialApp(
-      title: "ZeeSarthi",
+      title: "ZllSaathi",
       theme: ThemeData(
         primaryColor: kPrimaryLightColor,
       ),
       home: Scaffold(
         appBar: AppBar(
           title: Text(
-            'ZeeSarthi',
+            'ZllSaathi',
             style: TextStyle(color: Colors.black54),
           ), // You can add title here
           leading: new IconButton(

@@ -1,8 +1,11 @@
+import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
 
 import 'package:Intranet/api/response/login_response.dart';
+import 'package:Intranet/firebase_options.dart';
+import 'package:Intranet/main.dart';
 import 'package:Intranet/pages/helper/LocalConstant.dart';
 import 'package:Intranet/pages/helper/utils.dart';
 import 'package:Intranet/pages/leave/leave_list.dart';
@@ -13,6 +16,8 @@ import 'package:Intranet/pages/pjp/mypjp.dart';
 import 'package:Intranet/pages/userinfo/employee_list.dart';
 import 'package:app_version_update/app_version_update.dart';
 import 'package:device_info_plus/device_info_plus.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -23,7 +28,9 @@ import 'package:image_picker/image_picker.dart';
 import 'package:in_app_update/in_app_update.dart';
 import 'package:intl/intl.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:saathi/zllsaathi.dart';
 import 'package:table_calendar/table_calendar.dart';
+import 'package:uni_links/uni_links.dart';
 
 import '../../api/APIService.dart';
 import '../../api/request/login_request.dart';
@@ -60,10 +67,18 @@ class IntranetHomePage extends StatefulWidget {
   _IntranetHomePageState createState() => _IntranetHomePageState();
 }
 
+bool initialURILinkHandled = false;
+
 class _IntranetHomePageState extends State<IntranetHomePage>
     with WidgetsBindingObserver
     implements onUploadResponse, onClickListener {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
+   Uri? _initialURI;
+  Uri? _currentURI;
+  Object? _err;
+
+  StreamSubscription? _streamSubscription;
 
   static const int MENU_HOME = 1;
   static const int MENU_ATTENDANCE = 2;
@@ -314,8 +329,8 @@ class _IntranetHomePageState extends State<IntranetHomePage>
     //addEvent();
     getUserInfo();
     //_listenForMessages();
-    getLoginResponse();
-    validate(context);
+    
+    initNotification();
 
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
       print('A new onMessageOpenedApp event was published123!');
@@ -328,7 +343,191 @@ class _IntranetHomePageState extends State<IntranetHomePage>
     } else if (Platform.isIOS) {
       _verifyVersion();
     }
+
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      _initURIHandler();
+      _incomingLinkHandler();
+    });
   }
+
+  Future<void> _initURIHandler() async {
+    if (!initialURILinkHandled) {
+      initialURILinkHandled = true;
+
+      try {
+        final initialURI = await getInitialUri();
+        // Use the initialURI and warn the user if it is not correct,
+        // but keep in mind it could be `null`.
+        if (initialURI != null) {
+          debugPrint("Initial URI on home screen received $initialURI");
+
+          _initialURI = initialURI;
+
+          // SharedPreferences prefs = await SharedPreferences.getInstance();
+          // String uid = prefs.getString(LocalConstant.KEY_UID) as String;
+          deepLinkCommonFunction(_initialURI);
+        } else {
+          getLoginResponse();
+          validate(context);
+          // navigate();
+          debugPrint("Null Initial URI received");
+        }
+      } on PlatformException {
+        // Platform messages may fail, so we use a try/catch PlatformException.
+        // Handle exception by warning the user their action did not succeed
+        debugPrint("Failed to receive initial uri");
+        getLoginResponse();
+        validate(context);
+      } on FormatException catch (err) {
+        getLoginResponse();
+        validate(context);
+        if (!mounted) {
+          return;
+        }
+        debugPrint('Malformed Initial URI received');
+        setState(() => _err = err);
+      }
+    }
+  }
+
+  /// Handle incoming links - the ones that the app will receive from the OS
+  /// while already started.
+  void _incomingLinkHandler() {
+    if (!kIsWeb) {
+      // It will handle app links while the app is already started - be it in
+      // the foreground or in the background.
+      _streamSubscription = uriLinkStream.listen((Uri? uri) async {
+        if (!mounted) {
+          return;
+        }
+        debugPrint('Received URI: $uri');
+
+        // SharedPreferences prefs = await SharedPreferences.getInstance();
+        // String uid = prefs.getString(LocalConstant.KEY_UID) as String;
+        deepLinkCommonFunction(uri);
+      }, onError: (Object err) {
+        if (!mounted) {
+          return;
+        }
+        debugPrint('Error occurred: $err');
+      });
+    }
+  }
+
+  void deepLinkCommonFunction(Uri? initialURI) async {
+    
+    debugPrint('udid from deep linkk is - ${initialURI!.path.split('/').elementAt(1)}');
+    debugPrint('udid ${initialURI}');
+    debugPrint('udid ${initialURI.queryParameters['id']}');
+    if(initialURI.toString().contains('zllsaathi.zeelearn.com/ticketDetail')){
+        //Saathi Ticket Details
+        print('ticket ID ${initialURI.queryParameters['id']!}');
+        print('BID ${initialURI.queryParameters['b_id']!}');
+        print('BUID ${initialURI.queryParameters['bu_id']!}');
+        ZllTicket(context, initialURI.queryParameters['id']!, initialURI.queryParameters['b_id']!, initialURI.queryParameters['bu_id']!,initialURI.queryParameters['u_id']!.replaceAll('.', ''), kPrimaryLightColor);
+      
+    }
+  }
+
+
+@pragma('vm:entry-point')
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  print('A new onMessageOpenedApp event was published! main 337');
+  NotificationService().parseNotification(message);
+  
+}
+
+  initNotification() async{
+    await initFirebase();
+    await NotificationController.initializeLocalNotifications();
+    await NotificationController.initializeIsolateReceivePort();
+    // Set the background messaging handler early on, as a named top-level function
+    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+  }
+
+  Future<void> initFirebase() async {
+  //await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  if(!kIsWeb && !Platform.isAndroid)
+    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  else
+    await Firebase.initializeApp();
+  messaging = FirebaseMessaging.instance;
+  // Set the background messaging handler early on, as a named top-level function
+  await FirebaseMessaging.instance.setAutoInitEnabled(true);
+  if (kDebugMode) {
+    // Force disable Crashlytics collection while doing every day development.
+    // Temporarily toggle this to true if you want to test crash reporting in your app.
+    await FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(false);
+  } else {
+    // Handle Crashlytics enabled status when not in Debug,
+    FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(true);
+  }
+
+  FirebaseMessaging firebaseMessaging = FirebaseMessaging.instance;
+  NotificationSettings settings = await firebaseMessaging.requestPermission(
+    alert: true,
+    announcement: false,
+    badge: true,
+    carPlay: false,
+    criticalAlert: false,
+    provisional: false,
+    sound: true,
+  );
+  //FirebaseMessaging.instance.getInitialMessage();
+  print('User granted permission: ${settings.authorizationStatus}');
+  if (!kIsWeb) {
+    await FirebaseMessaging.instance
+        .setForegroundNotificationPresentationOptions(
+      alert: true,
+      badge: true,
+      sound: true,
+    );
+
+// Declaration of variables
+
+    if (Platform.isIOS) {
+      await firebaseMessaging.setForegroundNotificationPresentationOptions(
+        alert: true, // Required to display a heads up notification
+        badge: true,
+        sound: true,
+      );
+    }
+  }
+
+  await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(
+    alert: true,
+    badge: true,
+    sound: true,
+  );
+  await FirebaseMessaging.instance.setAutoInitEnabled(true);
+  getPermission();
+  getToken();
+
+  //runApp(MyApp());
+}
+Future<void> getPermission() async {
+  FirebaseMessaging messaging = FirebaseMessaging.instance;
+  FirebaseMessaging.instance.requestPermission();
+  NotificationSettings settings = await messaging.requestPermission(
+    alert: true,
+    announcement: false,
+    badge: true,
+    carPlay: false,
+    criticalAlert: false,
+    provisional: false,
+    sound: true,
+  );
+
+  print('User granted permission: ${settings.authorizationStatus}');
+}
+
+late String token;
+getToken() async {
+  print('app token is ');
+  token = (await FirebaseMessaging.instance.getToken())!;
+  print('Notification Token..${token}');
+  print(token);
+}
 
   @override
   void dispose() {
@@ -389,6 +588,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
   }
 
   void _handleMessage(RemoteMessage message) {
+    debugPrint('Handle Notification ${message}');
     if (message.data['type'] == 'chat') {
       debugPrint('Handle Notification');
       /*Navigator.pushNamed(
@@ -472,7 +672,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
     });
 
     //decodeJsonValue();
-    setState(() {});
+    //setState(() {});
   }
 
   getProfileImage() async {
@@ -528,10 +728,10 @@ class _IntranetHomePageState extends State<IntranetHomePage>
     if (!kIsWeb) {
       final firebaseMessaging = FCM();
       //useragent= Platform.isIOS ? 'IOS' : 'Android';
-      firebaseMessaging.setNotifications(employeeId.toString(), id, useragent);
-      /*FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      //firebaseMessaging.setNotifications(employeeId.toString(), id, useragent);
+      FirebaseMessaging.onMessage.listen((RemoteMessage message) {
         NotificationService().parseNotification(message);
-      });*/
+      });
     }
   }
 
@@ -852,7 +1052,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
     switch (widget._selectedDestination) {
       case MENU_HOME:
       debugPrint('getscreen-------- $mUserName');
-        return HomePageMenu(isBpms,mUserName);
+        return HomePageMenu(isBpms,mUserName,_profileAvtar);
         break;
       case MENU_ATTENDANCE:
         return AttendanceSummeryScreen(
