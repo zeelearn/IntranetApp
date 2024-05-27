@@ -17,7 +17,6 @@ import '../helper/constants.dart';
 import '../model/bpms_notification_model.dart';
 import 'DetailPage.dart';
 
-
 class UserNotification extends StatefulWidget {
   const UserNotification({Key? key}) : super(key: key);
 
@@ -38,12 +37,13 @@ class _ListPageState extends State<UserNotification> {
   void loadData() async {
     List<Map<String, dynamic>> list =
         await DBHelper().getData(LocalConstant.TABLE_NOTIFICATION);
-    //print('----${list.length}');
-    for (int index = list.length; index >0; index--) {
+    print('----${list.length}');
+    for (int index = list.length - 1; index > 0; index--) {
+      print(list[index]);
       Map<String, dynamic> map = list[index];
-      //print('----${map['title']}');
+      print('----${map['title']}');
       print(map.toString());
-      if(index>40) break;
+      if (index > 40) break;
       lessons.add(NotificationModel(
           notificationId: map['id'] ?? index,
           subject: map['title'] ?? '',
@@ -61,7 +61,7 @@ class _ListPageState extends State<UserNotification> {
     setState(() {});
   }
 
-  deleteNotification(int id){
+  deleteNotification(int id) {
     print('delete the notification ${id}');
     DBHelper().deleteNotification(LocalConstant.TABLE_NOTIFICATION, id);
   }
@@ -137,24 +137,24 @@ class _ListPageState extends State<UserNotification> {
           ),
 
           onTap: () {
-            if(notificationModel.notificationtype=='td'){
-                Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (context) => TicketDetailInfo(
-                  ticketId: notificationModel.webViewUrl,
-                  businessID:  '0',
-                  //businessUserID: receivedAction.payload!['business_user_id']!,
-                  //userID: routingData['u_id'],
-                  //role: routingData['r'],
-                  //dashboardClickListener: arguments?.$2,
-                )));
-            }else{
+            if (notificationModel.notificationtype == 'td') {
               Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) =>
-                        DetailPage(notificationModel: notificationModel)));
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => TicketDetailInfo(
+                            ticketId: notificationModel.webViewUrl,
+                            businessID: '0',
+                            //businessUserID: receivedAction.payload!['business_user_id']!,
+                            //userID: routingData['u_id'],
+                            //role: routingData['r'],
+                            //dashboardClickListener: arguments?.$2,
+                          )));
+            } else {
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) =>
+                          DetailPage(notificationModel: notificationModel)));
             }
           },
         );
@@ -175,27 +175,36 @@ class _ListPageState extends State<UserNotification> {
             // reverse: true,
             itemCount: lessons.length,
             itemBuilder: (BuildContext context, int index) {
-              if(lessons[index].notificationtype=='BPMS'){
+              if (lessons[index].notificationtype == 'BPMS') {
                 print(lessons[index].message.toString());
-                BpmsNotificationModelList bpmsList = BpmsNotificationModelList.fromJson(
-                  json.decode('{"data":${lessons[index].message.toString().replaceAll(',]', ']')}}') as Map<String, dynamic>,
+                BpmsNotificationModelList bpmsList =
+                    BpmsNotificationModelList.fromJson(
+                  json.decode(
+                          '{"data":${lessons[index].message.toString().replaceAll(',]', ']')}}')
+                      as Map<String, dynamic>,
                 );
-                return Dismissible(key: Key(lessons[index].notificationId.toString()),
-                    onDismissed: (direction){
+                return Dismissible(
+                    key: Key(lessons[index].notificationId.toString()),
+                    onDismissed: (direction) {
                       setState(() {
                         deleteNotification(lessons[index].notificationId);
                         lessons.removeAt(index);
                       });
                     },
-                    child: BPMSNotification(bpmsList: bpmsList,title: lessons[index].subject,time:lessons[index].time));
-              }else return  Dismissible(key: Key(lessons[index].notificationId.toString()),
-                  onDismissed: (direction){
-                    setState(() {
-                      deleteNotification(lessons[index].notificationId);
-                      lessons.removeAt(index);
-                    });
-                  },
-                  child: makeCard(lessons[index]));
+                    child: BPMSNotification(
+                        bpmsList: bpmsList,
+                        title: lessons[index].subject,
+                        time: lessons[index].time));
+              } else
+                return Dismissible(
+                    key: Key(lessons[index].notificationId.toString()),
+                    onDismissed: (direction) {
+                      setState(() {
+                        deleteNotification(lessons[index].notificationId);
+                        lessons.removeAt(index);
+                      });
+                    },
+                    child: makeCard(lessons[index]));
             },
           )
         : Lottie.asset(no_Notification_Animtion);
@@ -229,7 +238,6 @@ class _ListPageState extends State<UserNotification> {
     );
     final topAppBar = AppBar(
       elevation: 1.0,
-
       leadingWidth: 30,
       title: Text(
         "Notifications",
