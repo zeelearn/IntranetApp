@@ -127,7 +127,9 @@ class NotificationService {
               'url': message != null ? (message.data['url'] ?? '') : '',
               'type': message != null ? (message.data['type'] ?? '') : '',
               'topic': message != null ? (message.data['topic'] ?? '') : '',
-              'bigimage': message != null ? (message.data['bigimage'] ?? '') : ''
+              'bigimage': message != null ? (message.data['bigimage'] ?? '') : '',
+              'id': message != null ? (message.data['id'] ?? '') : '',
+              'employee_code': message != null ? (message.data['employee_code'] ?? '') : ''
             },
         ));
     print('showSimpleNotification');

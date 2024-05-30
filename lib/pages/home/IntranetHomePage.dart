@@ -15,6 +15,7 @@ import 'package:Intranet/pages/pjp/models/PjpModel.dart';
 import 'package:Intranet/pages/pjp/mypjp.dart';
 import 'package:Intranet/pages/userinfo/employee_list.dart';
 import 'package:app_version_update/app_version_update.dart';
+import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
@@ -331,7 +332,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
     //_listenForMessages();
     
     initNotification();
-
+    
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
       print('A new onMessageOpenedApp event was published123!');
       Navigator.push(

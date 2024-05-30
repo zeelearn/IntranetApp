@@ -43,7 +43,7 @@ class _ListPageState extends State<UserNotification> {
       Map<String, dynamic> map = list[index];
       print('----${map['title']}');
       print(map.toString());
-      if (index > 40) break;
+      if (index < 60) break;
       lessons.add(NotificationModel(
           notificationId: map['id'] ?? index,
           subject: map['title'] ?? '',
@@ -57,7 +57,7 @@ class _ListPageState extends State<UserNotification> {
           isSeen: 1,
           indicatorValue: 1.0));
     }
-    lessons = lessons.reversed.toList();
+    //lessons = lessons.reversed.toList();
     setState(() {});
   }
 

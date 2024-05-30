@@ -39,6 +39,8 @@ import 'package:saathi/core/hiveDatabase/hiveConstant.dart';
 import 'package:saathi/dependency_Injection/dependency_injection.dart';
 import 'package:saathi/model/notificationModel/notificationModel.dart';
 import 'package:saathi/model/ticketModel/ticket_model.dart';
+import 'package:saathi/screens/ticket/web/details.dart';
+import 'package:saathi/zllsaathi.dart';
 
 import 'api/APIService.dart';
 import 'api/request/cvf/update_cvf_status_request.dart';
@@ -230,6 +232,14 @@ late ServiceInstance mService;
 FlutterLocalNotificationsPlugin? flutterLocalNotificationsPlugin;
 late FirebaseMessaging messaging;
 
+Future<bool> getInitNotif() async {
+    ReceivedAction? receivedAction = await AwesomeNotifications().getInitialNotificationAction(removeFromActionEvents: true);
+    if (receivedAction?.buttonKeyPressed == 'ACCEPT') {
+        return true;
+    }
+    return false;
+}
+
 Future<Box> _openBox() async {
   if (!kIsWeb && !Hive.isBoxOpen(LocalConstant.KidzeeDB)) {
     Hive.init((await getApplicationDocumentsDirectory()).path);
@@ -306,6 +316,7 @@ Future<void> main() async {
 
   //await initializeService();
   //runApp(const MyApp());
+  bool acceptedNotification = await getInitNotif();
   runApp(MultiBlocProvider(
     providers: [
       BlocProvider<GetplandetailsCubit>(
@@ -315,8 +326,8 @@ Future<void> main() async {
         create: (BuildContext context) => GetvisitplannercvfCubit(),
       ),
     ],
-    child: const ProviderScope(
-      child: MyApp(),
+    child:  ProviderScope(
+      child: acceptedNotification ? UserNotification() : MyApp(),
     ),
   ));
 }
@@ -749,7 +760,7 @@ class MyApp extends StatelessWidget {
       supportedLocales: const [
         Locale('en', ''), // English, no country code
       ],
-      navigatorKey: navigatorKey,
+      navigatorKey: MyApp.navigatorKey,
       debugShowCheckedModeBanner: false,
       title: 'Intranet',
       themeMode: ThemeMode.light,
@@ -1026,8 +1037,7 @@ class NotificationController {
   ///  *********************************************
   ///  Notifications events are only delivered after call this method
   static Future<void> startListeningNotificationEvents() async {
-    AwesomeNotifications()
-        .setListeners(onActionReceivedMethod: onActionReceivedMethod);
+    AwesomeNotifications().setListeners(onActionReceivedMethod: onActionReceivedMethod);
   }
 
   ///  *********************************************
@@ -1042,10 +1052,16 @@ class NotificationController {
     if (receivedAction.actionType == ActionType.SilentAction ||
         receivedAction.actionType == ActionType.SilentBackgroundAction) {
       // For background actions, you must hold the execution until the end
-      print(
-          'Message sent via notification input: "${receivedAction.buttonKeyInput}"');
+      print('Message sent via notification input: "${receivedAction.buttonKeyInput}"');
       // await executeLongTaskInBackground();
     } else if (receivedAction.payload != null &&
+        receivedAction.payload!['type'] != null && receivedAction.payload!['type'] =='td') {
+          print('SAATHI Message sent via notification input: "${receivedAction.buttonKeyInput}"');
+          print('SAATHI payload - ${receivedAction.payload}');
+        openSaathiNotification(receivedAction);
+        
+
+    }else if (receivedAction.payload != null &&
         receivedAction.payload!['Video_path'] != null) {
       Navigator.push(
           MyApp.navigatorKey.currentState!.context,
@@ -1062,6 +1078,28 @@ class NotificationController {
     } else {
       Navigator.push(MyApp.navigatorKey.currentState!.context,
           MaterialPageRoute(builder: (context) => const UserNotification()));
+    }
+  }
+
+  static openSaathiNotification(ReceivedAction receivedAction) async{
+    try{
+      var hiveBox = await Utility.openBox();
+      await Hive.openBox(LocalConstant.KidzeeDB);
+      String mUserName = hiveBox.get(LocalConstant.KEY_USER_NAME) as String;
+        Navigator.pushAndRemoveUntil(
+          // ignore: use_build_context_synchronously
+          MyApp.navigatorKey.currentState!.context,
+          MaterialPageRoute(
+            builder: (context) => ZllTicketDetails(ticketId: receivedAction.payload!['id'].toString(),
+            bid: '0',
+            businessUserId: '',
+            userId: mUserName,
+            mColor: kPrimaryLightColor,),
+          ),
+          (route) => false);
+    }catch(e){
+      print('SAATHI exception $e');
+      print(e);
     }
   }
 
