@@ -45,32 +45,33 @@ dependencies:
   flutter_bloc: ^8.1.3
   flutter_easyloading: 3.0.5
   #shimmer: ^2.0.0
-  firebase_crashlytics: ^3.5.4
-  firebase_core: ^2.30.1
-  firebase_analytics: ^10.10.4
-  firebase_messaging: ^14.9.1
-  firebase_storage: ^11.7.4
+  firebase_crashlytics: ^4.0.3
+  firebase_core: ^3.0.0
+  firebase_analytics: ^11.1.0
+  firebase_messaging: ^15.0.1
+  firebase_storage: ^12.0.0
   sqflite: ^2.3.2
   path: ^1.8.3
   table_calendar: ^3.0.9
-  month_picker_dialog: ^2.0.2
+  month_picker_dialog: ^4.0.1
   #month_year_picker: ^0.2.0+1
   #flutter_datetime_picker: ^1.5.1
   #carousel_slider: ^4.1.1
   styled_widget: ^0.4.1
   device_info_plus: ^9.0.2
   #webviewx: ^0.2.2
-  google_fonts: ^4.0.1
+  google_fonts: ^6.2.1
   get: ^4.6.5
+  pdfrx: ^1.0.79
   square_percent_indicater: ^0.1.0
   flutter_screenutil: ^5.8.4
   flutter_icons_null_safety: ^1.1.0
   flutter_google_places: ^0.3.0
   geocoding: ^3.0.0
-  syncfusion_flutter_datepicker: ^24.1.43
+  syncfusion_flutter_datepicker: ^26.1.41
   image_picker: ^1.0.7
   material_dialogs: ^1.1.4
-  geolocator: ^11.0.0
+  geolocator: ^12.0.0
   permission_handler: ^11.3.0
   flutter_image_compress: ^2.0.3
   flutter_staggered_grid_view: ^0.7.0
@@ -90,30 +91,30 @@ dependencies:
   pinch_zoom: ^2.0.0
   timeline_tile: ^2.0.0
   custom_date_range_picker: ^1.0.10
-  file_picker: ^6.1.1
-  flutter_webview_pro: ^3.0.1+4
-  syncfusion_flutter_pdfviewer: ^24.1.43
+  file_picker: ^8.0.5
+  #flutter_webview_pro: ^3.0.1+3
+  syncfusion_flutter_pdfviewer: ^26.1.41
   location_geocoder: ^1.0.5
   order_tracker_zen: ^1.0.0+4
-  app_version_update: ^4.0.1
-  location: ^6.0.1
+  app_version_update: ^5.0.1
+  location: ^7.0.0
   flutter_riverpod: ^2.3.10
   dio: ^5.3.2
-  camera: ^0.10.5+4
+  camera: ^0.11.0+1
   video_player: ^2.4.5
   either_dart: ^1.0.0
   aws_s3_upload: ^1.5.0
   chewie: ^1.5.0
-  flutter_widget_from_html_core: ^0.14.6
+  flutter_widget_from_html_core: ^0.15.1
   flutter_html: ^3.0.0-alpha.6
   dropdown_search: ^5.0.6
-
-  calendar_date_picker2: ^0.5.3
+  flutter_inappwebview: ^5.8.0
+  calendar_date_picker2: ^1.1.5
   device_calendar: ^4.3.2
 
-  syncfusion_flutter_calendar: ^24.1.43
+  syncfusion_flutter_calendar: ^26.1.41
   fluttertoast: ^8.2.4
-  grouped_list: ^5.1.2
+  grouped_list: ^6.0.0
   collection: ^1.18.0
   uni_links: ^0.5.1
   #overlay_support: ^2.0.1
@@ -123,6 +124,7 @@ dependencies:
 
   saathi:
     path: ../ZeeSathi/
+  fl_chart: ^0.68.0
 
 dependency_overrides:
   intl: ^0.17.0
@@ -132,6 +134,9 @@ dependency_overrides:
   package_info_plus: ^4.0.0
   win32: ^5.0.9
   lottie: ^3.1.0
+  file_picker: ^8.0.5
+  rxdart: ^0.26.0
+
 
 
 dev_dependencies:
@@ -143,7 +148,7 @@ dev_dependencies:
   # activated in the `analysis_options.yaml` file located at the root of your
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
-  flutter_lints: ^3.0.1
+  flutter_lints: ^4.0.0
 
 flutter_icons:
   android: true

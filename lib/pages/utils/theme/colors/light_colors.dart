@@ -35,6 +35,21 @@ class LightColors  {
   static const Color kLightBlueMaterial = Color.fromRGBO(52, 152, 219 , 53);
 
 
+  static const Color notWhite = Color(0xFFEDF0F2);
+  static const Color nearlyWhite = Color(0xFFFEFEFE);
+  static const Color white1 = Color(0xFFFFFFFF);
+  static const Color nearlyBlack = Color(0xFF213333);
+  static const Color grey = Color(0xFF3A5160);
+  static const Color dark_grey = Color(0xFF313A44);
+
+static Color scaffoldBackgroundColor = const Color(0xFFe0efff);
+  static Color defaultRedColor = const Color(0xffff698a);
+  static Color defaultYellowColor = const Color(0xFFfedd69);
+  static Color defaultBlueColor = const Color(0xff52beff);
+  static Color defaultGreyColor = const Color(0xff77839a);
+  static Color defaultLightGreyColor = const Color(0xffc4c4c4);
+  static Color defaultLightWhiteColor = const Color(0xFFf2f6fe);
+
   static const Color TextColor = Color.fromARGB(255, 14,44, 83);
   //static const TextStyle pentemindTextStyle = TextStyle(color: TextColor,fontFamily: 'roboto', fontSize: 16);
   static TextStyle textHeaderStyle = GoogleFonts.roboto(
@@ -59,7 +74,7 @@ class LightColors  {
   );
 
   static TextStyle textHeaderStyle16 = GoogleFonts.roboto(
-    fontSize: 16.0,
+    fontSize: 20.0,
     color: LightColors.TextColor,
     fontWeight: FontWeight.normal,
     height: 1.5,
@@ -151,7 +166,7 @@ class LightColors  {
 
   static TextStyle headerTitleSelected = GoogleFonts.poppins(
     color: kPrimaryLightColor,
-    fontSize: 16.0,
+    fontSize: 26.0,
   );
   static TextStyle headerTilte = GoogleFonts.poppins(
     color: Colors.black,
@@ -176,4 +191,16 @@ class LightColors  {
     fontWeight: FontWeight.w600,
     height: 1.5,
   );
+}
+
+class HexColor extends Color {
+  HexColor(final String hexColor) : super(_getColorFromHex(hexColor));
+
+  static int _getColorFromHex(String hexColor) {
+    hexColor = hexColor.toUpperCase().replaceAll('#', '');
+    if (hexColor.length == 6) {
+      hexColor = 'FF' + hexColor;
+    }
+    return int.parse(hexColor, radix: 16);
+  }
 }

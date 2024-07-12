@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:Intranet/pages/home/IntranetHomePage.dart';
+import 'package:Intranet/pages/widget/MyWebSiteView.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
@@ -127,7 +128,7 @@ class _LoginFormState extends State<LoginForm>
                     } else {
                       Navigator.of(context).push(MaterialPageRoute(
                           builder: (BuildContext context) =>
-                              PrivacyPolicyScreen(url: 'https://kidzee.com/PrivacyPolicy',)));
+                              MyWebsiteView(url: 'https://kidzee.com/PrivacyPolicy', title: 'Privacy Policy',)));
                     }
                   },
                   child: const Text(

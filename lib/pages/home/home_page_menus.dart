@@ -1,7 +1,9 @@
 import 'dart:math';
 import 'dart:typed_data';
 
+import 'package:Intranet/pages/dashboard/chart/radial.dart';
 import 'package:Intranet/pages/helper/LocalConstant.dart';
+import 'package:Intranet/pages/home/dashboard.dart';
 import 'package:Intranet/pages/pjp/cvf/mycvf.dart';
 import 'package:flutter/material.dart';
 import 'package:saathi/zllsaathi.dart';
@@ -299,6 +301,14 @@ class HomePageMenu extends StatelessWidget {
                     //_getMenu(context, 'My Report',Icons.multiline_chart, MyReportsScreen()),
                   ],
                 )),
+
+                Padding(padding: EdgeInsets.all(5),
+                child: GestureDetector(
+                  onTap: (){
+                   Navigator.push(
+                    context, MaterialPageRoute(builder: (context) => DashboardPage()));
+                  },
+                  child: Text('My Dashboard'),)),
             /*Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [

@@ -235,19 +235,16 @@ class _IntranetHomePageState extends State<IntranetHomePage>
         } else {
           Navigator.pop(context);
           //Utility.showMessage(context, "Invalid User Name and Password");
-          debugPrint("null value");
         }
       });
     } else {}
   }
 
   getLoginResponse() async {
-    debugPrint('in Login Response ================');
     businessApplications.clear();
     hiveBox = await Utility.openBox();
     await Hive.openBox(LocalConstant.KidzeeDB);
     var loginresponse = hiveBox.get(LocalConstant.KEY_LOGIN_RESPONSE);
-    debugPrint('login Response is : ' + loginresponse);
     try {
       LoginResponseModel response = LoginResponseModel.fromJson(
         json.decode(loginresponse),
@@ -562,7 +559,6 @@ getToken() async {
     await AppVersionUpdate.checkForUpdates(
       appleId: '6443464060',
       playStoreId: 'com.zeelearn.intranet',
-      country: 'in',
     ).then((result) async {
       if (result.canUpdate!) {
         await AppVersionUpdate.showBottomSheetUpdate(

@@ -1,8 +1,10 @@
+import 'package:Intranet/pages/helper/constants.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_webview_pro/webview_flutter.dart';
 import 'package:lottie/lottie.dart';
-
+import 'package:flutter_inappwebview/flutter_inappwebview.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class MyWebsiteView extends StatefulWidget {
   String url;
@@ -15,29 +17,20 @@ class MyWebsiteView extends StatefulWidget {
 
 class MyWebsiteViewState extends State<MyWebsiteView> {
 
-  WebViewController? _controller = null;
+  InAppWebViewController? webViewController;
+  final urlController = TextEditingController();
+  String url = "";
 
-  bool isUrlLoadingCompleted = false;
+  bool isUrlLoadingCompleted = true;
   double progress = 0;
 
-  JavascriptChannel _toasterJavascriptChannel(BuildContext context) {
-    return JavascriptChannel(
-        name: 'Download',
-        onMessageReceived: (JavascriptMessage message) {
-          // ignore: deprecated_member_use
-          debugPrint('Download method calles........');
-          /*Scaffold.of(context).showSnackBar(
-            SnackBar(content: Text(message.message)),
-          );*/
-        });
-  }
+  final GlobalKey webViewKey = GlobalKey();
+  PullToRefreshController? pullToRefreshController;
 
   @override
   void initState() {
     super.initState();
-    debugPrint(Uri.decodeFull(widget.url));
-    // Enable hybrid composition.
-    //if (Platform.isAndroid) WebView.platform = SurfaceAndroidWebView();
+  
   }
 
   showLoaderDialog(BuildContext context) {
@@ -52,65 +45,122 @@ class MyWebsiteViewState extends State<MyWebsiteView> {
       },
     );
   }
-   @override
-    Widget build(BuildContext context) {
-      return MaterialApp(
-        title: widget.title,
-        home: Scaffold(
-          appBar:  AppBar(
-            title: Text(widget.title),// You can add title here
-            leading: IconButton(
-              icon: Icon(Icons.arrow_back_ios),
-              onPressed: () => Navigator.of(context).pop(),
-            ), //You can make this transparent
-            elevation: 0.0, //No shadow
-          ),
-          body : WebView(
-            initialUrl: Uri.decodeFull(widget.url),
-            javascriptMode: JavascriptMode.unrestricted,
-            onWebViewCreated: (WebViewController webViewController) {
-              //debugPrint('FLWEB webview created....');
-              _controller = webViewController;
-              //_controller.complete(webViewController);
-            },
-            onProgress: (int progress) {
-              //debugPrint('FLWEB- WebView is loading (onProgress : $progress%)');
-              if (progress >= 100 && !isUrlLoadingCompleted) {
-                setState(() {
-                  isUrlLoadingCompleted = true;
-                });
 
-                //Navigator.of(context, rootNavigator: true).pop('dialog');
+  @override
+  Widget build(BuildContext context) {
+    print(widget.url);
+    return Scaffold(
+              appBar: widget.title.isEmpty || widget.title == 'Parent Support Desk' ||
+                  widget.title == 'ZLLSaathi'
+              ? null
+              : AppBar(
+                  backgroundColor: kPrimaryLightColor,
+                  leadingWidth: 30,
+                  title: Text(
+                    widget.title,
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleSmall!
+                        .copyWith(color: Colors.white),
+                  ), // You can add title here
+                  leading: Padding(
+                    padding: const EdgeInsets.all(0.0),
+                    child: IconButton(
+                      icon:
+                          const Icon(Icons.arrow_back_ios, color: Colors.white),
+                      onPressed: () async {
+                        Navigator.pop(context);
+                        // WebViewController webViewController =
+                        //     await _controller.future;
+                        // if (await webViewController.canGoBack()) {
+                        //   webViewController.goBack();
+                        // } else {
+                        //   Navigator.pop(context);
+                        // }
+                      },
+                    ),
+                  ), //You can make this transparent
+                  elevation: 0.0, //No shadow
+                ),
+      backgroundColor: Colors.white,
+      body:InAppWebView(
+                  key: webViewKey,
+                  initialUrlRequest:
+                      URLRequest(url: Uri.parse(widget.url)),
+                  // initialSettings: settings,
+                  pullToRefreshController: pullToRefreshController,
+                  onWebViewCreated: (controller) {
+                    webViewController = controller;
+                  },
+                  onLoadStart: (controller, url) {
+                    setState(() {
+                      this.url = url.toString();
+                      urlController.text = this.url;
+                    });
+                  },
+                  /* onPermissionRequest: (controller, request) async {
+                    return PermissionResponse(
+                        resources: request.resources,
+                        action: PermissionResponseAction.GRANT);
+                  }, */
+                  shouldOverrideUrlLoading:
+                      (controller, navigationAction) async {
+                    var uri = navigationAction.request.url!;
 
-                //Navigator.pop(context);
-              }
-            },
-            javascriptChannels: <JavascriptChannel>{
-              _toasterJavascriptChannel(context),
-            },
-            navigationDelegate: (NavigationRequest request) {
-              //debugPrint('FLWEB-allowing navigation to $request');
-              return NavigationDecision.navigate;
-            },
-            onPageStarted: (String url) {
-              print('page started .. ${url}');
-              //isUrlLoadingCompleted = false;
-              //showLoaderDialog(context);
-              //debugPrint('FLWEB-Page started loading: $url');
-            },
-            onPageFinished: (String url) {
-              //debugPrint('FLWEB-Page onPageFinished loading: $url');
-            },
-            onWebResourceError: (WebResourceError error) {
-              //debugPrint(error.toString());
-              //debugPrint('======');
-            },
-            gestureNavigationEnabled: true,
-            geolocationEnabled: true, // set geolocationEnable true or not
-          ),
-        ),
-      );
-    }
-//  }
+                    if (![
+                      "http",
+                      "https",
+                      "file",
+                      "chrome",
+                      "data",
+                      "javascript",
+                      "about"
+                    ].contains(uri.scheme)) {
+                      if (await canLaunchUrl(uri)) {
+                        // Launch the App
+                        await launchUrl(
+                          uri,
+                        );
+                        // and cancel the request
+                        return NavigationActionPolicy.CANCEL;
+                      }
+                    }
+
+                    return NavigationActionPolicy.ALLOW;
+                  },
+                  onLoadStop: (controller, url) async {
+                    pullToRefreshController?.endRefreshing();
+                    setState(() {
+                      this.url = url.toString();
+                      urlController.text = this.url;
+                    });
+                  },
+                  /* onReceivedError: (controller, request, error) {
+                    pullToRefreshController?.endRefreshing();
+                  }, */
+                  onProgressChanged: (controller, progress) {
+                    if (progress == 100) {
+                      pullToRefreshController?.endRefreshing();
+                    }
+                    setState(() {
+                      this.progress = progress / 100;
+                      urlController.text = url;
+                    });
+                  },
+                  onUpdateVisitedHistory: (controller, url, androidIsReload) {
+                    setState(() {
+                      this.url = url.toString();
+                      urlController.text = this.url;
+                    });
+                  },
+                  onConsoleMessage: (controller, consoleMessage) {
+                    if (kDebugMode) {
+                      print(consoleMessage);
+                    }
+                  },
+                ) /* WebViewWidget(controller: _controller) */,
+    );
+  }
+  
 
 }

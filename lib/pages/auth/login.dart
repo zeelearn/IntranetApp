@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:Intranet/pages/firebase/anylatics.dart';
+import 'package:Intranet/pages/widget/MyWebSiteView.dart';
 import 'package:Intranet/pages/widget/MyWidget.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -134,7 +135,7 @@ class _LoginPage extends State<LoginPage> {
                           } else {
                             Navigator.of(context).push(MaterialPageRoute(
                                 builder: (BuildContext context) =>
-                                    PrivacyPolicyScreen(url: 'https://kidzee.com/PrivacyPolicy',)));
+                                    MyWebsiteView(url: 'https://kidzee.com/PrivacyPolicy', title: 'Privacy Policy',)));
                           }
                         },
                         child: const Text(

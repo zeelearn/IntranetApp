@@ -1,10 +1,9 @@
+import 'package:Intranet/pages/widget/MyWebSiteView.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:Intranet/api/ServiceHandler.dart';
 import 'package:Intranet/api/request/report/myreport_request.dart';
 import 'package:Intranet/pages/iface/onResponse.dart';
-import 'package:Intranet/pages/reports.dart';
-
 import '../../api/response/report/my_report.dart';
 import '../helper/constants.dart';
 import '../helper/utils.dart';
@@ -101,7 +100,7 @@ class _MyReportScreenState extends State<MyReportsScreen>
                     context,
                     MaterialPageRoute(
                         builder: (context) =>
-                            MyReportScreen(
+                            MyWebsiteView(
                                 title: mReportList[index].title,
                                 url: mReportList[index].webViewURL)));
               }
