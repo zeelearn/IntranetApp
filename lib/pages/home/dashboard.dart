@@ -13,10 +13,12 @@ import 'package:Intranet/pages/filter/filterrequest.dart';
 import 'package:Intranet/pages/filter/myFilterData.dart';
 import 'package:Intranet/pages/helper/LightColor.dart';
 import 'package:Intranet/pages/helper/helpers.dart';
+import 'package:Intranet/pages/home/detail_kpi.dart';
 import 'package:Intranet/pages/pjp/cvf/Questions.dart';
 import 'package:Intranet/pages/utils/theme/colors/light_colors.dart';
 import 'package:Intranet/pages/widget/indicator.dart';
 import 'package:Intranet/pages/widget/month_picker_dialog.dart';
+import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
@@ -39,6 +41,7 @@ class DashboardState extends State {
  late DateTime selectedDate = DateTime.now();
  late FilterRequest filterRequest;
  late DashboardFilterData? filterData;
+  KPIInfo? kpilist=null;
 
   int totalENTarget = 0;
   int actualENTarget = 0;
@@ -51,7 +54,8 @@ class DashboardState extends State {
     // TODO: implement initState
     super.initState();
     filterRequest = FilterRequest(year: '', month: '', employee: '',zone: '');
-    filterData = DashboardFilterData(HashMap<String, List<String>>());
+    filterData = DashboardFilterData(HashMap<String, List<String>>(), kpiInfo: kpilist);
+    filterRequest.month = Utility.getShortMonth(DateTime.now());
     insertFilters();
     generateKPIs();
   }
@@ -63,74 +67,132 @@ class DashboardState extends State {
     }else
       filterData!.franchinseeList!.clear();
 
+
     if(filterData!.employeeList==null){
       filterData!.employeeList = [];
     }else{
       filterData!.employeeList!.clear();
     }
     //print(sample_data.toString());
-    KPIInfo kpilist  = KPIInfo.fromJson(jsonDecode(SampleData.list.toString()));
+    kpilist  = KPIInfo.fromJson(jsonDecode(SampleData.list.toString()));
+    filterData!.kpiInfo = kpilist;
     Map<String,String> franchisee = Map<String,String>();
-    for(int index=0;index<kpilist.data!.length;index++){
-      if(!franchisee.containsKey(kpilist.data![index].franchiseCodeName)){
-        filterData!.franchinseeList!.add(kpilist.data![index].franchiseCodeName!);
-        franchisee.putIfAbsent(kpilist.data![index].franchiseCodeName!,() => kpilist.data![index].franchiseCodeName!);
+    for(int index=0;index<kpilist!.data!.length;index++){
+      if(!franchisee.containsKey(kpilist!.data![index].franchiseCodeName)){
+        filterData!.franchinseeList!.add(kpilist!.data![index].franchiseCodeName!);
+        franchisee.putIfAbsent(kpilist!.data![index].franchiseCodeName!,() => kpilist!.data![index].franchiseCodeName!);
+      }
+    }
+    filterData!.zoneList = [];
+    Map<String,String> zoneMap = Map<String,String>();
+    for(int index=0;index<kpilist!.data!.length;index++){
+      if(!zoneMap.containsKey(kpilist!.data![index].zone)){
+        filterData!.zoneList!.add(kpilist!.data![index].zone!);
+        zoneMap.putIfAbsent(kpilist!.data![index].zone!,() => kpilist!.data![index].zone!);
       }
     }
 
     Map<String,String> employee = Map<String,String>();
-    for(int index=0;index<kpilist.data!.length;index++){
-      if(!employee.containsKey(kpilist.data![index].zM)){
-        filterData!.employeeList!.add(kpilist.data![index].zM!);
-        employee.putIfAbsent(kpilist.data![index].zM!,() => kpilist.data![index].zM!);
+    for(int index=0;index<kpilist!.data!.length;index++){
+      if(!employee.containsKey(kpilist!.data![index].zM)){
+        filterData!.employeeList!.add(kpilist!.data![index].zM!);
+        employee.putIfAbsent(kpilist!.data![index].zM!,() => kpilist!.data![index].zM!);
       }
     }
-    for(int index=0;index<kpilist.data!.length;index++){
-      if(!employee.containsKey(kpilist.data![index].tM)){
-        filterData!.employeeList!.add(kpilist.data![index].tM!);
-        employee.putIfAbsent(kpilist.data![index].tM!,() => kpilist.data![index].tM!);
+    for(int index=0;index<kpilist!.data!.length;index++){
+      if(!employee.containsKey(kpilist!.data![index].tM)){
+        filterData!.employeeList!.add(kpilist!.data![index].tM!);
+        employee.putIfAbsent(kpilist!.data![index].tM!,() => kpilist!.data![index].tM!);
       }
     }
-
-
-    //filterData!.franchinseeList!.addAll(kpilist.data.)
+    getCenters(kpilist!.data!);
+    getEnrollments(kpilist!.data!);
+    //filterData!.franchinseeList!.addAll(kpilist!.data.)
   }
 
-  RxInt totalCenters = 0.obs;
-  RxInt totalACK = 0.obs;
-  RxInt totalEnrollment = 0.obs;
+  bool isFilterMatch(KPIModel model){
+    bool isFilterMatched = false;
+    if(filterRequest.isEmpty()){
+      isFilterMatched = true;
+    }else if(filterRequest.franchisee==model.franchiseCodeName){
+      isFilterMatched = true;
+    }else if(filterRequest.employee==model.zM || filterRequest.employee==model.tM){
+      isFilterMatched =  true;
+    }else if(filterRequest.zone == model.zone){
+      isFilterMatched =  true;
+    }else if(filterRequest.month == model.month){
+      isFilterMatched =  true;
+    }
+    return isFilterMatched;
+  }
 
-  generateKPIs(){
-    KPIInfo kpilist  = KPIInfo.fromJson(jsonDecode(SampleData.list.toString()));
-    totalENTarget = 0;
-    actualENTarget = 0;
-    totalACKTarget = 0;
-    actualACKTarget = 0;
-    totalCenters=0.obs;
-    totalACK=0.obs;
-    totalEnrollment=0.obs;
-    for(int index=0;index< kpilist.data!.length;index++){
-      if(filterRequest==null ||  filterRequest.isEmpty()){
-          totalACKTarget += toInt(kpilist.data![index].targetACK!);
-          actualACKTarget += toInt(kpilist.data![index].aCKACT!);
 
-          totalENTarget += toInt(kpilist.data![index].targetEN!);
-          actualENTarget += toInt(kpilist.data![index].eNAct!);
-          totalCenters++;
-          totalACK++;
-          totalEnrollment++;
-      }else if(filterRequest.employee==kpilist.data![index].tM || filterRequest.employee==kpilist.data![index].zM ||
-          filterRequest.franchisee == kpilist.data![index].franchiseCodeName
-      ){
-        print('generatting kpis 115');
-          totalACKTarget += toInt(kpilist.data![index].targetACK!);
-          actualACKTarget += toInt(kpilist.data![index].aCKACT!);
-          totalENTarget += toInt(kpilist.data![index].targetEN!);
-          actualENTarget += toInt(kpilist.data![index].eNAct!);
-        totalACK++;
-        totalEnrollment++;
+  List<KPIModel> centers =[];
+  getCenters(List<KPIModel> list) {
+    if (centers == null) {
+      centers = [];
+    } else
+      centers.clear();
+    Map<String, String> centerMap = Map<String, String>();
+    for (int index = 0; index < list.length; index++) {
+      if (isFilterMatch(list[index])) {
+        if (!centerMap.containsKey(kpilist!.data![index].franchiseCodeName)) {
+          centers.add(kpilist!.data![index]);
+        }
       }
     }
+  }
+
+    List<KPIModel> totalEnrollments =[];
+    getEnrollments(List<KPIModel> list){
+      totalENTarget = 0;
+      actualENTarget = 0;
+      totalACKTarget = 0;
+      actualACKTarget = 0;
+      filterData!.totalEnrollments=0;
+      filterData!.totalAck=0;
+      for(int index=0;index<list.length;index++){
+        if(isFilterMatch(list[index])){
+          totalENTarget += toInt(list[index].targetEN!);
+          totalACKTarget = toInt(list[index].targetACK!);
+          actualENTarget += toInt(list[index].eNAct!);
+          actualACKTarget = toInt(list[index].aCKACT!);
+        }
+      }
+      filterData!.totalEnrollments = totalENTarget;
+      filterData!.totalAck = totalACKTarget;
+
+    filterData?.totalCenters = centers.length;
+  }
+
+
+
+  generateKPIs(){
+    kpilist  = KPIInfo.fromJson(jsonDecode(SampleData.list.toString()));
+    getCenters(kpilist!.data!);
+    getEnrollments(kpilist!.data!);
+    // for(int index=0;index< kpilist!.data!.length;index++){
+    //   if(filterRequest==null ||  filterRequest.isEmpty()){
+    //       totalACKTarget += toInt(kpilist!.data![index].targetACK!);
+    //       actualACKTarget += toInt(kpilist!.data![index].aCKACT!);
+    //
+    //       totalENTarget += toInt(kpilist!.data![index].targetEN!);
+    //       actualENTarget += toInt(kpilist!.data![index].eNAct!);
+    //       // totalCenters++;
+    //       // totalACK++;
+    //       // totalEnrollment++;
+    //   }else if(filterRequest.employee==kpilist!.data![index].tM || filterRequest.employee==kpilist!.data![index].zM ||
+    //       filterRequest.franchisee == kpilist!.data![index].franchiseCodeName
+    //   ){
+    //     print('generatting kpis 115');
+    //       totalACKTarget += toInt(kpilist!.data![index].targetACK!);
+    //       actualACKTarget += toInt(kpilist!.data![index].aCKACT!);
+    //       totalENTarget += toInt(kpilist!.data![index].targetEN!);
+    //       actualENTarget += toInt(kpilist!.data![index].eNAct!);
+    //     // totalACK++;
+    //     // totalEnrollment++;
+    //   }
+    // }
     setState(() {
 
     });
@@ -169,6 +231,9 @@ class DashboardState extends State {
                     if (date != null) {
                       setState(() {
                         selectedDate = date;
+                        filterRequest.month = Utility.getShortMonth(date);
+                        print('Date Picker ${selectedDate}');
+                        insertFilters();
                         
                       });
                     }
@@ -182,7 +247,7 @@ class DashboardState extends State {
                       border: Border.all(color: LightColors.kLightGray1),
                       borderRadius: BorderRadius.all(Radius.circular(10))
                     ),
-                    child: Text('July 2024',style: LightColors.subTextStyle,),
+                    child: Text(filterRequest.month,style: LightColors.subTextStyle,),
                   ),
                 ),
                 InkWell(
@@ -220,7 +285,7 @@ class DashboardState extends State {
                   height: MediaQuery.of(context).size.height - 100,
                   child: Column(
                     children: <Widget>[
-                      SizedBox(height: context.height * 0.5,child: _enrollmentChart()),
+                      SizedBox(height: context.height * 0.5,child: enrollmentChart()),
                       SizedBox(height: 200, child: _kpi()),
                       //_quickStatsWidget()
                     ],
@@ -234,7 +299,9 @@ class DashboardState extends State {
     );
   }
 
-  _enrollmentChart(){
+  enrollmentChart(){
+      print('actual 303 ${totalACKTarget.toDouble()} ${actualACKTarget.toDouble()}');
+      print('Target 304 ${totalENTarget.toDouble()} ${actualENTarget.toDouble()}');
       return Card(
         margin: const EdgeInsets.only(left: 20,right: 20,top: 10),
         child: Container(
@@ -244,13 +311,23 @@ class DashboardState extends State {
             title: "My Progress",
             children: [
               Container(
-                child: RandomizedRadialChartExample(targetAck: totalACKTarget.toDouble(),targetEnrollment: actualENTarget.toDouble(),actualAck: actualACKTarget.toDouble(),actualEnrollment: actualENTarget.toDouble(),)
+                child: RandomizedRadialChartExample(targetAck: totalACKTarget.toDouble(),targetEnrollment: totalENTarget.toDouble(),actualAck: actualACKTarget.toDouble(),actualEnrollment: actualENTarget.toDouble(),)
               ),
               //SizedBox(height: 20,),
-              Container(
-                padding: const EdgeInsets.only(bottom: 18),
-                height: 100,
-                child: _otherExpanses(getKPIStatus()),
+              InkWell(
+                onTap: (){
+                  Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => DetailKpiScreen(kipList: kpilist ==null ? [] : kpilist!.data!,),
+                        ),
+                      );
+                },
+                child: Container(
+                  padding: const EdgeInsets.only(bottom: 18),
+                  height: 100,
+                  child: _otherExpanses(getKPIStatus()),
+                ),
               ),
             ],
             ),
@@ -261,12 +338,12 @@ class DashboardState extends State {
   getKPIStatus(){
     return [
       Expense(
-        color: LightColors.kRed,
+        color: LightColors.kDarkBlue,
         expenseName: "Enrollment",
-        target: totalENTarget.toString(), actual: actualACKTarget.toString(),
+        target: totalENTarget.toString(), actual: actualENTarget.toString(),
       ),
       Expense(
-        color: LightColors.kDarkOrange,
+        color: LightColors.kGreen,
         expenseName: "ACK",
         target: totalACKTarget.toString(),
         actual: actualACKTarget.toString(),
@@ -352,30 +429,40 @@ final ScrollController _scrollController = ScrollController();
 
   Widget _row4Widget() {
     return Container(
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          ZllWidgets.singleItemQuickStats(
-            title: "Centers",
-            value: totalCenters.toString(),
-            width: context.width /3.8,
-            icon: null,//Icons.arrow_upward_outlined,
-            iconColor: Colors.green
-          ),
-          ZllWidgets.singleItemQuickStats(
-              title: "Enrollments",
-              value: totalEnrollment.toString(),
+      child: InkWell(
+        onTap: (){
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => DetailKpiScreen(kipList: kpilist ==null ? [] : kpilist!.data!,),
+            ),
+          );
+        },
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            ZllWidgets.singleItemQuickStats(
+              title: "Centers",
+              value: filterData!.totalCenters.toString(),
               width: context.width /3.8,
-              icon: null,//Icons.arrow_downward,
-              iconColor:  LightColors.kRed,
-              textColor: LightColors.kDarkBlue),
-          ZllWidgets.singleItemQuickStats(
-              title: "ACK",
-              value: totalACK.toString(),
-              width: context.width /3.8,
-              icon: null,//Icons.arrow_upward,
-              iconColor: Colors.green),
-        ],
+              icon: null,//Icons.arrow_upward_outlined,
+              iconColor: Colors.green
+            ),
+            ZllWidgets.singleItemQuickStats(
+                title: "Enrollments",
+                value: filterData!.totalEnrollments.toString(),
+                width: context.width /3.8,
+                icon: null,//Icons.arrow_downward,
+                iconColor:  LightColors.kRed,
+                textColor: LightColors.kDarkBlue),
+            ZllWidgets.singleItemQuickStats(
+                title: "ACK",
+                value: filterData!.totalAck.toString(),
+                width: context.width /3.8,
+                icon: null,//Icons.arrow_upward,
+                iconColor: Colors.green),
+          ],
+        ),
       ),
     );
   }

@@ -7,6 +7,9 @@ import 'package:saathi/screens/ticket/filter/filter_selectable_item.dart';
 import 'package:saathi/screens/ticket/filter/filter_selectable_visible_option.dart';
 import 'package:saathi/widget/dropdown.dart';
 import 'package:saathi/widget/ui/block_subtitle.dart';
+import 'package:intl/intl.dart';
+
+import '../dashboard/KPIModel.dart';
 
 
 class FiltersAppScreen extends StatefulWidget {
@@ -58,13 +61,61 @@ class _FiltersScreenState extends State<FiltersAppScreen> {
     
   }
 
+  bool isFilterMatch(KPIModel model){
+    bool isFilterMatched = false;
+    print('selected zone ${widget.mFilterRequest!.zone}');
+    if(widget.mFilterRequest!.isEmpty()){
+      isFilterMatched = true;
+    }else if(widget.mFilterRequest!.franchisee==model.franchiseCodeName){
+      isFilterMatched = true;
+    }else if(widget.mFilterRequest!.employee==model.zM || widget.mFilterRequest!.employee==model.tM){
+      isFilterMatched =  true;
+    }else if(widget.mFilterRequest!.zone == model.zone){
+      isFilterMatched =  true;
+    }else if(widget.mFilterRequest!.month == model.month){
+      isFilterMatched =  true;
+    }
+    return isFilterMatched;
+  }
+
+  updateFilter(){
+    print('update Filter ');
+    Map<String,String> franchisee = Map<String,String>();
+    Map<String, String> zoneMap = Map<String, String>();
+    Map<String, String> employee = Map<String, String>();
+    if(widget.filterData.kpiInfo != null) {
+      List<KPIModel> kpilist =widget.filterData.kpiInfo!.data!;
+      widget.filterData.franchinseeList!.clear();
+      widget.filterData.employeeList!.clear();
+      widget.filterData.zoneList!.clear();
+      for (int index = 0; index < kpilist.length; index++) {
+          print('update Filter MatchFilter');
+          if (isFilterMatch(kpilist[index]) && !franchisee.containsKey(kpilist[index].franchiseCodeName)) {
+            widget.filterData.franchinseeList!.add(kpilist[index].franchiseCodeName!);
+            franchisee.putIfAbsent(kpilist[index].franchiseCodeName!, () => kpilist[index].franchiseCodeName!);
+          }
+          if (!zoneMap.containsKey(kpilist[index].zone)) {
+            widget.filterData.zoneList!.add(kpilist[index].zone!);
+            zoneMap.putIfAbsent(kpilist[index].zone!, () => kpilist[index].zone!);
+          }
+          if (isFilterMatch(kpilist[index]) && !employee.containsKey(kpilist[index].zM)) {
+            widget.filterData.employeeList!.add(kpilist[index].zM!);
+            employee.putIfAbsent(kpilist[index].zM!, () => kpilist[index].zM!);
+          }
+      }
+    }
+    setState(() {
+
+    });
+  }
+
   getZoneWidget() {
     return FilterSelectableVisibleOption<String>(
       title: 'Zones',
       onSelected: (String value) {
         _onAttributeSelected('Zone', value);
-        widget.mFilterRequest!.zone =
-            widget.mFilterRequest!.zone == value ? '' : value;
+        widget.mFilterRequest!.zone = widget.mFilterRequest!.zone == value ? '' : value;
+        updateFilter();
       },
       children:
           Map.fromEntries(widget.filterData.zoneList!.map((option) => MapEntry(
@@ -105,6 +156,7 @@ class _FiltersScreenState extends State<FiltersAppScreen> {
               if (p0 != null) {
                 franchiseeTextEditingController.text = p0.toString();
                 widget.mFilterRequest!.franchisee = p0.toString();
+                updateFilter();
               } else {
                 //selectedFilterFranchisee = p0;
               }
@@ -137,6 +189,7 @@ class _FiltersScreenState extends State<FiltersAppScreen> {
               if (p0 != null) {
                 employeeTextEditingController.text = p0.toString();
                 widget.mFilterRequest!.employee = p0.toString();
+                updateFilter();
               } else {
                 //selectedFilterFranchisee = p0;
               }

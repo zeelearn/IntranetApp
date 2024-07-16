@@ -42,15 +42,12 @@ class _RandomizedRadialChartExampleState extends State<RandomizedRadialChartExam
 
   double value = 60.0;
 
-  void _randomize() {
-    setState(() {
-      data = _generateRandomData();
-      _chartKey.currentState!.updateData(data!);
-    });
-  }
+
 
   List<CircularStackEntry> _generateRandomData() {
     //int stackCount = random.nextInt(20);
+    print('actual Enrollment ${widget.actualEnrollment}');
+    print('target ${widget.targetEnrollment}');
     List<CircularStackEntry> data=[];
     // List<CircularStackEntry> data = new List.generate(stackCount, (i) {
     //   int segCount = random.nextInt(20);
@@ -61,7 +58,7 @@ class _RandomizedRadialChartExampleState extends State<RandomizedRadialChartExam
     //   return new CircularStackEntry(segments, rankKey: 'Circular');
     // });
     List<CircularSegmentEntry> list1 = [];
-    list1.add(CircularSegmentEntry(widget.targetEnrollment, LightColors.kDarkBlue, rankKey: 'Enrollment'));
+    list1.add(CircularSegmentEntry(widget.actualEnrollment, LightColors.kDarkBlue, rankKey: 'Enrollment'));
     list1.add(CircularSegmentEntry(widget.targetEnrollment, LightColors.kLightGray1, rankKey: 'Enrollment'));
     data.add(CircularStackEntry(list1, rankKey: 'Enrollment'));
 

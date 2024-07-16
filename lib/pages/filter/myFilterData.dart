@@ -1,5 +1,6 @@
 import 'dart:collection';
 
+import 'package:Intranet/pages/dashboard/KPIModel.dart';
 import 'package:saathi/models/franchiseeModel.dart';
 import 'package:saathi/models/getTicketFilterMasterModel.dart' as dept;
 import 'package:saathi/models/getTicketFilterMasterModel.dart';
@@ -12,10 +13,15 @@ class DashboardFilterData {
   List<String>? zoneList=[];
   List<String>? franchinseeList=[];
   List<String>? employeeList=[];
+  int? totalEnrollments=0;
+  int? totalAck;
+  int? totalCenters=0;
+  KPIInfo? kpiInfo;
+
   
 
-  DashboardFilterData(this.selectedAttributes,
-      {this.zoneList,
+  DashboardFilterData( this.selectedAttributes,
+      {required this.kpiInfo,this.zoneList,
       this.franchinseeList,
-      this.employeeList});
+      this.employeeList,this.totalAck,this.totalEnrollments,this.totalCenters});
 }

@@ -128,6 +128,16 @@ class Utility{
     return date;
   }
 
+  static getShortMonth(DateTime dt){
+    String date='';
+    try {
+      date = DateFormat('MMM').format(dt);
+    } catch (e) {
+      e.toString();
+    }
+    return date;
+  }
+
   static String getServerDate() {
     String date ='';
     DateTime dt = DateTime.now();
