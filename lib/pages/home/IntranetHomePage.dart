@@ -15,7 +15,6 @@ import 'package:Intranet/pages/pjp/models/PjpModel.dart';
 import 'package:Intranet/pages/pjp/mypjp.dart';
 import 'package:Intranet/pages/userinfo/employee_list.dart';
 import 'package:app_version_update/app_version_update.dart';
-import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
@@ -235,21 +234,24 @@ class _IntranetHomePageState extends State<IntranetHomePage>
         } else {
           Navigator.pop(context);
           //Utility.showMessage(context, "Invalid User Name and Password");
+          debugPrint("null value");
         }
       });
     } else {}
   }
 
   getLoginResponse() async {
+    debugPrint('in Login Response ================');
     businessApplications.clear();
     hiveBox = await Utility.openBox();
     await Hive.openBox(LocalConstant.KidzeeDB);
     var loginresponse = hiveBox.get(LocalConstant.KEY_LOGIN_RESPONSE);
+    debugPrint('login Response is : ' + loginresponse);
     try {
       LoginResponseModel response = LoginResponseModel.fromJson(
         json.decode(loginresponse),
       );
-      debugPrint('response received..... - ${response.responseData.businessApplications.length}');
+      debugPrint('response received.....');
       if (response != null &&
           response.responseData.businessApplications != null)
         businessApplications.addAll(response.responseData.businessApplications);
@@ -257,12 +259,6 @@ class _IntranetHomePageState extends State<IntranetHomePage>
           businessApplications != null &&
           businessApplications.length > 0) {
         _currentBusinessName = businessApplications[0].businessName;
-        /* Changes to store busines id by vishwa */
-        updateCurrentBusiness(
-                                    businessApplications[0].businessID,
-                                    businessApplications[0].businessName,
-                                    businessApplications[0]
-                                        .business_UserID);
       }
       setState(() {});
     } catch (e) {
@@ -330,13 +326,12 @@ class _IntranetHomePageState extends State<IntranetHomePage>
     debugPrint('initstate ======================');
     _selectedDay = _focusedDay;
     _selectedEvents = ValueNotifier(_getEventsForDay(_selectedDay!));
-    
     //addEvent();
     getUserInfo();
     //_listenForMessages();
 
     initNotification();
-    
+
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
       print('A new onMessageOpenedApp event was published123!');
       Navigator.push(
@@ -651,28 +646,18 @@ class _IntranetHomePageState extends State<IntranetHomePage>
   Future<void> getUserInfo() async {
     var hiveBox = await Utility.openBox();
     await Hive.openBox(LocalConstant.KidzeeDB);
-
-    mUserName = hiveBox.get(LocalConstant.KEY_USER_NAME);
-
-
-    employeeId =int.parse(hiveBox.get(LocalConstant.KEY_EMPLOYEE_ID) as String);
+    employeeId =
+        int.parse(hiveBox.get(LocalConstant.KEY_EMPLOYEE_ID) as String);
     mDesignation = hiveBox.get(LocalConstant.KEY_DESIGNATION) as String;
     var imageUrl = hiveBox.get(LocalConstant.KEY_EMPLOYEE_AVTAR);
     if (hiveBox.containsKey(LocalConstant.KEY_FRANCHISEE_ID)) {
       isBpms = true;
     }
-    
     mTitle = hiveBox.get(LocalConstant.KEY_FIRST_NAME).toString() +
         " " +
         hiveBox.get(LocalConstant.KEY_LAST_NAME).toString();
-
     _currentBusinessName =
         hiveBox.get(LocalConstant.KEY_BUSINESS_NAME).toString();
-        if(_currentBusinessName == 'null'){
-          getLoginResponse();
-        }
-        debugPrint('Title from offline is - $mTitle and business is - $_currentBusinessName');
-
     _profileImage = 'https://cdn-icons-png.flaticon.com/128/149/149071.png';
     String sex = hiveBox.get(LocalConstant.KEY_GENDER) as String;
     if (imageUrl != null) {
@@ -682,7 +667,6 @@ class _IntranetHomePageState extends State<IntranetHomePage>
     } else {
       _profileImage = 'https://cdn-icons-png.flaticon.com/128/727/727393.png';
     }
-    
     _getId(employeeId.toString());
     getProfileImage();
     PackageInfo.fromPlatform().then((PackageInfo packageInfo) {
@@ -691,10 +675,6 @@ class _IntranetHomePageState extends State<IntranetHomePage>
       String version = packageInfo.version;
       String buildNumber = packageInfo.buildNumber;
       appVersion = version;
-    });
-
-    setState(() {
-      
     });
 
     //decodeJsonValue();
@@ -713,9 +693,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
         _profileAvtar = base64.decode(avtar);
       } else {
         debugPrint('getProfile pic in else');
-        try{
-          FirebaseStorageUtil().getProfileImage(employeeId.toString(), this);
-        }catch(e){}
+        FirebaseStorageUtil().getProfileImage(employeeId.toString(), this);
       }
     } catch (e) {
       debugPrint(e.toString());

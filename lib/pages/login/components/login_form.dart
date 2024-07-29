@@ -2,7 +2,6 @@ import 'dart:convert';
 
 import 'package:Intranet/pages/home/IntranetHomePage.dart';
 import 'package:Intranet/pages/widget/MyWebSiteView.dart';
-import 'package:Intranet/pages/widget/MyWebSiteView.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
