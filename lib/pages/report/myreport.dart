@@ -1,3 +1,4 @@
+import 'package:Intranet/pages/widget/MyWebSiteView.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:Intranet/api/ServiceHandler.dart';
@@ -77,33 +78,30 @@ class _MyReportScreenState extends State<MyReportsScreen>
   getListView() {
     if (mReportList == null || mReportList.length <= 0) {
       debugPrint('data not found');
-      return Utility.emptyDataSet(context,"Reports are not avaliable");
+      return Utility.emptyDataSet(context, "Reports are not avaliable");
     } else {
       return ListView.builder(
         controller: ScrollController(),
         itemCount: mReportList.length,
         shrinkWrap: true,
-
         itemBuilder: (context, index) {
           return GestureDetector(
             onTap: () {
-              if(index==0){
+              if (index == 0) {
                 Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (context) =>
-                            MyPjpReportScreen(
+                        builder: (context) => MyPjpReportScreen(
                               mFilterSelection: FilterSelection(
-                                  filters: [],
-                                  type: FILTERStatus.MYTEAM),)));
-              }else {
+                                  filters: [], type: FILTERStatus.MYTEAM),
+                            )));
+              } else {
                 Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (context) =>
-                            MyReportScreen(
-                                title: mReportList[index].title,
-                                url: mReportList[index].webViewURL)));
+                        builder: (context) => MyWebsiteView(
+                            title: mReportList[index].title,
+                            url: mReportList[index].webViewURL)));
               }
             },
             child: Column(
@@ -111,7 +109,9 @@ class _MyReportScreenState extends State<MyReportsScreen>
               mainAxisAlignment: MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SizedBox(height: 10,),
+                SizedBox(
+                  height: 10,
+                ),
                 Container(
                   height: 50,
                   decoration: BoxDecoration(
@@ -155,7 +155,7 @@ class _MyReportScreenState extends State<MyReportsScreen>
       MyReportResponse response = value;
       if (response != null && response.responseData != null) {
         mReportList.clear();
-        mReportList.add(ReportInfo(title: 'PJP CVF Report', webViewURL: '') );
+        mReportList.add(ReportInfo(title: 'PJP CVF Report', webViewURL: ''));
         mReportList.addAll(response.responseData);
         setState(() {});
       }

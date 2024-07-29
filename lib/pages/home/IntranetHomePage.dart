@@ -74,7 +74,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
     implements onUploadResponse, onClickListener {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
-   Uri? _initialURI;
+  Uri? _initialURI;
   Uri? _currentURI;
   Object? _err;
 
@@ -329,7 +329,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
     //addEvent();
     getUserInfo();
     //_listenForMessages();
-    
+
     initNotification();
 
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
@@ -415,29 +415,33 @@ class _IntranetHomePageState extends State<IntranetHomePage>
   }
 
   void deepLinkCommonFunction(Uri? initialURI) async {
-    
-    debugPrint('udid from deep linkk is - ${initialURI!.path.split('/').elementAt(1)}');
+    debugPrint(
+        'udid from deep linkk is - ${initialURI!.path.split('/').elementAt(1)}');
     debugPrint('udid ${initialURI}');
     debugPrint('udid ${initialURI.queryParameters['id']}');
-    if(initialURI.toString().contains('zllsaathi.zeelearn.com/ticketDetail')){
-        //Saathi Ticket Details
-        print('ticket ID ${initialURI.queryParameters['id']!}');
-        print('BID ${initialURI.queryParameters['b_id']!}');
-        print('BUID ${initialURI.queryParameters['bu_id']!}');
-        ZllTicket(context, initialURI.queryParameters['id']!, initialURI.queryParameters['b_id']!, initialURI.queryParameters['bu_id']!,initialURI.queryParameters['u_id']!.replaceAll('.', ''), kPrimaryLightColor);
-      
+    if (initialURI.toString().contains('zllsaathi.zeelearn.com/ticketDetail')) {
+      //Saathi Ticket Details
+      print('ticket ID ${initialURI.queryParameters['id']!}');
+      print('BID ${initialURI.queryParameters['b_id']!}');
+      print('BUID ${initialURI.queryParameters['bu_id']!}');
+      ZllTicket(
+          context,
+          initialURI.queryParameters['id']!,
+          initialURI.queryParameters['b_id']!,
+          initialURI.queryParameters['bu_id']!,
+          initialURI.queryParameters['u_id']!.replaceAll('.', ''),
+          kPrimaryLightColor);
     }
   }
 
+  @pragma('vm:entry-point')
+  Future<void> _firebaseMessagingBackgroundHandler(
+      RemoteMessage message) async {
+    print('A new onMessageOpenedApp event was published! main 337');
+    NotificationService().parseNotification(message);
+  }
 
-@pragma('vm:entry-point')
-Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  print('A new onMessageOpenedApp event was published! main 337');
-  NotificationService().parseNotification(message);
-  
-}
-
-  initNotification() async{
+  initNotification() async {
     await initFirebase();
     await NotificationController.initializeLocalNotifications();
     await NotificationController.initializeIsolateReceivePort();
@@ -446,88 +450,91 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   }
 
   Future<void> initFirebase() async {
-  //await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  if(!kIsWeb && !Platform.isAndroid)
-    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  else
-    await Firebase.initializeApp();
-  messaging = FirebaseMessaging.instance;
-  // Set the background messaging handler early on, as a named top-level function
-  await FirebaseMessaging.instance.setAutoInitEnabled(true);
-  if (kDebugMode) {
-    // Force disable Crashlytics collection while doing every day development.
-    // Temporarily toggle this to true if you want to test crash reporting in your app.
-    await FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(false);
-  } else {
-    // Handle Crashlytics enabled status when not in Debug,
-    FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(true);
-  }
+    //await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+    if (!kIsWeb && !Platform.isAndroid)
+      await Firebase.initializeApp(
+          options: DefaultFirebaseOptions.currentPlatform);
+    else
+      await Firebase.initializeApp();
+    messaging = FirebaseMessaging.instance;
+    // Set the background messaging handler early on, as a named top-level function
+    await FirebaseMessaging.instance.setAutoInitEnabled(true);
+    if (kDebugMode) {
+      // Force disable Crashlytics collection while doing every day development.
+      // Temporarily toggle this to true if you want to test crash reporting in your app.
+      await FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(false);
+    } else {
+      // Handle Crashlytics enabled status when not in Debug,
+      FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(true);
+    }
 
-  FirebaseMessaging firebaseMessaging = FirebaseMessaging.instance;
-  NotificationSettings settings = await firebaseMessaging.requestPermission(
-    alert: true,
-    announcement: false,
-    badge: true,
-    carPlay: false,
-    criticalAlert: false,
-    provisional: false,
-    sound: true,
-  );
-  //FirebaseMessaging.instance.getInitialMessage();
-  print('User granted permission: ${settings.authorizationStatus}');
-  if (!kIsWeb) {
+    FirebaseMessaging firebaseMessaging = FirebaseMessaging.instance;
+    NotificationSettings settings = await firebaseMessaging.requestPermission(
+      alert: true,
+      announcement: false,
+      badge: true,
+      carPlay: false,
+      criticalAlert: false,
+      provisional: false,
+      sound: true,
+    );
+    //FirebaseMessaging.instance.getInitialMessage();
+    print('User granted permission: ${settings.authorizationStatus}');
+    if (!kIsWeb) {
+      await FirebaseMessaging.instance
+          .setForegroundNotificationPresentationOptions(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
+
+// Declaration of variables
+
+      if (Platform.isIOS) {
+        await firebaseMessaging.setForegroundNotificationPresentationOptions(
+          alert: true, // Required to display a heads up notification
+          badge: true,
+          sound: true,
+        );
+      }
+    }
+
     await FirebaseMessaging.instance
         .setForegroundNotificationPresentationOptions(
       alert: true,
       badge: true,
       sound: true,
     );
+    await FirebaseMessaging.instance.setAutoInitEnabled(true);
+    getPermission();
+    getToken();
 
-// Declaration of variables
-
-    if (Platform.isIOS) {
-      await firebaseMessaging.setForegroundNotificationPresentationOptions(
-        alert: true, // Required to display a heads up notification
-        badge: true,
-        sound: true,
-      );
-    }
+    //runApp(MyApp());
   }
 
-  await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(
-    alert: true,
-    badge: true,
-    sound: true,
-  );
-  await FirebaseMessaging.instance.setAutoInitEnabled(true);
-  getPermission();
-  getToken();
+  Future<void> getPermission() async {
+    FirebaseMessaging messaging = FirebaseMessaging.instance;
+    FirebaseMessaging.instance.requestPermission();
+    NotificationSettings settings = await messaging.requestPermission(
+      alert: true,
+      announcement: false,
+      badge: true,
+      carPlay: false,
+      criticalAlert: false,
+      provisional: false,
+      sound: true,
+    );
 
-  //runApp(MyApp());
-}
-Future<void> getPermission() async {
-  FirebaseMessaging messaging = FirebaseMessaging.instance;
-  FirebaseMessaging.instance.requestPermission();
-  NotificationSettings settings = await messaging.requestPermission(
-    alert: true,
-    announcement: false,
-    badge: true,
-    carPlay: false,
-    criticalAlert: false,
-    provisional: false,
-    sound: true,
-  );
+    print('User granted permission: ${settings.authorizationStatus}');
+  }
 
-  print('User granted permission: ${settings.authorizationStatus}');
-}
-
-late String token;
-getToken() async {
-  print('app token is ');
-  token = (await FirebaseMessaging.instance.getToken())!;
-  print('Notification Token..${token}');
-  print(token);
-}
+  late String token;
+  getToken() async {
+    print('app token is ');
+    token = (await FirebaseMessaging.instance.getToken())!;
+    print('Notification Token..${token}');
+    print(token);
+  }
 
   @override
   void dispose() {
@@ -552,7 +559,6 @@ getToken() async {
     await AppVersionUpdate.checkForUpdates(
       appleId: '6443464060',
       playStoreId: 'com.zeelearn.intranet',
-      country: 'in',
     ).then((result) async {
       if (result.canUpdate!) {
         await AppVersionUpdate.showBottomSheetUpdate(
@@ -1051,8 +1057,8 @@ getToken() async {
     debugPrint('getscreen-------- ');
     switch (widget._selectedDestination) {
       case MENU_HOME:
-      debugPrint('getscreen-------- $mUserName');
-        return HomePageMenu(isBpms,mUserName,_profileAvtar);
+        debugPrint('getscreen-------- $mUserName');
+        return HomePageMenu(isBpms, mUserName, _profileAvtar);
         break;
       case MENU_ATTENDANCE:
         return AttendanceSummeryScreen(
