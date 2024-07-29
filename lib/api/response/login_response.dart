@@ -53,6 +53,7 @@ class ResponseData {
       json['businessApplications'].forEach((v) {
         try {
           businessApplications.add(new BusinessApplications.fromJson(v));
+          debugPrint('Business applications length is - ${businessApplications.length}');
         } catch (e) {
           debugPrint('at line 21 ${v.toString()}');
           debugPrint(e.toString());

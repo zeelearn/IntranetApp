@@ -135,10 +135,7 @@ class _LoginPage extends State<LoginPage> {
                           } else {
                             Navigator.of(context).push(MaterialPageRoute(
                                 builder: (BuildContext context) =>
-                                    MyWebsiteView(
-                                      url: 'https://kidzee.com/PrivacyPolicy',
-                                      title: 'Privacy Policy',
-                                    )));
+                                    MyWebsiteView(url: 'https://kidzee.com/PrivacyPolicy', title: 'Privacy Policy',)));
                           }
                         },
                         child: const Text(
