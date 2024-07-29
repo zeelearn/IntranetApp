@@ -54,14 +54,12 @@ dependencies:
   path: ^1.8.3
   table_calendar: ^3.0.9
   month_picker_dialog: ^4.0.1
-  month_picker_dialog: ^4.0.1
   #month_year_picker: ^0.2.0+1
   #flutter_datetime_picker: ^1.5.1
   #carousel_slider: ^4.1.1
   styled_widget: ^0.4.1
   device_info_plus: ^9.0.2
   #webviewx: ^0.2.2
-  google_fonts: ^6.2.1
   google_fonts: ^6.2.1
   get: ^4.6.5
   pdfrx: ^1.0.79
@@ -73,7 +71,6 @@ dependencies:
   syncfusion_flutter_datepicker: ^26.2.5
   image_picker: ^1.0.7
   material_dialogs: ^1.1.4
-  geolocator: ^12.0.0
   geolocator: ^12.0.0
   permission_handler: ^11.3.0
   flutter_image_compress: ^2.0.3
@@ -100,19 +97,15 @@ dependencies:
   syncfusion_flutter_pdfviewer: ^26.2.5
   location_geocoder: ^1.0.5
   order_tracker_zen: ^1.0.0+4
-  app_version_update: ^5.0.1
   location: ^7.0.0
   app_version_update: ^5.0.1
-  location: ^7.0.0
   flutter_riverpod: ^2.3.10
   dio: ^5.3.2
-  camera: ^0.11.0+1
   camera: ^0.11.0+1
   video_player: ^2.4.5
   either_dart: ^1.0.0
   aws_s3_upload: ^1.5.0
   chewie: ^1.5.0
-  flutter_widget_from_html_core: ^0.15.1
   flutter_widget_from_html_core: ^0.15.1
   flutter_html: ^3.0.0-alpha.6
   dropdown_search: ^5.0.6
@@ -122,7 +115,6 @@ dependencies:
 
   syncfusion_flutter_calendar: ^26.2.5
   fluttertoast: ^8.2.4
-  grouped_list: ^6.0.0
   grouped_list: ^6.0.0
   collection: ^1.18.0
   uni_links: ^0.5.1
@@ -159,7 +151,6 @@ dev_dependencies:
   # activated in the `analysis_options.yaml` file located at the root of your
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
-  flutter_lints: ^4.0.0
   flutter_lints: ^4.0.0
 
 flutter_icons:
