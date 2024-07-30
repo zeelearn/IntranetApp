@@ -495,8 +495,7 @@ class _MyPjpListState extends State<MyPjpListScreen>
                         ),
                       ),
                     ),
-                    pjpInfo.getDetailedPJP != null ||
-                            pjpInfo.getDetailedPJP!.length > 0
+                    pjpInfo.getDetailedPJP != null || pjpInfo.getDetailedPJP!.length > 0
                         ? Row(
                             children: [
                               Padding(
@@ -548,12 +547,7 @@ class _MyPjpListState extends State<MyPjpListScreen>
                                         padding: EdgeInsetsDirectional.fromSTEB(
                                             10, 10, 10, 10),
                                         child: Text(
-                                          pjpInfo.getDetailedPJP == null ||
-                                                  pjpInfo.getDetailedPJP!
-                                                          .length ==
-                                                      0
-                                              ? ''
-                                              : 'ADD CVF',
+                                         'ADD CVF',
                                           style: TextStyle(
                                             fontFamily: 'Lexend Deca',
                                             color: Colors.white,
