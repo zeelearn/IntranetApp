@@ -220,7 +220,7 @@ class MyWebsiteViewState extends State<MyWebsiteView> {
       backgroundColor: Colors.white,
       body: InAppWebView(
         key: webViewKey,
-        initialUrlRequest: URLRequest(url: WebUri(widget.url)),
+        initialUrlRequest: URLRequest(url: Uri.parse(widget.url)),
         // initialSettings: settings,
         pullToRefreshController: pullToRefreshController,
         onWebViewCreated: (controller) {

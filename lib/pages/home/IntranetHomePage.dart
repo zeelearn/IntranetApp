@@ -325,7 +325,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
     super.initState();
     debugPrint('initstate ======================');
     _selectedDay = _focusedDay;
-    _selectedEvents = ValueNotifier(_getEventsForDay(_selectedDay!));
+    //_selectedEvents = ValueNotifier(_getEventsForDay(_selectedDay!));
     //addEvent();
     getUserInfo();
     //_listenForMessages();
@@ -344,6 +344,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
       _verifyVersion();
     }
 
+    getLoginResponse();
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
       _initURIHandler();
       _incomingLinkHandler();
@@ -668,7 +669,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
       _profileImage = 'https://cdn-icons-png.flaticon.com/128/727/727393.png';
     }
     _getId(employeeId.toString());
-    getProfileImage();
+    
     PackageInfo.fromPlatform().then((PackageInfo packageInfo) {
       String appName = packageInfo.appName;
       String packageName = packageInfo.packageName;
@@ -676,9 +677,9 @@ class _IntranetHomePageState extends State<IntranetHomePage>
       String buildNumber = packageInfo.buildNumber;
       appVersion = version;
     });
-
+    getProfileImage();
     //decodeJsonValue();
-    //setState(() {});
+    setState(() {});
   }
 
   getProfileImage() async {

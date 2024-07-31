@@ -93,7 +93,7 @@ dependencies:
   custom_date_range_picker: ^1.0.10
   file_picker: ^8.0.5
   #flutter_webview_pro: ^3.0.1+4
-  flutter_inappwebview: ^6.0.0
+  flutter_inappwebview: ^5.8.0
   syncfusion_flutter_pdfviewer: ^26.2.5
   location_geocoder: ^1.0.5
   order_tracker_zen: ^1.0.0+4
