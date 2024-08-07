@@ -1053,6 +1053,7 @@ class APIService {
             "content-type": "application/json"
           },
           body: requestModel.getJson());
+          debugPrint(LocalStrings.GET_ALL_CVF);
       debugPrint(response.body);
       if (response.statusCode == 200 || response.statusCode == 400) {
         String data = response.body.replaceAll('null', 'NA');
@@ -1273,8 +1274,10 @@ class APIService {
             "content-type": "application/json"
           },
           body: requestModel.getJson());
-      print('Updatting fcm token');
-      print(response.body);
+      print('FCM--Updatting fcm token');
+      print('FCM--${response.body}');
+      print('FCM--${response.request!.url}');
+      print('FCM--${requestModel.toJson()}');
       if (response.statusCode == 200 || response.statusCode == 400) {
         if (response.body is FcmResponse) {
           return FcmResponse.fromJson(

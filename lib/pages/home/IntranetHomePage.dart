@@ -735,7 +735,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
     if (!kIsWeb) {
       final firebaseMessaging = FCM();
       //useragent= Platform.isIOS ? 'IOS' : 'Android';
-      //firebaseMessaging.setNotifications(employeeId.toString(), id, useragent);
+      firebaseMessaging.setNotifications(employeeId.toString(), id, useragent);
       FirebaseMessaging.onMessage.listen((RemoteMessage message) {
         NotificationService().parseNotification(message);
       });

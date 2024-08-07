@@ -1785,6 +1785,7 @@ bool isOffline=false;
                         mQuestionMaster[index].allquestion[jIndex].Question_Id]
                     .toString()
                 : '';
+
         if(mQuestionMaster[index].allquestion[jIndex].IsProgressive=='1' && mQuestionMaster[index].allquestion[jIndex].SelectedAnswer.trim()!='1' &&  (mQuestionMaster[index].allquestion[jIndex].Remarks.isEmpty || mQuestionMaster[index].allquestion[jIndex].startDate=='NA' || mQuestionMaster[index].allquestion[jIndex].endDate=='NA')){
           //print('${mQuestionMaster[index].allquestion[jIndex].Question_Id} ${mQuestionMaster[index].allquestion[jIndex].SelectedAnswer} ${mQuestionMaster[index].allquestion[jIndex].Remarks} ${mQuestionMaster[index].allquestion[jIndex].startDate} ${mQuestionMaster[index].allquestion[jIndex].endDate}');
           pendingQuestion = 'Please submit the below observation \n\n - ' +
@@ -1798,6 +1799,7 @@ bool isOffline=false;
           break;
           //break;
         }
+        
         if (mQuestionMaster[index].allquestion[jIndex].isCompulsory == '1' && (userAnswer.isEmpty || userAnswer == 'null')) {
           inCompleteQuestions = 'Please complete all Required answers, Questions in Category ${mQuestionMaster[index].allquestion[jIndex].categoryName} is pending';
 
@@ -1826,7 +1828,6 @@ bool isOffline=false;
     } else {
       //pendingQuestion = '';
     }
-    debugPrint('isComplete ${isCompleted}');
     return isCompleted;
   }
 

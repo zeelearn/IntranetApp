@@ -33,20 +33,20 @@ class FCM {
   final bodyCtlr = StreamController<String>.broadcast();
 
   setNotifications(String employeeId,String deviceId,String userAgent) {
-    FirebaseMessaging.onBackgroundMessage(onBackgroundMessage);
-    FirebaseMessaging.onMessage.listen(
-          (message) async {
-            debugPrint(message.toString());
-        if (message.data.containsKey('data')) {
-          // Handle data message
-          streamCtlr.sink.add(message.data['data']);
-        }
-        if (message.data.containsKey('notification')) {
-          // Handle notification message
-          streamCtlr.sink.add(message.data['notification']);
-        }
-      },
-    );
+    // FirebaseMessaging.onBackgroundMessage(onBackgroundMessage);
+    // FirebaseMessaging.onMessage.listen(
+    //       (message) async {
+    //         debugPrint(message.toString());
+    //     if (message.data.containsKey('data')) {
+    //       // Handle data message
+    //       streamCtlr.sink.add(message.data['data']);
+    //     }
+    //     if (message.data.containsKey('notification')) {
+    //       // Handle notification message
+    //       streamCtlr.sink.add(message.data['notification']);
+    //     }
+    //   },
+    // );
     // With this token you can test it easily on your phone
     final token = _firebaseMessaging.getToken().then((value) => sendFcm(value!,employeeId,deviceId,userAgent) );
 
