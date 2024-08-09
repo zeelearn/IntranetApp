@@ -70,8 +70,7 @@ class _MyPjpListState extends State<MyPjpListScreen>
   Future<void> getUserInfo() async {
     hiveBox = await Utility.openBox();
     await Hive.openBox(LocalConstant.KidzeeDB);
-    employeeId =
-        int.parse(hiveBox.get(LocalConstant.KEY_EMPLOYEE_ID) as String);
+    employeeId = int.parse(hiveBox.get(LocalConstant.KEY_EMPLOYEE_ID) as String);
     businessId = hiveBox.get(LocalConstant.KEY_BUSINESS_ID);
 
     isInternet = await Utility.isInternet();

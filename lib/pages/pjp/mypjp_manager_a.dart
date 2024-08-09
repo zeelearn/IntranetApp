@@ -266,6 +266,7 @@ class _MyPjpListState extends State<MyPjpManAListScreen>
   getView(PJPInfo pjpInfo, int index) {
     return GestureDetector(
       onTap: () {
+        print('in 269 pjp getView');
         if (pjpInfo.ApprovalStatus == 'Approved') {
           Navigator.push(
               context,
@@ -397,6 +398,7 @@ class _MyPjpListState extends State<MyPjpManAListScreen>
                           value: _isChecked[index],
                           onChanged: (bool? value) {
                             setState(() {
+                              print('in checkbox');
                               _isChecked[index] = value!;
                               //singleSelection(position);
                             });

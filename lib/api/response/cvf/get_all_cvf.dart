@@ -39,6 +39,7 @@ class CVFListModel {
   late String address;
   late String activityTitle;
   late List<Purpose> purpose;
+  
 
   CVFListModel(
       {required this.visitDate,
@@ -60,6 +61,8 @@ class CVFListModel {
     longitude = json['Longitude'];
     address = json['Address'];
     activityTitle = json['ActivityTitle'];
+    
+    
     if (json['Purpose'] != null) {
       purpose = <Purpose>[];
       json['Purpose'].forEach((v) {
@@ -78,6 +81,7 @@ class CVFListModel {
     data['Longitude'] = this.longitude;
     data['Address'] = this.address;
     data['ActivityTitle'] = this.activityTitle;
+    //data['Approval_Status'] =  this.ApprovalStatus;
     if (this.purpose != null) {
       data['Purpose'] = this.purpose.map((v) => v.toJson()).toList();
     }

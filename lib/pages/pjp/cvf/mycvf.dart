@@ -229,7 +229,11 @@ class _MyCVFListScreen extends State<MyCVFListScreen>
   getCvfView(GetDetailedPJP cvfView) {
     return GestureDetector(
       onTap: () {
-        if (cvfView.Status == 'Check In' ||
+        if(!cvfView.approvalStatus.toLowerCase().contains('recject')){
+            Utility.showMessage(context, 'PJP not yet approve, Please connect with your manager');
+        }else if(!cvfView.approvalStatus.toLowerCase().contains('approv')){
+            Utility.showMessage(context, 'PJP not yet approve, Please connect with your manager');
+        }else if (cvfView.Status == 'Check In' ||
             cvfView.Status == ' Check In' ||
             cvfView.Status == 'NA') {
           //Utility.showMessage(context, 'Please Click on Check In button');
@@ -373,7 +377,15 @@ class _MyCVFListScreen extends State<MyCVFListScreen>
                     fontWeight: FontWeight.normal,
                   ),
                 ),
-                trailing: cvfView.Status == 'Check Out'
+                trailing:  cvfView.approvalStatus.toLowerCase().contains('reject') ? Text(
+                          'PJP Rejected',
+                          style: TextStyle(
+                            fontFamily: 'Lexend Deca',
+                            color: Color(0xFF4B39EF),
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ) : !cvfView.approvalStatus.toLowerCase().contains('approv') ? null : cvfView.Status == 'Check Out'
                     ? OutlinedButton(
                         onPressed: () {
                           selectCategory(context, cvfView);
@@ -741,8 +753,7 @@ class _MyCVFListScreen extends State<MyCVFListScreen>
     print('saveDataOffline');
     LocationData location = await LocationHelper.getLocation(context);
     debugPrint('Status is ${cvfView.Status}');
-    String address =
-        await Utility.getAddress(location.latitude!, location.longitude!);
+    String address = '';//await Utility.getAddress(location.latitude!, location.longitude!);
     UpdateCVFStatusRequest request = UpdateCVFStatusRequest(
         PJPCVF_id: cvfView.PJPCVF_Id,
         DateTime: Utility.getDateTime(),

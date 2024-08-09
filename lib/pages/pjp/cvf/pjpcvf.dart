@@ -1084,7 +1084,7 @@ class _MyCVFListScreen extends State<CVFListScreen>
       longitude = location.longitude!;
     }
     print('pjpcvf ');
-    String address = await Utility.getAddress(latitude, longitude);
+    String address = '';//await Utility.getAddress(latitude, longitude);
     print('pjpcvf ${address}');
     UpdateCVFStatusRequest request = UpdateCVFStatusRequest(
         PJPCVF_id: cvfView.PJPCVF_Id,

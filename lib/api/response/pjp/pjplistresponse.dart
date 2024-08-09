@@ -132,6 +132,7 @@ class GetDetailedPJP implements Comparable<GetDetailedPJP>{
   late bool isCheckIn = false;
   late bool isCheckOut = false;
   late bool isCompleted = false;
+  late String approvalStatus='Pending';
 
   GetDetailedPJP({
     required this.PJPCVF_Id,
@@ -155,6 +156,7 @@ class GetDetailedPJP implements Comparable<GetDetailedPJP>{
     required this.isCheckOut,
     required this.isSync,
     required this.isCompleted,
+    required this.approvalStatus
   });
 
   @override
@@ -182,6 +184,7 @@ class GetDetailedPJP implements Comparable<GetDetailedPJP>{
       Latitude = double.parse(json['Latitude'].toString() ?? "0.0") ;
       Longitude = double.parse(json['Longitude'].toString() ?? "0.0") ?? 0.0;
       ActivityTitle = json['ActivityTitle'] ?? 'NA';
+      approvalStatus = json.containsKey('Approval_Status') ? json['Approval_Status'] : 'Pending' ;
       purpose = <Purpose>[];
       if(json.containsKey('Purpose')) {
         if (json['Purpose'] is List) {
@@ -225,6 +228,7 @@ class GetDetailedPJP implements Comparable<GetDetailedPJP>{
     data['DateTimeIn'] = this.DateTimeIn;
     data['CheckOutAddress'] = this.CheckOutAddress;
     data['ActivityTitle'] = this.ActivityTitle;
+    data['approvalStatus'] = this.approvalStatus;
     if (this.purpose != null) {
       data['Purpose'] = this.purpose!.map((v) => v.toJson()).toList();
     } else {

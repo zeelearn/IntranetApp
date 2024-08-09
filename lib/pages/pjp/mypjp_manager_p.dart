@@ -393,7 +393,15 @@ class _MyPjpListState extends State<MyPjpManPListScreen>
   getView(PJPInfo pjpInfo, int index) {
     return GestureDetector(
       onTap: () {
-        if (pjpInfo.ApprovalStatus == 'Approved') {
+        if(pjpInfo.ApprovalStatus == 'Pending'){
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => CVFListScreen(
+                        mPjpInfo: pjpInfo,
+                        isView: false,
+                      )));
+        }else if (pjpInfo.ApprovalStatus == 'Approved') {
           Navigator.push(
               context,
               MaterialPageRoute(

@@ -369,8 +369,7 @@ class _AddNewPJPState extends State<AddNewPJPScreen>
             debugPrint('New PJP ID ${mPjpModel.pjpId} ');
 
             addPJPinDB(1);
-            Utility.showMessageSingleButton(
-                context, "PJP Added successfully", this);
+            Utility.showMessageSingleButton(context, "PJP Added successfully", this);
             // Utility.showMessageMultiButton(context, "Done", "Add CVF",
             //     "Success", "PJP Added successfully", mPjpModel, this);
 
@@ -450,6 +449,7 @@ class _AddNewPJPState extends State<AddNewPJPScreen>
   @override
   void onClick(int action, value) {
     if (action == Utility.ACTION_OK) {
+      Navigator.of(context).pop();
     } else if (action == Utility.ACTION_CCNCEL) {
       if (value is PJPModel) {
         PJPModel model = value;
