@@ -1,12 +1,13 @@
 import 'dart:convert';
 
+import 'package:Intranet/api/ServiceHandler.dart';
+import 'package:Intranet/api/request/pjp/update_pjpstatus_request.dart';
 import 'package:Intranet/pages/helper/LocationHelper.dart';
 import 'package:Intranet/pages/pjp/cvf/add_cvf.dart';
+import 'package:expensestracker/presentation/pages/advance_requisition/add_advance_requisition_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hive/hive.dart';
-import 'package:Intranet/api/ServiceHandler.dart';
-import 'package:Intranet/api/request/pjp/update_pjpstatus_request.dart';
 import 'package:location/location.dart';
 
 import '../../api/response/pjp/pjplistresponse.dart';
@@ -70,7 +71,8 @@ class _MyPjpListState extends State<MyPjpListScreen>
   Future<void> getUserInfo() async {
     hiveBox = await Utility.openBox();
     await Hive.openBox(LocalConstant.KidzeeDB);
-    employeeId = int.parse(hiveBox.get(LocalConstant.KEY_EMPLOYEE_ID) as String);
+    employeeId =
+        int.parse(hiveBox.get(LocalConstant.KEY_EMPLOYEE_ID) as String);
     businessId = hiveBox.get(LocalConstant.KEY_BUSINESS_ID);
 
     isInternet = await Utility.isInternet();
@@ -144,6 +146,25 @@ class _MyPjpListState extends State<MyPjpListScreen>
               tooltip: 'Filter',
               onPressed: () {
                 openFilters();
+              },
+            ), //IconButton
+            IconButton(
+              icon: const Icon(Icons.add_card),
+              tooltip: 'Request',
+              onPressed: () async {
+                var hiveBox = await Utility.openBox();
+                await Hive.openBox(LocalConstant.KidzeeDB);
+
+                String employeeCode =
+                    hiveBox.get(LocalConstant.KEY_EMPLOYEE_CODE) as String;
+                debugPrint('Employee code is - $employeeCode');
+                showDialog(
+                    context: context,
+                    builder: (context) => Dialog(
+                          child: AddAdvanceRequisitionPage(
+                            e_id: employeeCode,
+                          ),
+                        ));
               },
             ), //IconButton
           ],
@@ -494,7 +515,8 @@ class _MyPjpListState extends State<MyPjpListScreen>
                         ),
                       ),
                     ),
-                    pjpInfo.getDetailedPJP != null || pjpInfo.getDetailedPJP!.length > 0
+                    pjpInfo.getDetailedPJP != null ||
+                            pjpInfo.getDetailedPJP!.length > 0
                         ? Row(
                             children: [
                               Padding(
@@ -546,7 +568,7 @@ class _MyPjpListState extends State<MyPjpListScreen>
                                         padding: EdgeInsetsDirectional.fromSTEB(
                                             10, 10, 10, 10),
                                         child: Text(
-                                         'ADD CVF',
+                                          'ADD CVF',
                                           style: TextStyle(
                                             fontFamily: 'Lexend Deca',
                                             color: Colors.white,
