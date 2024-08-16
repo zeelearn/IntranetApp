@@ -1,7 +1,6 @@
 import 'dart:math';
 import 'dart:typed_data';
 
-import 'package:Intranet/pages/dashboard/chart/radial.dart';
 import 'package:Intranet/pages/helper/LocalConstant.dart';
 import 'package:Intranet/pages/home/dashboard.dart';
 import 'package:Intranet/pages/pjp/cvf/mycvf.dart';
@@ -20,7 +19,8 @@ class HomePageMenu extends StatelessWidget {
   bool isBpms;
   String mUserName;
   Uint8List? profileAvtar;
-  HomePageMenu(this.isBpms, this.mUserName, Uint8List? profileAvtar);
+  HomePageMenu(this.isBpms, this.mUserName, Uint8List? profileAvtar,
+      {super.key});
 
   Text subheading(String title) {
     return Text(
@@ -40,7 +40,7 @@ class HomePageMenu extends StatelessWidget {
       backgroundColor: LightColors.kLightYellow,
       body: SafeArea(
         child: Padding(
-          padding: EdgeInsetsDirectional.fromSTEB(0, 20, 0, 12),
+          padding: const EdgeInsetsDirectional.fromSTEB(0, 20, 0, 12),
           child: Column(children: [
             Row(
               mainAxisSize: MainAxisSize.max,
@@ -57,7 +57,7 @@ class HomePageMenu extends StatelessWidget {
                                 )));
                   },
                   child: Padding(
-                    padding: EdgeInsetsDirectional.fromSTEB(8, 8, 8, 8),
+                    padding: const EdgeInsetsDirectional.fromSTEB(8, 8, 8, 8),
                     child: Container(
                       width: MediaQuery.of(context).size.width * 0.4,
                       height: 150,
@@ -72,10 +72,10 @@ class HomePageMenu extends StatelessWidget {
                         ],
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: Column(
+                      child: const Column(
                         mainAxisSize: MainAxisSize.max,
                         mainAxisAlignment: MainAxisAlignment.center,
-                        children: const [
+                        children: [
                           Padding(
                             padding:
                                 EdgeInsetsDirectional.fromSTEB(0, 16, 0, 0),
@@ -111,7 +111,7 @@ class HomePageMenu extends StatelessWidget {
                             builder: (context) => MyCVFListScreen()));
                   },
                   child: Padding(
-                    padding: EdgeInsetsDirectional.fromSTEB(8, 8, 8, 8),
+                    padding: const EdgeInsetsDirectional.fromSTEB(8, 8, 8, 8),
                     child: Container(
                       width: MediaQuery.of(context).size.width * 0.4,
                       height: 150,
@@ -126,10 +126,10 @@ class HomePageMenu extends StatelessWidget {
                         ],
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: Column(
+                      child: const Column(
                         mainAxisSize: MainAxisSize.max,
                         mainAxisAlignment: MainAxisAlignment.center,
-                        children: const [
+                        children: [
                           Padding(
                             padding:
                                 EdgeInsetsDirectional.fromSTEB(0, 16, 0, 0),
@@ -189,8 +189,8 @@ class HomePageMenu extends StatelessWidget {
                               }
                             },
                             child: Padding(
-                              padding:
-                                  EdgeInsetsDirectional.fromSTEB(8, 8, 8, 8),
+                              padding: const EdgeInsetsDirectional.fromSTEB(
+                                  8, 8, 8, 8),
                               child: Container(
                                 width: MediaQuery.of(context).size.width * 0.4,
                                 height: 150,
@@ -205,7 +205,7 @@ class HomePageMenu extends StatelessWidget {
                                   ],
                                   borderRadius: BorderRadius.circular(8),
                                 ),
-                                child: Column(
+                                child: const Column(
                                   mainAxisSize: MainAxisSize.max,
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
@@ -251,7 +251,8 @@ class HomePageMenu extends StatelessWidget {
                         openSaarthi(context);
                       },
                       child: Padding(
-                        padding: EdgeInsetsDirectional.fromSTEB(8, 8, 8, 8),
+                        padding:
+                            const EdgeInsetsDirectional.fromSTEB(8, 8, 8, 8),
                         child: Container(
                           width: MediaQuery.of(context).size.width * 0.4,
                           height: 150,
@@ -266,7 +267,7 @@ class HomePageMenu extends StatelessWidget {
                             ],
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          child: Column(
+                          child: const Column(
                             mainAxisSize: MainAxisSize.max,
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
@@ -285,7 +286,7 @@ class HomePageMenu extends StatelessWidget {
                                 child: Text(
                                   'ZllSaathi',
                                   textAlign: TextAlign.center,
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontFamily: 'Lexend Deca',
                                     color: Colors.white,
                                     fontSize: 18,
@@ -301,14 +302,17 @@ class HomePageMenu extends StatelessWidget {
                     //_getMenu(context, 'My Report',Icons.multiline_chart, MyReportsScreen()),
                   ],
                 )),
-
-                Padding(padding: EdgeInsets.all(5),
+            Padding(
+                padding: const EdgeInsets.all(5),
                 child: GestureDetector(
-                  onTap: (){
-                   Navigator.push(
-                    context, MaterialPageRoute(builder: (context) => DashboardPage()));
+                  onTap: () {
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const DashboardPage()));
                   },
-                  child: Text('My Dashboard'),)),
+                  child: const Text('My Dashboard'),
+                )),
             /*Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -324,7 +328,7 @@ class HomePageMenu extends StatelessWidget {
   openSaarthi(BuildContext context) async {
     print(mUserName);
     //main();
-    ZllSaathi(context, mUserName,profileAvtar);
+    ZllSaathi(context, mUserName, profileAvtar);
     // Navigator.push(
     //     context,
     //     MaterialPageRoute(
@@ -352,7 +356,7 @@ class HomePageMenu extends StatelessWidget {
             context, MaterialPageRoute(builder: (context) => action));
       },
       child: Padding(
-        padding: EdgeInsetsDirectional.fromSTEB(8, 8, 8, 8),
+        padding: const EdgeInsetsDirectional.fromSTEB(8, 8, 8, 8),
         child: Container(
           width: MediaQuery.of(context).size.width * 0.4,
           height: 150,
@@ -372,7 +376,7 @@ class HomePageMenu extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Padding(
-                padding: EdgeInsetsDirectional.fromSTEB(0, 16, 0, 0),
+                padding: const EdgeInsetsDirectional.fromSTEB(0, 16, 0, 0),
                 child: Icon(
                   icon,
                   color: Colors.white,
@@ -380,9 +384,9 @@ class HomePageMenu extends StatelessWidget {
                 ),
               ),
               Padding(
-                padding: EdgeInsetsDirectional.fromSTEB(0, 8, 0, 0),
+                padding: const EdgeInsetsDirectional.fromSTEB(0, 8, 0, 0),
                 child: Text(
-                  '${title}',
+                  title,
                   textAlign: TextAlign.center,
                   style: const TextStyle(
                     fontFamily: 'Lexend Deca',
