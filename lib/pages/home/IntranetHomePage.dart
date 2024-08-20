@@ -434,7 +434,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
   @pragma('vm:entry-point')
   Future<void> _firebaseMessagingBackgroundHandler(
       RemoteMessage message) async {
-    print('A new onMessageOpenedApp event was published! main 337');
+    print('A new onMessageOpenedApp event was published! main 437');
     NotificationService().parseNotification(message);
   }
 
@@ -444,6 +444,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
     await NotificationController.initializeIsolateReceivePort();
     // Set the background messaging handler early on, as a named top-level function
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+    FirebaseMessaging.onMessageOpenedApp.listen(_handleMessage);
   }
 
   Future<void> initFirebase() async {

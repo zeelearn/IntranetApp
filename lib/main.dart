@@ -27,6 +27,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -246,10 +247,20 @@ Future<Box> _openBox() async {
   }
   return await Hive.openBox(LocalConstant.KidzeeDB);
 }
+final localhostServer = InAppLocalhostServer(documentRoot: 'assets');
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   _openBox();
+
+   if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
+    await InAppWebViewController.setWebContentsDebuggingEnabled(kDebugMode);
+  }
+
+  if (!kIsWeb) {
+   // await localhostServer.start();
+  }
+
   if(!kIsWeb && Platform.isAndroid)
     await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   else

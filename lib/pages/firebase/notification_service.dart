@@ -245,11 +245,11 @@ class NotificationService {
       data.putIfAbsent('bigImageUrl', () => message.data.containsKey('bigimage') ? message.data['bigimage'] as String : '');
       data.putIfAbsent('webViewLink', () => message.data.containsKey('url') ? message.data['url'] as String : '');
       helper.insert(LocalConstant.TABLE_NOTIFICATION, data);
-      NotificationService notificationService = NotificationService();
-      notificationService.showSimpleNotification(
-          message.notification?.title as String,
-          message.notification?.body as String,
-          message);
+      // NotificationService notificationService = NotificationService();
+      // notificationService.showSimpleNotification(
+      //     message.notification?.title as String,
+      //     message.notification?.body as String,
+      //     message);
     } else {
       print('its data Notification 143');
       if(message.data.containsKey('type') && message.data['type']=='td'){
@@ -268,6 +268,7 @@ class NotificationService {
         data.putIfAbsent('bigImageUrl', () =>  message.data.containsKey('bigimage') ? message.data['bigimage'] as String : '');
         data.putIfAbsent('webViewLink', () => message.data.containsKey('url') ? message.data['url'] as String : '');
         helper.insert(LocalConstant.TABLE_NOTIFICATION, data);
+        print('insert in database ${data}');
         if(message.data.containsKey('type') && message.data['type']=='BPMS'){
           BpmsNotificationModelList list = BpmsNotificationModelList.fromJson(
             json.decode('{"data":${message.data['body'].toString().replaceAll(',]', ']')}}') as Map<String, dynamic>,
