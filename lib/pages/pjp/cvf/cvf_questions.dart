@@ -848,7 +848,7 @@ bool isOffline=false;
       onTap: () {
         if (widget.isViewOnly) {
         } else if (cvfView.Status == 'Completed') {
-          Utility.showMessages(context, 'CVF Already submitted and not able to update');
+          Utility.showMessages(context, LocalConstant.CVF_ALREADY_SUBMITTED);
         } else if (isComplete() && isAllCategoryQuestionsCompleted()) {
           saveAnswers(cvfView.PJPCVF_Id);
         } else {
@@ -1009,7 +1009,6 @@ bool isOffline=false;
         questions.files = path;
         updateImage(questions, path);
       }
-
       return Padding(padding: EdgeInsets.only(bottom: 15),
       child: Column(
         children: [
@@ -1017,7 +1016,7 @@ bool isOffline=false;
             children: [
               Container(
                 margin: EdgeInsets.only(bottom: 10),
-                constraints: BoxConstraints.tightFor(width: MediaQuery.of(context).size.width * 0.7, height: questions.IsProgressive=='1' ? questions.answers.length * 50 : 120),
+                constraints: BoxConstraints.tightFor(width: MediaQuery.of(context).size.width * 0.7, height: questions.IsProgressive=='1' ? questions.answers.length * 50 : 160),
                 child: Column(
                   children: _generateDynamicYesNo(questions),
                 ),
@@ -1025,6 +1024,7 @@ bool isOffline=false;
 
               GestureDetector(
                 onTap: () {
+                  print('in 1027');
                   if (widget.isViewOnly) {
                     if (questions.files.isNotEmpty) {
                       if (questions.files.contains('.png') ||
@@ -1042,8 +1042,7 @@ bool isOffline=false;
                       }
                     }
                   } else if (_Status == 'Completed') {
-                    Utility.showMessages(
-                        context, 'CVF Already submitted and not able to update');
+                    Utility.showMessages(context, LocalConstant.CVF_ALREADY_SUBMITTED);
                   } else if (questions.files.isNotEmpty) {
                     if (questions.files.contains('.png') ||
                         questions.files.contains('.jpg') ||
@@ -1118,6 +1117,7 @@ bool isOffline=false;
     //print(questions.toJson());
     return Container(
       color: LightColors.kLightGrayM,
+      margin: EdgeInsets.only(top: 10),
       width: MediaQuery.of(context).size.width,
       height: 35,
       child: Row(
@@ -1219,7 +1219,7 @@ bool isOffline=false;
                 }
               } else if (_Status == 'Completed') {
                 Utility.showMessages(
-                    context, 'CVF Already submitted and not able to update');
+                    context, LocalConstant.CVF_ALREADY_SUBMITTED);
               } else if (questions.files.isNotEmpty) {
                 if (questions.files.contains('.png') ||
                     questions.files.contains('.jpg') ||
@@ -1318,7 +1318,7 @@ bool isOffline=false;
           onTap: () {
             if (_Status == 'Completed') {
               Utility.showMessages(
-                  context, 'CVF Already submitted and not able to update');
+                  context, LocalConstant.CVF_ALREADY_SUBMITTED);
             } else if (widget.isViewOnly) {
               Utility.showMessages(
                   context, 'Manager cannot update the CVF answers');
@@ -1349,6 +1349,7 @@ bool isOffline=false;
         ),
         trailing: GestureDetector(
           onTap: () {
+            print('onTap 1352');
             if (widget.isViewOnly) {
               if (questions.files.isNotEmpty) {
                 if (questions.files.contains('.jpg') ||
@@ -1365,10 +1366,10 @@ bool isOffline=false;
                 }
               }
             }
-            /*else if (_Status == 'Completed') {
-              Utility.showMessages(
-                  context, 'CVF Already submitted and not able to update');
-            } */
+            else if (_Status == 'Completed') {
+              openFile(questions);
+              //Utility.showMessages(context, 'CVF Already submitted and not able to update');
+            } 
             else if (questions.files.isNotEmpty) {
               if (questions.files.contains('.jpg') ||
                   questions.files.contains('png')) {
@@ -1499,6 +1500,7 @@ bool isOffline=false;
     for(int index=0;index<questions.answers.length;index++){
       list.add(Expanded(
         child: CheckboxListTile(
+          
           value: (!userAnswerMap.containsKey(questions.Question_Id) &&
               questions.SelectedAnswer == questions.answers[index].answerId) ||
               (userAnswerMap.containsKey(questions.Question_Id) &&
@@ -1512,10 +1514,10 @@ bool isOffline=false;
           controlAffinity: ListTileControlAffinity.leading,
           onChanged: (checked) {
             if (widget.isViewOnly) {
-              Utility.showMessages(context, 'Unable to Edit ${widget.isViewOnly}');
+              Utility.showMessages(context, 'You have view-only access and are not permitted to make edits.');
             } else if (_Status == 'Completed') {
               Utility.showMessages(
-                  context, 'CVF Already submitted and not able to update');
+                  context, LocalConstant.CVF_ALREADY_SUBMITTED);
             } else {
               //ischeck[getCheckboxIndex(player.question)] = false;
               questions.SelectedAnswer = questions.answers[index].answerId;
@@ -1527,6 +1529,7 @@ bool isOffline=false;
         ),
       ));
     }
+    
     list.add(getRemark(questions));
     return list;
   }
@@ -1552,7 +1555,7 @@ bool isOffline=false;
   showRemarkDialog(Allquestion questions){
     if (widget.isViewOnly) {
     } else if (widget.cvfView.Status == 'Completed') {
-      Utility.showMessages(context, 'CVF Already submitted and not able to update');
+      Utility.showMessages(context, LocalConstant.CVF_ALREADY_SUBMITTED);
     }else {
       TextEditingController _controlelr = TextEditingController();
       _controlelr.text = questions.Remarks;
@@ -1615,7 +1618,7 @@ bool isOffline=false;
         onTap: (){
           if (widget.isViewOnly) {
           } else if (widget.cvfView.Status == 'Completed') {
-            Utility.showMessages(context, 'CVF Already submitted and not able to update');
+            Utility.showMessages(context, LocalConstant.CVF_ALREADY_SUBMITTED);
           }else {
             DateTime startDate = label == 'Start' ? DateTime(DateTime
                 .now()
@@ -1695,7 +1698,6 @@ bool isOffline=false;
         Column(
           children: [
             Expanded(
-              flex: 4,
               child: Column(
                 children: _generateDynamicYesNo(question),
               ),
@@ -1951,26 +1953,35 @@ bool isOffline=false;
         ),
       );
     } else {
-      File file = File(decodeUrl(question.files));
-      var filePath = file.path.split('?');
-      //debugPrint('FilePath : ${filePath[0]}');
+      String url = question.files;
+      File file = File(url);
+       var filePath = file.path.split('?');
       var fileExt = filePath[0].split('/');
-      String fileName = fileExt[fileExt.length - 1].toString();
-      debugPrint('fileExt : ${fileName}');
+       String fileName = fileExt[fileExt.length - 1].toString();
+       print('file name is ${fileName}');
+      Utility.downloadXFile(context,url, decodeUrl(fileName));
+      // print('file download started...');
+      // File file = File(decodeUrl(question.files));
+      // var filePath = file.path.split('?');
+      // //debugPrint('FilePath : ${filePath[0]}');
+      // var fileExt = filePath[0].split('/');
+      // String fileName = fileExt[fileExt.length - 1].toString();
+      // debugPrint('fileExt : ${fileName}');
 
-      (await Utility.isFileExists(fileName))
-          ? Utility.shareFile(fileName)
-          : setState(() {
-              isLoading = true;
-            });
-      Utility.downloadFile(question.files, fileName).then((value) {
-        isLoading = false;
-        setState(() {});
-      });
+      // (await Utility.isFileExists(fileName))
+      //     ? Utility.shareFile(fileName)
+      //     : setState(() {
+      //         isLoading = true;
+      //       });
+      // Utility.downloadFile(question.files, fileName).then((value) {
+      //   isLoading = false;
+      //   setState(() {});
+      // });
     }
   }
 
   decodeUrl(String url) {
+    url = url.replaceAll('%2F', '_');
     url = Uri.decodeFull(url);
     if (url.contains('%2F')) {
       url = Uri.decodeFull(url);

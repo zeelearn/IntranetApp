@@ -198,7 +198,7 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
     List<FranchiseeInfo> franchiseeList =
         await helper.getFranchiseeList(businessId);
 
-    if (await Utility.isInternet() || franchiseeList.isEmpty) {
+    if (await Utility.isInternet() && franchiseeList.isEmpty) {
       debugPrint('data load ssss');
       loadCenterList();
     } else {
@@ -637,11 +637,11 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
     return address;
   }
 
-  bool validate() {
-    debugPrint("Validating the CVF Form");
+  Future<bool> validate()async {
+    //debugPrint("Validating the CVF Form");
     String purpose = getCategoryList();
-    debugPrint('Purpose $_purposeMultiSelect');
-    debugPrint(_dateController.text);
+    //debugPrint('Purpose $_purposeMultiSelect');
+    //debugPrint(_dateController.text);
     if (_categoryController.text.isEmpty ||
         _categoryController.text == 'Select Purpose') {
       Utility.showMessages(context, "Please Select Purpose");
@@ -667,6 +667,9 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
     } else if (getFrichanseeId() == 0) {
       Utility.showMessages(context, "Please Select Center");
       return false;
+    }else if(!await Utility.isInternet()){
+      Utility.showMessages(context, 'Please check Internet Connection, and try again');
+      return false;
     }
     return true;
   }
@@ -675,7 +678,7 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
     if (!await LocationHelper.isLocationPermission(context)) {
       print('in if location status');
       LocationData deviceLocation = await LocationHelper.getLocation(context);
-    } else if (validate()) {
+    } else if (await validate()) {
       if (!await Utility.isInternet()) {
         Utility.noInternetConnection(context);
       } else {

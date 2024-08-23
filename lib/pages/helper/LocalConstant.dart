@@ -110,4 +110,9 @@ class LocalConstant {
   static const int PENDING_PROJECT = 1;
   static const int INPROGRESS_PROJECT = 2;
   static const int COMPLETED_PROJECT = 4;
+
+  static const String CVF_ALREADY_SUBMITTED = "This CVF has already been submitted and cannot be updated at this time.";
+  static const String FILE_DOWNLOAD_REQUEST = "Your file download has begun. Please check your notification drawer for the progress and additional details.";
+
+  //CVF Already submitted and not able to update
 }

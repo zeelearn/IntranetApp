@@ -445,6 +445,11 @@ class DBHelper {
     await dbclient.rawUpdate('update ${LocalConstant.TABLE_CHECKIN} set ${DBConstant.IS_SYNC} = \'${isSync}\'  where id=${id}');
   }
 
+  Future<void> deleteCheckInStatus(String id) async{
+    var dbclient = await db;
+    await dbclient.rawUpdate('delete from ${LocalConstant.TABLE_CHECKIN}  where id=${id}');
+  }
+
   Future<QuestionResponse> getQuestions(String cvfId,String categoryName,String categoryId) async {
     QuestionResponse response = QuestionResponse(responseMessage: '', statusCode: 200, responseData: []);
     List<Map<String, dynamic>> list = await  DBHelper().getQuestionMasterList(LocalConstant.TABLE_CVF_QUESTION_JSON,categoryId);
@@ -529,6 +534,7 @@ class DBHelper {
       for(int index=0;index<list.length;index++) {
         Map<String, dynamic> map = list[index];
         mMap.putIfAbsent(map[DBConstant.CVF_ID].toString(), () => map[DBConstant.STATE]);
+        mMap.putIfAbsent(map['date'].toString(), () => map['date']);
       }
     }else{
       debugPrint('offline status not found');

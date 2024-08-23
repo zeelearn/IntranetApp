@@ -1,7 +1,9 @@
 import 'package:Intranet/pages/helper/constants.dart';
+import 'package:Intranet/pages/home/dashboard.dart';
 import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hive/hive.dart';
@@ -369,12 +371,32 @@ class Utility{
     return date;
   }
 
+  static downloadXFile(BuildContext context,String url, String name) async{
+    print(url);
+    Directory? tempDir = Platform.isIOS ? await getApplicationDocumentsDirectory() : await getExternalStorageDirectory();
+    await FlutterDownloader.enqueue(
+          url: url,
+          fileName: name, //================File Name
+          savedDir: tempDir!.path,
+          showNotification: true,
+          timeout: 90000,
+
+          requiresStorageNotLow: true,
+          openFileFromNotification: true,
+          saveInPublicStorage: true,
+      );
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(LocalConstant.FILE_DOWNLOAD_REQUEST)),
+    );
+  }
+
   static shareFile(String filename) async{
     debugPrint('shareFile ${filename}');
     String dir = (await getTemporaryDirectory()).path;
     String path = '${dir}/${filename}';
+    print('in share file ${path}');
     //Share.shareXFiles([XFile(path)], text: model.ContentDescription);
-    Share.shareXFiles([XFile('${path}/$filename')], text: filename);
+    Share.shareXFiles([XFile('${path}')], text: filename);
   }
 
   static isFileExists(String fileName) async{
@@ -404,7 +426,7 @@ class Utility{
       var response = await request.close();
       var bytes = await consolidateHttpClientResponseBytes(response);
       await file.writeAsBytes(bytes);
-      debugPrint('in Download file completed...');
+      debugPrint('in Download file completed...${file.path}');
       return file;
     }catch(e){
       debugPrint(e.toString());

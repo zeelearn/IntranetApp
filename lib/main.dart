@@ -27,6 +27,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -247,17 +248,34 @@ Future<Box> _openBox() async {
   }
   return await Hive.openBox(LocalConstant.KidzeeDB);
 }
-
-final localhostServer = InAppLocalhostServer(documentRoot: 'assets');
+final localhostServer = InAppLocalhostServer(documentRoot: 'assets',port: 8181);
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   _openBox();
-  if (!kIsWeb && Platform.isAndroid) {
-    await Firebase.initializeApp(
-        options: DefaultFirebaseOptions.currentPlatform);
+
+  if(!kIsWeb){
+    await FlutterDownloader.initialize(
+        debug:
+            false, // optional: set to false to disable printing logs to console (default: true)
+        ignoreSsl:
+            false // option: set to false to disable working with http links (default: false)
+        );
+  }
+
+   if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
+    await InAppWebViewController.setWebContentsDebuggingEnabled(kDebugMode);
+  }
+
+  if (!kIsWeb) {
+    await localhostServer.start();
+  }
+
+  if(!kIsWeb && Platform.isAndroid) {
+    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   } else {
     await Firebase.initializeApp();
+  }
   }
 
   NotificationController.startListeningNotificationEvents();
@@ -322,7 +340,7 @@ Future<void> main() async {
   //runApp(const MyApp());
   bool acceptedNotification = await getInitNotif();
   runApp(MultiBlocProvider(
-    providers: [
+    providers = [
       BlocProvider<GetplandetailsCubit>(
         create: (BuildContext context) => GetplandetailsCubit(),
       ),
@@ -330,7 +348,7 @@ Future<void> main() async {
         create: (BuildContext context) => GetvisitplannercvfCubit(),
       ),
     ],
-    child: ProviderScope(
+    child = ProviderScope(
       child: acceptedNotification ? const UserNotification() : const MyApp(),
     ),
   ));
