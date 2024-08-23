@@ -119,7 +119,8 @@ class APIService {
                     : 'unknown'
       });
       debugPrint('URL ${url + LocalStrings.GET_LOGIN}');
-      debugPrint('URL PARSE ${Uri.parse(url + LocalStrings.GET_LOGIN).toString()}');
+      debugPrint(
+          'URL PARSE ${Uri.parse(url + LocalStrings.GET_LOGIN).toString()}');
       try {
         final response =
             await http.post(Uri.parse(url + LocalStrings.GET_LOGIN),
@@ -130,7 +131,7 @@ class APIService {
                   // Required for CORS support to work
                   "Access-Control-Allow-Credentials": "false",
                   // Required for cookies, authorization headers with HTTPS
-                "Access-Control-Allow-Methods": "POST, OPTIONS,POST,GET",
+                  "Access-Control-Allow-Methods": "POST, OPTIONS,POST,GET",
                   "Access-Control-Allow-Headers":
                       "Origin,Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,locale",
                   "Access-Control-Allow-Methods": "*"
@@ -202,7 +203,7 @@ class APIService {
       CreateEmployeeRequestModel request =
           CreateEmployeeRequestModel(date: date, xmlrequest: xmlRequest);
 
-      debugPrint('Request  in create event - ${request}');
+      debugPrint('Request  in create event - $request');
       final response = await http.post(
           Uri.parse(url + LocalStrings.CREATE_EMPLYEE_VISIT_PLANNER),
           headers: {
@@ -234,7 +235,7 @@ class APIService {
 
       var employeeId = hive.get(LocalConstant.KEY_EMPLOYEE_ID);
 
-      debugPrint('Request  in getplanvisidatevise event - ${employeeId}');
+      debugPrint('Request  in getplanvisidatevise event - $employeeId');
       final response = await http.post(
           Uri.parse(url + LocalStrings.GET_VISIT_PLANNER_DATEWISE),
           headers: {
@@ -423,11 +424,13 @@ class APIService {
         'Role': requestModel.Role,
         'FromDate': requestModel.FromDate,
         'LeaveType': requestModel.LeaveType,
-        'AppType': kIsWeb ? 'web' : Platform.isAndroid
-            ? 'Android'
-            : Platform.isIOS
-                ? 'IOS'
-                : 'unknown'
+        'AppType': kIsWeb
+            ? 'web'
+            : Platform.isAndroid
+                ? 'Android'
+                : Platform.isIOS
+                    ? 'IOS'
+                    : 'unknown'
       });
       debugPrint(Uri.parse(url + LocalStrings.GET_LEAVE_REQUISITION_MANAGER)
           .toString());
@@ -945,8 +948,8 @@ class APIService {
       print('RRR ${response.body.toString()}');
       print('status ${response.statusCode}');
       if (response.statusCode == 200 || response.statusCode == 400) {
-        String data = response.body.replaceAll('null', '\"NA\"');
-        print('data ${data}');
+        String data = response.body.replaceAll('null', '"NA"');
+        print('data $data');
         return PjpListResponse.fromJson(
           json.decode(data),
         );
@@ -999,7 +1002,7 @@ class APIService {
       print(response.body);
       print(response.statusCode);
       if (response.statusCode == 200 || response.statusCode == 400) {
-        String data = response.body.replaceAll('null', '\"NA\"');
+        String data = response.body.replaceAll('null', '"NA"');
         print(data);
         return PjpListResponse.fromJson(
           json.decode(data),
@@ -1053,7 +1056,7 @@ class APIService {
             "content-type": "application/json"
           },
           body: requestModel.getJson());
-          debugPrint(LocalStrings.GET_ALL_CVF);
+      debugPrint(LocalStrings.GET_ALL_CVF);
       debugPrint(response.body);
       if (response.statusCode == 200 || response.statusCode == 400) {
         String data = response.body.replaceAll('null', 'NA');
@@ -1857,7 +1860,7 @@ class APIService {
       final response = await http.post(
           Uri.parse(bpms_url + LocalStrings.API_INSERT_BPMS_STATUS),
           headers: getHeader(''));
-      print('getBPMSStatus ${response}');
+      print('getBPMSStatus $response');
       if (response.statusCode == 200) {
         return ProjectStatusResponse.fromJson(
           json.decode(response.body) as Map<String, dynamic>,
@@ -1880,7 +1883,7 @@ class APIService {
           headers: getHeader(''),
           body: request.toJson());
       print('addNewTask request ${request.toJson()}');
-      print('addNewTask ${response}');
+      print('addNewTask $response');
       if (response.statusCode == 200) {
         return AddNewTaskResponse.fromJson(
           json.decode(response.body) as Map<String, dynamic>,

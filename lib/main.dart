@@ -247,25 +247,17 @@ Future<Box> _openBox() async {
   }
   return await Hive.openBox(LocalConstant.KidzeeDB);
 }
+
 final localhostServer = InAppLocalhostServer(documentRoot: 'assets');
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   _openBox();
-
-   if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
-    await InAppWebViewController.setWebContentsDebuggingEnabled(kDebugMode);
-  }
-
-  if (!kIsWeb) {
-   // await localhostServer.start();
-  }
-
-  if(!kIsWeb && Platform.isAndroid) {
-    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  if (!kIsWeb && Platform.isAndroid) {
+    await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform);
   } else {
     await Firebase.initializeApp();
-  }
   }
 
   NotificationController.startListeningNotificationEvents();
@@ -330,7 +322,7 @@ Future<void> main() async {
   //runApp(const MyApp());
   bool acceptedNotification = await getInitNotif();
   runApp(MultiBlocProvider(
-    providers = [
+    providers: [
       BlocProvider<GetplandetailsCubit>(
         create: (BuildContext context) => GetplandetailsCubit(),
       ),
@@ -338,7 +330,7 @@ Future<void> main() async {
         create: (BuildContext context) => GetvisitplannercvfCubit(),
       ),
     ],
-    child = ProviderScope(
+    child: ProviderScope(
       child: acceptedNotification ? const UserNotification() : const MyApp(),
     ),
   ));
