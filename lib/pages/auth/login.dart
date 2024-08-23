@@ -345,7 +345,9 @@ class _LoginPage extends State<LoginPage> {
 
   void validate(BuildContext context) async {
     if (!isChecked) {
-      Utility.showMessage(context, "Please accept the Terms and Conditions 1");
+      Utility.showMessage(context, "Please accept the Terms and Conditions");
+    }else if(!await Utility.isInternet()){
+      Utility.showMessage(context, "Internet Connectivity not avaliable, please check internet and try again");
     } else if (_userNameController.text.toString() != "" &&
         _userPasswordController.text.toString() != "") {
       Utility.showLoaderDialog(context);

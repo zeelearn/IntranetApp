@@ -791,7 +791,7 @@ packages:
     source: hosted
     version: "1.1.0"
   flutter_downloader:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: flutter_downloader
       sha256: b6da5495b6258aa7c243d0f0a5281e3430b385bccac11cc508f981e653b25aa6

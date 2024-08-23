@@ -57,7 +57,7 @@ class FCM {
     await Hive.openBox(LocalConstant.KidzeeDB);
     var oldoken = hiveBox.get(LocalConstant.KEY_FCM_ID);
     debugPrint(token);
-    if(true || oldoken==null || oldoken != token) {
+    if(oldoken==null || oldoken != token) {
       hiveBox.put(LocalConstant.KEY_FCM_ID, token);
       APIService service = APIService();
 

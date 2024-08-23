@@ -86,6 +86,7 @@ class _MyCVFListScreen extends State<CVFListScreen>
 
   getLocalData() {
     bool isLoad = false;
+    print('in local data 89-------------------');
     try {
       var attendanceList = hiveBox.get(getId());
       isLoading = false;
@@ -450,6 +451,7 @@ class _MyCVFListScreen extends State<CVFListScreen>
     }
     if (offlineStatus.containsKey(cvfView.PJPCVF_Id.toString())) {
       cvfView.Status = offlineStatus[cvfView.PJPCVF_Id].toString();
+      cvfView.DateTimeIn = offlineStatus['date'].toString();
     }
     return GestureDetector(
       onTap: () {
@@ -1203,15 +1205,8 @@ class _MyCVFListScreen extends State<CVFListScreen>
       isLoading = false;
 
       if (response.responseData != null && response.responseData.length > 0) {
-        String json = jsonEncode(response);
-        saveCVFLocally(json);
-        mCvfList.clear();
-        for (int index = 0; index < response.responseData.length; index++) {
-          mCvfList.addAll(response.responseData[index].getDetailedPJP!);
-        }
-        setState(() {
-          //mPjpList.addAll(response.responseData);
-        });
+        updateStatus(response);
+        
       }
     } else if (value is PjpListResponse) {
       PjpListResponse response = value;
@@ -1222,6 +1217,22 @@ class _MyCVFListScreen extends State<CVFListScreen>
       this.loadAllCVF();
     }
     setState(() {});
+  }
+
+  updateStatus(PjpListResponse response)async{
+    String json = jsonEncode(response);
+    DBHelper helper = DBHelper();
+    saveCVFLocally(json);
+        mCvfList.clear();
+        for (int index = 0; index < response.responseData.length; index++) {
+          mCvfList.addAll(response.responseData[index].getDetailedPJP!);
+          for(int jIndex=0;jIndex < response.responseData[index].getDetailedPJP!.length;jIndex++)
+            await helper.deleteCheckInStatus(response.responseData[index].getDetailedPJP![jIndex].PJPCVF_Id);
+        }
+        setState(() {
+          //mPjpList.addAll(response.responseData);
+        });
+    
   }
 
   @override

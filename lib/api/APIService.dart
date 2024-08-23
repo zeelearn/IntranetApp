@@ -944,6 +944,7 @@ class APIService {
           body: requestModel.getJson());
       print('RRR ${response.body.toString()}');
       print('status ${response.statusCode}');
+      print('url ${Uri.parse(url + LocalStrings.GET_PJP_LIST)}');
       if (response.statusCode == 200 || response.statusCode == 400) {
         String data = response.body.replaceAll('null', '\"NA\"');
         print('data ${data}');

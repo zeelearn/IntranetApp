@@ -329,8 +329,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
 
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
       print('A new onMessageOpenedApp event was published123!');
-      Navigator.push(
-          context, MaterialPageRoute(builder: (context) => UserNotification()));
+      Navigator.push(context, MaterialPageRoute(builder: (context) => UserNotification()));
     });
     //_listenForMessages();
     if (!kIsWeb) if (Platform.isAndroid) {
@@ -431,19 +430,19 @@ class _IntranetHomePageState extends State<IntranetHomePage>
     }
   }
 
-  @pragma('vm:entry-point')
-  Future<void> _firebaseMessagingBackgroundHandler(
-      RemoteMessage message) async {
-    print('A new onMessageOpenedApp event was published! main 437');
-    NotificationService().parseNotification(message);
-  }
+  // @pragma('vm:entry-point')
+  // Future<void> _firebaseMessagingBackgroundHandler(
+  //     RemoteMessage message) async {
+  //   print('A new onMessageOpenedApp event was published! main 437');
+  //   NotificationService().parseNotification(message);
+  // }
 
   initNotification() async {
     await initFirebase();
     await NotificationController.initializeLocalNotifications();
     await NotificationController.initializeIsolateReceivePort();
     // Set the background messaging handler early on, as a named top-level function
-    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+    //FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
     FirebaseMessaging.onMessageOpenedApp.listen(_handleMessage);
   }
 
