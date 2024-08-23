@@ -93,7 +93,7 @@ dependencies:
   custom_date_range_picker: ^1.0.10
   file_picker: ^8.0.5
   #flutter_webview_pro: ^3.0.1+4
-  flutter_inappwebview: ^5.8.0
+  flutter_inappwebview: ^6.0.0
   syncfusion_flutter_pdfviewer: ^26.2.5
   location_geocoder: ^1.0.5
   order_tracker_zen: ^1.0.0+4
@@ -110,7 +110,7 @@ dependencies:
   flutter_html: ^3.0.0-alpha.6
   dropdown_search: ^5.0.6
 
-  calendar_date_picker2: ^1.1.5
+  #calendar_date_picker2: ^1.1.5
   device_calendar: ^4.3.2
 
   syncfusion_flutter_calendar: ^26.2.5
@@ -118,6 +118,7 @@ dependencies:
   grouped_list: ^6.0.0
   collection: ^1.18.0
   uni_links: ^0.5.1
+  share_plus: ^10.0.0
   #overlay_support: ^2.0.1
 
   #flutter_background_service: ^2.4.3
@@ -132,17 +133,21 @@ dependencies:
   fl_chart: ^0.68.0
 
 dependency_overrides:
-  intl: ^0.17.0
-  http: ^1.0.0
-  device_info_plus: ^9.0.3
-  share_plus: ^7.1.0
+  #share_plus: ^10.0.2
   package_info_plus: ^4.0.0
-  win32: ^5.0.9
-  lottie: ^3.1.0
-  file_picker: ^8.0.5
-  photo_view: ^0.15.0
   pdfrx: ^1.0.82
   rxdart: ^0.26.0
+  device_info_plus: ^10.0.0
+  win32: ^5.4.0
+  http: ^0.13.3
+  lottie: ^3.0.0
+  intl: ^0.19.0
+  awesome_notifications: ^0.9.1
+  js: ^0.7.1
+  file_picker: ^8.0.5
+  photo_view: ^0.15.0
+  device_calendar: ^4.0.0
+  archive: ^3.6.1
 
 
 

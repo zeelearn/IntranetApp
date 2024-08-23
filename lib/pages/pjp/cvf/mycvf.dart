@@ -229,8 +229,9 @@ class _MyCVFListScreen extends State<MyCVFListScreen>
   getCvfView(GetDetailedPJP cvfView) {
     return GestureDetector(
       onTap: () {
-        if(!cvfView.approvalStatus.toLowerCase().contains('recject')){
-            Utility.showMessage(context, 'PJP not yet approve, Please connect with your manager');
+        print(cvfView.toJson());
+        if(cvfView.approvalStatus.toLowerCase().contains('reject')){
+            Utility.showMessage(context, 'This PJP is rejected by your manager');
         }else if(!cvfView.approvalStatus.toLowerCase().contains('approv')){
             Utility.showMessage(context, 'PJP not yet approve, Please connect with your manager');
         }else if (cvfView.Status == 'Check In' ||

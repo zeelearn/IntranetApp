@@ -374,7 +374,7 @@ class Utility{
     String dir = (await getTemporaryDirectory()).path;
     String path = '${dir}/${filename}';
     //Share.shareXFiles([XFile(path)], text: model.ContentDescription);
-    Share.shareFiles([path], text: filename);
+    Share.shareXFiles([XFile('${path}/$filename')], text: filename);
   }
 
   static isFileExists(String fileName) async{
