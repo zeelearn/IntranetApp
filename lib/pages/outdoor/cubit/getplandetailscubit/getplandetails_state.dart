@@ -23,6 +23,15 @@ class GetplandetailsSuccessState extends GetplandetailsState {
   const GetplandetailsSuccessState({required this.listofplandata});
 }
 
+class GetFranchiseeLastVisitplandetailsSuccessState
+    extends GetplandetailsState {
+  final List<getFranchiseeLastVisitModelPlaceholder.ResponseData>
+      listofFranchiseeplandata;
+
+  const GetFranchiseeLastVisitplandetailsSuccessState(
+      {required this.listofFranchiseeplandata});
+}
+
 class CreateEmplyeePlanSuccessState extends GetplandetailsState {
   final List<GetPlanData> listofGetplanDate;
 

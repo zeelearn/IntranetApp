@@ -1,6 +1,8 @@
 import 'dart:convert';
 
 import 'package:Intranet/api/response/pjp/pjplistresponse.dart';
+import 'package:Intranet/pages/model/getFranchiseeLastVisitModel.dart'
+    as getFranchiseeLastVisitModelPlaceholder;
 import 'package:Intranet/pages/pjp/cvf/getVisitplannerCvfcubit/cubit/getvisitplannercvf_cubit.dart';
 import 'package:Intranet/pages/utils/toastmsg.dart';
 import 'package:device_calendar/device_calendar.dart';
@@ -17,7 +19,7 @@ import 'package:google_maps_webservice/places.dart';
 import 'package:hive/hive.dart';
 import 'package:intl/intl.dart';
 import 'package:location/location.dart';
-import 'package:lottie/lottie.dart';
+import 'package:order_tracker_zen/order_tracker_zen.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:timezone/src/location.dart' as timezonelocation;
 
@@ -26,6 +28,7 @@ import '../../../api/request/cvf/add_cvf_request.dart';
 import '../../../api/request/cvf/category_request.dart';
 import '../../../api/request/cvf/centers_request.dart';
 import '../../../api/request/cvf/questions_request.dart';
+import '../../../api/request/pjp/get_pjp_report_request.dart';
 import '../../../api/response/cvf/QuestionResponse.dart';
 import '../../../api/response/cvf/add_cvf_response.dart';
 import '../../../api/response/cvf/category_response.dart';
@@ -39,6 +42,7 @@ import '../../helper/LocationHelper.dart';
 import '../../helper/constants.dart';
 import '../../helper/utils.dart';
 import '../../iface/onClick.dart';
+import '../../outdoor/cubit/getplandetailscubit/getplandetails_cubit.dart';
 import '../../utils/theme/colors/light_colors.dart';
 import '../../widget/MyWidget.dart';
 import '../PJPForm.dart';
@@ -48,7 +52,7 @@ class AddCVFScreen extends StatefulWidget {
   PJPInfo mPjpModel;
   final homeScaffoldKey = GlobalKey<ScaffoldState>();
   final searchScaffoldKey = GlobalKey<ScaffoldState>();
-  AddCVFScreen({Key? key, required this.mPjpModel}) : super(key: key);
+  AddCVFScreen({super.key, required this.mPjpModel});
 
   @override
   State<AddCVFScreen> createState() => _AddCVFState();
@@ -84,7 +88,12 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
   String? calendarId;
   late DeviceCalendarPlugin _deviceCalendarPlugin;
   timezonelocation.Location? currentLocation;
-  List<VisitPlanDateWise> listofplandata = [];
+  List<VisitPlanDateWise> listofvisitplandatewisedata = [];
+  // List<GetPlanData> listofplandata = [];
+  List<getFranchiseeLastVisitModelPlaceholder.ResponseData> listofplandata = [];
+
+  List<getFranchiseeLastVisitModelPlaceholder.ResponseData>
+      filteredlistofplandata = [];
 
   List<String> selectedCategoryValue = [];
 
@@ -253,6 +262,10 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
     }
   }
 
+  String employeeID = '0';
+  String employeeCode = '0';
+  int businessID = 0;
+
   @override
   void initState() {
     _deviceCalendarPlugin = DeviceCalendarPlugin();
@@ -261,11 +274,18 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
     getCurrentTimeZone();
     super.initState();
     debugPrint('cvf list ');
-    BlocProvider.of<GetvisitplannercvfCubit>(context).getPlanDetails(
-        DateFormat('yyyy-MM-dd')
-            .format(DateTime.parse(widget.mPjpModel.fromDate)),
-        DateFormat('yyyy-MM-dd')
-            .format(DateTime.parse(widget.mPjpModel.toDate)));
+    // BlocProvider.of<GetvisitplannercvfCubit>(context).getPlanDetails(
+    //     DateFormat('yyyy-MM-dd')
+    //         .format(DateTime.parse(widget.mPjpModel.fromDate)),
+    //     DateFormat('yyyy-MM-dd')
+    //         .format(DateTime.parse(widget.mPjpModel.toDate)));
+    var hive = Hive.box(LocalConstant.KidzeeDB);
+    employeeID = hive.get(LocalConstant.KEY_EMPLOYEE_ID);
+    businessID = hive.get(LocalConstant.KEY_BUSINESS_ID);
+    employeeCode = hive.get(LocalConstant.KEY_EMPLOYEE_CODE) as String;
+    debugPrint('Business id is - $businessID');
+    BlocProvider.of<GetplandetailsCubit>(context)
+        .getFranchiseeLastVisit(int.parse(employeeID), businessID);
     Future.delayed(Duration.zero, () {
       loadUserData();
     });
@@ -321,6 +341,32 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
       }
     }
     return list;
+  }
+
+  getCheckInOutValues(String status, String address, String date) {
+    return TrackerData(
+      title: status,
+      date: date,
+      tracker_details: [
+        TrackerDetails(
+          title: address,
+          datetime: '',
+        ),
+      ],
+    );
+  }
+
+  List<TrackerData> getTrakcerList(String? checkIn, String? checkOut) {
+    List<TrackerData> localTrackerList = [];
+    if (checkIn != null) {
+      localTrackerList.add(
+          getCheckInOutValues('Check In', '', Utility.parseDateOnly(checkIn)));
+    }
+    if (checkOut != null) {
+      localTrackerList.add(getCheckInOutValues(
+          'Check Out', '', Utility.parseDateOnly(checkOut)));
+    }
+    return localTrackerList;
   }
 
   Size? size;
@@ -436,31 +482,33 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
             alignment: Alignment.centerLeft,
             child: const Text('Your Previous Plan'),
           ),
-          Expanded(
+          getPlanList(),
+          /*  Expanded(
             child: ListView.builder(
               shrinkWrap: true,
               padding: const EdgeInsets.all(10),
               itemBuilder: (context, index) {
                 return InkWell(
                   onTap: () {
-                    if (listofplandata[index].fromDate != null) {
-                      cvfDate = DateTime.parse(listofplandata[index].fromDate!);
+                    if (listofvisitplandatewisedata[index].fromDate != null) {
+                      cvfDate = DateTime.parse(
+                          listofvisitplandatewisedata[index].fromDate!);
                       String formattedDate =
                           DateFormat('dd-MMM-yyyy').format(cvfDate);
                       _dateController.text = formattedDate;
                     }
                     if (mFrianchiseeList.firstWhereOrNull((element) =>
                             element.franchiseeId ==
-                            listofplandata[index].centerId) !=
+                            listofvisitplandatewisedata[index].centerId) !=
                         null) {
                       franchiseeInfo = mFrianchiseeList.firstWhereOrNull(
                           (element) =>
                               element.franchiseeId ==
-                              listofplandata[index].centerId);
+                              listofvisitplandatewisedata[index].centerId);
                       selectCenter(mFrianchiseeList.firstWhereOrNull(
                           (element) =>
                               element.franchiseeId ==
-                              listofplandata[index].centerId)!);
+                              listofvisitplandatewisedata[index].centerId)!);
                     }
 
                     setState(() {});
@@ -477,21 +525,21 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
                                 Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(listofplandata[index].remarks!),
+                                    Text(listofvisitplandatewisedata[index]
+                                        .remarks!),
                                     mFrianchiseeList.isNotEmpty
-                                        ? Text(mFrianchiseeList
-                                                    .firstWhereOrNull(
-                                                        (element) =>
-                                                            element
-                                                                .franchiseeId ==
-                                                            listofplandata[
-                                                                    index]
-                                                                .centerId) !=
+                                        ? Text(mFrianchiseeList.firstWhereOrNull(
+                                                    (element) =>
+                                                        element.franchiseeId ==
+                                                        listofvisitplandatewisedata[
+                                                                index]
+                                                            .centerId) !=
                                                 null
                                             ? mFrianchiseeList
                                                 .firstWhereOrNull((element) =>
                                                     element.franchiseeId ==
-                                                    listofplandata[index]
+                                                    listofvisitplandatewisedata[
+                                                            index]
                                                         .centerId)!
                                                 .franchiseeName
                                             : '')
@@ -500,20 +548,28 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
                                       mainAxisAlignment:
                                           MainAxisAlignment.start,
                                       children: [
-                                        listofplandata[index].fromDate != null
+                                        listofvisitplandatewisedata[index]
+                                                    .fromDate !=
+                                                null
                                             ? Text(DateFormat('yyyy-MM-dd')
                                                 .format(DateTime.parse(
-                                                    listofplandata[index]
+                                                    listofvisitplandatewisedata[
+                                                            index]
                                                         .fromDate!))
                                                 .toString())
                                             : const SizedBox.shrink(),
-                                        listofplandata[index].toDate != null
+                                        listofvisitplandatewisedata[index]
+                                                    .toDate !=
+                                                null
                                             ? const Text(' - ')
                                             : const SizedBox.shrink(),
-                                        listofplandata[index].toDate != null
+                                        listofvisitplandatewisedata[index]
+                                                    .toDate !=
+                                                null
                                             ? Text(DateFormat('yyyy-MM-dd')
                                                 .format(DateTime.parse(
-                                                    listofplandata[index]
+                                                    listofvisitplandatewisedata[
+                                                            index]
                                                         .toDate!))
                                                 .toString())
                                             : const SizedBox.shrink(),
@@ -540,10 +596,12 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
                                 ),
                                 GestureDetector(
                                   onTap: () {
-                                    if (listofplandata[index].fromDate !=
+                                    if (listofvisitplandatewisedata[index]
+                                            .fromDate !=
                                         null) {
                                       cvfDate = DateTime.parse(
-                                          listofplandata[index].fromDate!);
+                                          listofvisitplandatewisedata[index]
+                                              .fromDate!);
                                       String formattedDate =
                                           DateFormat('dd-MMM-yyyy')
                                               .format(cvfDate);
@@ -552,17 +610,20 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
                                     if (mFrianchiseeList.firstWhereOrNull(
                                             (element) =>
                                                 element.franchiseeId ==
-                                                listofplandata[index]
+                                                listofvisitplandatewisedata[
+                                                        index]
                                                     .centerId) !=
                                         null) {
                                       franchiseeInfo = mFrianchiseeList
                                           .firstWhereOrNull((element) =>
                                               element.franchiseeId ==
-                                              listofplandata[index].centerId);
+                                              listofvisitplandatewisedata[index]
+                                                  .centerId);
                                       selectCenter(mFrianchiseeList
                                           .firstWhereOrNull((element) =>
                                               element.franchiseeId ==
-                                              listofplandata[index].centerId)!);
+                                              listofvisitplandatewisedata[index]
+                                                  .centerId)!);
                                     }
 
                                     setState(() {});
@@ -579,12 +640,120 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
                   ),
                 );
               },
-              itemCount: listofplandata.length,
+              itemCount: listofvisitplandatewisedata.length,
             ),
-          )
+          ) */
         ],
       ),
     );
+  }
+
+  Expanded getPlanList() {
+    return Expanded(
+        child: ListView.builder(
+      shrinkWrap: true,
+      itemCount: filteredlistofplandata.length,
+      itemBuilder: (context, index) {
+        return InkWell(
+          onTap: () async {
+            DateTime fromDate =
+                DateTime.now().subtract(const Duration(days: 30));
+            DateTime toDate = DateTime.now();
+
+            PJPReportRequest request = PJPReportRequest(
+                employeeCode: employeeCode,
+                fromDate: Utility.convertShortDate(fromDate),
+                toDate: Utility.convertShortDate(toDate));
+            PjpListResponse pjpListResponse =
+                await APIService().getPJPReport(request);
+            /*  Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => QuestionListScreen(
+                        cvfView: pjpListResponse.responseData[0].getDetailedPJP!,
+                        PJPCVF_Id: int.parse(cvfView.PJPCVF_Id),
+                        employeeId: employeeId,
+                        mCategory: categoryName,
+                        mCategoryId: categoryId,
+                        isViewOnly:
+                            widget.mPjpInfo.isSelfPJP == '0' ? true : false,
+                      )),
+            ); */
+          },
+          child: Card(
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        mainAxisSize: MainAxisSize.max,
+                        children: [
+                          Row(
+                            children: [
+                              Padding(
+                                padding: const EdgeInsetsDirectional.fromSTEB(
+                                    4, 0, 0, 0),
+                                child: Text(
+                                  'PJP Id : ${filteredlistofplandata[index].pJPId ?? ''}' /* '${Utility.shortTime(Utility.convertTime(filteredlistofplandata[index]. ?? DateTime.now().toString()))} ${Utility.shortTimeAMPM(Utility.convertTime(filteredlistofplandata[index].visitDate ?? DateTime.now().toString()))}' */,
+                                  style: const TextStyle(
+                                    fontFamily: 'Lexend Deca',
+                                    color: Color(0xFF4B39EF),
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      Padding(
+                        padding:
+                            const EdgeInsetsDirectional.fromSTEB(0, 4, 0, 0),
+                        child: Text(
+                          'PJPCVF Id : ${filteredlistofplandata[index].pJPCVFId ?? ''}',
+                          style: const TextStyle(
+                            fontFamily: 'Lexend Deca',
+                            color: Color(0xFF4B39EF),
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                          ),
+                          textAlign: TextAlign.left,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 5),
+                  Container(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      'Visited By : ${filteredlistofplandata[index].lastVisitedBy ?? ''}',
+                      style: const TextStyle(
+                        fontFamily: 'Lexend Deca',
+                        color: Color(0xFF4B39EF),
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      textAlign: TextAlign.left,
+                    ),
+                  ),
+                  const SizedBox(height: 5),
+                  OrderTrackerZen(
+                    isShrinked: true,
+                    tracker_data: getTrakcerList(
+                        filteredlistofplandata[index].lastCheckIn,
+                        filteredlistofplandata[index].lastCheckOut),
+                  )
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    ));
   }
 
   _selectTime(BuildContext context) async {
@@ -637,7 +806,7 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
     return address;
   }
 
-  Future<bool> validate()async {
+  Future<bool> validate() async {
     //debugPrint("Validating the CVF Form");
     String purpose = getCategoryList();
     //debugPrint('Purpose $_purposeMultiSelect');
@@ -667,8 +836,9 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
     } else if (getFrichanseeId() == 0) {
       Utility.showMessages(context, "Please Select Center");
       return false;
-    }else if(!await Utility.isInternet()){
-      Utility.showMessages(context, 'Please check Internet Connection, and try again');
+    } else if (!await Utility.isInternet()) {
+      Utility.showMessages(
+          context, 'Please check Internet Connection, and try again');
       return false;
     }
     return true;
@@ -933,6 +1103,13 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
 
   selectCenter(FranchiseeInfo model) {
     _CenterName = model.franchiseeName;
+    filteredlistofplandata = listofplandata
+        .where(
+          (element) =>
+              int.parse(element.franchiseeId ?? '0') == model.franchiseeId,
+        )
+        .toList();
+    setState(() {});
   }
 
   FranchiseeInfo? franchiseeInfo;
@@ -1267,36 +1444,47 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
 
   @override
   Widget build(BuildContext context) {
-    Size size = MediaQuery.of(context).size;
     var brightness = MediaQuery.of(context).platformBrightness;
-    bool isDarkMode = brightness == Brightness.light;
+
     return Scaffold(
       key: widget.homeScaffoldKey,
       appBar: getAppbar(),
-      body: BlocListener<GetvisitplannercvfCubit, GetvisitplannercvfState>(
-        listener: (context, state) {
-          if (state is GetvisitplannercvfErrorState) {
-            ToastMessage().showErrorToast(state.error);
-          } else if (state is GetvisitplannercvfSuccessSatte) {
-            listofplandata = state.listofPlanData;
-            for (var element in listofplandata) {
-              selectedCategoryValue.add('Select Purpose');
-            }
+      body: BlocListener<GetplandetailsCubit, GetplandetailsState>(
+        listener: (context, getPlandetailCubitstate) {
+          if (getPlandetailCubitstate is GetplandetailsErrorState) {
+            ToastMessage().showErrorToast(getPlandetailCubitstate.error);
+          } else if (getPlandetailCubitstate
+              is GetFranchiseeLastVisitplandetailsSuccessState) {
+            listofplandata = getPlandetailCubitstate.listofFranchiseeplandata;
+
             setState(() {});
           }
         },
-        child: Container(
-          margin: const EdgeInsets.symmetric(vertical: 1.0),
-          padding: const EdgeInsets.only(left: 5, right: 5),
-          child: Column(
-            children: [
-              const SizedBox(
-                height: 10,
-              ),
-              Expanded(
-                child: getCenterForm(),
-              )
-            ],
+        child: BlocListener<GetvisitplannercvfCubit, GetvisitplannercvfState>(
+          listener: (context, state) {
+            if (state is GetvisitplannercvfErrorState) {
+              ToastMessage().showErrorToast(state.error);
+            } else if (state is GetvisitplannercvfSuccessSatte) {
+              listofvisitplandatewisedata = state.listofPlanData;
+              /* for (var element in listofvisitplandatewisedata) {
+                selectedCategoryValue.add('Select Purpose');
+              } */
+              setState(() {});
+            }
+          },
+          child: Container(
+            margin: const EdgeInsets.symmetric(vertical: 1.0),
+            padding: const EdgeInsets.only(left: 5, right: 5),
+            child: Column(
+              children: [
+                const SizedBox(
+                  height: 10,
+                ),
+                Expanded(
+                  child: getCenterForm(),
+                )
+              ],
+            ),
           ),
         ),
       ),

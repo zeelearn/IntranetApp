@@ -81,6 +81,8 @@ import 'package:Intranet/api/response/pjp/pjplistresponse.dart';
 import 'package:Intranet/api/response/pjp/update_pjpstatus_response.dart';
 import 'package:Intranet/api/response/report/my_report.dart';
 import 'package:Intranet/api/response/uploadimage.dart';
+import 'package:Intranet/pages/model/getFranchiseeLastVisitModel.dart'
+    as getFranchiseeLastVisitModelPlaceholder;
 import 'package:Intranet/pages/outdoor/model/createemplyeeplanrequestmodel.dart';
 import 'package:aws_s3_upload/aws_s3_upload.dart';
 import 'package:aws_s3_upload/enum/acl.dart';
@@ -162,13 +164,10 @@ class APIService {
   }
 
   Future<Either<String, List<GetPlanData>>> getEmployeeVisitDetails(
-      int employeeID) async {
+      int employeeID, int businessId) async {
     try {
-      /* var hive = Hive.box(LocalConstant.KidzeeDB);
-
-      var employeeId = hive.get(LocalConstant.KEY_EMPLOYEE_ID); */
-
-      var body = jsonEncode({'employee_id': employeeID});
+      var body =
+          jsonEncode({'employee_id': employeeID, 'Business_id': businessId});
 
       final response = await http.post(
           Uri.parse(url + LocalStrings.GET_EMPLOYEE_VISIT_DETAILS),
@@ -183,6 +182,43 @@ class APIService {
           return Right(List<GetPlanData>.from(
               jsonDecode(response.body)['responseData'].map((e) {
             return GetPlanData.fromJson(e);
+          }).toList()));
+        } else {
+          return const Right([]);
+        }
+      } else {
+        return Left(response.body.toString());
+      }
+    } catch (e) {
+      debugPrint('Exception in getVisitdetailsapi - $e');
+
+      return Left(e.toString());
+    }
+  }
+
+  Future<
+          Either<String,
+              List<getFranchiseeLastVisitModelPlaceholder.ResponseData>>>
+      getFranchiseeLastVisit(int employeeID, int businessId) async {
+    try {
+      var body =
+          jsonEncode({'employee_id': employeeID, 'Business_id': businessId});
+
+      final response = await http.post(
+          Uri.parse(url + LocalStrings.GET_FRANCHISEE_LAST_VISIT),
+          headers: {
+            "Accept": "application/json",
+            "content-type": "application/json"
+          },
+          body: body);
+      debugPrint('Response in getVisitdetailsapi - ${response.body}');
+      if (response.statusCode == 200) {
+        if (jsonDecode(response.body)['responseData'] is List) {
+          return Right(
+              List<getFranchiseeLastVisitModelPlaceholder.ResponseData>.from(
+                  jsonDecode(response.body)['responseData'].map((e) {
+            return getFranchiseeLastVisitModelPlaceholder.ResponseData.fromJson(
+                e);
           }).toList()));
         } else {
           return const Right([]);

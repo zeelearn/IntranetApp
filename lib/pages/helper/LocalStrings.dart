@@ -17,7 +17,7 @@ class LocalStrings {
       '/api/EmployeeInfo/GetAttendance';
   static const String GET_LEAVE_SUMMERY = '/api/EmployeeInfo/CheckLeaveBalance';
   static const String GET_LEAVE_REQUISITION =
-        '/api/EmployeeInfo/AttendanceRequisition';
+      '/api/EmployeeInfo/AttendanceRequisition';
   static const String GET_APPLY_LEAVE = '/api/Leave/RequisitionHeaderInsert';
   static const String GET_ATTENDANCE_MARKING =
       '/api/EmployeeInfo/SaveAttendanceMarking';
@@ -51,6 +51,9 @@ class LocalStrings {
 
   static const String DELETE_EMPLOYEE_VISIT_PLAN =
       '/api/PJP/DeleteVisitPlanner';
+
+  static const String GET_FRANCHISEE_LAST_VISIT =
+      '/api/PJP/GetFranchiseeLastVisit';
 
   /*CVF*/
   static const String GET_CVF_CATEGORY = '/api/PJP/GetPJPCategory';
