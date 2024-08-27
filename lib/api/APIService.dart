@@ -211,7 +211,7 @@ class APIService {
             "content-type": "application/json"
           },
           body: body);
-      debugPrint('Response in getVisitdetailsapi - ${response.body}');
+      debugPrint('Response in getVisitdetailsapi - ${response.body} ');
       if (response.statusCode == 200) {
         if (jsonDecode(response.body)['responseData'] is List) {
           return Right(

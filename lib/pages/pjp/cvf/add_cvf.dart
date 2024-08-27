@@ -28,7 +28,6 @@ import '../../../api/request/cvf/add_cvf_request.dart';
 import '../../../api/request/cvf/category_request.dart';
 import '../../../api/request/cvf/centers_request.dart';
 import '../../../api/request/cvf/questions_request.dart';
-import '../../../api/request/pjp/get_pjp_report_request.dart';
 import '../../../api/response/cvf/QuestionResponse.dart';
 import '../../../api/response/cvf/add_cvf_response.dart';
 import '../../../api/response/cvf/category_response.dart';
@@ -360,12 +359,12 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
   List<TrackerData> getTrakcerList(String? checkIn, String? checkOut) {
     List<TrackerData> localTrackerList = [];
     if (checkIn != null) {
-      localTrackerList.add(
-          getCheckInOutValues('Check In', '', Utility.parseDateOnly(checkIn)));
+      localTrackerList.add(getCheckInOutValues(
+          'Check In', '', Utility.parseCVFDateOnly(checkIn).toString()));
     }
     if (checkOut != null) {
       localTrackerList.add(getCheckInOutValues(
-          'Check Out', '', Utility.parseDateOnly(checkOut)));
+          'Check Out', '', Utility.parseCVFDateOnly(checkOut).toString()));
     }
     return localTrackerList;
   }
@@ -657,17 +656,6 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
       itemBuilder: (context, index) {
         return InkWell(
           onTap: () async {
-            DateTime fromDate =
-                DateTime.now().subtract(const Duration(days: 30));
-            DateTime toDate = DateTime.now();
-
-            PJPReportRequest request = PJPReportRequest(
-                employeeCode: employeeCode,
-                fromDate: Utility.convertShortDate(fromDate),
-                toDate: Utility.convertShortDate(toDate));
-            PjpListResponse pjpListResponse =
-                await APIService().getPJPReport(request);
-
             Navigator.of(context).push(MaterialPageRoute(
                 builder: (BuildContext context) => MyWebsiteView(
                       title:
@@ -675,19 +663,6 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
                       url:
                           'https://intranet.zeelearn.com/cvfreport.html?cid=${filteredlistofplandata[index].pJPCVFId}',
                     )));
-            /*  Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (context) => QuestionListScreen(
-                        cvfView: pjpListResponse.responseData[0].getDetailedPJP!,
-                        PJPCVF_Id: int.parse(cvfView.PJPCVF_Id),
-                        employeeId: employeeId,
-                        mCategory: categoryName,
-                        mCategoryId: categoryId,
-                        isViewOnly:
-                            widget.mPjpInfo.isSelfPJP == '0' ? true : false,
-                      )),
-            ); */
           },
           child: Card(
             child: Padding(
