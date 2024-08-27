@@ -337,6 +337,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.6.9"
+  darq:
+    dependency: transitive
+    description:
+      name: darq
+      sha256: eb58203f550d113df1984cf6550b94b6951e515bed98eb49d098fb35719c78b0
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.0"
   dart_quill_delta:
     dependency: transitive
     description:
@@ -464,6 +472,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.3.1"
+  faker:
+    dependency: transitive
+    description:
+      name: faker
+      sha256: "544c34e9e1d322824156d5a8d451bc1bb778263b892aded24ec7ba77b0706624"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.2.0"
   ffi:
     dependency: transitive
     description:
@@ -1684,14 +1700,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.0"
-  number_paginator:
-    dependency: transitive
-    description:
-      name: number_paginator
-      sha256: "342992c0d87b1f0d7434e37b25b514effb075c89db3539ac6ec498f9d4d5f61e"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.4.1"
   octo_image:
     dependency: transitive
     description:
@@ -1740,6 +1748,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.1"
+  paged_datatable:
+    dependency: transitive
+    description:
+      name: paged_datatable
+      sha256: "2e70de29a0bd0c6ed94a73f01c2ce139568c09e20c8b7f60661b1fe3d7ee25ea"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.1.1"
   path:
     dependency: "direct main"
     description:
@@ -1757,7 +1773,7 @@ packages:
     source: hosted
     version: "1.0.1"
   path_provider:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: path_provider
       sha256: c9e7d3a4cd1410877472158bee69963a4579f78b68c65a2b7d40d1a7a88bb161
@@ -2625,13 +2641,13 @@ packages:
     source: hosted
     version: "4.8.0"
   webview_flutter_android:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
       name: webview_flutter_android
-      sha256: "060e1a621add859dc822f3e4c59b01468e8515ea78cfc5ac4c6b28bc903b5f74"
+      sha256: dad3313c9ead95517bb1cae5e1c9d20ba83729d5a59e5e83c0a2d66203f27f91
       url: "https://pub.dev"
     source: hosted
-    version: "3.16.5"
+    version: "3.16.1"
   webview_flutter_platform_interface:
     dependency: transitive
     description:

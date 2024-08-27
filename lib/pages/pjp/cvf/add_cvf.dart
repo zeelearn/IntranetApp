@@ -44,6 +44,7 @@ import '../../helper/utils.dart';
 import '../../iface/onClick.dart';
 import '../../outdoor/cubit/getplandetailscubit/getplandetails_cubit.dart';
 import '../../utils/theme/colors/light_colors.dart';
+import '../../widget/MyWebSiteView.dart';
 import '../../widget/MyWidget.dart';
 import '../PJPForm.dart';
 import 'model/getvisitplandatewisemodel.dart';
@@ -666,6 +667,14 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
                 toDate: Utility.convertShortDate(toDate));
             PjpListResponse pjpListResponse =
                 await APIService().getPJPReport(request);
+
+            Navigator.of(context).push(MaterialPageRoute(
+                builder: (BuildContext context) => MyWebsiteView(
+                      title:
+                          'CVF Report - ${filteredlistofplandata[index].pJPCVFId}',
+                      url:
+                          'https://intranet.zeelearn.com/cvfreport.html?cid=${filteredlistofplandata[index].pJPCVFId}',
+                    )));
             /*  Navigator.push(
               context,
               MaterialPageRoute(

@@ -133,6 +133,8 @@ dependencies:
     
   fl_chart: ^0.68.0
 
+  path_provider: any
+
 dependency_overrides:
   #share_plus: ^10.0.2
   package_info_plus: ^4.0.0
@@ -149,6 +151,7 @@ dependency_overrides:
   photo_view: ^0.15.0
   device_calendar: ^4.0.0
   archive: ^3.6.1
+  webview_flutter_android: 3.16.1
 
 
 

@@ -1,19 +1,17 @@
-import 'dart:async';
-import 'dart:collection';
 import 'package:Intranet/pages/helper/constants.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:lottie/lottie.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
-
-import 'package:webview_flutter_platform_interface/src/types/web_resource_error.dart'
-    as webview_flutter_platform_interface;
-
 import 'package:webview_flutter/webview_flutter.dart';
 // #docregion platform_imports
 // Import for Android features.
 import 'package:webview_flutter_android/webview_flutter_android.dart';
+import 'package:webview_flutter_platform_interface/src/types/web_resource_error.dart'
+    as webview_flutter_platform_interface;
 // Import for iOS features.
 import 'package:webview_flutter_wkwebview/webview_flutter_wkwebview.dart';
 
@@ -109,7 +107,7 @@ class MyWebsiteViewState extends State<MyWebsiteView> {
             debugPrint('url change to ${change.url}');
           },
           onHttpAuthRequest: (HttpAuthRequest request) {
-            debugPrint('url change to ${request}');
+            debugPrint('url change to $request');
             //openDialog(request);
           },
         ),
@@ -290,6 +288,20 @@ class MyWebsiteViewState extends State<MyWebsiteView> {
           if (kDebugMode) {
             print(consoleMessage);
           }
+        },
+        onDownloadStartRequest: (controller, downloadStartRequest) async {
+          debugPrint('Download is getting called - $downloadStartRequest');
+          final taskId = await FlutterDownloader.enqueue(
+            url: downloadStartRequest.url.toString(),
+            savedDir: (await getExternalStorageDirectory())!.path,
+            showNotification:
+                true, // show download progress in status bar (for Android)
+            openFileFromNotification:
+                true, // click on notification to open downloaded file (for Android)
+          );
+          /* await canLaunchUrl(downloadStartRequest.url)
+              ? await launchUrl(downloadStartRequest.url)
+              : throw 'Could not launch ${downloadStartRequest.url}'; */
         },
       ) /* WebViewWidget(controller: _controller) */,
     );
