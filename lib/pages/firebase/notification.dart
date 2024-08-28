@@ -1,17 +1,18 @@
 import 'dart:async';
 
+import 'package:Intranet/api/APIService.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:hive/hive.dart';
-import 'package:Intranet/api/APIService.dart';
 
 import '../../api/request/fcm_request.dart';
 import '../helper/LocalConstant.dart';
 import 'firebase_options.dart';
 
 Future<void> onBackgroundMessage(RemoteMessage message) async {
-  await Firebase.initializeApp(name: "Intranet", options: DefaultFirebaseOptions.currentPlatform);
+  await Firebase.initializeApp(
+      name: "Intranet", options: DefaultFirebaseOptions.currentPlatform);
 
   if (message.data.containsKey('data')) {
     // Handle data message
@@ -32,7 +33,7 @@ class FCM {
   final titleCtlr = StreamController<String>.broadcast();
   final bodyCtlr = StreamController<String>.broadcast();
 
-  setNotifications(String employeeId,String deviceId,String userAgent) {
+  setNotifications(String employeeId, String deviceId, String userAgent) {
     // FirebaseMessaging.onBackgroundMessage(onBackgroundMessage);
     // FirebaseMessaging.onMessage.listen(
     //       (message) async {
@@ -48,25 +49,27 @@ class FCM {
     //   },
     // );
     // With this token you can test it easily on your phone
-    final token = _firebaseMessaging.getToken().then((value) => sendFcm(value!,employeeId,deviceId,userAgent) );
-
-
+    final token = _firebaseMessaging
+        .getToken()
+        .then((value) => sendFcm(value!, employeeId, deviceId, userAgent));
   }
-  sendFcm(String token,String employeeId,deviceId,userAgent) async {
+
+  sendFcm(String token, String employeeId, deviceId, userAgent) async {
     var hiveBox = Hive.box(LocalConstant.KidzeeDB);
     await Hive.openBox(LocalConstant.KidzeeDB);
     var oldoken = hiveBox.get(LocalConstant.KEY_FCM_ID);
     debugPrint(token);
-    if(oldoken==null || oldoken != token) {
+    if (oldoken == null || oldoken != token) {
       hiveBox.put(LocalConstant.KEY_FCM_ID, token);
       APIService service = APIService();
 
-      FcmRequestModel model = FcmRequestModel(FCM_Reg_ID: token,
+      FcmRequestModel model = FcmRequestModel(
+          FCM_Reg_ID: token,
           Employee_ID: employeeId,
           Device_ID: deviceId,
           User_Agent: userAgent);
       service.updateFCM(model);
-    }else{
+    } else {
       print('in else notification id not change');
     }
   }

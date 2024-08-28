@@ -50,7 +50,7 @@ class FastChoiceChip
   @override
   final Clip clipBehavior;
   @override
-  final MaterialStateProperty<Color?>? color;
+  final WidgetStateProperty<Color?>? color;
   @override
   final Color? disabledColor;
   @override
@@ -101,10 +101,6 @@ class FastChoiceChip
   @override
   // TODO: implement avatarBoxConstraints
   BoxConstraints? get avatarBoxConstraints => throw UnimplementedError();
-  
-  @override
-  // TODO: implement chipAnimationStyle
-  ChipAnimationStyle? get chipAnimationStyle => throw UnimplementedError();
 }
 
 typedef FastChoiceChipBuilder = Widget Function(

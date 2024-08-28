@@ -27,6 +27,7 @@ class _MyOutdoorPlannerState extends State<MyOutdoorPlanner> {
 
   List<GetPlanData> listofGetplanData = [];
   String employeeID = '0';
+  String businessID = '0';
 
   @override
   void initState() {
@@ -34,8 +35,10 @@ class _MyOutdoorPlannerState extends State<MyOutdoorPlanner> {
     var hive = Hive.box(LocalConstant.KidzeeDB);
 
     employeeID = hive.get(LocalConstant.KEY_EMPLOYEE_ID);
+    businessID = hive.get(LocalConstant.KEY_BUSINESS_ID);
+    debugPrint('Business id is - $businessID');
     BlocProvider.of<GetplandetailsCubit>(context)
-        .getPlanDetails(int.parse(employeeID));
+        .getPlanDetails(int.parse(employeeID), int.parse(businessID));
   }
 
   @override
@@ -58,8 +61,8 @@ class _MyOutdoorPlannerState extends State<MyOutdoorPlanner> {
                   employeeID = value
                       .toString()
                       .substring(0, value.toString().length - 2);
-                  BlocProvider.of<GetplandetailsCubit>(context)
-                      .getPlanDetails(int.parse(employeeID));
+                  BlocProvider.of<GetplandetailsCubit>(context).getPlanDetails(
+                      int.parse(employeeID), int.parse(businessID));
                 }
               });
             },
@@ -196,7 +199,8 @@ class _MyOutdoorPlannerState extends State<MyOutdoorPlanner> {
                               ))
                           .then((value) =>
                               BlocProvider.of<GetplandetailsCubit>(context)
-                                  .getPlanDetails(int.parse(employeeID)));
+                                  .getPlanDetails(int.parse(employeeID),
+                                      int.parse(businessID)));
                     },
                     monthTitleStyle: const TextStyle(
                       fontSize: 16,

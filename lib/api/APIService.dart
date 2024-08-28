@@ -81,6 +81,8 @@ import 'package:Intranet/api/response/pjp/pjplistresponse.dart';
 import 'package:Intranet/api/response/pjp/update_pjpstatus_response.dart';
 import 'package:Intranet/api/response/report/my_report.dart';
 import 'package:Intranet/api/response/uploadimage.dart';
+import 'package:Intranet/pages/model/getFranchiseeLastVisitModel.dart'
+    as getFranchiseeLastVisitModelPlaceholder;
 import 'package:Intranet/pages/outdoor/model/createemplyeeplanrequestmodel.dart';
 import 'package:aws_s3_upload/aws_s3_upload.dart';
 import 'package:aws_s3_upload/enum/acl.dart';
@@ -119,7 +121,8 @@ class APIService {
                     : 'unknown'
       });
       debugPrint('URL ${url + LocalStrings.GET_LOGIN}');
-      debugPrint('URL PARSE ${Uri.parse(url + LocalStrings.GET_LOGIN).toString()}');
+      debugPrint(
+          'URL PARSE ${Uri.parse(url + LocalStrings.GET_LOGIN).toString()}');
       try {
         final response =
             await http.post(Uri.parse(url + LocalStrings.GET_LOGIN),
@@ -130,7 +133,7 @@ class APIService {
                   // Required for CORS support to work
                   "Access-Control-Allow-Credentials": "false",
                   // Required for cookies, authorization headers with HTTPS
-                "Access-Control-Allow-Methods": "POST, OPTIONS,POST,GET",
+                  "Access-Control-Allow-Methods": "POST, OPTIONS,POST,GET",
                   "Access-Control-Allow-Headers":
                       "Origin,Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,locale",
                   "Access-Control-Allow-Methods": "*"
@@ -161,13 +164,10 @@ class APIService {
   }
 
   Future<Either<String, List<GetPlanData>>> getEmployeeVisitDetails(
-      int employeeID) async {
+      int employeeID, int businessId) async {
     try {
-      /* var hive = Hive.box(LocalConstant.KidzeeDB);
-
-      var employeeId = hive.get(LocalConstant.KEY_EMPLOYEE_ID); */
-
-      var body = jsonEncode({'employee_id': employeeID});
+      var body =
+          jsonEncode({'employee_id': employeeID, 'Business_id': businessId});
 
       final response = await http.post(
           Uri.parse(url + LocalStrings.GET_EMPLOYEE_VISIT_DETAILS),
@@ -196,13 +196,50 @@ class APIService {
     }
   }
 
+  Future<
+          Either<String,
+              List<getFranchiseeLastVisitModelPlaceholder.ResponseData>>>
+      getFranchiseeLastVisit(int employeeID, int businessId) async {
+    try {
+      var body =
+          jsonEncode({'employee_id': employeeID, 'Business_id': businessId});
+
+      final response = await http.post(
+          Uri.parse(url + LocalStrings.GET_FRANCHISEE_LAST_VISIT),
+          headers: {
+            "Accept": "application/json",
+            "content-type": "application/json"
+          },
+          body: body);
+      debugPrint('Response in getVisitdetailsapi - ${response.body} ');
+      if (response.statusCode == 200) {
+        if (jsonDecode(response.body)['responseData'] is List) {
+          return Right(
+              List<getFranchiseeLastVisitModelPlaceholder.ResponseData>.from(
+                  jsonDecode(response.body)['responseData'].map((e) {
+            return getFranchiseeLastVisitModelPlaceholder.ResponseData.fromJson(
+                e);
+          }).toList()));
+        } else {
+          return const Right([]);
+        }
+      } else {
+        return Left(response.body.toString());
+      }
+    } catch (e) {
+      debugPrint('Exception in getVisitdetailsapi - $e');
+
+      return Left(e.toString());
+    }
+  }
+
   Future<Either<String, List<GetPlanData>>> createEmployeeVisitPlan(
       {required String date, required List<XMLRequest> xmlRequest}) async {
     try {
       CreateEmployeeRequestModel request =
           CreateEmployeeRequestModel(date: date, xmlrequest: xmlRequest);
 
-      debugPrint('Request  in create event - ${request}');
+      debugPrint('Request  in create event - $request');
       final response = await http.post(
           Uri.parse(url + LocalStrings.CREATE_EMPLYEE_VISIT_PLANNER),
           headers: {
@@ -234,7 +271,7 @@ class APIService {
 
       var employeeId = hive.get(LocalConstant.KEY_EMPLOYEE_ID);
 
-      debugPrint('Request  in getplanvisidatevise event - ${employeeId}');
+      debugPrint('Request  in getplanvisidatevise event - $employeeId');
       final response = await http.post(
           Uri.parse(url + LocalStrings.GET_VISIT_PLANNER_DATEWISE),
           headers: {
@@ -423,11 +460,13 @@ class APIService {
         'Role': requestModel.Role,
         'FromDate': requestModel.FromDate,
         'LeaveType': requestModel.LeaveType,
-        'AppType': kIsWeb ? 'web' : Platform.isAndroid
-            ? 'Android'
-            : Platform.isIOS
-                ? 'IOS'
-                : 'unknown'
+        'AppType': kIsWeb
+            ? 'web'
+            : Platform.isAndroid
+                ? 'Android'
+                : Platform.isIOS
+                    ? 'IOS'
+                    : 'unknown'
       });
       debugPrint(Uri.parse(url + LocalStrings.GET_LEAVE_REQUISITION_MANAGER)
           .toString());
@@ -946,8 +985,8 @@ class APIService {
       print('status ${response.statusCode}');
       print('url ${Uri.parse(url + LocalStrings.GET_PJP_LIST)}');
       if (response.statusCode == 200 || response.statusCode == 400) {
-        String data = response.body.replaceAll('null', '\"NA\"');
-        print('data ${data}');
+        String data = response.body.replaceAll('null', '"NA"');
+        print('data $data');
         return PjpListResponse.fromJson(
           json.decode(data),
         );
@@ -1000,7 +1039,7 @@ class APIService {
       print(response.body);
       print(response.statusCode);
       if (response.statusCode == 200 || response.statusCode == 400) {
-        String data = response.body.replaceAll('null', '\"NA\"');
+        String data = response.body.replaceAll('null', '"NA"');
         print(data);
         return PjpListResponse.fromJson(
           json.decode(data),
@@ -1054,7 +1093,7 @@ class APIService {
             "content-type": "application/json"
           },
           body: requestModel.getJson());
-          debugPrint(LocalStrings.GET_ALL_CVF);
+      debugPrint(LocalStrings.GET_ALL_CVF);
       debugPrint(response.body);
       if (response.statusCode == 200 || response.statusCode == 400) {
         String data = response.body.replaceAll('null', 'NA');
@@ -1858,7 +1897,7 @@ class APIService {
       final response = await http.post(
           Uri.parse(bpms_url + LocalStrings.API_INSERT_BPMS_STATUS),
           headers: getHeader(''));
-      print('getBPMSStatus ${response}');
+      print('getBPMSStatus $response');
       if (response.statusCode == 200) {
         return ProjectStatusResponse.fromJson(
           json.decode(response.body) as Map<String, dynamic>,
@@ -1881,7 +1920,7 @@ class APIService {
           headers: getHeader(''),
           body: request.toJson());
       print('addNewTask request ${request.toJson()}');
-      print('addNewTask ${response}');
+      print('addNewTask $response');
       if (response.statusCode == 200) {
         return AddNewTaskResponse.fromJson(
           json.decode(response.body) as Map<String, dynamic>,

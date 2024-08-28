@@ -1,30 +1,28 @@
-import 'package:Intranet/pages/helper/constants.dart';
-import 'package:Intranet/pages/home/dashboard.dart';
-import 'package:flutter/material.dart';
 import 'dart:io';
+
+import 'package:Intranet/pages/helper/LocalStrings.dart';
+import 'package:Intranet/pages/helper/constants.dart';
+import 'package:Intranet/pages/iface/onClick.dart';
+import 'package:Intranet/pages/iface/onResponse.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hive/hive.dart';
 import 'package:intl/intl.dart';
-import 'package:Intranet/pages/helper/LocalStrings.dart';
-import 'package:Intranet/pages/iface/onClick.dart';
-import 'package:Intranet/pages/iface/onResponse.dart';
-import 'package:location_geocoder/geocoder.dart';
 import 'package:location_geocoder/location_geocoder.dart';
 import 'package:lottie/lottie.dart';
 import 'package:material_dialogs/material_dialogs.dart';
 import 'package:material_dialogs/widgets/buttons/icon_button.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../utils/theme/colors/light_colors.dart';
 import 'LightColor.dart';
 import 'LocalConstant.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:share_plus/share_plus.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-
 
 enum TaskPageStatus {
   all,
@@ -33,21 +31,20 @@ enum TaskPageStatus {
   details,
 }
 
-class Utility{
+class Utility {
+  static int ACTION_OK = 100012;
+  static int ACTION_CONFIRM = 100018;
+  static int ACTION_ALERT_OK = 100019;
+  static int ACTION_REJECT = 100014;
+  static int ACTION_CCNCEL = 100013;
+  static int ACTION_ADDPJP = 100015;
+  static int ACTION_IMAGE_UPLOAD_RESPONSE_OK = 100015;
+  static int ACTION_IMAGE_UPLOAD_RESPONSE_ERROR = 100016;
 
-  static int ACTION_OK=100012;
-  static int ACTION_CONFIRM=100018;
-  static int ACTION_ALERT_OK=100019;
-  static int ACTION_REJECT=100014;
-  static int ACTION_CCNCEL=100013;
-  static int ACTION_ADDPJP=100015;
-  static int ACTION_IMAGE_UPLOAD_RESPONSE_OK=100015;
-  static int ACTION_IMAGE_UPLOAD_RESPONSE_ERROR=100016;
-
-  static void openPermisisonSettings(BuildContext context){
+  static void openPermisisonSettings(BuildContext context) {
     AlertDialog alertBox = AlertDialog(
-      title: new Text('Permission Required'),
-      content: new Text(
+      title: const Text('Permission Required'),
+      content: const Text(
           'Please give the required Location permission for Intranet App'),
       actions: <Widget>[
         // usually buttons at the bottom of the dialog
@@ -60,7 +57,8 @@ class Utility{
               elevation: 10.0,
               textStyle: const TextStyle(color: LightColors.kDarkBlue)),
           child: const Text('Cancel'),
-        ),ElevatedButton(
+        ),
+        ElevatedButton(
           onPressed: () async {
             Navigator.of(context).pop();
             await Utility.openSetting();
@@ -80,15 +78,16 @@ class Utility{
       },
     );
   }
-  static void showMessageCallback(BuildContext context,String title,String message,onClickListener listener) {
+
+  static void showMessageCallback(BuildContext context, String title,
+      String message, onClickListener listener) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         // return object of type Dialog
         return AlertDialog(
-          title: new Text(title),
-          content: new Text(
-              message),
+          title: Text(title),
+          content: Text(message),
           actions: <Widget>[
             // usually buttons at the bottom of the dialog
 
@@ -115,12 +114,14 @@ class Utility{
     return htmlText.replaceAll(exp, '');
   }
 
-  static showLoader(){
-    return Center(child: Lottie.asset('assets/json/loading.json',height: 200),);
+  static showLoader() {
+    return Center(
+      child: Lottie.asset('assets/json/loading.json', height: 200),
+    );
   }
 
   static String formatDate() {
-    String date='';
+    String date = '';
     DateTime dt = DateTime.now();
     try {
       date = DateFormat('yyyy-MM-dd\'T\'HH:mm:ss.sss\'Z\'').format(dt);
@@ -130,8 +131,8 @@ class Utility{
     return date;
   }
 
-  static getShortMonth(DateTime dt){
-    String date='';
+  static getShortMonth(DateTime dt) {
+    String date = '';
     try {
       date = DateFormat('MMM').format(dt);
     } catch (e) {
@@ -141,7 +142,7 @@ class Utility{
   }
 
   static String getServerDate() {
-    String date ='';
+    String date = '';
     DateTime dt = DateTime.now();
     try {
       date = DateFormat('yyyy-MM-dd\'T\'HH:mm:ss.sss\'Z\'').format(dt);
@@ -150,7 +151,8 @@ class Utility{
     }
     return date;
   }
-  static getConfirmationDialogPJP(BuildContext context,onResponse response){
+
+  static getConfirmationDialogPJP(BuildContext context, onResponse response) {
     Dialogs.materialDialog(
       color: Colors.white,
       msg: 'Thank you for Approve the PJP',
@@ -166,21 +168,22 @@ class Utility{
       actions: [
         IconsButton(
           onPressed: () {
-            Future.delayed(Duration(milliseconds: 50)).then((_) {
+            Future.delayed(const Duration(milliseconds: 50)).then((_) {
               response.onSuccess('SUCCESS');
             });
           },
           text: 'OK',
           iconData: Icons.done,
           color: Colors.blue,
-          textStyle: TextStyle(color: Colors.white),
+          textStyle: const TextStyle(color: Colors.white),
           iconColor: Colors.white,
         ),
       ],
     );
   }
 
-  static getConfirmationDialog(BuildContext context,String title,String description,onClickListener response){
+  static getConfirmationDialog(BuildContext context, String title,
+      String description, onClickListener response) {
     Dialogs.materialDialog(
       titleStyle: LightColors.textHeaderStyle13,
       msgStyle: LightColors.textHeaderStyle13,
@@ -196,29 +199,27 @@ class Utility{
       actions: [
         IconsButton(
           onPressed: () {
-            Future.delayed(Duration(milliseconds: 50)).then((_) {
+            Future.delayed(const Duration(milliseconds: 50)).then((_) {
               Navigator.of(context, rootNavigator: true).pop('dialog');
-              response.onClick(ACTION_OK,'SUCCESS');
+              response.onClick(ACTION_OK, 'SUCCESS');
             });
           },
           text: 'OK',
           iconData: Icons.done,
           color: Colors.blue,
-          textStyle: TextStyle(color: Colors.white),
+          textStyle: const TextStyle(color: Colors.white),
           iconColor: Colors.white,
         ),
       ],
     );
   }
 
-
   static String parseShortTime(String value) {
-    String date =value;
+    String date = value;
     DateTime dt = DateTime.now();
     //print('value ${value}');
     try {
-
-      dt = new DateFormat('yyyy-MM-dd\'T\'HH:mm:ss.sss\'Z\'').parse(value);
+      dt = DateFormat('yyyy-MM-dd\'T\'HH:mm:ss.sss\'Z\'').parse(value);
       //print('dt ${dt.day}');
       date = DateFormat("hh:mm a").format(dt);
       //print('date ${date}');
@@ -228,8 +229,8 @@ class Utility{
     return date;
   }
 
-
-  static getConfirmation(BuildContext context,String title,String description,onClickListener response){
+  static getConfirmation(BuildContext context, String title, String description,
+      onClickListener response) {
     Dialogs.materialDialog(
       color: Colors.white,
       msg: description,
@@ -247,67 +248,70 @@ class Utility{
       actions: [
         IconsButton(
           onPressed: () {
-            Future.delayed(Duration(milliseconds: 50)).then((_) {
+            Future.delayed(const Duration(milliseconds: 50)).then((_) {
               Navigator.of(context, rootNavigator: true).pop('dialog');
-              response.onClick(ACTION_OK,'SUCCESS');
+              response.onClick(ACTION_OK, 'SUCCESS');
             });
           },
           text: 'Cancel',
           iconData: Icons.cancel,
           color: LightColors.kRed,
-          textStyle: TextStyle(color: Colors.white),
+          textStyle: const TextStyle(color: Colors.white),
           iconColor: Colors.white,
         ),
         IconsButton(
           onPressed: () {
-            Future.delayed(Duration(milliseconds: 50)).then((_) {
+            Future.delayed(const Duration(milliseconds: 50)).then((_) {
               Navigator.of(context, rootNavigator: true).pop('dialog');
-              response.onClick(ACTION_CONFIRM,'SUCCESS');
+              response.onClick(ACTION_CONFIRM, 'SUCCESS');
             });
           },
           text: 'Confirm',
           iconData: Icons.done,
           color: Colors.blue,
-          textStyle: TextStyle(color: Colors.white),
+          textStyle: const TextStyle(color: Colors.white),
           iconColor: Colors.white,
         ),
       ],
     );
   }
-  static openSetting() async{
+
+  static openSetting() async {
     print('open setting');
-    await  openAppSettings();
+    await openAppSettings();
   }
 
   static Future<bool> isOfflineEligble(String value) async {
     final prefs = await SharedPreferences.getInstance();
-    int _currentSelection=prefs.containsKey(LocalConstant.KEY_SYNC_INTERVAL) ? prefs.getInt(LocalConstant.KEY_SYNC_INTERVAL) as int : 4;
-    print('Current Selection is ${_currentSelection}');
+    int currentSelection = prefs.containsKey(LocalConstant.KEY_SYNC_INTERVAL)
+        ? prefs.getInt(LocalConstant.KEY_SYNC_INTERVAL) as int
+        : 4;
+    print('Current Selection is $currentSelection');
     bool isOfflineEligble = false;
-    if(_currentSelection==0){
+    if (currentSelection == 0) {
       return false;
     }
-    if(value.isEmpty)
+    if (value.isEmpty) {
       return false;
+    }
     try {
       DateTime from = parseStringDate(value);
       //from = DateTime(from.year, from.month, from.day);
-      int numberOfHour =  (DateTime.now().difference(from).inHours).round();
-      int numberOfMinutes =  (DateTime.now().difference(from).inMinutes).round();
-      if(numberOfHour<=_currentSelection){
+      int numberOfHour = (DateTime.now().difference(from).inHours).round();
+      int numberOfMinutes = (DateTime.now().difference(from).inMinutes).round();
+      if (numberOfHour <= currentSelection) {
         isOfflineEligble = true;
       }
-      print('is Offline ${isOfflineEligble}');
-    }catch(e){}
+      print('is Offline $isOfflineEligble');
+    } catch (e) {}
     return isOfflineEligble;
   }
 
   static DateTime parseStringDate(String value) {
     DateTime dt = DateTime.now();
-    print('value ${value}');
+    print('value $value');
     try {
-
-      dt = new DateFormat('yyyy-MM-dd\'T\'HH:mm:ss.sss\'Z\'').parse(value);
+      dt = DateFormat('yyyy-MM-dd\'T\'HH:mm:ss.sss\'Z\'').parse(value);
     } catch (e) {
       e.toString();
     }
@@ -315,11 +319,11 @@ class Utility{
   }
 
   static String parseShortDate(String value) {
-    String date =value;
+    String date = value;
     DateTime dt = DateTime.now();
     //print('value ${value}');
     try {
-      dt = new DateFormat('yyyy-MM-dd\'T\'HH:mm:ss.sss\'Z\'').parse(value);
+      dt = DateFormat('yyyy-MM-dd\'T\'HH:mm:ss.sss\'Z\'').parse(value);
       //print('dt ${dt.day}');
       date = DateFormat("dd MMM yy").format(dt);
       //print('date ${date}');
@@ -330,11 +334,11 @@ class Utility{
   }
 
   static String parsePJPDateTime(String value) {
-    String date =value;
+    String date = value;
     DateTime dt = DateTime.now();
     //print('value ${value}');
     try {
-      dt = new DateFormat('yyyy-MM-dd\'T\'HH:mm:ss').parse(value);
+      dt = DateFormat('yyyy-MM-dd\'T\'HH:mm:ss').parse(value);
       //print('dt ${dt.day}');
       date = DateFormat("dd MMM yy, hh:mm a").format(dt);
       //print('date ${date}');
@@ -346,9 +350,9 @@ class Utility{
 
   static DateTime parseDateTime(String value) {
     DateTime date = DateTime.now();
-    print('value ${value}');
+    print('value $value');
     try {
-      date = new DateFormat('yyyy-MM-dd').parse(value);
+      date = DateFormat('yyyy-MM-dd').parse(value);
       print(date.toString());
     } catch (e) {
       e.toString();
@@ -357,11 +361,11 @@ class Utility{
   }
 
   static String parseDateOnly(String value) {
-    String date =value;
+    String date = value;
     DateTime dt = DateTime.now();
     //print('value ${value}');
     try {
-      dt = new DateFormat('mm-dd-yy').parse(value);
+      dt = DateFormat('mm-dd-yy').parse(value);
       //print('dt ${dt.day}');
       date = DateFormat("dd MMM yy").format(dt);
       //print('date ${date}');
@@ -371,64 +375,81 @@ class Utility{
     return date;
   }
 
-  static downloadXFile(BuildContext context,String url, String name) async{
-    print(url);
-    Directory? tempDir = Platform.isIOS ? await getApplicationDocumentsDirectory() : await getExternalStorageDirectory();
-    await FlutterDownloader.enqueue(
-          url: url,
-          fileName: name, //================File Name
-          savedDir: tempDir!.path,
-          showNotification: true,
-          timeout: 90000,
+  static String parseCVFDateOnly(String value) {
+    String date = value;
+    DateTime dt = DateTime.now();
+    //print('value ${value}');
+    try {
+      dt = DateFormat('yyyy-MM-dd').parse(value);
+      // print('dt ${dt.day} ${dt.month}');
+      date = DateFormat("dd MMM yy").format(dt);
+      //print('date ${date}');
+    } catch (e) {
+      e.toString();
+    }
+    return date;
+  }
 
-          requiresStorageNotLow: true,
-          openFileFromNotification: true,
-          saveInPublicStorage: true,
-      );
+  static downloadXFile(BuildContext context, String url, String name) async {
+    print(url);
+    Directory? tempDir = Platform.isIOS
+        ? await getApplicationDocumentsDirectory()
+        : await getExternalStorageDirectory();
+    await FlutterDownloader.enqueue(
+      url: url,
+      fileName: name, //================File Name
+      savedDir: tempDir!.path,
+      showNotification: true,
+      timeout: 90000,
+
+      requiresStorageNotLow: true,
+      openFileFromNotification: true,
+      saveInPublicStorage: true,
+    );
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(LocalConstant.FILE_DOWNLOAD_REQUEST)),
+      const SnackBar(content: Text(LocalConstant.FILE_DOWNLOAD_REQUEST)),
     );
   }
 
-  static shareFile(String filename) async{
-    debugPrint('shareFile ${filename}');
+  static shareFile(String filename) async {
+    debugPrint('shareFile $filename');
     String dir = (await getTemporaryDirectory()).path;
-    String path = '${dir}/${filename}';
-    print('in share file ${path}');
+    String path = '$dir/$filename';
+    print('in share file $path');
     //Share.shareXFiles([XFile(path)], text: model.ContentDescription);
-    Share.shareXFiles([XFile('${path}')], text: filename);
+    Share.shareXFiles([XFile(path)], text: filename);
   }
 
-  static isFileExists(String fileName) async{
-    bool isFileExists=false;
+  static isFileExists(String fileName) async {
+    bool isFileExists = false;
     String dir = (await getTemporaryDirectory()).path;
-    String path = '${dir}/${fileName}';
-    if(await File(path).exists()){
+    String path = '$dir/$fileName';
+    if (await File(path).exists()) {
       debugPrint('exists');
-      isFileExists=true;
-    }else{
+      isFileExists = true;
+    } else {
       debugPrint('NOT exists');
-      isFileExists=false;
+      isFileExists = false;
     }
     return isFileExists;
   }
 
   static Future<dynamic> downloadFile(String url, String filename) async {
-    debugPrint('download url  59 ${url}');
-    var httpClient = new HttpClient();
+    debugPrint('download url  59 $url');
+    var httpClient = HttpClient();
     String dir = (await getTemporaryDirectory()).path;
     debugPrint(dir.toString());
-    File file = new File('$dir/$filename');
+    File file = File('$dir/$filename');
     debugPrint(file.path.toString());
     try {
-      debugPrint('in Download file ${Uri.parse(url)} ${filename}');
+      debugPrint('in Download file ${Uri.parse(url)} $filename');
       var request = await httpClient.getUrl(Uri.parse(url));
       var response = await request.close();
       var bytes = await consolidateHttpClientResponseBytes(response);
       await file.writeAsBytes(bytes);
       debugPrint('in Download file completed...${file.path}');
       return file;
-    }catch(e){
+    } catch (e) {
       debugPrint(e.toString());
     }
     debugPrint('in Download file completed...');
@@ -436,8 +457,8 @@ class Utility{
 
   static Future<dynamic> downloadContent(String url, String filename) async {
     //String dir = (await getTemporaryDirectory()).path;
-    var httpClient = new HttpClient();
-    File file = new File(filename);
+    var httpClient = HttpClient();
+    File file = File(filename);
     debugPrint(filename);
     try {
       var request = await httpClient.getUrl(Uri.parse(url));
@@ -445,18 +466,18 @@ class Utility{
       var bytes = await consolidateHttpClientResponseBytes(response);
       await file.writeAsBytes(bytes);
       return file;
-    }catch(e){
+    } catch (e) {
       debugPrint('error ');
       debugPrint(e.toString());
     }
     debugPrint('in Download file completed...');
   }
 
-  static Future<bool> isInternet() async{
+  static Future<bool> isInternet() async {
     bool isConnected = true;
-    if(kIsWeb){
+    if (kIsWeb) {
       return true;
-    }else {
+    } else {
       try {
         final result = await InternetAddress.lookup('example.com');
         if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
@@ -470,9 +491,8 @@ class Utility{
     return isConnected;
   }
 
-
-  static Container noInternetDataSet(BuildContext context) {
-    return Container(
+  static Widget noInternetDataSet(BuildContext context) {
+    return SizedBox(
       width: MediaQuery.of(context).size.width,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -482,13 +502,12 @@ class Utility{
             height: 200.0,
           ),*/
           Lottie.asset('assets/json/no_internet_connection.json'),
-
         ],
       ),
     );
   }
 
-  static isInternetConnected() async{
+  static isInternetConnected() async {
     try {
       final result = await InternetAddress.lookup('example.com');
       if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
@@ -499,8 +518,9 @@ class Utility{
       return false;
     }
   }
-  static Container emptyDataSet(BuildContext context,String message) {
-    return Container(
+
+  static Widget emptyDataSet(BuildContext context, String message) {
+    return SizedBox(
       width: MediaQuery.of(context).size.width,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -511,56 +531,56 @@ class Utility{
           ),*/
           Lottie.asset('assets/json/not_found.json'),
           Center(
-            child: Text(message, style: GoogleFonts.inter(
-              fontSize: 16.0,
-              color: LightColor.black,
-              fontWeight: FontWeight.w600,
-              height: 1.5,
+            child: Text(
+              message,
+              style: GoogleFonts.inter(
+                fontSize: 16.0,
+                color: LightColor.black,
+                fontWeight: FontWeight.w600,
+                height: 1.5,
+              ),
+              textAlign: TextAlign.center,
             ),
-                textAlign: TextAlign.center,),
           )
         ],
       ),
     );
   }
 
-  static footer(String appVersion){
+  static footer(String appVersion) {
     return Container(
       height: 30,
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: LightColors.kLightGray,
-        borderRadius: const BorderRadius.only(
+        borderRadius: BorderRadius.only(
           topLeft: Radius.circular(20),
           topRight: Radius.circular(20),
         ),
       ),
       child: Center(
-        child: Text('Intranet_${appVersion}'),
+        child: Text('Intranet_$appVersion'),
       ),
     );
   }
 
-  static String getPercentage(int value1, int total){
-
-    int percentage =  ((value1/total)*100).round();
-    debugPrint('value ${value1} and ${total} ${percentage}');
-    if(percentage==0){
+  static String getPercentage(int value1, int total) {
+    int percentage = ((value1 / total) * 100).round();
+    debugPrint('value $value1 and $total $percentage');
+    if (percentage == 0) {
       return '';
-    }
-    else{
-      return 'in ${percentage}';
+    } else {
+      return 'in $percentage';
     }
   }
 
-  static void showMessage(BuildContext context,String message) {
+  static void showMessage(BuildContext context, String message) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         // return object of type Dialog
         return AlertDialog(
-          title: new Text("Alert"),
-          content: new Text(
-              message),
+          title: const Text("Alert"),
+          content: Text(message),
           actions: <Widget>[
             // usually buttons at the bottom of the dialog
 
@@ -579,15 +599,16 @@ class Utility{
       },
     );
   }
-  static void showMessageSingleButton(BuildContext context,String message,onClickListener listener) {
+
+  static void showMessageSingleButton(
+      BuildContext context, String message, onClickListener listener) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         // return object of type Dialog
         return AlertDialog(
-          title: new Text("Alert"),
-          content: new Text(
-              message),
+          title: const Text("Alert"),
+          content: Text(message),
           actions: <Widget>[
             // usually buttons at the bottom of the dialog
 
@@ -608,15 +629,22 @@ class Utility{
     );
   }
 
-  static void showMessageMultiButton(BuildContext context,String actionOk,String actionCancel,String title,String message,dynamic object,onClickListener listener,) {
+  static void showMessageMultiButton(
+    BuildContext context,
+    String actionOk,
+    String actionCancel,
+    String title,
+    String message,
+    dynamic object,
+    onClickListener listener,
+  ) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         // return object of type Dialog
         return AlertDialog(
-          title: new Text(title),
-          content: new Text(
-              message),
+          title: Text(title),
+          content: Text(message),
           actions: <Widget>[
             // usually buttons at the bottom of the dialog
 
@@ -629,7 +657,7 @@ class Utility{
               style: ElevatedButton.styleFrom(
                   elevation: 12.0,
                   textStyle: const TextStyle(color: LightColors.kLightGreen)),
-              child:  Text(actionOk),
+              child: Text(actionOk),
             ),
             ElevatedButton(
               onPressed: () {
@@ -640,14 +668,15 @@ class Utility{
               style: ElevatedButton.styleFrom(
                   elevation: 12.0,
                   textStyle: const TextStyle(color: LightColors.kLightGreen)),
-              child:  Text(actionCancel),
+              child: Text(actionCancel),
             ),
           ],
         );
       },
     );
   }
-  static void showMessages(BuildContext context,String? message) {
+
+  static void showMessages(BuildContext context, String? message) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text(message!),
     ));
@@ -655,9 +684,9 @@ class Utility{
 
   static void displaySnackbar(BuildContext context,
       {String msg = "Feature is under development",
-        required GlobalKey<ScaffoldState> key}) {
+      required GlobalKey<ScaffoldState> key}) {
     final snackBar = SnackBar(content: Text(msg));
-    if (key != null && key.currentState != null) {
+    if (key.currentState != null) {
       //key.currentState?.hideCurrentSnackBar();
       //key.currentState?.showSnackBar(snackBar);
     } else {
@@ -666,18 +695,21 @@ class Utility{
     }
   }
 
-
-  static showLoaderDialog(BuildContext context){
-    AlertDialog alert=AlertDialog(
-      content: new Row(
+  static showLoaderDialog(BuildContext context) {
+    AlertDialog alert = AlertDialog(
+      content: Row(
         children: [
-          CircularProgressIndicator(),
-          Container(margin: EdgeInsets.only(left: 7),child:Text("Loading..." )),
-        ],),
+          const CircularProgressIndicator(),
+          Container(
+              margin: const EdgeInsets.only(left: 7),
+              child: const Text("Loading...")),
+        ],
+      ),
     );
-    showDialog(barrierDismissible: false,
-      context:context,
-      builder:(BuildContext context){
+    showDialog(
+      barrierDismissible: false,
+      context: context,
+      builder: (BuildContext context) {
         return alert;
       },
     );
@@ -689,11 +721,11 @@ class Utility{
 //   }
 // }
 
-  static getShortDate(String value){
+  static getShortDate(String value) {
     return shortDate(convertDate(value));
   }
 
-  static getShortDateTime(String value){
+  static getShortDateTime(String value) {
     return shortDateTime(convertDate(value));
   }
 
@@ -701,72 +733,73 @@ class Utility{
     DateTime dt = DateTime.now();
     //2022-07-18T00:00:00
     try {
-      dt = new DateFormat('yyyy-MM-dd\'T\'HH:mm:ss').parse(value);
+      dt = DateFormat('yyyy-MM-dd\'T\'HH:mm:ss').parse(value);
     } catch (e) {
       e.toString();
     }
     return dt;
   }
+
   static DateTime convertServerDate(String value) {
     DateTime dt = DateTime.now();
     //2022-07-18T00:00:00
     try {
-      dt = new DateFormat('yyyy-MM-dd').parse(value);
+      dt = DateFormat('yyyy-MM-dd').parse(value);
     } catch (e) {
       e.toString();
     }
     return dt;
   }
+
   static DateTime convertTime(String value) {
     DateTime dt = DateTime.now();
     //2022-07-18T00:00:00
     try {
-      dt = new DateFormat('HH:mm:ss').parse(value);
+      dt = DateFormat('HH:mm:ss').parse(value);
     } catch (e) {
       e.toString();
     }
     return dt;
   }
 
-
-
   static String convertShortDate(DateTime date) {
-    String value='';
+    String value = '';
     //2022-07-18T00:00:00
     try {
-      value = new DateFormat('yyyy-MM-dd').format(date);
+      value = DateFormat('yyyy-MM-dd').format(date);
     } catch (e) {
       e.toString();
     }
     return value;
   }
-
 
   static String parseDate(DateTime date) {
-    String value='';
+    String value = '';
     //2022-07-18T00:00:00
     try {
-      value = new DateFormat('yyyy-MM-dd\'T\'HH:mm:ss').format(date);
+      value = DateFormat('yyyy-MM-dd\'T\'HH:mm:ss').format(date);
     } catch (e) {
       e.toString();
     }
     return value;
   }
+
   static String shortDate(DateTime date) {
-    String value='';
+    String value = '';
     //2022-07-18T00:00:00
     try {
-      value = new DateFormat('d-MMM').format(date);
+      value = DateFormat('d-MMM').format(date);
     } catch (e) {
       e.toString();
     }
     return value;
   }
+
   static String shortDateTime(DateTime date) {
-    String value='';
+    String value = '';
     //2022-07-18T00:00:00
     try {
-      value = new DateFormat('d-MMM, hh:mm a').format(date);
+      value = DateFormat('d-MMM, hh:mm a').format(date);
     } catch (e) {
       e.toString();
     }
@@ -774,55 +807,56 @@ class Utility{
   }
 
   static String shortTime(DateTime date) {
-    String value='';
+    String value = '';
     //2022-07-18T00:00:00
     try {
-      value = new DateFormat('hh:mm').format(date);
+      value = DateFormat('hh:mm').format(date);
     } catch (e) {
       e.toString();
     }
     return value;
   }
+
   static String shortTimeFormat(DateTime date) {
-    String value='';
+    String value = '';
     try {
-      value = new DateFormat('hh-mm a').format(date);
+      value = DateFormat('hh-mm a').format(date);
     } catch (e) {
       e.toString();
     }
     return value;
   }
+
   static String shortTimeAMPM(DateTime date) {
-    String value='';
+    String value = '';
     //2022-07-18T00:00:00
     try {
-      value = new DateFormat('a').format(date);
+      value = DateFormat('a').format(date);
     } catch (e) {
       e.toString();
     }
     return value;
   }
 
-  static int getDateDifference(DateTime start,DateTime end){
-
+  static int getDateDifference(DateTime start, DateTime end) {
     int difference = 1;
     int days = end.difference(start).inDays;
     //debugPrint('${Utility.shortDate(start)} to ${Utility.shortDate(end)} : days ${days}');
-    if(days>1){
+    if (days > 1) {
       difference = days;
     }
-    days=days+1;
-    if(days>100){
+    days = days + 1;
+    if (days > 100) {
       days = 1;
     }
     return days;
   }
 
-  static getDateTime(){
+  static getDateTime() {
     return DateFormat('yyyy-MM-dd HH:mm').format(DateTime.now());
   }
 
-  static getDate(DateTime date){
+  static getDate(DateTime date) {
     return DateFormat('yyyy-MM-dd').format(date);
   }
 
@@ -830,15 +864,15 @@ class Utility{
     DateTime dt = DateTime.now();
     //2022-07-18T00:00:00
     try {
-      dt = new DateFormat('yyyy-MM-dd').parse(value);
+      dt = DateFormat('yyyy-MM-dd').parse(value);
     } catch (e) {
       e.toString();
     }
     return DateFormat('MMM-dd').format(dt);
   }
 
-
-  static getAlertDialog(BuildContext context,String message,onClickListener response){
+  static getAlertDialog(
+      BuildContext context, String message, onClickListener response) {
     Dialogs.materialDialog(
       color: Colors.white,
       msg: message,
@@ -852,33 +886,34 @@ class Utility{
       actions: [
         IconsButton(
           onPressed: () {
-            Future.delayed(Duration(milliseconds: 50)).then((_) {
+            Future.delayed(const Duration(milliseconds: 50)).then((_) {
               response.onClick(ACTION_ADDPJP, 'addpjp');
             });
           },
           text: 'ADD PJP',
           iconData: Icons.location_pin,
           color: Colors.blue,
-          textStyle: TextStyle(color: Colors.white),
+          textStyle: const TextStyle(color: Colors.white),
           iconColor: Colors.white,
         ),
         IconsButton(
           onPressed: () {
-            Future.delayed(Duration(milliseconds: 50)).then((_) {
+            Future.delayed(const Duration(milliseconds: 50)).then((_) {
               response.onClick(ACTION_OK, 'ok');
             });
           },
           text: 'OK',
           iconData: Icons.done,
           color: Colors.blue,
-          textStyle: TextStyle(color: Colors.white),
+          textStyle: const TextStyle(color: Colors.white),
           iconColor: Colors.white,
         ),
       ],
     );
   }
 
-  static onSuccessMessage(BuildContext context,String title,String message,onResponse response){
+  static onSuccessMessage(
+      BuildContext context, String title, String message, onResponse response) {
     Dialogs.materialDialog(
       color: Colors.white,
       msg: message,
@@ -892,9 +927,8 @@ class Utility{
       actions: [
         IconsButton(
           onPressed: () {
-
             //Navigator.of(context, rootNavigator: true).pop();
-            Future.delayed(Duration(milliseconds: 50)).then((_) {
+            Future.delayed(const Duration(milliseconds: 50)).then((_) {
               Navigator.of(context, rootNavigator: true).pop('dialog');
               response.onSuccess('SUCCESS');
             });
@@ -902,14 +936,21 @@ class Utility{
           text: 'OK',
           iconData: Icons.done,
           color: Colors.blue,
-          textStyle: TextStyle(color: Colors.white),
+          textStyle: const TextStyle(color: Colors.white),
           iconColor: Colors.white,
         ),
       ],
     );
   }
 
-  static onConfirmationBox(BuildContext context,String actionOk,String actionCancel,String title,String message,dynamic action,onClickListener response){
+  static onConfirmationBox(
+      BuildContext context,
+      String actionOk,
+      String actionCancel,
+      String title,
+      String message,
+      dynamic action,
+      onClickListener response) {
     Dialogs.materialDialog(
       color: Colors.white,
       msg: message,
@@ -932,26 +973,27 @@ class Utility{
           text: actionOk,
           iconData: Icons.check,
           color: Colors.blue,
-          textStyle: TextStyle(color: Colors.white),
+          textStyle: const TextStyle(color: Colors.white),
           iconColor: Colors.white,
         ),
-
         IconsButton(
           onPressed: () {
-            Future.delayed(Duration(milliseconds: 50)).then((_) {
+            Future.delayed(const Duration(milliseconds: 50)).then((_) {
               response.onClick(ACTION_CCNCEL, action);
             });
           },
           iconData: Icons.cancel,
           text: actionCancel,
           color: Colors.blue,
-          textStyle: TextStyle(color: Colors.white),
+          textStyle: const TextStyle(color: Colors.white),
           iconColor: Colors.white,
         ),
       ],
     );
   }
-  static onApproveConfirmationBox(BuildContext context,String title,String message,onClickListener response){
+
+  static onApproveConfirmationBox(BuildContext context, String title,
+      String message, onClickListener response) {
     Dialogs.materialDialog(
       color: Colors.white,
       msg: message,
@@ -965,44 +1007,44 @@ class Utility{
       actions: [
         IconsButton(
           onPressed: () {
-            Future.delayed(Duration(milliseconds: 50)).then((_) {
+            Future.delayed(const Duration(milliseconds: 50)).then((_) {
               response.onClick(ACTION_OK, 'onConfirmationBox');
             });
           },
           text: 'Approve',
           iconData: Icons.check,
           color: Colors.blue,
-          textStyle: TextStyle(color: Colors.white),
+          textStyle: const TextStyle(color: Colors.white),
           iconColor: Colors.white,
         ),
         IconsButton(
           onPressed: () {
-            Future.delayed(Duration(milliseconds: 50)).then((_) {
+            Future.delayed(const Duration(milliseconds: 50)).then((_) {
               response.onClick(ACTION_REJECT, 'onConfirmationBox');
             });
           },
           text: 'Reject',
-
           color: Colors.blue,
-          textStyle: TextStyle(color: Colors.white),
+          textStyle: const TextStyle(color: Colors.white),
           iconColor: Colors.white,
         ),
         IconsButton(
           onPressed: () {
-            Future.delayed(Duration(milliseconds: 50)).then((_) {
+            Future.delayed(const Duration(milliseconds: 50)).then((_) {
               response.onClick(ACTION_CCNCEL, 'onConfirmationBox');
             });
           },
           text: 'Cancel',
           color: Colors.blue,
-          textStyle: TextStyle(color: Colors.white),
+          textStyle: const TextStyle(color: Colors.white),
           iconColor: Colors.white,
         ),
       ],
     );
   }
 
-  static onApproveConfirmation(BuildContext context,String title,String message,onClickListener response){
+  static onApproveConfirmation(BuildContext context, String title,
+      String message, onClickListener response) {
     Dialogs.materialDialog(
       color: Colors.white,
       msg: message,
@@ -1016,7 +1058,7 @@ class Utility{
       actions: [
         IconsButton(
           onPressed: () {
-            Future.delayed(Duration(milliseconds: 50)).then((_) {
+            Future.delayed(const Duration(milliseconds: 50)).then((_) {
               Navigator.of(context).pop();
               response.onClick(ACTION_OK, 'onConfirmationBox');
             });
@@ -1024,26 +1066,27 @@ class Utility{
           text: 'Cancel',
           iconData: Icons.clear,
           color: Colors.red,
-          textStyle: TextStyle(color: Colors.white),
+          textStyle: const TextStyle(color: Colors.white),
           iconColor: Colors.white,
         ),
         IconsButton(
           onPressed: () {
-            Future.delayed(Duration(milliseconds: 50)).then((_) {
+            Future.delayed(const Duration(milliseconds: 50)).then((_) {
               Navigator.of(context).pop();
               response.onClick(ACTION_CONFIRM, 'onConfirmationBox');
             });
           },
           text: 'Delete',
           color: kPrimaryLightColor,
-          textStyle: TextStyle(color: Colors.white),
+          textStyle: const TextStyle(color: Colors.white),
           iconColor: Colors.white,
         ),
       ],
     );
   }
 
-  static getRejectionDialog(BuildContext context,String title,String message,onResponse response){
+  static getRejectionDialog(
+      BuildContext context, String title, String message, onResponse response) {
     Dialogs.materialDialog(
       color: Colors.white,
       msg: message,
@@ -1057,21 +1100,21 @@ class Utility{
       actions: [
         IconsButton(
           onPressed: () {
-            Future.delayed(Duration(milliseconds: 50)).then((_) {
+            Future.delayed(const Duration(milliseconds: 50)).then((_) {
               response.onSuccess('SUCCESS');
             });
           },
           text: 'OK',
           iconData: Icons.done,
           color: Colors.blue,
-          textStyle: TextStyle(color: Colors.white),
+          textStyle: const TextStyle(color: Colors.white),
           iconColor: Colors.white,
         ),
       ],
     );
   }
 
-  static noInternetConnection(BuildContext context){
+  static noInternetConnection(BuildContext context) {
     Dialogs.materialDialog(
       color: Colors.white,
       msg: 'Internet connection not avaliable please check and try again later',
@@ -1085,14 +1128,14 @@ class Utility{
       actions: [
         IconsButton(
           onPressed: () {
-            Future.delayed(Duration(milliseconds: 50)).then((_) {
+            Future.delayed(const Duration(milliseconds: 50)).then((_) {
               Navigator.of(context).pop();
             });
           },
           text: 'OK',
           iconData: Icons.done,
           color: LightColors.kRed,
-          textStyle: TextStyle(color: Colors.white),
+          textStyle: const TextStyle(color: Colors.white),
           iconColor: Colors.white,
         ),
       ],
@@ -1100,48 +1143,47 @@ class Utility{
   }
 
   static Future<Box> openBox() async {
-    if (!kIsWeb && !Hive.isBoxOpen(LocalConstant.KidzeeDB))
+    if (!kIsWeb && !Hive.isBoxOpen(LocalConstant.KidzeeDB)) {
       Hive.init((await getApplicationDocumentsDirectory()).path);
+    }
     return await Hive.openBox(LocalConstant.KidzeeDB);
   }
 
-  static showWarning(BuildContext context,String title,String description,String filename,String oklabel,onClickListener response){
+  static showWarning(BuildContext context, String title, String description,
+      String filename, String oklabel, onClickListener response) {
     Dialogs.materialDialog(
       color: Colors.white,
-      msg: '${description}',
-      title: '${title}',
-      titleStyle: TextStyle(color: Colors.black54),
-      msgStyle: TextStyle(color: Colors.black54),
-      lottieBuilder: Lottie.asset(
-        'assets/json/${filename}.json',
-        fit: BoxFit.contain,
-        width: 20
-      ),
+      msg: description,
+      title: title,
+      titleStyle: const TextStyle(color: Colors.black54),
+      msgStyle: const TextStyle(color: Colors.black54),
+      lottieBuilder: Lottie.asset('assets/json/$filename.json',
+          fit: BoxFit.contain, width: 20),
       dialogWidth: kIsWeb ? 0.3 : null,
       context: context,
       actions: [
         IconsButton(
           onPressed: () {
-            Future.delayed(Duration(milliseconds: 50)).then((_) {
+            Future.delayed(const Duration(milliseconds: 50)).then((_) {
               Navigator.of(context, rootNavigator: true).pop('dialog');
-              response.onClick(ACTION_CONFIRM,'Alert');
+              response.onClick(ACTION_CONFIRM, 'Alert');
             });
           },
           text: oklabel,
-
           color: Colors.blue,
-          textStyle: TextStyle(color: Colors.white),
+          textStyle: const TextStyle(color: Colors.white),
           iconColor: Colors.red,
-        ),IconsButton(
+        ),
+        IconsButton(
           onPressed: () {
-            Future.delayed(Duration(milliseconds: 50)).then((_) {
+            Future.delayed(const Duration(milliseconds: 50)).then((_) {
               Navigator.of(context, rootNavigator: true).pop('dialog');
-              response.onClick(ACTION_CCNCEL,'Cancel');
+              response.onClick(ACTION_CCNCEL, 'Cancel');
             });
           },
           text: 'Cancel',
           color: Colors.blue,
-          textStyle: TextStyle(color: Colors.white),
+          textStyle: const TextStyle(color: Colors.white),
           iconColor: Colors.white,
         ),
       ],
@@ -1149,7 +1191,8 @@ class Utility{
   }
 
   static getAddress(double latitude, double longitude) async {
-    List<Placemark> placemarks = await placemarkFromCoordinates(latitude, longitude);
+    List<Placemark> placemarks =
+        await placemarkFromCoordinates(latitude, longitude);
     if (placemarks.isEmpty) {
       return 'Unknown address';
     }
@@ -1159,7 +1202,7 @@ class Utility{
     print(placemark.toString());
     if (placemark.street != null) {
       address += '${placemark.street}  , ';
-    }else if (placemark.thoroughfare !=null){
+    } else if (placemark.thoroughfare != null) {
       address += '${placemark.thoroughfare}, ';
     }
 
@@ -1181,13 +1224,11 @@ class Utility{
     return address;
   }
 
-  static getAddress1(double latitude,double longitude) async
-  {
-    final LocatitonGeocoder geocoder = LocatitonGeocoder(LocalStrings.kGoogleApiKey);
-    final address = await geocoder.findAddressesFromCoordinates(Coordinates(latitude, longitude));
+  static getAddress1(double latitude, double longitude) async {
+    final LocatitonGeocoder geocoder =
+        LocatitonGeocoder(LocalStrings.kGoogleApiKey);
+    final address = await geocoder
+        .findAddressesFromCoordinates(Coordinates(latitude, longitude));
     return address.first.addressLine;
   }
-
-
-
 }

@@ -41,7 +41,6 @@ import 'package:saathi/core/hiveDatabase/hiveConstant.dart';
 import 'package:saathi/dependency_Injection/dependency_injection.dart';
 import 'package:saathi/model/notificationModel/notificationModel.dart';
 import 'package:saathi/model/ticketModel/ticket_model.dart';
-import 'package:saathi/screens/ticket/web/details.dart';
 import 'package:saathi/zllsaathi.dart';
 
 import 'api/APIService.dart';
@@ -51,7 +50,6 @@ import 'api/response/apply_leave_response.dart';
 import 'api/response/approve_attendance_response.dart';
 import 'api/response/cvf/update_status_response.dart';
 import 'pages/pjp/cvf/getVisitplannerCvfcubit/cubit/getvisitplannercvf_cubit.dart';
-
 
 part 'main.g.dart';
 
@@ -126,7 +124,8 @@ part 'main.g.dart';
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  print('A new onMessageOpenedApp event was published! main 125 ${message.data.toString()}');
+  print(
+      'A new onMessageOpenedApp event was published! main 125 ${message.data.toString()}');
   NotificationService().parseNotification(message);
 }
 
@@ -235,11 +234,12 @@ FlutterLocalNotificationsPlugin? flutterLocalNotificationsPlugin;
 late FirebaseMessaging messaging;
 
 Future<bool> getInitNotif() async {
-    ReceivedAction? receivedAction = await AwesomeNotifications().getInitialNotificationAction(removeFromActionEvents: true);
-    if (receivedAction?.buttonKeyPressed == 'ACCEPT') {
-        return true;
-    }
-    return false;
+  ReceivedAction? receivedAction = await AwesomeNotifications()
+      .getInitialNotificationAction(removeFromActionEvents: true);
+  if (receivedAction?.buttonKeyPressed == 'ACCEPT') {
+    return true;
+  }
+  return false;
 }
 
 Future<Box> _openBox() async {
@@ -248,13 +248,15 @@ Future<Box> _openBox() async {
   }
   return await Hive.openBox(LocalConstant.KidzeeDB);
 }
-final localhostServer = InAppLocalhostServer(documentRoot: 'assets',port: 8181);
+
+final localhostServer =
+    InAppLocalhostServer(documentRoot: 'assets', port: 8181);
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   _openBox();
 
-  if(!kIsWeb){
+  if (!kIsWeb) {
     await FlutterDownloader.initialize(
         debug:
             false, // optional: set to false to disable printing logs to console (default: true)
@@ -263,7 +265,7 @@ Future<void> main() async {
         );
   }
 
-   if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
+  if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
     await InAppWebViewController.setWebContentsDebuggingEnabled(kDebugMode);
   }
 
@@ -271,11 +273,12 @@ Future<void> main() async {
     await localhostServer.start();
   }
 
-  if(!kIsWeb && Platform.isAndroid)
-    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  else
+  if (!kIsWeb && Platform.isAndroid) {
+    await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform);
+  } else {
     await Firebase.initializeApp();
-  
+  }
 
   NotificationController.startListeningNotificationEvents();
 
@@ -347,8 +350,8 @@ Future<void> main() async {
         create: (BuildContext context) => GetvisitplannercvfCubit(),
       ),
     ],
-    child:  ProviderScope(
-      child: acceptedNotification ? UserNotification() : MyApp(),
+    child: ProviderScope(
+      child: acceptedNotification ? const UserNotification() : const MyApp(),
     ),
   ));
 }
@@ -768,7 +771,7 @@ class MyApp extends StatelessWidget {
   static final GlobalKey<NavigatorState> navigatorKey =
       GlobalKey<NavigatorState>();
 
-  const MyApp({Key? key}) : super(key: key);
+  const MyApp({super.key});
 
   // This widget is the root of your application.
   @override
@@ -798,17 +801,17 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         useMaterial3: true,
         checkboxTheme: CheckboxThemeData(
-          checkColor: MaterialStateProperty.all(Colors.white),
+          checkColor: WidgetStateProperty.all(Colors.white),
           //fillColor: MaterialStateProperty.all(Colors.white),
-          fillColor: MaterialStateColor.resolveWith(
+          fillColor: WidgetStateColor.resolveWith(
             (states) {
-              if (states.contains(MaterialState.selected)) {
+              if (states.contains(WidgetState.selected)) {
                 return kPrimaryLightColor; // the color when checkbox is selected;
               }
               return Colors.black12; //the color when checkbox is unselected;
             },
           ),
-          overlayColor: MaterialStateProperty.all(Colors.black),
+          overlayColor: WidgetStateProperty.all(Colors.black),
           side: const BorderSide(color: Color(0xff585858)),
         ),
         tabBarTheme: const TabBarTheme(
@@ -851,8 +854,6 @@ class MyApp extends StatelessWidget {
           primaryContainer: Colors.white,
           error: Colors.black,
           onError: Colors.red,
-          background: Colors.white,
-          onBackground: Colors.white,
           surface: Colors.white,
           onSurface: Colors.black87,
           outline: LightColors.kLightGrayM,
@@ -913,7 +914,7 @@ class MyApp extends StatelessWidget {
 }
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({Key? key, required this.title}) : super(key: key);
+  const MyHomePage({super.key, required this.title});
 
   // This widget is the home page of your application. It is stateful, meaning
   // that it has a State object (defined below) that contains fields that affect
@@ -1058,7 +1059,8 @@ class NotificationController {
   ///  *********************************************
   ///  Notifications events are only delivered after call this method
   static Future<void> startListeningNotificationEvents() async {
-    AwesomeNotifications().setListeners(onActionReceivedMethod: onActionReceivedMethod);
+    AwesomeNotifications()
+        .setListeners(onActionReceivedMethod: onActionReceivedMethod);
   }
 
   ///  *********************************************
@@ -1073,16 +1075,17 @@ class NotificationController {
     if (receivedAction.actionType == ActionType.SilentAction ||
         receivedAction.actionType == ActionType.SilentBackgroundAction) {
       // For background actions, you must hold the execution until the end
-      print('Message sent via notification input: "${receivedAction.buttonKeyInput}"');
+      print(
+          'Message sent via notification input: "${receivedAction.buttonKeyInput}"');
       // await executeLongTaskInBackground();
     } else if (receivedAction.payload != null &&
-        receivedAction.payload!['type'] != null && receivedAction.payload!['type'] =='td') {
-          print('SAATHI Message sent via notification input: "${receivedAction.buttonKeyInput}"');
-          print('SAATHI payload - ${receivedAction.payload}');
-        openSaathiNotification(receivedAction);
-        
-
-    }else if (receivedAction.payload != null &&
+        receivedAction.payload!['type'] != null &&
+        receivedAction.payload!['type'] == 'td') {
+      print(
+          'SAATHI Message sent via notification input: "${receivedAction.buttonKeyInput}"');
+      print('SAATHI payload - ${receivedAction.payload}');
+      openSaathiNotification(receivedAction);
+    } else if (receivedAction.payload != null &&
         receivedAction.payload!['Video_path'] != null) {
       Navigator.push(
           MyApp.navigatorKey.currentState!.context,
@@ -1102,23 +1105,25 @@ class NotificationController {
     }
   }
 
-  static openSaathiNotification(ReceivedAction receivedAction) async{
-    try{
+  static openSaathiNotification(ReceivedAction receivedAction) async {
+    try {
       var hiveBox = await Utility.openBox();
       await Hive.openBox(LocalConstant.KidzeeDB);
       String mUserName = hiveBox.get(LocalConstant.KEY_USER_NAME) as String;
-        Navigator.pushAndRemoveUntil(
+      Navigator.pushAndRemoveUntil(
           // ignore: use_build_context_synchronously
           MyApp.navigatorKey.currentState!.context,
           MaterialPageRoute(
-            builder: (context) => ZllTicketDetails(ticketId: receivedAction.payload!['id'].toString(),
-            bid: '0',
-            businessUserId: '',
-            userId: mUserName,
-            mColor: kPrimaryLightColor,),
+            builder: (context) => ZllTicketDetails(
+              ticketId: receivedAction.payload!['id'].toString(),
+              bid: '0',
+              businessUserId: '',
+              userId: mUserName,
+              mColor: kPrimaryLightColor,
+            ),
           ),
           (route) => false);
-    }catch(e){
+    } catch (e) {
       print('SAATHI exception $e');
       print(e);
     }
