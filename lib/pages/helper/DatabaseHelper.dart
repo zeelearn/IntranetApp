@@ -447,7 +447,8 @@ class DBHelper {
 
   Future<void> deleteCheckInStatus(String id) async{
     var dbclient = await db;
-    await dbclient.rawUpdate('delete from ${LocalConstant.TABLE_CHECKIN}  where id=${id}');
+    int updatedId = await dbclient.rawUpdate('delete from ${LocalConstant.TABLE_CHECKIN}  where id=${id}');
+    print('delete CheckInstatus for ${id}  updated : ${updatedId}');
   }
 
   Future<QuestionResponse> getQuestions(String cvfId,String categoryName,String categoryId) async {
