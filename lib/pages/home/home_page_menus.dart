@@ -302,17 +302,17 @@ class HomePageMenu extends StatelessWidget {
                     //_getMenu(context, 'My Report',Icons.multiline_chart, MyReportsScreen()),
                   ],
                 )),
-            Padding(
-                padding: const EdgeInsets.all(5),
-                child: GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => const DashboardPage()));
-                  },
-                  child: const Text('My Dashboard'),
-                )),
+            // Padding(
+            //     padding: const EdgeInsets.all(5),
+            //     child: GestureDetector(
+            //       onTap: () {
+            //         Navigator.push(
+            //             context,
+            //             MaterialPageRoute(
+            //                 builder: (context) => const DashboardPage()));
+            //       },
+            //       child: const Text('My Dashboard'),
+            //     )),
             /*Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [

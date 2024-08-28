@@ -83,6 +83,9 @@ class _QuestionListScreenState extends State<QuestionListScreen>
   getUsersAnswers() async {
     DBHelper helper = DBHelper();
     userAnswerMap = await helper.getUsersAnswerList(widget.PJPCVF_Id);
+    setState(() {
+      
+    });
   }
 
   List<bool> ischeck = [];
@@ -189,7 +192,7 @@ class _QuestionListScreenState extends State<QuestionListScreen>
       var cvfQuestions = hiveBox.get(widget.PJPCVF_Id.toString() +
           categoryid +
           LocalConstant.KEY_CVF_QUESTIONS);
-      //debugPrint('cvfQES --- ${widget.PJPCVF_Id.toString() + categoryid + LocalConstant.KEY_CVF_QUESTIONS}');
+      debugPrint('cvfQES --- ${widget.PJPCVF_Id.toString() + categoryid + LocalConstant.KEY_CVF_QUESTIONS}');
       /*if (cvfQuestions is QuestionResponse) {
         debugPrint('localdata');
         QuestionResponse response = cvfQuestions as QuestionResponse;
@@ -1025,7 +1028,7 @@ bool isOffline=false;
               GestureDetector(
                 onTap: () {
                   print('in 1027');
-                  if (widget.isViewOnly) {
+                  if (widget.isViewOnly || _Status == 'Completed') {
                     if (questions.files.isNotEmpty) {
                       if (questions.files.contains('.png') ||
                           questions.files.contains('.jpg') ||
@@ -1040,6 +1043,8 @@ bool isOffline=false;
                       } else {
                         openFile(questions);
                       }
+                    }else if (_Status == 'Completed') {
+                      Utility.showMessages(context, LocalConstant.CVF_ALREADY_SUBMITTED);
                     }
                   } else if (_Status == 'Completed') {
                     Utility.showMessages(context, LocalConstant.CVF_ALREADY_SUBMITTED);

@@ -1201,19 +1201,21 @@ class _MyCVFListScreen extends State<CVFListScreen>
       Utility.onSuccessMessage(context, 'Status Updated',
           'Thanks for updating the CVF status', this);
     } else if (value is PjpListResponse) {
+      print('1204');
       PjpListResponse response = value;
       isLoading = false;
 
       if (response.responseData != null && response.responseData.length > 0) {
-        updateStatus(response);
-        
+        updateStatus(response); 
       }
     } else if (value is PjpListResponse) {
+      print('1213');
       PjpListResponse response = value;
       if (response.responseData != null && response.responseData.length > 0) {
         this.loadAllCVF();
       }
     } else if (value is String) {
+      print('1219');
       this.loadAllCVF();
     }
     setState(() {});
@@ -1229,6 +1231,7 @@ class _MyCVFListScreen extends State<CVFListScreen>
           for(int jIndex=0;jIndex < response.responseData[index].getDetailedPJP!.length;jIndex++)
             await helper.deleteCheckInStatus(response.responseData[index].getDetailedPJP![jIndex].PJPCVF_Id);
         }
+        print('update all status completed');
         setState(() {
           //mPjpList.addAll(response.responseData);
         });

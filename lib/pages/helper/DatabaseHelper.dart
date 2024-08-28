@@ -447,7 +447,7 @@ class DBHelper {
 
   Future<void> deleteCheckInStatus(String id) async{
     var dbclient = await db;
-    int updatedId = await dbclient.rawUpdate('delete from ${LocalConstant.TABLE_CHECKIN}  where id=${id}');
+    int updatedId = await dbclient.rawUpdate('delete from ${LocalConstant.TABLE_CHECKIN}  where ${DBConstant.CVF_ID}=${id}');
     print('delete CheckInstatus for ${id}  updated : ${updatedId}');
   }
 
@@ -458,7 +458,7 @@ class DBHelper {
     if(list !=null){
       for(int index=0;index<list.length;index++) {
         Map<String, dynamic> map = list[index];
-        //if(cvfId==map[DBConstant.CVF_ID].toString().trim()){
+        if(cvfId==map[DBConstant.CVF_ID].toString().trim()){
           try {
             response = QuestionResponse.fromJson(
               json.decode(map[DBConstant.QUESTION].toString()),
@@ -470,9 +470,28 @@ class DBHelper {
             );
           }
           //notificaitonList.add(NotificationDataModel(message: map['data'], title: map['title'], image: map['imageurl'], URL: '', type: map['type'],time:time));
-        /*}else{
+       }else{
           debugPrint('not match');
-        }*/
+          try {
+            response = QuestionResponse.fromJson(
+              json.decode(map[DBConstant.QUESTION].toString()),
+            );
+          }catch(e){
+            var obj =  json.decode(map[DBConstant.QUESTION].toString());
+            response = QuestionResponse.fromJson(
+              json.decode(obj),
+            );
+          }
+          try{
+              for(int index=0;index<response.responseData.length;index++){
+                for(int jIndex=0;jIndex<response.responseData[index].allquestion.length;jIndex++){
+                  response.responseData[index].allquestion[jIndex].Remarks='';
+                  response.responseData[index].allquestion[jIndex].SelectedAnswer='';
+                  response.responseData[index].allquestion[jIndex].userAnswers='';
+                }
+              }
+          }catch(e){}
+        }
 
       }
     }else{

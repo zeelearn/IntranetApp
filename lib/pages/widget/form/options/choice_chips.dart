@@ -101,6 +101,10 @@ class FastChoiceChip
   @override
   // TODO: implement avatarBoxConstraints
   BoxConstraints? get avatarBoxConstraints => throw UnimplementedError();
+  
+  @override
+  // TODO: implement chipAnimationStyle
+  ChipAnimationStyle? get chipAnimationStyle => throw UnimplementedError();
 }
 
 typedef FastChoiceChipBuilder = Widget Function(
