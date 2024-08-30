@@ -23,6 +23,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../utils/theme/colors/light_colors.dart';
 import 'LightColor.dart';
 import 'LocalConstant.dart';
+import 'package:path/path.dart' as p;
 
 enum TaskPageStatus {
   all,
@@ -395,6 +396,10 @@ class Utility {
     Directory? tempDir = Platform.isIOS
         ? await getApplicationDocumentsDirectory()
         : await getExternalStorageDirectory();
+    //if(await Utility.isFileExists(name)){
+      name = '${DateTime.timestamp()}.${p.extension(name)}';
+      print('filename is ${name}');
+    //}
     await FlutterDownloader.enqueue(
       url: url,
       fileName: name, //================File Name
@@ -422,8 +427,9 @@ class Utility {
 
   static isFileExists(String fileName) async {
     bool isFileExists = false;
-    String dir = (await getTemporaryDirectory()).path;
+    String dir = (await getApplicationDocumentsDirectory()).path;
     String path = '$dir/$fileName';
+    print('PATH is ${path}');
     if (await File(path).exists()) {
       debugPrint('exists');
       isFileExists = true;

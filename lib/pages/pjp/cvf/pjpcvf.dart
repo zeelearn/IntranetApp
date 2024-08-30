@@ -1228,8 +1228,10 @@ class _MyCVFListScreen extends State<CVFListScreen>
         mCvfList.clear();
         for (int index = 0; index < response.responseData.length; index++) {
           mCvfList.addAll(response.responseData[index].getDetailedPJP!);
-          for(int jIndex=0;jIndex < response.responseData[index].getDetailedPJP!.length;jIndex++)
-            await helper.deleteCheckInStatus(response.responseData[index].getDetailedPJP![jIndex].PJPCVF_Id);
+          for(int jIndex=0;jIndex < response.responseData[index].getDetailedPJP!.length;jIndex++){
+            if(response.responseData[index].getDetailedPJP![jIndex].Status=='Completed')
+              await helper.deleteCheckInStatus(response.responseData[index].getDetailedPJP![jIndex].PJPCVF_Id);
+          }
         }
         print('update all status completed');
         setState(() {

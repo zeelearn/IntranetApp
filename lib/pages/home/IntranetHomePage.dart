@@ -327,10 +327,10 @@ class _IntranetHomePageState extends State<IntranetHomePage>
 
     initNotification();
 
-    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-      print('A new onMessageOpenedApp event was published123!');
-      Navigator.push(context, MaterialPageRoute(builder: (context) => UserNotification()));
-    });
+    // FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+    //   print('A new onMessageOpenedApp event was published123!');
+    //   Navigator.push(context, MaterialPageRoute(builder: (context) => UserNotification()));
+    // });
     //_listenForMessages();
     if (!kIsWeb) if (Platform.isAndroid) {
       checkForUpdate();
@@ -443,7 +443,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
     await NotificationController.initializeIsolateReceivePort();
     // Set the background messaging handler early on, as a named top-level function
     //FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-    FirebaseMessaging.onMessageOpenedApp.listen(_handleMessage);
+    //FirebaseMessaging.onMessageOpenedApp.listen(_handleMessage);
   }
 
   Future<void> initFirebase() async {
@@ -586,7 +586,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
 
       // Also handle any interaction when the app is in the background via a
       // Stream listener
-      FirebaseMessaging.onMessageOpenedApp.listen(_handleMessage);
+      //FirebaseMessaging.onMessageOpenedApp.listen(_handleMessage);
     }
   }
 
