@@ -4,8 +4,11 @@ import 'dart:typed_data';
 import 'package:Intranet/pages/helper/LocalConstant.dart';
 import 'package:Intranet/pages/home/dashboard.dart';
 import 'package:Intranet/pages/pjp/cvf/mycvf.dart';
+import 'package:expensestracker/presentation/app.dart';
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
 import 'package:saathi/zllsaathi.dart';
+import 'package:expensestracker/main.dart' as expenseMainPlaceholder;
 
 import '../bpms/bpms_dashboard.dart';
 import '../helper/utils.dart';
@@ -299,7 +302,60 @@ class HomePageMenu extends StatelessWidget {
                         ),
                       ),
                     ),
-                    //_getMenu(context, 'My Report',Icons.multiline_chart, MyReportsScreen()),
+
+                    GestureDetector(
+                      onTap: () {
+                        openExpense(context);
+                      },
+                      child: Padding(
+                        padding:
+                            const EdgeInsetsDirectional.fromSTEB(8, 8, 8, 8),
+                        child: Container(
+                          width: MediaQuery.of(context).size.width * 0.4,
+                          height: 150,
+                          decoration: BoxDecoration(
+                            color: Colors.blue,
+                            boxShadow: const [
+                              BoxShadow(
+                                blurRadius: 3,
+                                color: Colors.indigoAccent,
+                                offset: Offset(0, 1),
+                              )
+                            ],
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Column(
+                            mainAxisSize: MainAxisSize.max,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Padding(
+                                padding:
+                                    EdgeInsetsDirectional.fromSTEB(0, 16, 0, 0),
+                                child: Icon(
+                                  Icons.ac_unit,
+                                  color: Colors.white,
+                                  size: 44,
+                                ),
+                              ),
+                              Padding(
+                                padding:
+                                    EdgeInsetsDirectional.fromSTEB(0, 8, 0, 0),
+                                child: Text(
+                                  'Expense',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    fontFamily: 'Lexend Deca',
+                                    color: Colors.white,
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
                   ],
                 )),
             Padding(
@@ -323,6 +379,24 @@ class HomePageMenu extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  openExpense(BuildContext context) async {
+    var hiveBox = await Utility.openBox();
+    await Hive.openBox(LocalConstant.KidzeeDB);
+    var empCode =
+        int.parse(hiveBox.get(LocalConstant.KEY_EMPLOYEE_CODE) as String);
+    debugPrint('Employee code is - $empCode');
+    // expenseMainPlaceholder.main(isExternal: true, eCode: empCode.toString());
+
+    Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (context) => MyApp(
+                  eCode: empCode.toString(),
+                  isExternal: true,
+                  buildContext: context,
+                )));
   }
 
   openSaarthi(BuildContext context) async {

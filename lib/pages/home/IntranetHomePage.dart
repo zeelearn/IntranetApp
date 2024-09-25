@@ -200,17 +200,23 @@ class _IntranetHomePageState extends State<IntranetHomePage>
               hive.put(LocalConstant.KEY_GRADE, info.employeeGrade as String);
               hive.put(LocalConstant.KEY_DATE_OF_MARRAGE,
                   info.employeeDateOfMarriage as String);
-              hive.put(LocalConstant.KEY_LOCATION, info.employeeLocation as String);
+              hive.put(
+                  LocalConstant.KEY_LOCATION, info.employeeLocation as String);
               hive.put(LocalConstant.KEY_GENDER, info.gender as String);
 
               FirebaseAnalyticsUtils.sendEvent(info.userName);
               hive.put(LocalConstant.KEY_LOGIN_RESPONSE, jsonEncode(value));
               try {
-                hive.put(LocalConstant.KEY_BUSINESS_ID,value.responseData.businessApplications[0].businessID);
-                List<BusinessApplications> businessApplications = value.responseData.businessApplications;
-                for (int index = 0; index < businessApplications.length; index++) {
+                hive.put(LocalConstant.KEY_BUSINESS_ID,
+                    value.responseData.businessApplications[0].businessID);
+                List<BusinessApplications> businessApplications =
+                    value.responseData.businessApplications;
+                for (int index = 0;
+                    index < businessApplications.length;
+                    index++) {
                   //BP Management
-                  if (businessApplications[index].businessName == 'BP Management') {
+                  if (businessApplications[index].businessName ==
+                      'BP Management') {
                     isBpms = true;
                     hive.put(
                         LocalConstant.KEY_FRANCHISEE_ID,
@@ -253,7 +259,10 @@ class _IntranetHomePageState extends State<IntranetHomePage>
           businessApplications != null &&
           businessApplications.length > 0) {
         _currentBusinessName = businessApplications[0].businessName;
-        updateCurrentBusiness(businessApplications[0].businessID, businessApplications[0].businessName, businessApplications[0].business_UserID);
+        updateCurrentBusiness(
+            businessApplications[0].businessID,
+            businessApplications[0].businessName,
+            businessApplications[0].business_UserID);
       }
       setState(() {});
     } catch (e) {
@@ -329,7 +338,8 @@ class _IntranetHomePageState extends State<IntranetHomePage>
 
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
       print('A new onMessageOpenedApp event was published123!');
-      Navigator.push(context, MaterialPageRoute(builder: (context) => UserNotification()));
+      Navigator.push(
+          context, MaterialPageRoute(builder: (context) => UserNotification()));
     });
     //_listenForMessages();
     if (!kIsWeb) if (Platform.isAndroid) {
@@ -420,6 +430,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
       print('ticket ID ${initialURI.queryParameters['id']!}');
       print('BID ${initialURI.queryParameters['b_id']!}');
       print('BUID ${initialURI.queryParameters['bu_id']!}');
+
       ZllTicket(
           context,
           initialURI.queryParameters['id']!,
@@ -665,7 +676,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
       _profileImage = 'https://cdn-icons-png.flaticon.com/128/727/727393.png';
     }
     _getId(employeeId.toString());
-    
+
     PackageInfo.fromPlatform().then((PackageInfo packageInfo) {
       String appName = packageInfo.appName;
       String packageName = packageInfo.packageName;
