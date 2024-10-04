@@ -411,6 +411,26 @@ class _MyPjpListState extends State<MyPjpListScreen>
                         ),
                       ),
                     ),
+                    IconButton(
+                      icon: const Icon(Icons.add_card),
+                      tooltip: 'Request',
+                      onPressed: () async {
+                        var hiveBox = await Utility.openBox();
+                        await Hive.openBox(LocalConstant.KidzeeDB);
+
+                        String employeeCode = hiveBox
+                            .get(LocalConstant.KEY_EMPLOYEE_CODE) as String;
+                        debugPrint('Employee code is - $employeeCode');
+                        showDialog(
+                            context: context,
+                            builder: (context) => Dialog(
+                                  child: AddAdvanceRequisitionPage(
+                                    e_id: employeeCode,
+                                    pjpId: pjpInfo.PJP_Id,
+                                  ),
+                                ));
+                      },
+                    ),
                   ],
                 ),
               ),
