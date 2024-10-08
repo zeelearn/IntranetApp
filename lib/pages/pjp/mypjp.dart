@@ -148,25 +148,32 @@ class _MyPjpListState extends State<MyPjpListScreen>
                 openFilters();
               },
             ), //IconButton
-            IconButton(
-              icon: const Icon(Icons.add_card),
-              tooltip: 'Request',
-              onPressed: () async {
-                var hiveBox = await Utility.openBox();
-                await Hive.openBox(LocalConstant.KidzeeDB);
 
-                String employeeCode =
-                    hiveBox.get(LocalConstant.KEY_EMPLOYEE_CODE) as String;
-                debugPrint('Employee code is - $employeeCode');
-                showDialog(
-                    context: context,
-                    builder: (context) => Dialog(
-                          child: AddAdvanceRequisitionPage(
-                            e_id: employeeCode,
-                          ),
-                        ));
-              },
-            ), //IconButton
+            Padding(
+              padding: const EdgeInsets.only(right: 8.0),
+              child: InkWell(
+                onTap: () async {
+                  var hiveBox = await Utility.openBox();
+                  await Hive.openBox(LocalConstant.KidzeeDB);
+
+                  String employeeCode =
+                      hiveBox.get(LocalConstant.KEY_EMPLOYEE_CODE) as String;
+                  debugPrint('Employee code is - $employeeCode');
+                  showDialog(
+                      context: context,
+                      builder: (context) => Dialog(
+                            child: AddAdvanceRequisitionPage(
+                              e_id: employeeCode,
+                            ),
+                          ));
+                },
+                child: Image.asset(
+                  'assets/icons/advance.png',
+                  height: 24,
+                  width: 24,
+                ),
+              ),
+            ),
           ],
           //<Widget>[]
           backgroundColor: kPrimaryLightColor,
@@ -411,26 +418,30 @@ class _MyPjpListState extends State<MyPjpListScreen>
                         ),
                       ),
                     ),
-                    IconButton(
-                      icon: const Icon(Icons.add_card),
-                      tooltip: 'Request',
-                      onPressed: () async {
-                        var hiveBox = await Utility.openBox();
-                        await Hive.openBox(LocalConstant.KidzeeDB);
+                    ElevatedButton(
+                        style: ButtonStyle(
+                            padding: WidgetStatePropertyAll(EdgeInsets.all(5))),
+                        onPressed: () async {
+                          var hiveBox = await Utility.openBox();
+                          await Hive.openBox(LocalConstant.KidzeeDB);
 
-                        String employeeCode = hiveBox
-                            .get(LocalConstant.KEY_EMPLOYEE_CODE) as String;
-                        debugPrint('Employee code is - $employeeCode');
-                        showDialog(
-                            context: context,
-                            builder: (context) => Dialog(
-                                  child: AddAdvanceRequisitionPage(
-                                    e_id: employeeCode,
-                                    pjpId: pjpInfo.PJP_Id,
-                                  ),
-                                ));
-                      },
-                    ),
+                          String employeeCode = hiveBox
+                              .get(LocalConstant.KEY_EMPLOYEE_CODE) as String;
+                          debugPrint('Employee code is - $employeeCode');
+                          showDialog(
+                              context: context,
+                              builder: (context) => Dialog(
+                                    child: AddAdvanceRequisitionPage(
+                                      e_id: employeeCode,
+                                      pjpId: pjpInfo.PJP_Id,
+                                    ),
+                                  ));
+                        },
+                        child: Text(
+                          'Add Advance',
+                          style: LightColors.smallTextStyle
+                              .copyWith(color: Colors.white),
+                        )),
                   ],
                 ),
               ),
