@@ -4,6 +4,7 @@ import 'package:Intranet/api/ServiceHandler.dart';
 import 'package:Intranet/api/request/pjp/update_pjpstatus_request.dart';
 import 'package:Intranet/pages/helper/LocationHelper.dart';
 import 'package:Intranet/pages/pjp/cvf/add_cvf.dart';
+import 'package:expensestracker/app/util/util.dart';
 import 'package:expensestracker/presentation/pages/advance_requisition/add_advance_requisition_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -159,6 +160,7 @@ class _MyPjpListState extends State<MyPjpListScreen>
                   String employeeCode =
                       hiveBox.get(LocalConstant.KEY_EMPLOYEE_CODE) as String;
                   debugPrint('Employee code is - $employeeCode');
+                  Utils.isExternal = true;
                   showDialog(
                       context: context,
                       builder: (context) => Dialog(
@@ -428,6 +430,7 @@ class _MyPjpListState extends State<MyPjpListScreen>
                           String employeeCode = hiveBox
                               .get(LocalConstant.KEY_EMPLOYEE_CODE) as String;
                           debugPrint('Employee code is - $employeeCode');
+                          Utils.isExternal = true;
                           showDialog(
                               context: context,
                               builder: (context) => Dialog(
