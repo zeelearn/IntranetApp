@@ -150,7 +150,7 @@ dependency_overrides:
   js: ^0.7.1
   file_picker: ^8.0.5
   photo_view: ^0.15.0
-  device_calendar: ^4.0.0
+  device_calendar: ^4.3.3
   archive: ^3.6.1
   webview_flutter_android: 3.16.1
   google_api_headers: ^4.2.3
