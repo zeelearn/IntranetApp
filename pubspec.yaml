@@ -127,7 +127,7 @@ dependencies:
   #flutter_slidable: ^2.0.0
 
   saathi:
-    path: D:/vishwan/zllsaathi/ZeeSathi
+    path: D:/vishwan/ZeeSathi
 
   expensestracker:
     path: D:/vishwan/expensestracker
@@ -139,7 +139,7 @@ dependencies:
 dependency_overrides:
   #share_plus: ^10.0.2
   package_info_plus: ^4.0.0
-  pdfrx: ^1.0.82
+  pdfrx: ^1.0.87
   rxdart: ^0.26.0
   device_info_plus: ^10.0.0
   win32: ^5.4.0

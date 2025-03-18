@@ -61,7 +61,7 @@ class IntranetHomePage extends StatefulWidget {
       FilterSelection(filters: [], type: FILTERStatus.MYSELF);
   int _selectedDestination = 1;
 
-  IntranetHomePage({Key? key, required this.userId}) : super(key: key);
+  IntranetHomePage({super.key, required this.userId});
 
   @override
   _IntranetHomePageState createState() => _IntranetHomePageState();
@@ -104,12 +104,13 @@ class _IntranetHomePageState extends State<IntranetHomePage>
   DateTime? _selectedDay;
   DateTime? _rangeStart;
   DateTime? _rangeEnd;
-  Map<DateTime, List<PJPModel>> attendanceEvent = Map();
+  Map<DateTime, List<PJPModel>> attendanceEvent = {};
   int employeeId = 0;
   int businessId = 0;
   String _currentBusinessName = '';
   String mUserName = '';
   String mDesignation = '';
+  String email = '';
   String _profileImage =
       'https://cdn-icons-png.flaticon.com/128/149/149071.png';
   Uint8List? _profileAvtar;
@@ -117,7 +118,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
   late String mTitle = "";
   var hiveBox;
 
-  bool _flexibleUpdateAvailable = false;
+  final bool _flexibleUpdateAvailable = false;
   AppUpdateInfo? _updateInfo;
 
   /*FirebaseAnalytics analytics = FirebaseAnalytics.instance;
@@ -164,7 +165,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
             //Utility.showMessage(context, responseInvalid.responseData);
           } else {
             List<EmployeeDetails> infoList = value.responseData.employeeDetails;
-            if (infoList == null || infoList.length <= 0) {
+            if (infoList.isEmpty) {
               //Utility.showMessage(context, 'Invalid UserName/Password');
             } else {
               EmployeeDetails info = value.responseData.employeeDetails[0];
@@ -172,37 +173,28 @@ class _IntranetHomePageState extends State<IntranetHomePage>
               // // Save an integer value to 'counter' key.
               hive.put(LocalConstant.KEY_EMPLOYEE_ID,
                   info.employeeId.toInt().toString());
-              hive.put(
-                  LocalConstant.KEY_EMPLOYEE_CODE, info.employeeCode as String);
-              hive.put(LocalConstant.KEY_FIRST_NAME,
-                  info.employeeFirstName as String);
-              hive.put(
-                  LocalConstant.KEY_LAST_NAME, info.employeeLastName as String);
-              hive.put(
-                  LocalConstant.KEY_DOJ, info.employeeDateOfJoining as String);
+              hive.put(LocalConstant.KEY_EMPLOYEE_CODE, info.employeeCode);
+              hive.put(LocalConstant.KEY_FIRST_NAME, info.employeeFirstName);
+              hive.put(LocalConstant.KEY_LAST_NAME, info.employeeLastName);
+              hive.put(LocalConstant.KEY_DOJ, info.employeeDateOfJoining);
               hive.put(LocalConstant.KEY_EMP_SUPERIOR_ID,
                   info.employeeSuperiorId.toInt().toString());
-              hive.put(LocalConstant.KEY_DEPARTMENT,
-                  info.employeeDepartmentName as String);
-              hive.put(LocalConstant.KEY_DESIGNATION,
-                  info.employeeDesignation as String);
-              hive.put(LocalConstant.KEY_EMAIL, info.employeeEmailId as String);
-              hive.put(LocalConstant.KEY_CONTACT,
-                  info.employeeContactNumber as String);
+              hive.put(
+                  LocalConstant.KEY_DEPARTMENT, info.employeeDepartmentName);
+              hive.put(LocalConstant.KEY_DESIGNATION, info.employeeDesignation);
+              hive.put(LocalConstant.KEY_EMAIL, info.employeeEmailId);
+              hive.put(LocalConstant.KEY_CONTACT, info.employeeContactNumber);
               hive.put(LocalConstant.KEY_IS_ACTIVE, info.isActive);
               hive.put(LocalConstant.KEY_ISCEO, info.isCEO);
               hive.put(LocalConstant.KEY_IS_BUSINESS_HEAD, info.isBusinessHead);
-              hive.put(LocalConstant.KEY_USER_NAME, info.userName as String);
-              hive.put(
-                  LocalConstant.KEY_USER_PASSWORD, info.userPassword as String);
-              hive.put(
-                  LocalConstant.KEY_DOB, info.employeeDateOfBirth as String);
-              hive.put(LocalConstant.KEY_GRADE, info.employeeGrade as String);
+              hive.put(LocalConstant.KEY_USER_NAME, info.userName);
+              hive.put(LocalConstant.KEY_USER_PASSWORD, info.userPassword);
+              hive.put(LocalConstant.KEY_DOB, info.employeeDateOfBirth);
+              hive.put(LocalConstant.KEY_GRADE, info.employeeGrade);
               hive.put(LocalConstant.KEY_DATE_OF_MARRAGE,
-                  info.employeeDateOfMarriage as String);
-              hive.put(
-                  LocalConstant.KEY_LOCATION, info.employeeLocation as String);
-              hive.put(LocalConstant.KEY_GENDER, info.gender as String);
+                  info.employeeDateOfMarriage);
+              hive.put(LocalConstant.KEY_LOCATION, info.employeeLocation);
+              hive.put(LocalConstant.KEY_GENDER, info.gender);
 
               FirebaseAnalyticsUtils.sendEvent(info.userName);
               hive.put(LocalConstant.KEY_LOGIN_RESPONSE, jsonEncode(value));
@@ -252,12 +244,8 @@ class _IntranetHomePageState extends State<IntranetHomePage>
         json.decode(loginresponse),
       );
       debugPrint('response received.....');
-      if (response != null &&
-          response.responseData.businessApplications != null)
-        businessApplications.addAll(response.responseData.businessApplications);
-      if (_currentBusinessName.isNotEmpty &&
-          businessApplications != null &&
-          businessApplications.length > 0) {
+      businessApplications.addAll(response.responseData.businessApplications);
+      if (_currentBusinessName.isNotEmpty && businessApplications.isNotEmpty) {
         _currentBusinessName = businessApplications[0].businessName;
         updateCurrentBusiness(
             businessApplications[0].businessID,
@@ -273,11 +261,11 @@ class _IntranetHomePageState extends State<IntranetHomePage>
   }
 
   Future<void> showBusinessListDialog(isFromDrawar) {
-    if (businessApplications == null || businessApplications.length <= 0) {
+    if (businessApplications.isEmpty) {
       return showDialog(
           context: context,
           builder: (context) {
-            return AlertDialog(
+            return const AlertDialog(
               title: Text("Alert"),
               content: Text(
                   'Business not assigned in your account, please connect with your manager'),
@@ -288,8 +276,8 @@ class _IntranetHomePageState extends State<IntranetHomePage>
           context: context,
           builder: (context) {
             return AlertDialog(
-              title: Text("Select Business"),
-              content: Container(
+              title: const Text("Select Business"),
+              content: SizedBox(
                 width: 300.0,
                 child: ListView.builder(
                   itemCount: businessApplications.length,
@@ -325,7 +313,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
 
   @override
   void initState() {
-    WidgetsBinding.instance?.addObserver(this);
+    WidgetsBinding.instance.addObserver(this);
     super.initState();
     debugPrint('initstate ======================');
     _selectedDay = _focusedDay;
@@ -338,8 +326,8 @@ class _IntranetHomePageState extends State<IntranetHomePage>
 
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
       print('A new onMessageOpenedApp event was published123!');
-      Navigator.push(
-          context, MaterialPageRoute(builder: (context) => UserNotification()));
+      Navigator.push(context,
+          MaterialPageRoute(builder: (context) => const UserNotification()));
     });
     //_listenForMessages();
     if (!kIsWeb) if (Platform.isAndroid) {
@@ -423,7 +411,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
   void deepLinkCommonFunction(Uri? initialURI) async {
     debugPrint(
         'udid from deep linkk is - ${initialURI!.path.split('/').elementAt(1)}');
-    debugPrint('udid ${initialURI}');
+    debugPrint('udid $initialURI');
     debugPrint('udid ${initialURI.queryParameters['id']}');
     if (initialURI.toString().contains('zllsaathi.zeelearn.com/ticketDetail')) {
       //Saathi Ticket Details
@@ -540,13 +528,13 @@ class _IntranetHomePageState extends State<IntranetHomePage>
   getToken() async {
     print('app token is ');
     token = (await FirebaseMessaging.instance.getToken())!;
-    print('Notification Token..${token}');
+    print('Notification Token..$token');
     print(token);
   }
 
   @override
   void dispose() {
-    WidgetsBinding.instance?.removeObserver(this);
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
 
@@ -602,7 +590,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
   }
 
   void _handleMessage(RemoteMessage message) {
-    debugPrint('Handle Notification ${message}');
+    debugPrint('Handle Notification $message');
     if (message.data['type'] == 'chat') {
       debugPrint('Handle Notification');
       /*Navigator.pushNamed(
@@ -657,13 +645,13 @@ class _IntranetHomePageState extends State<IntranetHomePage>
     employeeId =
         int.parse(hiveBox.get(LocalConstant.KEY_EMPLOYEE_ID) as String);
     mDesignation = hiveBox.get(LocalConstant.KEY_DESIGNATION) as String;
+    email = hiveBox.get(LocalConstant.KEY_EMAIL) as String;
     var imageUrl = hiveBox.get(LocalConstant.KEY_EMPLOYEE_AVTAR);
     if (hiveBox.containsKey(LocalConstant.KEY_FRANCHISEE_ID)) {
       isBpms = true;
     }
-    mTitle = hiveBox.get(LocalConstant.KEY_FIRST_NAME).toString() +
-        " " +
-        hiveBox.get(LocalConstant.KEY_LAST_NAME).toString();
+    mTitle =
+        "${hiveBox.get(LocalConstant.KEY_FIRST_NAME)} ${hiveBox.get(LocalConstant.KEY_LAST_NAME)}";
     _currentBusinessName =
         hiveBox.get(LocalConstant.KEY_BUSINESS_NAME).toString();
     _profileImage = 'https://cdn-icons-png.flaticon.com/128/149/149071.png';
@@ -695,7 +683,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
       await Hive.openBox(LocalConstant.KidzeeDB);
       debugPrint('Avtar getProfileImaage-----');
       var avtar = hiveBox.get(LocalConstant.KEY_EMPLOYEE_AVTAR_LIST);
-      debugPrint('Avtar ${avtar}');
+      debugPrint('Avtar $avtar');
       if (avtar != null && avtar != '') {
         debugPrint('getProfile pic decode');
         _profileAvtar = base64.decode(avtar);
@@ -726,13 +714,13 @@ class _IntranetHomePageState extends State<IntranetHomePage>
 
   Future<String?> _getId(String employeeId) async {
     var deviceInfo = DeviceInfoPlugin();
-    var id;
+    String? id;
     String useragent = 'Android';
     if (Platform.isIOS) {
       // import 'dart:io'
       var iosDeviceInfo = await deviceInfo.iosInfo;
       id = iosDeviceInfo.identifierForVendor; // unique ID on iOS
-      useragent = 'IOS_${iosDeviceInfo.model}_${appVersion}';
+      useragent = 'IOS_${iosDeviceInfo.model}_$appVersion';
     } else if (Platform.isAndroid) {
       var androidDeviceInfo = await deviceInfo.androidInfo;
       id = androidDeviceInfo.id; // unique ID on Android
@@ -742,11 +730,13 @@ class _IntranetHomePageState extends State<IntranetHomePage>
     if (!kIsWeb) {
       final firebaseMessaging = FCM();
       //useragent= Platform.isIOS ? 'IOS' : 'Android';
-      firebaseMessaging.setNotifications(employeeId.toString(), id, useragent);
+      firebaseMessaging.setNotifications(
+          employeeId.toString(), id ?? '0', useragent);
       FirebaseMessaging.onMessage.listen((RemoteMessage message) {
         NotificationService().parseNotification(message);
       });
     }
+    return null;
   }
 
   getCurrentEvents(DateTime date, List<PJPModel> pjpListModels) {
@@ -798,21 +788,21 @@ class _IntranetHomePageState extends State<IntranetHomePage>
   List<PJPModel> _getEventsForDay(DateTime day) {
     // Implementation example
     debugPrint('add _getEventsForDay');
-    if (mPjpList == null || mPjpList.length == 0) {
+    if (mPjpList.isEmpty) {
       syncPjpList();
     }
-    debugPrint('day is ' + day.day.toString());
+    debugPrint('day is ${day.day}');
     return getCurrentEvents(day, mPjpList); //kEvents[day] ?? [];
   }
 
   BoxDecoration _getEventDecoration(DateTime day) {
     // Implementation example
     //return kEvents[day] ?? [];
-    BoxDecoration decoration = BoxDecoration(
+    BoxDecoration decoration = const BoxDecoration(
       color: Colors.indigo,
       shape: BoxShape.circle,
     );
-    String todaysDate = new DateFormat('dd MMM yyyy').format(day);
+    String todaysDate = DateFormat('dd MMM yyyy').format(day);
     /*if(attendanceEvent.containsKey(todaysDate)){
       var list = attendanceEvent[todaysDate]?.toList();
       if(list?[0].title=='Present'){
@@ -876,13 +866,13 @@ class _IntranetHomePageState extends State<IntranetHomePage>
     if (widget._selectedDestination == MENU_HOME) {
       // set up the buttons
       Widget cancelButton = TextButton(
-        child: Text("Cancel"),
+        child: const Text("Cancel"),
         onPressed: () {
           Navigator.of(context).pop(true);
         },
       );
       Widget continueButton = TextButton(
-        child: Text("Exit"),
+        child: const Text("Exit"),
         onPressed: () {
           Navigator.of(context).pop(true);
           if (Platform.isAndroid) {
@@ -897,8 +887,8 @@ class _IntranetHomePageState extends State<IntranetHomePage>
 
       // set up the AlertDialog
       AlertDialog alert = AlertDialog(
-        title: Text("Alert"),
-        content: Text("Would you like to Exit?"),
+        title: const Text("Alert"),
+        content: const Text("Would you like to Exit?"),
         actions: [
           cancelButton,
           continueButton,
@@ -989,11 +979,11 @@ class _IntranetHomePageState extends State<IntranetHomePage>
         children: [
           Text(
             mTitle,
-            style: TextStyle(
+            style: const TextStyle(
                 fontSize: 17, color: Colors.white, letterSpacing: 0.53),
           ),
-          _currentBusinessName == null || _currentBusinessName == 'null'
-              ? SizedBox(
+          _currentBusinessName == 'null'
+              ? const SizedBox(
                   width: 0,
                 )
               : InkWell(
@@ -1003,7 +993,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
                   child: Padding(
                     padding: const EdgeInsets.all(0),
                     child: Text(_currentBusinessName,
-                        style: TextStyle(
+                        style: const TextStyle(
                             fontSize: 12,
                             color: Colors.white,
                             letterSpacing: 0.53)),
@@ -1033,8 +1023,8 @@ class _IntranetHomePageState extends State<IntranetHomePage>
                 MaterialPageRoute(
                     builder: (context) => EmployeeListScreen(displayName: '')));
           },
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
+          child: const Padding(
+            padding: EdgeInsets.all(8.0),
             child: Icon(
               Icons.search,
               size: 20,
@@ -1043,11 +1033,13 @@ class _IntranetHomePageState extends State<IntranetHomePage>
         ),
         InkWell(
           onTap: () {
-            Navigator.push(context,
-                MaterialPageRoute(builder: (context) => UserNotification()));
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => const UserNotification()));
           },
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
+          child: const Padding(
+            padding: EdgeInsets.all(8.0),
             child: Icon(
               Icons.notifications,
               size: 20,
@@ -1066,7 +1058,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
     switch (widget._selectedDestination) {
       case MENU_HOME:
         debugPrint('getscreen-------- $mUserName');
-        return HomePageMenu(isBpms, mUserName, _profileAvtar);
+        return HomePageMenu(isBpms, mUserName, email, _profileAvtar);
         break;
       case MENU_ATTENDANCE:
         return AttendanceSummeryScreen(
@@ -1141,10 +1133,10 @@ class _IntranetHomePageState extends State<IntranetHomePage>
                   ],
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Column(
+                child: const Column(
                   mainAxisSize: MainAxisSize.max,
                   mainAxisAlignment: MainAxisAlignment.center,
-                  children: const [
+                  children: [
                     Padding(
                       padding: EdgeInsetsDirectional.fromSTEB(0, 16, 0, 0),
                       child: Icon(
@@ -1181,12 +1173,12 @@ class _IntranetHomePageState extends State<IntranetHomePage>
             child: /*Expanded(
                   child:*/
                 Padding(
-              padding: EdgeInsetsDirectional.fromSTEB(8, 8, 8, 8),
+              padding: const EdgeInsetsDirectional.fromSTEB(8, 8, 8, 8),
               child: Container(
                 width: MediaQuery.of(context).size.width * 0.4,
                 height: 150,
                 decoration: BoxDecoration(
-                  color: Color(0xFF4B39EF),
+                  color: const Color(0xFF4B39EF),
                   boxShadow: const [
                     BoxShadow(
                       blurRadius: 3,
@@ -1196,10 +1188,10 @@ class _IntranetHomePageState extends State<IntranetHomePage>
                   ],
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Column(
+                child: const Column(
                   mainAxisSize: MainAxisSize.max,
                   mainAxisAlignment: MainAxisAlignment.center,
-                  children: const [
+                  children: [
                     Padding(
                       padding: EdgeInsetsDirectional.fromSTEB(0, 16, 0, 0),
                       child: Icon(
@@ -1257,7 +1249,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
               border: Border.all(
                 color: LightColors.kYallow,
               ),
-              borderRadius: BorderRadius.all(Radius.circular(5))),
+              borderRadius: const BorderRadius.all(Radius.circular(5))),
           onDetailsPressed: () {
 //            uploadProfilePicture();
             showBusinessListDialog(true);
@@ -1268,9 +1260,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
             children: [
               Text(mDesignation, style: LightColors.subWhiteTextStyle),
               Text(
-                _currentBusinessName == null || _currentBusinessName == 'null'
-                    ? ''
-                    : _currentBusinessName,
+                _currentBusinessName == 'null' ? '' : _currentBusinessName,
                 style: LightColors.subWhiteTextStyle,
               ),
             ],
@@ -1303,7 +1293,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
                       : NetworkImage(_profileImage),
                   fit: BoxFit.cover,
                 ),
-                borderRadius: BorderRadius.all(Radius.circular(50.0)),
+                borderRadius: const BorderRadius.all(Radius.circular(50.0)),
                 border: Border.all(
                   color: Colors.green,
                   width: 1.0,
@@ -1322,7 +1312,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
                 width: 32.0,
                 child: Image.asset('assets/icons/ic_home.png')),
             trailing: widget._selectedDestination == MENU_HOME
-                ? Icon(
+                ? const Icon(
                     Icons.bookmark,
                     color: kPrimaryLightColor,
                   )
@@ -1337,7 +1327,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
             onTap: () => selectDestination(MENU_HOME),
           ),
         ),
-        Divider(),
+        const Divider(),
         Ink(
           color: widget._selectedDestination == MENU_LEAVE
               ? LightColors.kLightBlue
@@ -1354,7 +1344,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
                   : LightColors.headerTilte,
             ),
             trailing: widget._selectedDestination == MENU_LEAVE
-                ? Icon(Icons.bookmark)
+                ? const Icon(Icons.bookmark)
                 : null,
             selected: widget._selectedDestination == MENU_LEAVE,
             onTap: () => selectDestination(MENU_LEAVE),
@@ -1376,7 +1366,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
                   : LightColors.headerTilte,
             ),
             trailing: widget._selectedDestination == MENU_OUTDOOR
-                ? Icon(Icons.bookmark)
+                ? const Icon(Icons.bookmark)
                 : null,
             selected: widget._selectedDestination == MENU_OUTDOOR,
             onTap: () => selectDestination(MENU_OUTDOOR),
@@ -1431,7 +1421,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
                 height: 32.0,
                 width: 32.0,
                 child: Image.asset('assets/icons/ic_checklist.png')),
-            title: Text('CVF'),
+            title: const Text('CVF'),
             onTap: () {
               Navigator.pop(context);
               Navigator.push(context,
@@ -1571,7 +1561,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
             },
           ),
         ),
-        Divider(),
+        const Divider(),
         ListTile(
           leading: SizedBox(
               height: 32.0,
@@ -1602,7 +1592,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
     hiveBox.close();
     DBHelper helper = DBHelper();
     helper.deleteAllData();
-    await Future.delayed(Duration(seconds: 1));
+    await Future.delayed(const Duration(seconds: 1));
     Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(
@@ -1642,7 +1632,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
                 color: Colors.orange,
                 borderRadius: BorderRadius.circular(20.0),
               ),
-              formatButtonTextStyle: TextStyle(color: Colors.white),
+              formatButtonTextStyle: const TextStyle(color: Colors.white),
               formatButtonShowsNext: false,
             ),
             daysOfWeekStyle: const DaysOfWeekStyle(
@@ -1652,14 +1642,14 @@ class _IntranetHomePageState extends State<IntranetHomePage>
             // Calendar Dates styling
             calendarStyle: CalendarStyle(
               // Weekend dates color (Sat & Sun Column)
-              weekendTextStyle: TextStyle(color: Colors.red),
+              weekendTextStyle: const TextStyle(color: Colors.red),
               // highlighted color for today
-              todayDecoration: BoxDecoration(
+              todayDecoration: const BoxDecoration(
                 color: Colors.blueAccent,
                 shape: BoxShape.rectangle,
               ),
               // highlighted color for selected day
-              selectedDecoration: BoxDecoration(
+              selectedDecoration: const BoxDecoration(
                 color: Colors.black26,
                 shape: BoxShape.rectangle,
               ),
@@ -1754,13 +1744,12 @@ class DetailScreen extends StatelessWidget {
   bool isViewOnly;
 
   DetailScreen(
-      {Key? key,
+      {super.key,
       required this.imageUrl,
       required this.imageList,
       required this.userName,
       required this.listener,
-      required this.isViewOnly})
-      : super(key: key);
+      required this.isViewOnly});
 
   @override
   Widget build(BuildContext context) {
@@ -1768,7 +1757,7 @@ class DetailScreen extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: kPrimaryLightColor,
         centerTitle: true,
-        title: Text(
+        title: const Text(
           'Intranet',
           style:
               TextStyle(fontSize: 17, color: Colors.white, letterSpacing: 0.53),
@@ -1780,8 +1769,8 @@ class DetailScreen extends StatelessWidget {
                     Navigator.of(context).pop();
                     listener.onClick(ACTION_ADD_NEW_IMAGE, userName);
                   },
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
+                  child: const Padding(
+                    padding: EdgeInsets.all(8.0),
                     child: Icon(
                       Icons.add,
                       size: 20,

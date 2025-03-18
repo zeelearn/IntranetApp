@@ -101,6 +101,7 @@ import '../pages/iface/onClick.dart';
 import '../pages/outdoor/model/getplandetails.dart';
 import '../pages/pjp/cvf/model/getvisitplandatewisemodel.dart';
 import 'aws_s3_upload.dart';
+import 'request/zoho_request_model.dart';
 
 class APIService {
   String url = LocalStrings.developmentBaseUrl;
@@ -1957,5 +1958,66 @@ class APIService {
       e.toString();
     }
     return null;
+  }
+
+  Future<ZohoRequestModel> getRecipientList(String email) async {
+    try {
+      final response = await http.get(
+        Uri.parse(LocalStrings.API_ZOHO_RECIPIENT),
+      );
+      debugPrint('Zoho response body - ${response.body}');
+
+      if (response.statusCode == 200) {
+        ZohoRequestModel zohoRequestModel = ZohoRequestModel.fromJson(
+            jsonDecode(jsonDecode(response.body)['details']['output']));
+        zohoRequestModel.requests?.removeWhere(
+          (element) {
+            return !(element.actions?.any(
+                  (element) =>
+                      (element.recipientEmail?.contains(email) ?? false),
+                ) ??
+                false);
+          },
+        );
+        return zohoRequestModel;
+      } else {
+        debugPrint('Error - ${response.body}');
+        return ZohoRequestModel.setError(
+            jsonDecode(response.body)['message'] ?? response.body);
+      }
+    } catch (e) {
+      debugPrint('Exception - ${e.toString()}');
+
+      return ZohoRequestModel.setError(e.toString());
+    }
+  }
+
+  Future<Either<String, String>> getViewDocumentURl(
+      {required String requestId, required String actionId}) async {
+    try {
+      final request = http.MultipartRequest(
+        'POST',
+        Uri.parse(
+            'https://www.zohoapis.in/crm/v2/functions/updatebpms_id/actions/execute?auth_type=apikey&zapikey=1003.e2dc28e888ffe4a032717981ed8fd253.c5db40b69abb74c9a47f51a6875f4248'),
+      );
+      request.fields["request_id"] = requestId;
+      request.fields["action_id"] = actionId;
+      var response = await request.send();
+      var responseData = await response.stream.toBytes();
+      var responseString = String.fromCharCodes(responseData);
+      debugPrint(
+          'Zoho View Detail response body - $responseString $requestId $actionId  ${response.statusCode}');
+
+      if (response.statusCode == 200) {
+        return Right(responseString);
+      } else {
+        debugPrint('Error - $responseString');
+        return Left(jsonDecode(responseString)['message'] ?? responseString);
+      }
+    } catch (e) {
+      debugPrint('Exception - ${e.toString()}');
+
+      return Left(e.toString());
+    }
   }
 }

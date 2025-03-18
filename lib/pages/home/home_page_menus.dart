@@ -12,6 +12,7 @@ import 'package:expensestracker/main.dart' as expenseMainPlaceholder;
 
 import '../bpms/bpms_dashboard.dart';
 import '../helper/utils.dart';
+import '../legal_mis/all_legal_list_page.dart';
 import '../model/filter.dart';
 import '../pjp/mypjp.dart';
 import '../pjp/pjp_list_manager_exceptional.dart';
@@ -21,8 +22,9 @@ import '../utils/theme/colors/light_colors.dart';
 class HomePageMenu extends StatelessWidget {
   bool isBpms;
   String mUserName;
+  String name;
   Uint8List? profileAvtar;
-  HomePageMenu(this.isBpms, this.mUserName, Uint8List? profileAvtar,
+  HomePageMenu(this.isBpms, this.mUserName, this.name, Uint8List? profileAvtar,
       {super.key});
 
   Text subheading(String title) {
@@ -44,7 +46,7 @@ class HomePageMenu extends StatelessWidget {
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsetsDirectional.fromSTEB(0, 20, 0, 12),
-          child: Column(children: [
+          child: ListView(children: [
             Row(
               mainAxisSize: MainAxisSize.max,
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -359,6 +361,73 @@ class HomePageMenu extends StatelessWidget {
                   ],
                 )),
             Padding(
+              padding: const EdgeInsetsDirectional.fromSTEB(8, 8, 8, 8),
+              child: Row(
+                children: [
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => AllLegalListPage(
+                              email: name,
+                            ),
+                          ));
+                      // openExpense(context);
+                    },
+                    child: Padding(
+                      padding: const EdgeInsetsDirectional.fromSTEB(8, 8, 8, 8),
+                      child: Container(
+                        width: MediaQuery.of(context).size.width * 0.4,
+                        height: 150,
+                        decoration: BoxDecoration(
+                          color: Colors.blue,
+                          boxShadow: const [
+                            BoxShadow(
+                              blurRadius: 3,
+                              color: Colors.indigoAccent,
+                              offset: Offset(0, 1),
+                            )
+                          ],
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Column(
+                          mainAxisSize: MainAxisSize.max,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Padding(
+                              padding:
+                                  EdgeInsetsDirectional.fromSTEB(0, 16, 0, 0),
+                              child: Icon(
+                                Icons.legend_toggle_sharp,
+                                color: Colors.white,
+                                size: 44,
+                              ),
+                            ),
+                            Padding(
+                              padding:
+                                  EdgeInsetsDirectional.fromSTEB(0, 8, 0, 0),
+                              child: Text(
+                                'Legal MIS',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontFamily: 'Lexend Deca',
+                                  color: Colors.white,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Container(
+                alignment: Alignment.center,
                 padding: const EdgeInsets.all(5),
                 child: GestureDetector(
                   onTap: () {

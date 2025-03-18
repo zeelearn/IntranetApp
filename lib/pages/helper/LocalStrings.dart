@@ -92,4 +92,7 @@ class LocalStrings {
   static const String API_INSERT_BPMS_STATUS = 'api/bp//GetInputdata';
   static const String API_SEND_CREDENTIALS = 'api/bp/SendTempCredentialsEmail';
   static const String API_BPMS_DELETETASK = 'api/bp//deletetask';
+
+  static const String API_ZOHO_RECIPIENT =
+      'https://www.zohoapis.in/crm/v7/functions/get_zoho_sign_documnet_data/actions/execute?auth_type=apikey&zapikey=1003.e2dc28e888ffe4a032717981ed8fd253.c5db40b69abb74c9a47f51a6875f4248';
 }
