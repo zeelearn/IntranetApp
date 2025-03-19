@@ -12,7 +12,7 @@ import 'package:expensestracker/main.dart' as expenseMainPlaceholder;
 
 import '../bpms/bpms_dashboard.dart';
 import '../helper/utils.dart';
-import '../legal_mis/all_legal_list_page.dart';
+import '../legal_mis/all_legal_status_page.dart';
 import '../model/filter.dart';
 import '../pjp/mypjp.dart';
 import '../pjp/pjp_list_manager_exceptional.dart';
@@ -363,13 +363,15 @@ class HomePageMenu extends StatelessWidget {
             Padding(
               padding: const EdgeInsetsDirectional.fromSTEB(8, 8, 8, 8),
               child: Row(
+                mainAxisSize: MainAxisSize.max,
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   GestureDetector(
                     onTap: () {
                       Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => AllLegalListPage(
+                            builder: (context) => AllLegalStatusPage(
                               email: name,
                             ),
                           ));
