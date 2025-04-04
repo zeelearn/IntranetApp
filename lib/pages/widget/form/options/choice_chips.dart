@@ -103,6 +103,10 @@ class FastChoiceChip
 
   @override
   ChipAnimationStyle? get chipAnimationStyle => null;
+
+  @override
+  // TODO: implement mouseCursor
+  MouseCursor? get mouseCursor => throw UnimplementedError();
 }
 
 typedef FastChoiceChipBuilder = Widget Function(

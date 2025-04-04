@@ -30,7 +30,7 @@ import 'package:intl/intl.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:saathi/zllsaathi.dart';
 import 'package:table_calendar/table_calendar.dart';
-import 'package:uni_links/uni_links.dart';
+import 'package:uni_links5/uni_links.dart';
 
 import '../../api/APIService.dart';
 import '../../api/request/login_request.dart';

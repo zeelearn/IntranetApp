@@ -10,7 +10,8 @@ import 'UserNotification.dart';
 
 class NotificationService {
   // Singleton pattern
-  static final NotificationService _notificationService = NotificationService._internal();
+  static final NotificationService _notificationService =
+      NotificationService._internal();
   factory NotificationService() {
     return _notificationService;
   }
@@ -24,8 +25,8 @@ class NotificationService {
 
   static final AndroidNotificationDetails _androidNotificationDetails =
       AndroidNotificationDetails(
-        LocalConstant.NOTIFICATION_CHANNEL,
-        LocalConstant.NOTIFICATION_CHANNEL,
+    LocalConstant.NOTIFICATION_CHANNEL,
+    LocalConstant.NOTIFICATION_CHANNEL,
     channelDescription:
         "This channel is responsible for all the local notifications",
     playSound: true,
@@ -101,12 +102,12 @@ class NotificationService {
     await flutterLocalNotificationsPlugin.zonedSchedule(
       id,
       title,
-      body,
+      body, androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
       tz.TZDateTime.from(scheduledTime, tz.local),
       notificationDetails,
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime,
-      androidAllowWhileIdle: true,
+      // uiLocalNotificationDateInterpretation:
+      //     UILocalNotificationDateInterpretation.absoluteTime,
+      // androidAllowWhileIdle: true,
       payload: payload,
       matchDateTimeComponents: dateTimeComponents,
     );
@@ -119,19 +120,20 @@ class NotificationService {
     debugPrint('Remote message for simple message is - $message');
     AwesomeNotifications().createNotification(
         content: NotificationContent(
-            id: -1,
-            channelKey: channel,
-            title: title,
-            body: body,
-            payload: {
-              'url': message != null ? (message.data['url'] ?? '') : '',
-              'type': message != null ? (message.data['type'] ?? '') : '',
-              'topic': message != null ? (message.data['topic'] ?? '') : '',
-              'bigimage': message != null ? (message.data['bigimage'] ?? '') : '',
-              'id': message != null ? (message.data['id'] ?? '') : '',
-              'employee_code': message != null ? (message.data['employee_code'] ?? '') : ''
-            },
-        ));
+      id: -1,
+      channelKey: channel,
+      title: title,
+      body: body,
+      payload: {
+        'url': message != null ? (message.data['url'] ?? '') : '',
+        'type': message != null ? (message.data['type'] ?? '') : '',
+        'topic': message != null ? (message.data['topic'] ?? '') : '',
+        'bigimage': message != null ? (message.data['bigimage'] ?? '') : '',
+        'id': message != null ? (message.data['id'] ?? '') : '',
+        'employee_code':
+            message != null ? (message.data['employee_code'] ?? '') : ''
+      },
+    ));
     print('showSimpleNotification');
   }
 
@@ -157,7 +159,8 @@ class NotificationService {
               'url': message != null ? (message.data['url'] ?? '') : '',
               'type': message != null ? (message.data['type'] ?? '') : '',
               'topic': message != null ? (message.data['topic'] ?? '') : '',
-              'bigimage': message != null ? (message.data['bigimage'] ?? '') : ''
+              'bigimage':
+                  message != null ? (message.data['bigimage'] ?? '') : ''
             },
             notificationLayout: NotificationLayout.BigText,
             bigPicture: imageUrl),
@@ -180,7 +183,8 @@ class NotificationService {
               'url': message != null ? (message.data['url'] ?? '') : '',
               'type': message != null ? (message.data['type'] ?? '') : '',
               'topic': message != null ? (message.data['topic'] ?? '') : '',
-              'bigimage': message != null ? (message.data['bigimage'] ?? '') : ''
+              'bigimage':
+                  message != null ? (message.data['bigimage'] ?? '') : ''
             },
             bigPicture: imageUrl),
       );
@@ -200,8 +204,6 @@ Future<void> onSelectNotification(String? payload) async {
   await MyApp.navigatorKey.currentState?.push(MaterialPageRoute(
       builder: (_) => const UserNotification(/*payload: payload*/)));
 }
-
-
 
 /*
 
