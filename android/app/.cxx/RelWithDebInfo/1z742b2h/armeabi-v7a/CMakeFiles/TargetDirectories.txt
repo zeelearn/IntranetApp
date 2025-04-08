@@ -1,0 +1,2 @@
+D:/vishwan/IntranetApp/android/app/.cxx/RelWithDebInfo/1z742b2h/armeabi-v7a/CMakeFiles/edit_cache.dir
+D:/vishwan/IntranetApp/android/app/.cxx/RelWithDebInfo/1z742b2h/armeabi-v7a/CMakeFiles/rebuild_cache.dir
