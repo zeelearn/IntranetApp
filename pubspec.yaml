@@ -62,7 +62,7 @@ dependencies:
   #webviewx: ^0.2.2
   google_fonts: ^6.2.1
   get: ^4.6.5
-  pdfrx: ^1.0.79
+  pdfrx: ^1.1.21
   square_percent_indicater: ^0.1.0
   flutter_screenutil: ^5.8.4
   flutter_icons_null_safety: ^1.1.0
