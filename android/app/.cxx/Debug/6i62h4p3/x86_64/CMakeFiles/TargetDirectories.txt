@@ -1,0 +1,2 @@
+D:/vishwan/IntranetApp/android/app/.cxx/Debug/6i62h4p3/x86_64/CMakeFiles/edit_cache.dir
+D:/vishwan/IntranetApp/android/app/.cxx/Debug/6i62h4p3/x86_64/CMakeFiles/rebuild_cache.dir
