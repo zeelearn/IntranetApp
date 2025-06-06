@@ -420,31 +420,35 @@ class _MyPjpListState extends State<MyPjpListScreen>
                         ),
                       ),
                     ),
-                    ElevatedButton(
-                        style: ButtonStyle(
-                            padding: WidgetStatePropertyAll(EdgeInsets.all(5))),
-                        onPressed: () async {
-                          var hiveBox = await Utility.openBox();
-                          await Hive.openBox(LocalConstant.KidzeeDB);
+                    (pjpInfo.isSelfPJP != '1')
+                        ? SizedBox.shrink()
+                        : ElevatedButton(
+                            style: const ButtonStyle(
+                                padding:
+                                    WidgetStatePropertyAll(EdgeInsets.all(5))),
+                            onPressed: () async {
+                              var hiveBox = await Utility.openBox();
+                              await Hive.openBox(LocalConstant.KidzeeDB);
 
-                          String employeeCode = hiveBox
-                              .get(LocalConstant.KEY_EMPLOYEE_CODE) as String;
-                          debugPrint('Employee code is - $employeeCode');
-                          Utils.isExternal = true;
-                          showDialog(
-                              context: context,
-                              builder: (context) => Dialog(
-                                    child: AddAdvanceRequisitionPage(
-                                      e_id: employeeCode,
-                                      pjpId: pjpInfo.PJP_Id,
-                                    ),
-                                  ));
-                        },
-                        child: Text(
-                          'Add Advance',
-                          style: LightColors.smallTextStyle
-                              .copyWith(color: Colors.white),
-                        )),
+                              String employeeCode =
+                                  hiveBox.get(LocalConstant.KEY_EMPLOYEE_CODE)
+                                      as String;
+                              debugPrint('Employee code is - $employeeCode');
+                              Utils.isExternal = true;
+                              showDialog(
+                                  context: context,
+                                  builder: (context) => Dialog(
+                                        child: AddAdvanceRequisitionPage(
+                                          e_id: employeeCode,
+                                          pjpId: pjpInfo.PJP_Id,
+                                        ),
+                                      ));
+                            },
+                            child: Text(
+                              'Add Advance',
+                              style: LightColors.smallTextStyle
+                                  .copyWith(color: Colors.white),
+                            )),
                   ],
                 ),
               ),
