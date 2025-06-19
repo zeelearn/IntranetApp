@@ -733,6 +733,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
       firebaseMessaging.setNotifications(
           employeeId.toString(), id ?? '0', useragent);
       FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+        debugPrint('Notification data is - ${message.toMap()}');
         NotificationService().parseNotification(message);
       });
     }

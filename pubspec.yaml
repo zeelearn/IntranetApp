@@ -156,6 +156,7 @@ dependency_overrides:
   archive: ^3.6.1
   webview_flutter_android: ^4.3.4
   google_api_headers: ^4.2.3
+  flutter_date_range_picker: ^0.2.1
   # flutter_inappwebview_android: 1.0.13
 
 dev_dependencies:

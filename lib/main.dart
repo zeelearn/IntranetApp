@@ -1110,19 +1110,23 @@ class NotificationController {
       var hiveBox = await Utility.openBox();
       await Hive.openBox(LocalConstant.KidzeeDB);
       String mUserName = hiveBox.get(LocalConstant.KEY_USER_NAME) as String;
-      Navigator.pushAndRemoveUntil(
-          // ignore: use_build_context_synchronously
-          MyApp.navigatorKey.currentState!.context,
-          MaterialPageRoute(
-            builder: (context) => ZllTicketDetails(
-              ticketId: receivedAction.payload!['id'].toString(),
-              bid: '0',
-              businessUserId: '',
-              userId: mUserName,
-              mColor: kPrimaryLightColor,
+      if (receivedAction.payload?['url'] != null) {
+        Uri uri = Uri.parse(receivedAction.payload!['url']!);
+        Navigator.pushAndRemoveUntil(
+            // ignore: use_build_context_synchronously
+            MyApp.navigatorKey.currentState!.context,
+            MaterialPageRoute(
+              builder: (context) => ZllTicketDetails(
+                ticketId: uri.queryParameters['id'] ?? '',
+                bid: uri.queryParameters['bu_id'] ?? '0',
+                businessUserId: uri.queryParameters['b_id'] ?? '0',
+                userId:
+                    uri.queryParameters['u_id'] ?? mUserName /* mUserName */,
+                mColor: kPrimaryLightColor,
+              ),
             ),
-          ),
-          (route) => false);
+            (route) => false);
+      }
     } catch (e) {
       print('SAATHI exception $e');
       print(e);
