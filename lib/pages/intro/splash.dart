@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
@@ -10,20 +11,18 @@ import '../home/IntranetHomePage.dart';
 import 'intro.dart';
 
 class SplashScreen extends StatefulWidget {
-  const SplashScreen({Key? key}) : super(key: key);
+  const SplashScreen({this.receivedAction, Key? key}) : super(key: key);
+  final ReceivedAction? receivedAction;
 
   @override
   _SplashScreenState createState() => _SplashScreenState();
 }
 
 class _SplashScreenState extends State<SplashScreen> {
-
-
   startTime() async {
     var _duration = new Duration(seconds: 2);
     return new Timer(_duration, navigationPage);
   }
-
 
   @override
   void initState() {
@@ -31,7 +30,7 @@ class _SplashScreenState extends State<SplashScreen> {
     navigate();
   }
 
-  void navigate() async{
+  void navigate() async {
     debugPrint("-------init---=-=-=-=-=-=-");
     var box = await Utility.openBox();
 
@@ -40,47 +39,49 @@ class _SplashScreenState extends State<SplashScreen> {
     String mobileNumber = '';
     String currentBusinessName = '';
     debugPrint('navigate');
-    if(box.get(LocalConstant.KEY_FIRST_NAME)!=null) {
+    if (box.get(LocalConstant.KEY_FIRST_NAME) != null) {
       displayName = box.get(LocalConstant.KEY_FIRST_NAME) as String;
       userName = box.get(LocalConstant.KEY_FIRST_NAME) as String;
       mobileNumber = box.get(LocalConstant.KEY_CONTACT) as String;
     }
-    if(box.get(LocalConstant.KEY_BUSINESS_NAME)!=null) {
+    if (box.get(LocalConstant.KEY_BUSINESS_NAME) != null) {
       currentBusinessName = box.get(LocalConstant.KEY_BUSINESS_NAME).toString();
     }
     debugPrint(userName);
     debugPrint(currentBusinessName);
-      if(displayName != '') {
-          Timer(
-              Duration(seconds: 4),
-                  () => Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) =>
-                        /*currentBusinessName==null || currentBusinessName.isEmpty ? LoginPage(isAutoLogin: true,) : */IntranetHomePage(userId: '',)),
-                  ));
-      }else {
-        debugPrint(' in else');
-        if (kIsWeb) {
-          Navigator.of(context).pushReplacement(MaterialPageRoute(
-              builder: (BuildContext context) => LoginPage(isAutoLogin: false,)));
-        } else {
-          //IntroPage
-          debugPrint('intro');
-          Timer(
-              Duration(seconds: 4),
-                  () =>
-                  Navigator.of(context).pushReplacement(MaterialPageRoute(
-                      builder: (BuildContext context) => IntroPage())));
-        }
+    if (displayName != '') {
+      Timer(
+          Duration(seconds: 4),
+          () => Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                    builder: (context) =>
+                        /*currentBusinessName==null || currentBusinessName.isEmpty ? LoginPage(isAutoLogin: true,) : */ IntranetHomePage(
+                          userId: '',
+                          receivedAction: widget.receivedAction,
+                        )),
+              ));
+    } else {
+      debugPrint(' in else');
+      if (kIsWeb) {
+        Navigator.of(context).pushReplacement(MaterialPageRoute(
+            builder: (BuildContext context) => LoginPage(
+                  isAutoLogin: false,
+                )));
+      } else {
+        //IntroPage
+        debugPrint('intro');
+        Timer(
+            Duration(seconds: 4),
+            () => Navigator.of(context).pushReplacement(MaterialPageRoute(
+                builder: (BuildContext context) => IntroPage())));
       }
+    }
   }
-
 
   void navigationPage() {
     //Navigator.of(context).pushReplacementNamed('/pages/intro/IntroPage');
   }
-
 
   @override
   Widget build(BuildContext context) {

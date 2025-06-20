@@ -50,6 +50,7 @@ import 'api/response/apply_leave_response.dart';
 import 'api/response/approve_attendance_response.dart';
 import 'api/response/cvf/update_status_response.dart';
 import 'pages/pjp/cvf/getVisitplannerCvfcubit/cubit/getvisitplannercvf_cubit.dart';
+import 'pages/utils/util.dart';
 
 part 'main.g.dart';
 
@@ -233,13 +234,13 @@ late ServiceInstance mService;
 FlutterLocalNotificationsPlugin? flutterLocalNotificationsPlugin;
 late FirebaseMessaging messaging;
 
-Future<bool> getInitNotif() async {
+Future<ReceivedAction?> getInitNotif() async {
   ReceivedAction? receivedAction = await AwesomeNotifications()
       .getInitialNotificationAction(removeFromActionEvents: true);
-  if (receivedAction?.buttonKeyPressed == 'ACCEPT') {
+  /* if (receivedAction?.buttonKeyPressed == 'ACCEPT') {
     return true;
-  }
-  return false;
+  } */
+  return receivedAction;
 }
 
 Future<Box> _openBox() async {
@@ -340,7 +341,7 @@ Future<void> main() async {
 
   //await initializeService();
   //runApp(const MyApp());
-  bool acceptedNotification = await getInitNotif();
+  ReceivedAction? receivedNotification = await getInitNotif();
   runApp(MultiBlocProvider(
     providers: [
       BlocProvider<GetplandetailsCubit>(
@@ -351,7 +352,10 @@ Future<void> main() async {
       ),
     ],
     child: ProviderScope(
-      child: acceptedNotification ? const UserNotification() : const MyApp(),
+      child: /* acceptedNotification ? const UserNotification() : */
+          MyApp(
+        receivedAction: receivedNotification,
+      ),
     ),
   ));
 }
@@ -767,12 +771,18 @@ Future _showNotificationWithDefaultSound(
   debugPrint('Send Notification');
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   static final GlobalKey<NavigatorState> navigatorKey =
       GlobalKey<NavigatorState>();
+  final ReceivedAction? receivedAction;
 
-  const MyApp({super.key});
+  const MyApp({this.receivedAction, super.key});
 
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
@@ -906,8 +916,10 @@ class MyApp extends StatelessWidget {
 
         ),*/
       ),
-      home: const Scaffold(
-        body: SplashScreen(),
+      home: Scaffold(
+        body: SplashScreen(
+          receivedAction: widget.receivedAction,
+        ),
       ),
     );
   }
@@ -1084,7 +1096,7 @@ class NotificationController {
       print(
           'SAATHI Message sent via notification input: "${receivedAction.buttonKeyInput}"');
       print('SAATHI payload - ${receivedAction.payload}');
-      openSaathiNotification(receivedAction);
+      Util.openSaathiNotification(receivedAction);
     } else if (receivedAction.payload != null &&
         receivedAction.payload!['Video_path'] != null) {
       Navigator.push(
@@ -1102,34 +1114,6 @@ class NotificationController {
     } else {
       Navigator.push(MyApp.navigatorKey.currentState!.context,
           MaterialPageRoute(builder: (context) => const UserNotification()));
-    }
-  }
-
-  static openSaathiNotification(ReceivedAction receivedAction) async {
-    try {
-      var hiveBox = await Utility.openBox();
-      await Hive.openBox(LocalConstant.KidzeeDB);
-      String mUserName = hiveBox.get(LocalConstant.KEY_USER_NAME) as String;
-      if (receivedAction.payload?['url'] != null) {
-        Uri uri = Uri.parse(receivedAction.payload!['url']!);
-        Navigator.pushAndRemoveUntil(
-            // ignore: use_build_context_synchronously
-            MyApp.navigatorKey.currentState!.context,
-            MaterialPageRoute(
-              builder: (context) => ZllTicketDetails(
-                ticketId: uri.queryParameters['id'] ?? '',
-                bid: uri.queryParameters['bu_id'] ?? '0',
-                businessUserId: uri.queryParameters['b_id'] ?? '0',
-                userId:
-                    uri.queryParameters['u_id'] ?? mUserName /* mUserName */,
-                mColor: kPrimaryLightColor,
-              ),
-            ),
-            (route) => false);
-      }
-    } catch (e) {
-      print('SAATHI exception $e');
-      print(e);
     }
   }
 

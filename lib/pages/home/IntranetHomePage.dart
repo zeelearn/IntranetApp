@@ -15,6 +15,7 @@ import 'package:Intranet/pages/pjp/models/PjpModel.dart';
 import 'package:Intranet/pages/pjp/mypjp.dart';
 import 'package:Intranet/pages/userinfo/employee_list.dart';
 import 'package:app_version_update/app_version_update.dart';
+import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
@@ -53,6 +54,8 @@ import '../pjp/IntranetEvents.dart';
 import '../pjp/cvf/mycvf.dart';
 import '../pjp/pjp_list_manager.dart';
 import '../utils/theme/colors/light_colors.dart';
+import '../utils/util.dart';
+import '../widget/VideoPlayer.dart';
 import 'home_page_menus.dart';
 
 class IntranetHomePage extends StatefulWidget {
@@ -60,8 +63,9 @@ class IntranetHomePage extends StatefulWidget {
   FilterSelection mPjpFilters =
       FilterSelection(filters: [], type: FILTERStatus.MYSELF);
   int _selectedDestination = 1;
+  final ReceivedAction? receivedAction;
 
-  IntranetHomePage({super.key, required this.userId});
+  IntranetHomePage({this.receivedAction, super.key, required this.userId});
 
   @override
   _IntranetHomePageState createState() => _IntranetHomePageState();
@@ -323,6 +327,33 @@ class _IntranetHomePageState extends State<IntranetHomePage>
     //_listenForMessages();
 
     initNotification();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (widget.receivedAction?.payload != null &&
+          widget.receivedAction?.payload!['type'] != null &&
+          widget.receivedAction?.payload!['type'] == 'td') {
+        print(
+            'SAATHI Message sent via notification input: "${widget.receivedAction?.buttonKeyInput}"');
+        print('SAATHI payload - ${widget.receivedAction?.payload}');
+        Util.openSaathiNotification(widget.receivedAction!);
+      } else if (widget.receivedAction?.payload != null &&
+          widget.receivedAction?.payload!['Video_path'] != null) {
+        Navigator.push(
+            MyApp.navigatorKey.currentState!.context,
+            MaterialPageRoute(
+                builder: (context) => VideoPlayer(
+                      Title: widget.receivedAction!.payload!['Video_path']!,
+                      path: widget.receivedAction!.payload!['Video_path']!,
+                    )));
+      } else if (widget.receivedAction?.payload != null &&
+          widget.receivedAction!.payload!['url'] != null &&
+          widget.receivedAction!.payload!['url']!.isNotEmpty) {
+        Navigator.push(MyApp.navigatorKey.currentState!.context,
+            MaterialPageRoute(builder: (context) => const UserNotification()));
+      } /*  else {
+        Navigator.push(MyApp.navigatorKey.currentState!.context,
+            MaterialPageRoute(builder: (context) => const UserNotification()));
+      } */
+    });
 
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
       print('A new onMessageOpenedApp event was published123!');
