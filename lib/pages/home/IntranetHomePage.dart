@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:Intranet/api/response/login_response.dart';
@@ -764,7 +765,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
       firebaseMessaging.setNotifications(
           employeeId.toString(), id ?? '0', useragent);
       FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-        debugPrint('Notification data is - ${message.toMap()}');
+        log('Notification data is - ${message.toMap()}');
         NotificationService().parseNotification(message);
       });
     }
