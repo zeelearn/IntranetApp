@@ -33,7 +33,7 @@ class FastCheckbox extends FastFormField<bool> {
     this.controlAffinity = ListTileControlAffinity.platform,
     this.dense,
     this.enableFeedback,
-    this.errorBuilder,
+    // this.errorBuilder,
     this.fillColor,
     this.focusColor,
     this.focusNode,
@@ -68,7 +68,7 @@ class FastCheckbox extends FastFormField<bool> {
   final ListTileControlAffinity controlAffinity;
   final bool? dense;
   final bool? enableFeedback;
-  final FastErrorBuilder<bool>? errorBuilder;
+  // final FastErrorBuilder<bool>? errorBuilder;
   final MaterialStateProperty<Color?>? fillColor;
   final Color? focusColor;
   final FocusNode? focusNode;
