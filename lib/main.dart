@@ -278,7 +278,8 @@ Future<void> main() async {
     await Firebase.initializeApp(
         options: DefaultFirebaseOptions.currentPlatform);
   } else {
-    await Firebase.initializeApp();
+    await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform);
   }
 
   NotificationController.startListeningNotificationEvents();
@@ -1090,6 +1091,10 @@ class NotificationController {
       print(
           'Message sent via notification input: "${receivedAction.buttonKeyInput}"');
       // await executeLongTaskInBackground();
+    } else if (receivedAction.payload != null &&
+        receivedAction.payload!['type'] != null &&
+        receivedAction.payload!['type'] == 'logout') {
+      Utility.signOut(MyApp.navigatorKey.currentState!.context);
     } else if (receivedAction.payload != null &&
         receivedAction.payload!['type'] != null &&
         receivedAction.payload!['type'] == 'td') {

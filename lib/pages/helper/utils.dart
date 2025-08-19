@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:Intranet/pages/helper/DatabaseHelper.dart';
 import 'package:Intranet/pages/helper/LocalStrings.dart';
 import 'package:Intranet/pages/helper/constants.dart';
 import 'package:Intranet/pages/iface/onClick.dart';
@@ -20,6 +21,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../intro/intro.dart';
 import '../utils/theme/colors/light_colors.dart';
 import 'LightColor.dart';
 import 'LocalConstant.dart';
@@ -910,6 +912,29 @@ class Utility {
         ),
       ],
     );
+  }
+
+  static signOut(BuildContext context) async {
+    var hiveBox = await Utility.openBox();
+    await Hive.openBox(LocalConstant.KidzeeDB);
+    hiveBox.clear();
+    hiveBox.close();
+    DBHelper helper = DBHelper();
+    helper.deleteAllData();
+    await Future.delayed(const Duration(seconds: 1));
+    Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(
+          builder: (context) => IntroPage(),
+        ),
+        (route) => false);
+    /* if (Platform.isAndroid) {
+      Future.delayed(const Duration(milliseconds: 100), () {
+        SystemChannels.platform.invokeMethod('SystemNavigator.pop');
+      });
+    } else if (Platform.isIOS) {
+      exit(0);
+    } */
   }
 
   static onSuccessMessage(

@@ -764,11 +764,45 @@ class _IntranetHomePageState extends State<IntranetHomePage>
       //useragent= Platform.isIOS ? 'IOS' : 'Android';
       firebaseMessaging.setNotifications(
           employeeId.toString(), id ?? '0', useragent);
-      FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-        log('Notification data is - ${message.toMap()}');
-        NotificationService().parseNotification(message);
-      });
     }
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      log('Notification data is - ${message.toMap()}');
+      if (kIsWeb) {
+        ScaffoldMessenger.maybeOf(context)?.showSnackBar(SnackBar(
+            duration: Duration(seconds: 20),
+            showCloseIcon: false,
+            closeIconColor: Colors.redAccent,
+            backgroundColor: /* item.colorCode?.toColor() ?? */
+                kPrimaryLightColor,
+            margin: EdgeInsets.only(
+                left: MediaQuery.of(context).size.width / 2,
+                right: 10,
+                bottom: 20),
+            behavior: SnackBarBehavior.floating,
+            content: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                Text(
+                  message.data['title'],
+                  style: LightColors.subTextStyle.copyWith(color: Colors.white),
+                ),
+                SizedBox(
+                  height: 5,
+                ),
+                Text(
+                  message.data['body'],
+                  style: LightColors.subTextStyle.copyWith(color: Colors.white),
+                ),
+                SizedBox(
+                  height: 5,
+                ),
+              ],
+            )));
+      } else {
+        NotificationService().parseNotification(message);
+      }
+    });
     return null;
   }
 
