@@ -53,10 +53,10 @@ packages:
     dependency: transitive
     description:
       name: async
-      sha256: d2872f9c19731c2e5f10444b14686eb7cc85c76274bd6c16e1816bff9a3bab63
+      sha256: "758e6d74e971c3e5aceb4110bfd6698efc7f501675bcfe0c775459a8140750eb"
       url: "https://pub.dev"
     source: hosted
-    version: "2.12.0"
+    version: "2.13.0"
   audioplayers:
     dependency: transitive
     description:
@@ -524,25 +524,29 @@ packages:
   expandable_datatable:
     dependency: transitive
     description:
-      path: "D:/vishwan/expensestracker/package/expandable_datatable"
-      relative: false
-    source: path
+      path: "."
+      ref: master
+      resolved-ref: b326f47a0a7395656b36ed6e5260be3177f950da
+      url: "https://github.com/ZeeLearnLtd/expandabletable.git"
+    source: git
     version: "0.0.7"
   expensestracker:
     dependency: "direct main"
     description:
-      path: "D:\\vishwan\\expensestracker"
-      relative: false
-    source: path
+      path: "."
+      ref: vishwa
+      resolved-ref: db0a51d3602f514ef779ada7c77cb2c6eb0fbaac
+      url: "https://github.com/ZeeLearnLtd/excepsesmanagement.git"
+    source: git
     version: "1.0.0+1"
   fake_async:
     dependency: transitive
     description:
       name: fake_async
-      sha256: "6a95e56b2449df2273fd8c45a662d6947ce1ebb7aafe80e550a3f68297f3cacc"
+      sha256: "5368f224a74523e8d2e7399ea1638b37aecfca824a3cc4dfdf77bf1fa905ac44"
       url: "https://pub.dev"
     source: hosted
-    version: "1.3.2"
+    version: "1.3.3"
   faker:
     dependency: transitive
     description:
@@ -1278,14 +1282,6 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
-  flutter_typeahead:
-    dependency: transitive
-    description:
-      name: flutter_typeahead
-      sha256: d64712c65db240b1057559b952398ebb6e498077baeebf9b0731dade62438a6d
-      url: "https://pub.dev"
-    source: hosted
-    version: "5.2.0"
   flutter_web_plugins:
     dependency: transitive
     description: flutter
@@ -1639,10 +1635,10 @@ packages:
     dependency: transitive
     description:
       name: leak_tracker
-      sha256: c35baad643ba394b40aac41080300150a4f08fd0fd6a10378f8f7c6bc161acec
+      sha256: "6bb818ecbdffe216e81182c2f0714a2e62b593f4a4f13098713ff1685dfb6ab0"
       url: "https://pub.dev"
     source: hosted
-    version: "10.0.8"
+    version: "10.0.9"
   leak_tracker_flutter_testing:
     dependency: transitive
     description:
@@ -2093,7 +2089,7 @@ packages:
     source: hosted
     version: "2.1.8"
   pointer_interceptor:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
       name: pointer_interceptor
       sha256: "57210410680379aea8b1b7ed6ae0c3ad349bfd56fe845b8ea934a53344b9d523"
@@ -2120,10 +2116,10 @@ packages:
     dependency: transitive
     description:
       name: pointer_interceptor_web
-      sha256: "7a7087782110f8c1827170660b09f8aa893e0e9a61431dbbe2ac3fc482e8c044"
+      sha256: "460b600e71de6fcea2b3d5f662c92293c049c4319e27f0829310e5a953b3ee2a"
       url: "https://pub.dev"
     source: hosted
-    version: "0.10.2+1"
+    version: "0.10.3"
   provider:
     dependency: transitive
     description:
@@ -2144,10 +2140,10 @@ packages:
     dependency: transitive
     description:
       name: quill_html_editor
-      sha256: "7f46ec06a41b8ec30910afc219f1a447cd2e872614cc3a34ef16600043163f19"
+      sha256: e8cc612f97a6368299c3cfa292e312efebb768c6478f075bc2bdafe2aa87831a
       url: "https://pub.dev"
     source: hosted
-    version: "2.2.8"
+    version: "2.2.7"
   quiver:
     dependency: transitive
     description:
@@ -2199,7 +2195,7 @@ packages:
   saathi:
     dependency: "direct main"
     description:
-      path: "D:\\vishwan\\ZeeSathi"
+      path: "/Users/zlldev/Documents/GitHub/ZeeSathi"
       relative: false
     source: path
     version: "1.0.0+1"
@@ -2772,10 +2768,10 @@ packages:
     dependency: transitive
     description:
       name: vm_service
-      sha256: "0968250880a6c5fe7edc067ed0a13d4bae1577fe2771dcf3010d52c4a9d3ca14"
+      sha256: ddfa8d30d89985b96407efce8acbdd124701f96741f2d981ca860662f1c0dc02
       url: "https://pub.dev"
     source: hosted
-    version: "14.3.1"
+    version: "15.0.0"
   vsc_quill_delta_to_html:
     dependency: transitive
     description:

@@ -43,7 +43,7 @@ class FastDatePicker extends FastFormField<DateTime> {
     this.dateFormat,
     this.dateOrder,
     this.dialogBuilder,
-    this.errorBuilder,
+    // this.errorBuilder,
     this.errorFormatText,
     this.errorInvalidText,
     this.fieldHintText,
@@ -87,7 +87,7 @@ class FastDatePicker extends FastFormField<DateTime> {
   final intl.DateFormat? dateFormat;
   final DatePickerDateOrder? dateOrder;
   final TransitionBuilder? dialogBuilder;
-  final FastErrorBuilder<DateTime>? errorBuilder;
+  // final FastErrorBuilder<DateTime>? errorBuilder;
   final String? errorFormatText;
   final String? errorInvalidText;
   final String? fieldHintText;

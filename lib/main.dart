@@ -825,7 +825,7 @@ class _MyAppState extends State<MyApp> {
           overlayColor: WidgetStateProperty.all(Colors.black),
           side: const BorderSide(color: Color(0xff585858)),
         ),
-        tabBarTheme: const TabBarTheme(
+        tabBarTheme: const TabBarThemeData(
           labelColor: Colors.pink,
           labelStyle: TextStyle(color: Colors.pink), // color for text
           indicator: UnderlineTabIndicator(
@@ -869,7 +869,7 @@ class _MyAppState extends State<MyApp> {
           onSurface: Colors.black87,
           outline: LightColors.kLightGrayM,
         ),
-        dialogTheme: const DialogTheme(
+        dialogTheme: const DialogThemeData(
           backgroundColor: Colors.white,
           titleTextStyle: TextStyle(
               fontWeight: FontWeight.w500, fontSize: 16, color: Colors.black54),
