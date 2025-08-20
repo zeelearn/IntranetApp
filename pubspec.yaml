@@ -128,12 +128,13 @@ dependencies:
   #flutter_slidable: ^2.0.0
 
   saathi:
-    path: /Users/zlldev/Documents/GitHub/ZeeSathi
+    path: D:/vishwan/ZeeSathi
 
   expensestracker:
-    git:
-      url: https://github.com/ZeeLearnLtd/excepsesmanagement.git
-      ref: vishwa
+    path: D:/vishwan/expensestracker
+    # git:
+    #   url: https://github.com/ZeeLearnLtd/excepsesmanagement.git
+    #   ref: vishwa
 
 
   fl_chart: ^0.68.0

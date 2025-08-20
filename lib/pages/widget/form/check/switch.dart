@@ -181,7 +181,7 @@ Widget cupertinoSwitchBuilder(FormFieldState<bool> field) {
     padding: widget.contentPadding,
     prefix: widget.labelText is String ? Text(widget.labelText!) : null,
     helper: (widget.helperBuilder ?? helperBuilder)(field),
-    error: (widget.errorBuilder ?? errorBuilder)(field),
+    error: (errorBuilder)(field),
     child: CupertinoSwitch(
       activeColor: widget.activeColor,
       applyTheme: widget.applyTheme,

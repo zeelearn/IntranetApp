@@ -140,7 +140,7 @@ Widget cupertinoSliderBuilder(FormFieldState<double> field) {
     padding: widget.contentPadding,
     prefix: widget.labelText is String ? Text(widget.labelText!) : null,
     helper: (widget.helperBuilder ?? helperBuilder)(field),
-    error: (widget.errorBuilder ?? errorBuilder)(field),
+    error: (errorBuilder)(field),
     child: Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: <Widget>[

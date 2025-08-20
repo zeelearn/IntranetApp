@@ -306,7 +306,7 @@ Widget cupertinoDatePickerBuilder(FormFieldState<DateTime> field) {
   return CupertinoFormRow(
     padding: widget.contentPadding,
     helper: (widget.helperBuilder ?? helperBuilder)(field),
-    error: (widget.errorBuilder ?? errorBuilder)(field),
+    error: (errorBuilder)(field),
     child: Column(
       children: [
         Row(

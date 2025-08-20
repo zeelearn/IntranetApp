@@ -49,7 +49,7 @@ android {
         minSdkVersion 23
         targetSdkVersion 34
         versionCode 40
-        versionName '1.6.9'
+        versionName '1.7.0'
         manifestPlaceholders['foregroundServiceType'] = 'DataSync'
         multiDexEnabled true
         ndk {
