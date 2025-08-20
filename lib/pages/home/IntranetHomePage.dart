@@ -15,6 +15,7 @@ import 'package:Intranet/pages/outdoor/outdoor_list.dart';
 import 'package:Intranet/pages/pjp/models/PjpModel.dart';
 import 'package:Intranet/pages/pjp/mypjp.dart';
 import 'package:Intranet/pages/userinfo/employee_list.dart';
+import 'package:app_links/app_links.dart';
 import 'package:app_version_update/app_version_update.dart';
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:device_info_plus/device_info_plus.dart';
@@ -32,7 +33,7 @@ import 'package:intl/intl.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:saathi/zllsaathi.dart';
 import 'package:table_calendar/table_calendar.dart';
-import 'package:uni_links5/uni_links.dart';
+
 
 import '../../api/APIService.dart';
 import '../../api/request/login_request.dart';
@@ -370,7 +371,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
 
     getLoginResponse();
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-      _initURIHandler();
+      // _initURIHandler();
       _incomingLinkHandler();
       //showBusinessListDialog(false);
     });
@@ -381,23 +382,24 @@ class _IntranetHomePageState extends State<IntranetHomePage>
       initialURILinkHandled = true;
 
       try {
-        final initialURI = await getInitialUri();
+        final appLinks = AppLinks();
+        // final initialURI = await getInitialUri();
         // Use the initialURI and warn the user if it is not correct,
         // but keep in mind it could be `null`.
-        if (initialURI != null) {
-          debugPrint("Initial URI on home screen received $initialURI");
+        // if (initialURI != null) {
+        //   debugPrint("Initial URI on home screen received $initialURI");
 
-          _initialURI = initialURI;
+        //   _initialURI = initialURI;
 
-          // SharedPreferences prefs = await SharedPreferences.getInstance();
-          // String uid = prefs.getString(LocalConstant.KEY_UID) as String;
-          deepLinkCommonFunction(_initialURI);
-        } else {
+        //   // SharedPreferences prefs = await SharedPreferences.getInstance();
+        //   // String uid = prefs.getString(LocalConstant.KEY_UID) as String;
+        //   deepLinkCommonFunction(_initialURI);
+        // } else {
           getLoginResponse();
           validate(context);
           // navigate();
           debugPrint("Null Initial URI received");
-        }
+        // }
       } on PlatformException {
         // Platform messages may fail, so we use a try/catch PlatformException.
         // Handle exception by warning the user their action did not succeed
@@ -420,9 +422,10 @@ class _IntranetHomePageState extends State<IntranetHomePage>
   /// while already started.
   void _incomingLinkHandler() {
     if (!kIsWeb) {
+      final appLinks = AppLinks();
       // It will handle app links while the app is already started - be it in
       // the foreground or in the background.
-      _streamSubscription = uriLinkStream.listen((Uri? uri) async {
+      _streamSubscription = appLinks.uriLinkStream.listen((Uri? uri) async {
         if (!mounted) {
           return;
         }
