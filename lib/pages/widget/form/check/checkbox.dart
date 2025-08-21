@@ -165,7 +165,7 @@ Widget cupertinoCheckboxBuilder(FormFieldState<bool> field) {
     padding: widget.contentPadding,
     prefix: widget.labelText is String ? Text(widget.labelText!) : null,
     helper: (widget.helperBuilder ?? helperBuilder)(field),
-    error: (widget.errorBuilder ?? errorBuilder)(field),
+    error: (errorBuilder)(field),
     child: CupertinoCheckbox(
       activeColor: widget.activeColor,
       autofocus: widget.autofocus,
