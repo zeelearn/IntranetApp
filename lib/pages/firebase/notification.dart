@@ -49,9 +49,19 @@ class FCM {
     //   },
     // );
     // With this token you can test it easily on your phone
-    final token = _firebaseMessaging
-        .getToken()
-        .then((value) => sendFcm(value!, employeeId, deviceId, userAgent));
+    try{
+
+    _firebaseMessaging
+        .getToken(
+            vapidKey:
+                'BG5w1AwwXhI1M3Y18az4mr5yISPo2isT_xDisMq89OL05-hZY1WO5FEvmiE0UkOdGDvFK9gCHtufo7YIVE4kpn0')
+        .then((value) {
+      print('Response from getToken is - ${value}');
+      sendFcm(value!, employeeId, deviceId, userAgent);
+    });
+    }catch(e){
+      print('Exception while getting Token - $e');
+    }
   }
 
   sendFcm(String token, String employeeId, deviceId, userAgent) async {
