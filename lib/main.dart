@@ -274,8 +274,8 @@ Future<void> main() async {
     await localhostServer.start();
   }
 
-  if (!kIsWeb && Platform.isAndroid) {
-    await Firebase.initializeApp(
+  if (!kIsWeb ) {
+    await Firebase.initializeApp(name: 'intranet',
         options: DefaultFirebaseOptions.currentPlatform);
   } else {
     await Firebase.initializeApp(

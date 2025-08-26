@@ -1,6 +1,7 @@
 import UIKit
 import Flutter
 import awesome_notifications
+import flutter_downloader
 
 
 @main
@@ -22,8 +23,16 @@ import awesome_notifications
     SwiftAwesomeNotificationsPlugin.setPluginRegistrantCallback { registry in
                     SwiftAwesomeNotificationsPlugin.register(
                       with: registry.registrar(forPlugin: "io.flutter.plugins.awesomenotifications.AwesomeNotificationsPlugin")!)}
-
+ FlutterDownloaderPlugin.setPluginRegistrantCallback(registerPlugins)
 
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
+
+  
+}
+
+private func registerPlugins(registry: FlutterPluginRegistry) {
+    if (!registry.hasPlugin("FlutterDownloaderPlugin")) {
+       FlutterDownloaderPlugin.register(with: registry.registrar(forPlugin: "FlutterDownloaderPlugin")!)
+    }
 }

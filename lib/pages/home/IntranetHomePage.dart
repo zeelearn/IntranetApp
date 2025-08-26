@@ -481,11 +481,11 @@ class _IntranetHomePageState extends State<IntranetHomePage>
 
   Future<void> initFirebase() async {
     //await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-    if (!kIsWeb && !Platform.isAndroid)
-      await Firebase.initializeApp(
-          options: DefaultFirebaseOptions.currentPlatform);
-    else
-      await Firebase.initializeApp();
+    // if (!kIsWeb && !Platform.isAndroid)
+    //   await Firebase.initializeApp(
+    //       options: DefaultFirebaseOptions.currentPlatform);
+    // else
+    //   await Firebase.initializeApp();
     messaging = FirebaseMessaging.instance;
     // Set the background messaging handler early on, as a named top-level function
     await FirebaseMessaging.instance.setAutoInitEnabled(true);
@@ -537,7 +537,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
     );
     await FirebaseMessaging.instance.setAutoInitEnabled(true);
     getPermission();
-    getToken();
+    // getToken();
 
     //runApp(MyApp());
   }
@@ -589,6 +589,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
     await AppVersionUpdate.checkForUpdates(
       appleId: '6443464060',
       playStoreId: 'com.zeelearn.intranet',
+      country: 'in'
     ).then((result) async {
       if (result.canUpdate!) {
         await AppVersionUpdate.showBottomSheetUpdate(
@@ -761,12 +762,20 @@ class _IntranetHomePageState extends State<IntranetHomePage>
       useragent =
           'Android_${androidDeviceInfo.brand}_${androidDeviceInfo.model}';
     }
-    if (!kIsWeb) {
-      final firebaseMessaging = FCM();
-      //useragent= Platform.isIOS ? 'IOS' : 'Android';
-      firebaseMessaging.setNotifications(
-          employeeId.toString(), id ?? '0', useragent);
-    }
+    // if (!kIsWeb) {
+    final firebaseMessaging = FCM();
+    //useragent= Platform.isIOS ? 'IOS' : 'Android';
+    firebaseMessaging.setNotifications(
+        employeeId.toString(), id ?? '0', useragent);
+    // }
+
+    FirebaseMessaging.instance.onTokenRefresh.listen(
+      (event) {
+        firebaseMessaging.sendFcm(
+            event, employeeId.toString(), id ?? '0', useragent);
+      },
+    );
+
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       log('Notification data is - ${message.toMap()}');
       if (kIsWeb) {
