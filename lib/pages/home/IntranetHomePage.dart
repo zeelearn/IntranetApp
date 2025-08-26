@@ -34,7 +34,6 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:saathi/zllsaathi.dart';
 import 'package:table_calendar/table_calendar.dart';
 
-
 import '../../api/APIService.dart';
 import '../../api/request/login_request.dart';
 import '../attendance/attendance_list.dart';
@@ -382,7 +381,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
       initialURILinkHandled = true;
 
       try {
-        final appLinks = AppLinks();
+        // final appLinks = AppLinks();
         // final initialURI = await getInitialUri();
         // Use the initialURI and warn the user if it is not correct,
         // but keep in mind it could be `null`.
@@ -395,10 +394,10 @@ class _IntranetHomePageState extends State<IntranetHomePage>
         //   // String uid = prefs.getString(LocalConstant.KEY_UID) as String;
         //   deepLinkCommonFunction(_initialURI);
         // } else {
-          getLoginResponse();
-          validate(context);
-          // navigate();
-          debugPrint("Null Initial URI received");
+        getLoginResponse();
+        validate(context);
+        // navigate();
+        debugPrint("Null Initial URI received");
         // }
       } on PlatformException {
         // Platform messages may fail, so we use a try/catch PlatformException.
