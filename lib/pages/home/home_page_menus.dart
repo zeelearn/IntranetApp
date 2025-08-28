@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:Intranet/pages/helper/LocalConstant.dart';
 import 'package:Intranet/pages/home/dashboard.dart';
 import 'package:Intranet/pages/pjp/cvf/mycvf.dart';
+import 'package:expensestracker/app/hiveDatabase/hive_database.dart';
 import 'package:expensestracker/presentation/app.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
@@ -459,7 +460,7 @@ class HomePageMenu extends StatelessWidget {
         int.parse(hiveBox.get(LocalConstant.KEY_EMPLOYEE_CODE) as String);
     debugPrint('Employee code is - $empCode');
     // expenseMainPlaceholder.main(isExternal: true, eCode: empCode.toString());
-
+    await HiveDatabase.clear();
     Navigator.push(
         context,
         MaterialPageRoute(

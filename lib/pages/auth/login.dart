@@ -76,108 +76,85 @@ class _LoginPage extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    return Stack(
-      alignment: Alignment.topLeft,
-      children: [
-        Container(
-          color: Colors.white, // Your screen background color
-        ),
-        Scaffold(
-          resizeToAvoidBottomInset: false,
-          body: SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.only(left: 30, right: 30, top: 30),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                crossAxisAlignment: CrossAxisAlignment.center,
+    return Scaffold(
+      resizeToAvoidBottomInset: false,
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.only(left: 30, right: 30, top: 30),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              //logo section
+              logo(50, 50),
+              SizedBox(
+                height: size.height * 0.07,
+              ),
+              richText(20),
+              SizedBox(
+                height: size.height * 0.03,
+              ),
+
+              //email & password section
+              /*emailTextField(size),*/
+              MyWidget()
+                  .normalTextField(context, 'UserName', _userNameController),
+              SizedBox(
+                height: size.height * 0.02,
+              ),
+              passwordTextField(size, _userPasswordController),
+
+              SizedBox(
+                height: size.height * 0.02,
+              ),
+
+              Row(
+                mainAxisSize: MainAxisSize.max,
                 children: [
-                  //logo section
-                  logo(50, 50),
-                  SizedBox(
-                    height: size.height * 0.07,
+                  Material(
+                    child: Checkbox(
+                      value: isChecked,
+                      onChanged: (value) {
+                        //isChecked = value!;
+                        setState(() {
+                          isChecked = value!;
+                        });
+                      },
+                    ),
                   ),
-                  richText(20),
-                  SizedBox(
-                    height: size.height * 0.03,
+                  GestureDetector(
+                    onTap: () {
+                      if (kIsWeb) {
+                        _launchURL();
+                      } else {
+                        Navigator.of(context).push(MaterialPageRoute(
+                            builder: (BuildContext context) => MyWebsiteView(
+                                  url: 'https://kidzee.com/PrivacyPolicy',
+                                  title: 'Privacy Policy',
+                                )));
+                      }
+                    },
+                    child: const Text(
+                      'I have read and accept terms \nand conditions',
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
-
-                  //email & password section
-                  /*emailTextField(size),*/
-                  MyWidget().normalTextField(
-                      context, 'UserName', _userNameController),
-                  SizedBox(
-                    height: size.height * 0.02,
-                  ),
-                  passwordTextField(size, _userPasswordController),
-
-                  SizedBox(
-                    height: size.height * 0.02,
-                  ),
-
-                  Row(
-                    mainAxisSize: MainAxisSize.max,
-                    children: [
-                      Material(
-                        child: Checkbox(
-                          value: isChecked,
-                          onChanged: (value) {
-                            //isChecked = value!;
-                            setState(() {
-                              isChecked = value!;
-                            });
-                          },
-                        ),
-                      ),
-                      GestureDetector(
-                        onTap: () {
-                          if (kIsWeb) {
-                            _launchURL();
-                          } else {
-                            Navigator.of(context).push(MaterialPageRoute(
-                                builder: (BuildContext context) =>
-                                    MyWebsiteView(
-                                      url: 'https://kidzee.com/PrivacyPolicy',
-                                      title: 'Privacy Policy',
-                                    )));
-                          }
-                        },
-                        child: const Text(
-                          'I have read and accept terms \nand conditions',
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  //sign in button & sign in with text
-                  signInButton(size),
-
-                  //sign up text here
-                  Center(
-                    child: footerText(),
-                  )
                 ],
               ),
-            ),
-          ),
-          bottomNavigationBar: Utility.footer(appVersion),
-        ),
-        Positioned(
-          top: 0.0,
-          left: 0.0,
-          right: 0.0,
-          child: AppBar(
-            title: const Text(''), // You can add title here
-            /*leading: new IconButton(
-              icon: new Icon(Icons.arrow_back_ios, color: Colors.grey),
-              onPressed: () => Navigator.of(context).pop(),
-            ),*/
-            backgroundColor: Colors.transparent, //You can make this transparent
-            elevation: 0.0, //No shadow
+
+              //sign in button & sign in with text
+              signInButton(size),
+
+              //sign up text here
+              Center(
+                child: footerText(),
+              )
+            ],
           ),
         ),
-      ],
+      ),
+      bottomNavigationBar: Utility.footer(appVersion),
     );
   }
 

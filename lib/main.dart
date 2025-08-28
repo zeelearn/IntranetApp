@@ -274,13 +274,12 @@ Future<void> main() async {
     await localhostServer.start();
   }
 
-  if (!kIsWeb) {
-    await Firebase.initializeApp(
-        name: 'intranet', options: DefaultFirebaseOptions.currentPlatform);
-  } else {
-    await Firebase.initializeApp(
-        options: DefaultFirebaseOptions.currentPlatform);
-  }
+  // if (!kIsWeb) {
+  //   await Firebase.initializeApp(
+  //       name: 'intranet', options: DefaultFirebaseOptions.currentPlatform);
+  // } else {
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  // }
 
   NotificationController.startListeningNotificationEvents();
 
@@ -916,10 +915,8 @@ class _MyAppState extends State<MyApp> {
 
         ),*/
       ),
-      home: Scaffold(
-        body: SplashScreen(
-          receivedAction: widget.receivedAction,
-        ),
+      home: SplashScreen(
+        receivedAction: widget.receivedAction,
       ),
     );
   }

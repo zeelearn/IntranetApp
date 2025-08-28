@@ -587,10 +587,10 @@ class _IntranetHomePageState extends State<IntranetHomePage>
 
   void _verifyVersion() async {
     await AppVersionUpdate.checkForUpdates(
-      appleId: '6443464060',
-      playStoreId: 'com.zeelearn.intranet',
-      country: 'in'
-    ).then((result) async {
+            appleId: '6443464060',
+            playStoreId: 'com.zeelearn.intranet',
+            country: 'in')
+        .then((result) async {
       if (result.canUpdate!) {
         await AppVersionUpdate.showBottomSheetUpdate(
             context: context,
@@ -1304,8 +1304,10 @@ class _IntranetHomePageState extends State<IntranetHomePage>
 
   Widget getNavigationalDrawar() {
     //debugPrint(_profileImage);
-    return Drawer(
-      child: getMenu(),
+    return SafeArea(
+      child: Drawer(
+        child: getMenu(),
+      ),
     );
   }
 
@@ -1329,7 +1331,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
               ),
               borderRadius: const BorderRadius.all(Radius.circular(5))),
           onDetailsPressed: () {
-//            uploadProfilePicture();
+            //            uploadProfilePicture();
             showBusinessListDialog(true);
           },
           accountEmail: Column(
