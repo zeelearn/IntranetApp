@@ -274,12 +274,12 @@ Future<void> main() async {
     await localhostServer.start();
   }
 
-  // if (!kIsWeb) {
-  //   await Firebase.initializeApp(
-  //       name: 'intranet', options: DefaultFirebaseOptions.currentPlatform);
-  // } else {
+  if (!kIsWeb) {
+    await Firebase.initializeApp(
+        name: 'intranet', options: DefaultFirebaseOptions.currentPlatform);
+  } else {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  // }
+  }
 
   NotificationController.startListeningNotificationEvents();
 
