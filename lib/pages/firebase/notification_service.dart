@@ -79,7 +79,7 @@ class NotificationService {
       initializationSettings,
     );
 
-    debugPrint(FirebaseMessaging.instance.getToken().toString());
+    // debugPrint(FirebaseMessaging.instance.getToken().toString());
   }
 
   showSimpleNotification(String title, String body,

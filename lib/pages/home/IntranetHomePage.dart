@@ -473,7 +473,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
   initNotification() async {
     await initFirebase();
     await NotificationController.initializeLocalNotifications();
-    await NotificationController.initializeIsolateReceivePort();
+    // await NotificationController.initializeIsolateReceivePort();
     // Set the background messaging handler early on, as a named top-level function
     //FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
     FirebaseMessaging.onMessageOpenedApp.listen(_handleMessage);
@@ -486,9 +486,9 @@ class _IntranetHomePageState extends State<IntranetHomePage>
     //       options: DefaultFirebaseOptions.currentPlatform);
     // else
     //   await Firebase.initializeApp();
-    messaging = FirebaseMessaging.instance;
+    // messaging = FirebaseMessaging.instance;
     // Set the background messaging handler early on, as a named top-level function
-    await FirebaseMessaging.instance.setAutoInitEnabled(true);
+    // await FirebaseMessaging.instance.setAutoInitEnabled(true);
     if (kDebugMode) {
       // Force disable Crashlytics collection while doing every day development.
       // Temporarily toggle this to true if you want to test crash reporting in your app.
@@ -498,43 +498,43 @@ class _IntranetHomePageState extends State<IntranetHomePage>
       FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(true);
     }
 
-    FirebaseMessaging firebaseMessaging = FirebaseMessaging.instance;
-    NotificationSettings settings = await firebaseMessaging.requestPermission(
-      alert: true,
-      announcement: false,
-      badge: true,
-      carPlay: false,
-      criticalAlert: false,
-      provisional: false,
-      sound: true,
-    );
+    // FirebaseMessaging firebaseMessaging = FirebaseMessaging.instance;
+    // NotificationSettings settings = await firebaseMessaging.requestPermission(
+    //   alert: true,
+    //   announcement: false,
+    //   badge: true,
+    //   carPlay: false,
+    //   criticalAlert: false,
+    //   provisional: false,
+    //   sound: true,
+    // );
     //FirebaseMessaging.instance.getInitialMessage();
-    print('User granted permission: ${settings.authorizationStatus}');
-    if (!kIsWeb) {
-      await FirebaseMessaging.instance
-          .setForegroundNotificationPresentationOptions(
-        alert: true,
-        badge: true,
-        sound: true,
-      );
+    // print('User granted permission: ${settings.authorizationStatus}');
+//     if (!kIsWeb) {
+//       await FirebaseMessaging.instance
+//           .setForegroundNotificationPresentationOptions(
+//         alert: true,
+//         badge: true,
+//         sound: true,
+//       );
 
-// Declaration of variables
+// // Declaration of variables
 
-      if (Platform.isIOS) {
-        await firebaseMessaging.setForegroundNotificationPresentationOptions(
-          alert: true, // Required to display a heads up notification
-          badge: true,
-          sound: true,
-        );
-      }
-    }
+//       if (Platform.isIOS) {
+//         await firebaseMessaging.setForegroundNotificationPresentationOptions(
+//           alert: true, // Required to display a heads up notification
+//           badge: true,
+//           sound: true,
+//         );
+//       }
+//     }
 
-    await FirebaseMessaging.instance
-        .setForegroundNotificationPresentationOptions(
-      alert: true,
-      badge: true,
-      sound: true,
-    );
+    // await FirebaseMessaging.instance
+    //     .setForegroundNotificationPresentationOptions(
+    //   alert: true,
+    //   badge: true,
+    //   sound: true,
+    // );
     await FirebaseMessaging.instance.setAutoInitEnabled(true);
     getPermission();
     // getToken();

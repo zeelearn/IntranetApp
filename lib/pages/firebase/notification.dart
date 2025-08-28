@@ -49,19 +49,26 @@ class FCM {
     //   },
     // );
     // With this token you can test it easily on your phone
-    try{
 
-    _firebaseMessaging
-        .getToken(
-            vapidKey:
-                'BG5w1AwwXhI1M3Y18az4mr5yISPo2isT_xDisMq89OL05-hZY1WO5FEvmiE0UkOdGDvFK9gCHtufo7YIVE4kpn0')
-        .then((value) {
-      print('Response from getToken is - ${value}');
-      sendFcm(value!, employeeId, deviceId, userAgent);
-    });
-    }catch(e){
-      print('Exception while getting Token - $e');
-    }
+    Future.delayed(
+      Duration(seconds: 5),
+      () async{
+        try {
+       String? token =  await FirebaseMessaging.instance.getToken(
+              vapidKey:
+                  'BG5w1AwwXhI1M3Y18az4mr5yISPo2isT_xDisMq89OL05-hZY1WO5FEvmiE0UkOdGDvFK9gCHtufo7YIVE4kpn0');
+                  if(token != null){
+                     await FirebaseMessaging.instance.subscribeToTopic("intranet");
+            await Future.delayed(Duration(seconds: 1));
+            await FirebaseMessaging.instance.subscribeToTopic("saathi");
+            print('Response from getToken is - ${token}');
+            sendFcm(token!, employeeId, deviceId, userAgent);
+                  }
+        } catch (e) {
+          print('Exception while getting Token - $e');
+        }
+      },
+    );
   }
 
   sendFcm(String token, String employeeId, deviceId, userAgent) async {
