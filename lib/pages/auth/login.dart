@@ -135,7 +135,10 @@ class _LoginPage extends State<LoginPage> {
                           } else {
                             Navigator.of(context).push(MaterialPageRoute(
                                 builder: (BuildContext context) =>
-                                    MyWebsiteView(url: 'https://kidzee.com/PrivacyPolicy', title: 'Privacy Policy',)));
+                                    MyWebsiteView(
+                                      url: 'https://kidzee.com/PrivacyPolicy',
+                                      title: 'Privacy Policy',
+                                    )));
                           }
                         },
                         child: const Text(
@@ -346,8 +349,9 @@ class _LoginPage extends State<LoginPage> {
   void validate(BuildContext context) async {
     if (!isChecked) {
       Utility.showMessage(context, "Please accept the Terms and Conditions");
-    }else if(!await Utility.isInternet()){
-      Utility.showMessage(context, "Internet Connectivity not avaliable, please check internet and try again");
+    } else if (!await Utility.isInternet()) {
+      Utility.showMessage(context,
+          "Internet Connectivity not avaliable, please check internet and try again");
     } else if (_userNameController.text.toString() != "" &&
         _userPasswordController.text.toString() != "") {
       Utility.showLoaderDialog(context);
@@ -425,32 +429,6 @@ class _LoginPage extends State<LoginPage> {
       _userPasswordController.text = '';
       Utility.showMessage(context, "Invalid User Name and Password");
     }
-  }
-
-  Widget signInWithText() {
-    return const Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Expanded(child: Divider()),
-        SizedBox(
-          width: 16,
-          height: 20,
-        ),
-        /*Text(
-          'Or Sign in with',
-          style: GoogleFonts.inter(
-            fontSize: 12.0,
-            color: LightColor.grey,
-          ),
-          textAlign: TextAlign.center,
-        ),*/
-        SizedBox(
-          width: 16,
-        ),
-        Expanded(child: Divider()),
-      ],
-    );
   }
 
   //sign up text here

@@ -103,7 +103,7 @@ class _SplashScreenState extends State<SplashScreen> {
                     Container(
                       width: 200,
                       height: 200,
-                      child: Image.asset('assets/icons/app_logo.png'),
+                      child: Image.asset('assets/images/app_logo.png'),
                     ),
                     Container(
                       child: Text(

@@ -381,7 +381,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
       initialURILinkHandled = true;
 
       try {
-        final appLinks = AppLinks();
+        // final appLinks = AppLinks();
         // final initialURI = await getInitialUri();
         // Use the initialURI and warn the user if it is not correct,
         // but keep in mind it could be `null`.
