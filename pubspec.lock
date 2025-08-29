@@ -566,7 +566,7 @@ packages:
     description:
       path: "."
       ref: master
-      resolved-ref: b326f47a0a7395656b36ed6e5260be3177f950da
+      resolved-ref: c67578110078e21e9d6825057f3cebf67de569a7
       url: "https://github.com/ZeeLearnLtd/expandabletable.git"
     source: git
     version: "0.0.7"
@@ -575,10 +575,10 @@ packages:
     description:
       path: "."
       ref: vishwa
-      resolved-ref: "780e5b1fce570ce8237c504410729b3ea30c97c9"
+      resolved-ref: "293d4b8027ea10ac6083950385fad4961f16dac9"
       url: "https://github.com/ZeeLearnLtd/excepsesmanagement.git"
     source: git
-    version: "1.0.0+3"
+    version: "1.0.0+4"
   fake_async:
     dependency: transitive
     description:
