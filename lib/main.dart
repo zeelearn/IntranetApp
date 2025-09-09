@@ -274,12 +274,12 @@ Future<void> main() async {
     await localhostServer.start();
   }
 
-  if (!kIsWeb) {
-    await Firebase.initializeApp(
-        name: 'intranet', options: DefaultFirebaseOptions.currentPlatform);
-  } else {
+  // if (!kIsWeb) {
+  //   await Firebase.initializeApp(
+  //       name: 'intranet', options: DefaultFirebaseOptions.currentPlatform);
+  // } else {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  }
+  // }
 
   NotificationController.startListeningNotificationEvents();
 
@@ -287,7 +287,7 @@ Future<void> main() async {
     await NotificationController.initializeLocalNotifications();
     await NotificationController.initializeIsolateReceivePort();
     messaging = FirebaseMessaging.instance;
-   
+
     print('saathi topic subscribed');
     // Set the background messaging handler early on, as a named top-level function
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);

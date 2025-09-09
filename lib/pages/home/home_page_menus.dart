@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:Intranet/pages/helper/LocalConstant.dart';
 import 'package:Intranet/pages/home/dashboard.dart';
 import 'package:Intranet/pages/pjp/cvf/mycvf.dart';
+import 'package:Intranet/pages/widget/MyWebSiteView.dart';
 import 'package:expensestracker/app/hiveDatabase/hive_database.dart';
 import 'package:expensestracker/presentation/app.dart';
 import 'package:flutter/material.dart';
@@ -24,8 +25,10 @@ class HomePageMenu extends StatelessWidget {
   bool isBpms;
   String mUserName;
   String name;
+  String empID;
   Uint8List? profileAvtar;
   HomePageMenu(this.isBpms, this.mUserName, this.name, Uint8List? profileAvtar,
+      this.empID,
       {super.key});
 
   Text subheading(String title) {
@@ -412,6 +415,68 @@ class HomePageMenu extends StatelessWidget {
                                   EdgeInsetsDirectional.fromSTEB(0, 8, 0, 0),
                               child: Text(
                                 'Legal MIS',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontFamily: 'Lexend Deca',
+                                  color: Colors.white,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: () {
+                      print('EMPID is - ${empID}');
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => MyWebsiteView(
+                              title: 'ZLLSaathi',
+                              url:
+                                  'https://notiflow-51883.web.app/?u_name=${empID}&password=12345&source=intranet',
+                            ),
+                          ));
+                      // openExpense(context);
+                    },
+                    child: Padding(
+                      padding: const EdgeInsetsDirectional.fromSTEB(8, 8, 8, 8),
+                      child: Container(
+                        width: MediaQuery.of(context).size.width * 0.4,
+                        height: 150,
+                        decoration: BoxDecoration(
+                          color: Colors.blue,
+                          boxShadow: const [
+                            BoxShadow(
+                              blurRadius: 3,
+                              color: Colors.indigoAccent,
+                              offset: Offset(0, 1),
+                            )
+                          ],
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Column(
+                          mainAxisSize: MainAxisSize.max,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Padding(
+                              padding:
+                                  EdgeInsetsDirectional.fromSTEB(0, 16, 0, 0),
+                              child: Icon(
+                                Icons.legend_toggle_sharp,
+                                color: Colors.white,
+                                size: 44,
+                              ),
+                            ),
+                            Padding(
+                              padding:
+                                  EdgeInsetsDirectional.fromSTEB(0, 8, 0, 0),
+                              child: Text(
+                                'Notiflow',
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
                                   fontFamily: 'Lexend Deca',

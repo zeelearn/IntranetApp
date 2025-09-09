@@ -216,93 +216,95 @@ class MyWebsiteViewState extends State<MyWebsiteView> {
               elevation: 0.0, //No shadow
             ),
       backgroundColor: Colors.white,
-      body: InAppWebView(
-        key: webViewKey,
-        initialUrlRequest: URLRequest(url: WebUri(widget.url)),
-        // initialSettings: settings,
-        pullToRefreshController: pullToRefreshController,
-        onWebViewCreated: (controller) {
-          webViewController = controller;
-        },
-        onLoadStart: (controller, url) {
-          setState(() {
-            this.url = url.toString();
-            urlController.text = this.url;
-          });
-        },
-        /* onPermissionRequest: (controller, request) async {
-                    return PermissionResponse(
-                        resources: request.resources,
-                        action: PermissionResponseAction.GRANT);
-                  }, */
-        shouldOverrideUrlLoading: (controller, navigationAction) async {
-          var uri = navigationAction.request.url!;
+      body: SafeArea(
+        child: InAppWebView(
+          key: webViewKey,
+          initialUrlRequest: URLRequest(url: WebUri(widget.url)),
+          // initialSettings: settings,
+          pullToRefreshController: pullToRefreshController,
+          onWebViewCreated: (controller) {
+            webViewController = controller;
+          },
+          onLoadStart: (controller, url) {
+            setState(() {
+              this.url = url.toString();
+              urlController.text = this.url;
+            });
+          },
+          /* onPermissionRequest: (controller, request) async {
+                      return PermissionResponse(
+                          resources: request.resources,
+                          action: PermissionResponseAction.GRANT);
+                    }, */
+          shouldOverrideUrlLoading: (controller, navigationAction) async {
+            var uri = navigationAction.request.url!;
 
-          if (![
-            "http",
-            "https",
-            "file",
-            "chrome",
-            "data",
-            "javascript",
-            "about"
-          ].contains(uri.scheme)) {
-            if (await canLaunchUrl(uri)) {
-              // Launch the App
-              await launchUrl(
-                uri,
-              );
-              // and cancel the request
-              return NavigationActionPolicy.CANCEL;
+            if (![
+              "http",
+              "https",
+              "file",
+              "chrome",
+              "data",
+              "javascript",
+              "about"
+            ].contains(uri.scheme)) {
+              if (await canLaunchUrl(uri)) {
+                // Launch the App
+                await launchUrl(
+                  uri,
+                );
+                // and cancel the request
+                return NavigationActionPolicy.CANCEL;
+              }
             }
-          }
 
-          return NavigationActionPolicy.ALLOW;
-        },
-        onLoadStop: (controller, url) async {
-          pullToRefreshController?.endRefreshing();
-          setState(() {
-            this.url = url.toString();
-            urlController.text = this.url;
-          });
-        },
-        /* onReceivedError: (controller, request, error) {
-                    pullToRefreshController?.endRefreshing();
-                  }, */
-        onProgressChanged: (controller, progress) {
-          if (progress == 100) {
+            return NavigationActionPolicy.ALLOW;
+          },
+          onLoadStop: (controller, url) async {
             pullToRefreshController?.endRefreshing();
-          }
-          setState(() {
-            this.progress = progress / 100;
-            urlController.text = url;
-          });
-        },
-        onUpdateVisitedHistory: (controller, url, androidIsReload) {
-          setState(() {
-            this.url = url.toString();
-            urlController.text = this.url;
-          });
-        },
-        onConsoleMessage: (controller, consoleMessage) {
-          if (kDebugMode) {
-            print(consoleMessage);
-          }
-        },
-        onDownloadStartRequest: (controller, downloadStartRequest) async {
-          debugPrint('Download is getting called - $downloadStartRequest');
-          final taskId = await FlutterDownloader.enqueue(
-            url: downloadStartRequest.url.toString(),
-            savedDir: (await getExternalStorageDirectory())!.path,
-            showNotification:
-                true, // show download progress in status bar (for Android)
-            openFileFromNotification:
-                true, // click on notification to open downloaded file (for Android)
-          );
-          /* await canLaunchUrl(downloadStartRequest.url)
-              ? await launchUrl(downloadStartRequest.url)
-              : throw 'Could not launch ${downloadStartRequest.url}'; */
-        },
+            setState(() {
+              this.url = url.toString();
+              urlController.text = this.url;
+            });
+          },
+          /* onReceivedError: (controller, request, error) {
+                      pullToRefreshController?.endRefreshing();
+                    }, */
+          onProgressChanged: (controller, progress) {
+            if (progress == 100) {
+              pullToRefreshController?.endRefreshing();
+            }
+            setState(() {
+              this.progress = progress / 100;
+              urlController.text = url;
+            });
+          },
+          onUpdateVisitedHistory: (controller, url, androidIsReload) {
+            setState(() {
+              this.url = url.toString();
+              urlController.text = this.url;
+            });
+          },
+          onConsoleMessage: (controller, consoleMessage) {
+            if (kDebugMode) {
+              print(consoleMessage);
+            }
+          },
+          onDownloadStartRequest: (controller, downloadStartRequest) async {
+            debugPrint('Download is getting called - $downloadStartRequest');
+            final taskId = await FlutterDownloader.enqueue(
+              url: downloadStartRequest.url.toString(),
+              savedDir: (await getExternalStorageDirectory())!.path,
+              showNotification:
+                  true, // show download progress in status bar (for Android)
+              openFileFromNotification:
+                  true, // click on notification to open downloaded file (for Android)
+            );
+            /* await canLaunchUrl(downloadStartRequest.url)
+                ? await launchUrl(downloadStartRequest.url)
+                : throw 'Could not launch ${downloadStartRequest.url}'; */
+          },
+        ),
       ) /* WebViewWidget(controller: _controller) */,
     );
   }

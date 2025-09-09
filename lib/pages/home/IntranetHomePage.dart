@@ -111,6 +111,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
   DateTime? _rangeEnd;
   Map<DateTime, List<PJPModel>> attendanceEvent = {};
   int employeeId = 0;
+  String employeeCode = '';
   int businessId = 0;
   String _currentBusinessName = '';
   String mUserName = '';
@@ -679,6 +680,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
     await Hive.openBox(LocalConstant.KidzeeDB);
     employeeId =
         int.parse(hiveBox.get(LocalConstant.KEY_EMPLOYEE_ID) as String);
+    employeeCode = hiveBox.get(LocalConstant.KEY_EMPLOYEE_CODE);
     mDesignation = hiveBox.get(LocalConstant.KEY_DESIGNATION) as String;
     email = hiveBox.get(LocalConstant.KEY_EMAIL) as String;
     var imageUrl = hiveBox.get(LocalConstant.KEY_EMPLOYEE_AVTAR);
@@ -1136,7 +1138,13 @@ class _IntranetHomePageState extends State<IntranetHomePage>
     switch (widget._selectedDestination) {
       case MENU_HOME:
         debugPrint('getscreen-------- $mUserName');
-        return HomePageMenu(isBpms, mUserName, email, _profileAvtar);
+        return HomePageMenu(
+          isBpms,
+          mUserName,
+          email,
+          _profileAvtar,
+          employeeCode,
+        );
         break;
       case MENU_ATTENDANCE:
         return AttendanceSummeryScreen(

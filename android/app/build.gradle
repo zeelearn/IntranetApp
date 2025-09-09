@@ -49,7 +49,7 @@ android {
         minSdkVersion flutter.minSdkVersion
         targetSdkVersion 35
         versionCode 40
-        versionName '1.7.0'
+        versionName '1.7.1'
         manifestPlaceholders['foregroundServiceType'] = 'DataSync'
         multiDexEnabled true
         ndk {
