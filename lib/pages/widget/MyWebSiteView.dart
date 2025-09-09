@@ -215,7 +215,7 @@ class MyWebsiteViewState extends State<MyWebsiteView> {
               ), //You can make this transparent
               elevation: 0.0, //No shadow
             ),
-      backgroundColor: Colors.white,
+      backgroundColor: kPrimaryLightColor,
       body: SafeArea(
         child: InAppWebView(
           key: webViewKey,
@@ -224,6 +224,15 @@ class MyWebsiteViewState extends State<MyWebsiteView> {
           pullToRefreshController: pullToRefreshController,
           onWebViewCreated: (controller) {
             webViewController = controller;
+
+            webViewController?.addJavaScriptHandler(
+              handlerName: 'closeWebView',
+              callback: (args) {
+                // Handle closing the WebView
+                Navigator.of(context).pop();
+                return null;
+              },
+            );
           },
           onLoadStart: (controller, url) {
             setState(() {
