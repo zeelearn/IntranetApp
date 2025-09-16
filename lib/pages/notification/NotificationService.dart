@@ -67,7 +67,7 @@ class NotificationService {
       initializationSettings,
     );
 
-    print(FirebaseMessaging.instance.getToken());
+ 
   }
 
   Future<void> requestIOSPermissions() async {
