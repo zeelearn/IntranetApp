@@ -1208,11 +1208,9 @@ PODS:
   - BoringSSL-GRPC/Interface (0.0.37)
   - camera_avfoundation (0.0.1):
     - Flutter
-  - cloud_firestore (6.0.0):
+  - cloud_firestore (6.0.1):
     - Firebase/Firestore (= 12.0.0)
     - firebase_core
-    - Flutter
-  - device_calendar (0.0.1):
     - Flutter
   - device_info_plus (0.0.1):
     - Flutter
@@ -1270,16 +1268,16 @@ PODS:
   - Firebase/Storage (12.0.0):
     - Firebase/CoreOnly
     - FirebaseStorage (~> 12.0.0)
-  - firebase_analytics (12.0.0):
+  - firebase_analytics (12.0.1):
     - firebase_core
     - FirebaseAnalytics (= 12.0.0)
     - Flutter
-  - firebase_app_check (0.4.0):
+  - firebase_app_check (0.4.0-1):
     - Firebase/CoreOnly (~> 12.0.0)
     - firebase_core
     - FirebaseAppCheck (~> 12.0.0)
     - Flutter
-  - firebase_auth (6.0.1):
+  - firebase_auth (6.0.2):
     - Firebase/Auth (= 12.0.0)
     - firebase_core
     - Flutter
@@ -1294,7 +1292,7 @@ PODS:
     - Firebase/Database (= 12.0.0)
     - firebase_core
     - Flutter
-  - firebase_messaging (16.0.0):
+  - firebase_messaging (16.0.1):
     - Firebase/Messaging (= 12.0.0)
     - firebase_core
     - Flutter
@@ -1670,7 +1668,6 @@ DEPENDENCIES:
   - awesome_notifications (from `.symlinks/plugins/awesome_notifications/ios`)
   - camera_avfoundation (from `.symlinks/plugins/camera_avfoundation/ios`)
   - cloud_firestore (from `.symlinks/plugins/cloud_firestore/ios`)
-  - device_calendar (from `.symlinks/plugins/device_calendar/ios`)
   - device_info_plus (from `.symlinks/plugins/device_info_plus/ios`)
   - file_picker (from `.symlinks/plugins/file_picker/ios`)
   - firebase_analytics (from `.symlinks/plugins/firebase_analytics/ios`)
@@ -1766,8 +1763,6 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/camera_avfoundation/ios"
   cloud_firestore:
     :path: ".symlinks/plugins/cloud_firestore/ios"
-  device_calendar:
-    :path: ".symlinks/plugins/device_calendar/ios"
   device_info_plus:
     :path: ".symlinks/plugins/device_info_plus/ios"
   file_picker:
@@ -1851,20 +1846,19 @@ SPEC CHECKSUMS:
   awesome_notifications: 0f432b28098d193920b11a44cfa9d2d9313a3888
   BoringSSL-GRPC: dded2a44897e45f28f08ae87a55ee4bcd19bc508
   camera_avfoundation: be3be85408cd4126f250386828e9b1dfa40ab436
-  cloud_firestore: a824d9a55c9dffddf8de7c1e8fbcd66ca13f1624
-  device_calendar: b55b2c5406cfba45c95a59f9059156daee1f74ed
+  cloud_firestore: 3b600aad546771f94cec3dc7cd7035ec33534bf6
   device_info_plus: 71ffc6ab7634ade6267c7a93088ed7e4f74e5896
   DKImagePickerController: 946cec48c7873164274ecc4624d19e3da4c1ef3c
   DKPhotoGallery: b3834fecb755ee09a593d7c9e389d8b5d6deed60
   file_picker: a0560bc09d61de87f12d246fc47d2119e6ef37be
   Firebase: 800d487043c0557d9faed71477a38d9aafb08a41
-  firebase_analytics: cd56fc56f75c1df30a6ff5290cd56e230996a76d
-  firebase_app_check: 967c2ec2cf3d109d1ead13889994b62e3868d6d3
-  firebase_auth: 4734e8223034e214039a9a805ff2cfb323223e34
+  firebase_analytics: 6587dea5e5cb641d5febb65b1eb89a84b8f36854
+  firebase_app_check: f489fe506f0b76646085ca1fb3a84132addb8a62
+  firebase_auth: d638548f952c77b2d9b0f2343e4148d401ca5975
   firebase_core: 633e1851ffe1b9ab875f6467a4f574c79cef02e4
   firebase_crashlytics: 6c71ba085dacbb1ad85961b25ade1dad3c370f74
   firebase_database: 8e963fb42c9f992e68c2d1c5ea39875309dc47de
-  firebase_messaging: d17feef781edc84ebefe62624fb384358ad96361
+  firebase_messaging: 22394a5cf5c2ca7aab1b3fef132bf30ccfb62adb
   firebase_storage: b494850b54ea8cb506f01e90288e16240eb2694c
   FirebaseAnalytics: 6d790cd1b159b4eb61a99948df0934ce505a34f7
   FirebaseAppCheck: b91ab9185b0192dabe7efe83d4b66de33f0d83b0
@@ -1884,7 +1878,7 @@ SPEC CHECKSUMS:
   FirebaseSessions: 4e784acda213108aafef536535cdfc03504acc42
   FirebaseSharedSwift: 59266c22ccfcef604d725c034c568fa666ea9bda
   FirebaseStorage: 5603c913805b0eacc8e6853395e837ca5742e5f7
-  Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
+  Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
   flutter_background_service_ios: 00d31bdff7b4bfe06d32375df358abe0329cf87e
   flutter_downloader: 78da0da1084e709cbfd3b723c7ea349c71681f09
   flutter_image_compress_common: 1697a328fd72bfb335507c6bca1a65fa5ad87df1
