@@ -450,7 +450,7 @@ class HomePageMenu extends StatelessWidget {
                                   builder: (context) => MyWebsiteView(
                                     title: 'ZLLSaathi',
                                     url:
-                                        'https://notiflow-51883.web.app/?u_name=${empID}&password=12345&source=intranet&color=0277BD',
+                                        'https://notiflow-51883.web.app/?u_name=${empID}&password=12345&color=0277BD',
                                   ),
                                 ));
                             // openExpense(context);
