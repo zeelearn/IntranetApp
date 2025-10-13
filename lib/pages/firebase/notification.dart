@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:Intranet/api/APIService.dart';
+import 'package:Intranet/firebase_options.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
@@ -8,7 +9,7 @@ import 'package:hive/hive.dart';
 
 import '../../api/request/fcm_request.dart';
 import '../helper/LocalConstant.dart';
-import 'firebase_options.dart';
+
 
 Future<void> onBackgroundMessage(RemoteMessage message) async {
   await Firebase.initializeApp(
@@ -27,7 +28,7 @@ Future<void> onBackgroundMessage(RemoteMessage message) async {
 }
 
 class FCM {
-  final _firebaseMessaging = FirebaseMessaging.instance;
+
 
   final streamCtlr = StreamController<String>.broadcast();
   final titleCtlr = StreamController<String>.broadcast();

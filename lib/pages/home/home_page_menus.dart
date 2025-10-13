@@ -378,7 +378,7 @@ class HomePageMenu extends StatelessWidget {
                 mainAxisSize: MainAxisSize.max,
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  GestureDetector(
+                  /* GestureDetector(
                     onTap: () {
                       Navigator.push(
                           context,
@@ -436,7 +436,7 @@ class HomePageMenu extends StatelessWidget {
                         ),
                       ),
                     ),
-                  ),
+                  ), */
                   !notiflowAccessList.any(
                     (element) => element == empID,
                   )
@@ -550,7 +550,10 @@ class HomePageMenu extends StatelessWidget {
   }
 
   openSaarthi(BuildContext context) async {
-    print(mUserName);
+    var hiveBox = await Utility.openBox();
+    await Hive.openBox(LocalConstant.KidzeeDB);
+    mUserName = hiveBox.get(LocalConstant.KEY_USER_NAME);
+    print('Username: $mUserName');
     //main();
     ZllSaathi(context, mUserName, profileAvtar);
     // Navigator.push(

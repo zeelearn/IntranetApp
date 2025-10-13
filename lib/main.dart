@@ -5,7 +5,8 @@ import 'dart:isolate';
 import 'dart:math';
 import 'dart:ui';
 
-import 'package:Intranet/pages/firebase/firebase_options.dart';
+// import 'package:Intranet/pages/firebase/firebase_options.dart';
+import 'package:Intranet/firebase_options.dart';
 import 'package:Intranet/pages/firebase/notification_service.dart';
 import 'package:Intranet/pages/helper/DatabaseHelper.dart';
 import 'package:Intranet/pages/helper/LocalConstant.dart';
@@ -274,19 +275,20 @@ Future<void> main() async {
     await localhostServer.start();
   }
 
-  if (!kIsWeb) {
+  // if (!kIsWeb) {
+  //   await Firebase.initializeApp(
+  //       name: 'intranet', options: DefaultFirebaseOptions.currentPlatform);
+  // } else {
     await Firebase.initializeApp(
-        name: 'intranet', options: DefaultFirebaseOptions.currentPlatform);
-  } else {
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  }
+        options: DefaultFirebaseOptions.currentPlatform);
+  // }
 
   NotificationController.startListeningNotificationEvents();
 
   if (!kIsWeb) {
     await NotificationController.initializeLocalNotifications();
     await NotificationController.initializeIsolateReceivePort();
-    messaging = FirebaseMessaging.instance;
+    // messaging = FirebaseMessaging.instance;
 
     print('saathi topic subscribed');
     // Set the background messaging handler early on, as a named top-level function
@@ -311,14 +313,14 @@ Future<void> main() async {
     /*await notificationService.init();
     await notificationService.requestIOSPermissions();*/
 
-    await FirebaseMessaging.instance
-        .setForegroundNotificationPresentationOptions(
-      alert: true,
-      badge: true,
-      sound: true,
-    );
+    // await FirebaseMessaging.instance
+    //     .setForegroundNotificationPresentationOptions(
+    //   alert: true,
+    //   badge: true,
+    //   sound: true,
+    // );
 
-    await FirebaseMessaging.instance.setAutoInitEnabled(true);
+    // await FirebaseMessaging.instance.setAutoInitEnabled(true);
   }
   //_requestPermission();
   await PermissionUtil.requestPermission();

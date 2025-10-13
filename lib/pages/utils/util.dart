@@ -1,14 +1,39 @@
 import 'package:Intranet/pages/helper/utils.dart';
 import 'package:awesome_notifications/awesome_notifications.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:saathi/zllsaathi.dart';
 
+import '../../firebase_options.dart';
 import '../../main.dart';
 import '../helper/LocalConstant.dart';
 import '../helper/constants.dart';
 
 class Util {
+ static Future<FirebaseApp> getCurrentFirebaseApp() async {
+    FirebaseApp app;
+    try {
+      if (!kIsWeb) {
+        app = await Firebase.initializeApp(
+            name: 'intranet', options: DefaultFirebaseOptions.currentPlatform);
+      } else {
+        app = await Firebase.initializeApp(
+            options: DefaultFirebaseOptions.currentPlatform);
+      }
+    } catch (e) {
+      if (!kIsWeb) {
+        app = await Firebase.initializeApp(
+            name: 'intranet', options: DefaultFirebaseOptions.currentPlatform);
+      } else {
+        app = await Firebase.initializeApp(
+            options: DefaultFirebaseOptions.currentPlatform);
+      }
+    }
+    return app;
+  }
+
   static openSaathiNotification(ReceivedAction receivedAction) async {
     try {
       var hiveBox = await Utility.openBox();
