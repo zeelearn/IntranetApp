@@ -771,12 +771,14 @@ class _IntranetHomePageState extends State<IntranetHomePage>
         employeeId.toString(), id ?? '0', useragent);
     // }
 
-    FirebaseMessaging.instance.onTokenRefresh.listen(
-      (event) {
-        firebaseMessaging.sendFcm(
-            event, employeeId.toString(), id ?? '0', useragent);
-      },
-    );
+  
+
+    // FirebaseMessaging.instance.onTokenRefresh.listen(
+    //   (event) {
+    //     firebaseMessaging.sendFcm(
+    //         event, employeeId.toString(), id ?? '0', useragent);
+    //   },
+    // );
 
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       log('Notification data is - ${message.toMap()}');

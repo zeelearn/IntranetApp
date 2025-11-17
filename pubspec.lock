@@ -1344,7 +1344,7 @@ packages:
     source: hosted
     version: "0.17.0"
   fluttertoast:
-    dependency: "direct main"
+    dependency: "direct overridden"
     description:
       name: fluttertoast
       sha256: "144ddd74d49c865eba47abe31cbc746c7b311c82d6c32e571fd73c4264b740e2"

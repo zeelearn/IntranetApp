@@ -8,7 +8,10 @@
             "name": "IntranetApp",
             "request": "launch",
             "type": "dart",
-            "noDebug": true
+            "noDebug": true,
+            "args": [
+                "-v"
+            ]
         },
         {
             "name": "IntranetApp (profile mode)",

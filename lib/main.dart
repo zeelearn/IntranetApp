@@ -5,7 +5,8 @@ import 'dart:isolate';
 import 'dart:math';
 import 'dart:ui';
 
-import 'package:Intranet/pages/firebase/firebase_options.dart';
+// import 'package:Intranet/pages/firebase/firebase_options.dart';
+import 'package:Intranet/firebase_options.dart';
 import 'package:Intranet/pages/firebase/notification_service.dart';
 import 'package:Intranet/pages/helper/DatabaseHelper.dart';
 import 'package:Intranet/pages/helper/LocalConstant.dart';
@@ -311,14 +312,14 @@ Future<void> main() async {
     /*await notificationService.init();
     await notificationService.requestIOSPermissions();*/
 
-    await FirebaseMessaging.instance
-        .setForegroundNotificationPresentationOptions(
-      alert: true,
-      badge: true,
-      sound: true,
-    );
+    // await FirebaseMessaging.instance
+    //     .setForegroundNotificationPresentationOptions(
+    //   alert: true,
+    //   badge: true,
+    //   sound: true,
+    // );
 
-    await FirebaseMessaging.instance.setAutoInitEnabled(true);
+    // await FirebaseMessaging.instance.setAutoInitEnabled(true);
   }
   //_requestPermission();
   await PermissionUtil.requestPermission();

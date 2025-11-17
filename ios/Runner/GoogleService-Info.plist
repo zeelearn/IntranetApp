@@ -3,11 +3,11 @@
 <plist version="1.0">
 <dict>
 	<key>CLIENT_ID</key>
-	<string>411998223312-5gbrijaemn3uci79689muv2a3lt16d12.apps.googleusercontent.com</string>
+	<string>411998223312-0svaok9ad4mid7v6t4f6vj8vi7q30a3g.apps.googleusercontent.com</string>
 	<key>REVERSED_CLIENT_ID</key>
-	<string>com.googleusercontent.apps.411998223312-5gbrijaemn3uci79689muv2a3lt16d12</string>
+	<string>com.googleusercontent.apps.411998223312-0svaok9ad4mid7v6t4f6vj8vi7q30a3g</string>
 	<key>API_KEY</key>
-	<string>AIzaSyD-x4HqYO1O0kwDpkxIc128nM4f1bZ3oDM</string>
+	<string>AIzaSyCpFlcHfIyHFmc1xQGxlP7aTfm5bwzI_Zk</string>
 	<key>GCM_SENDER_ID</key>
 	<string>411998223312</string>
 	<key>PLIST_VERSION</key>
@@ -30,5 +30,7 @@
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
 	<string>1:411998223312:ios:0dabf3a3a966fb4cdd97d5</string>
+	<key>DATABASE_URL</key>
+	<string>https://intranet-9fda2-default-rtdb.firebaseio.com</string>
 </dict>
 </plist>

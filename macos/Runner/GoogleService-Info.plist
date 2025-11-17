@@ -2,18 +2,22 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>CLIENT_ID</key>
+	<string>411998223312-0svaok9ad4mid7v6t4f6vj8vi7q30a3g.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.411998223312-0svaok9ad4mid7v6t4f6vj8vi7q30a3g</string>
 	<key>API_KEY</key>
-	<string>AIzaSyDOGGVh-K5cZkhlpi8s4YJskevop6HMP30</string>
+	<string>AIzaSyCpFlcHfIyHFmc1xQGxlP7aTfm5bwzI_Zk</string>
 	<key>GCM_SENDER_ID</key>
-	<string>92536473318</string>
+	<string>411998223312</string>
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>com.zeelearn.intranet.RunnerTests</string>
+	<string>com.zeelearn.intranet</string>
 	<key>PROJECT_ID</key>
-	<string>intranetweb-68536</string>
+	<string>intranet-9fda2</string>
 	<key>STORAGE_BUCKET</key>
-	<string>intranetweb-68536.appspot.com</string>
+	<string>intranet-9fda2.appspot.com</string>
 	<key>IS_ADS_ENABLED</key>
 	<false></false>
 	<key>IS_ANALYTICS_ENABLED</key>
@@ -25,6 +29,8 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:92536473318:ios:e4807a6ab826e745179d27</string>
+	<string>1:411998223312:ios:0dabf3a3a966fb4cdd97d5</string>
+	<key>DATABASE_URL</key>
+	<string>https://intranet-9fda2-default-rtdb.firebaseio.com</string>
 </dict>
 </plist>
