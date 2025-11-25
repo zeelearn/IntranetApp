@@ -24,7 +24,7 @@ if (flutterVersionName == null) {
 
 android {
     namespace = "com.zeelearn.intranet"
-    compileSdkVersion 35
+    compileSdkVersion 36
     ndkVersion flutter.ndkVersion
 
     compileOptions {
@@ -47,7 +47,7 @@ android {
         // You can update the following values to match your application needs.
         // For more information, see: https://docs.flutter.dev/deployment/android#reviewing-the-build-configuration.
         minSdkVersion flutter.minSdkVersion
-        targetSdkVersion 35
+        targetSdkVersion 36
         versionCode 42
         versionName '1.7.4'
         manifestPlaceholders['foregroundServiceType'] = 'DataSync'
@@ -82,12 +82,12 @@ flutter {
 
 
 dependencies {
-    implementation 'com.google.firebase:firebase-analytics'
-    implementation platform('com.google.firebase:firebase-bom:30.4.1')
+    // implementation 'com.google.firebase:firebase-analytics'
+    // implementation platform('com.google.firebase:firebase-bom:30.4.1')
     implementation("androidx.multidex:multidex:2.0.1")
     //implementation "org.jetbrains.kotlin:kotlin-stdlib:1.8.0"
     //implementation "androidx.appcompat:appcompat:1.7.0"
-    implementation "androidx.core:core-ktx:1.6.0"
+    // implementation "androidx.core:core-ktx:1.6.0"
     
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.4'
 }
