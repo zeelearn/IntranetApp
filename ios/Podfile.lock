@@ -1208,7 +1208,7 @@ PODS:
   - BoringSSL-GRPC/Interface (0.0.37)
   - camera_avfoundation (0.0.1):
     - Flutter
-  - cloud_firestore (6.0.1):
+  - cloud_firestore (6.1.0):
     - Firebase/Firestore (= 12.0.0)
     - firebase_core
     - Flutter
@@ -1268,16 +1268,16 @@ PODS:
   - Firebase/Storage (12.0.0):
     - Firebase/CoreOnly
     - FirebaseStorage (~> 12.0.0)
-  - firebase_analytics (12.0.1):
+  - firebase_analytics (12.0.4):
     - firebase_core
     - FirebaseAnalytics (= 12.0.0)
     - Flutter
-  - firebase_app_check (0.4.0-1):
+  - firebase_app_check (0.4.1-2):
     - Firebase/CoreOnly (~> 12.0.0)
     - firebase_core
     - FirebaseAppCheck (~> 12.0.0)
     - Flutter
-  - firebase_auth (6.0.2):
+  - firebase_auth (6.1.2):
     - Firebase/Auth (= 12.0.0)
     - firebase_core
     - Flutter
@@ -1292,7 +1292,7 @@ PODS:
     - Firebase/Database (= 12.0.0)
     - firebase_core
     - Flutter
-  - firebase_messaging (16.0.1):
+  - firebase_messaging (16.0.4):
     - Firebase/Messaging (= 12.0.0)
     - firebase_core
     - Flutter
@@ -1615,14 +1615,13 @@ PODS:
     - nanopb/encode (= 3.30910.0)
   - nanopb/decode (3.30910.0)
   - nanopb/encode (3.30910.0)
+  - objective_c (0.0.1):
+    - Flutter
   - open_file_ios (0.0.1):
     - Flutter
   - OrderedSet (6.0.3)
   - package_info_plus (0.4.5):
     - Flutter
-  - path_provider_foundation (0.0.1):
-    - Flutter
-    - FlutterMacOS
   - pdfrx (0.0.6):
     - Flutter
     - FlutterMacOS
@@ -1691,9 +1690,9 @@ DEPENDENCIES:
   - geolocator_apple (from `.symlinks/plugins/geolocator_apple/darwin`)
   - image_picker_ios (from `.symlinks/plugins/image_picker_ios/ios`)
   - location (from `.symlinks/plugins/location/ios`)
+  - objective_c (from `.symlinks/plugins/objective_c/ios`)
   - open_file_ios (from `.symlinks/plugins/open_file_ios/ios`)
   - package_info_plus (from `.symlinks/plugins/package_info_plus/ios`)
-  - path_provider_foundation (from `.symlinks/plugins/path_provider_foundation/darwin`)
   - pdfrx (from `.symlinks/plugins/pdfrx/darwin`)
   - permission_handler_apple (from `.symlinks/plugins/permission_handler_apple/ios`)
   - pointer_interceptor_ios (from `.symlinks/plugins/pointer_interceptor_ios/ios`)
@@ -1809,12 +1808,12 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/image_picker_ios/ios"
   location:
     :path: ".symlinks/plugins/location/ios"
+  objective_c:
+    :path: ".symlinks/plugins/objective_c/ios"
   open_file_ios:
     :path: ".symlinks/plugins/open_file_ios/ios"
   package_info_plus:
     :path: ".symlinks/plugins/package_info_plus/ios"
-  path_provider_foundation:
-    :path: ".symlinks/plugins/path_provider_foundation/darwin"
   pdfrx:
     :path: ".symlinks/plugins/pdfrx/darwin"
   permission_handler_apple:
@@ -1845,20 +1844,20 @@ SPEC CHECKSUMS:
   audioplayers_darwin: 4f9ca89d92d3d21cec7ec580e78ca888e5fb68bd
   awesome_notifications: 0f432b28098d193920b11a44cfa9d2d9313a3888
   BoringSSL-GRPC: dded2a44897e45f28f08ae87a55ee4bcd19bc508
-  camera_avfoundation: be3be85408cd4126f250386828e9b1dfa40ab436
-  cloud_firestore: 3b600aad546771f94cec3dc7cd7035ec33534bf6
+  camera_avfoundation: 5675ca25298b6f81fa0a325188e7df62cc217741
+  cloud_firestore: a06cda08adc9427fb0e05c66440ebd08e43df269
   device_info_plus: 71ffc6ab7634ade6267c7a93088ed7e4f74e5896
   DKImagePickerController: 946cec48c7873164274ecc4624d19e3da4c1ef3c
   DKPhotoGallery: b3834fecb755ee09a593d7c9e389d8b5d6deed60
   file_picker: a0560bc09d61de87f12d246fc47d2119e6ef37be
   Firebase: 800d487043c0557d9faed71477a38d9aafb08a41
-  firebase_analytics: 6587dea5e5cb641d5febb65b1eb89a84b8f36854
-  firebase_app_check: f489fe506f0b76646085ca1fb3a84132addb8a62
-  firebase_auth: d638548f952c77b2d9b0f2343e4148d401ca5975
+  firebase_analytics: 52e197e26d071e3fd9c1d60798257a2ffd2334e1
+  firebase_app_check: 94838c09fea51e8b478b8ca9bcab0278975bd209
+  firebase_auth: c12f79520264ec891cc4bc786d385f6d55caf96e
   firebase_core: 633e1851ffe1b9ab875f6467a4f574c79cef02e4
   firebase_crashlytics: 6c71ba085dacbb1ad85961b25ade1dad3c370f74
   firebase_database: 8e963fb42c9f992e68c2d1c5ea39875309dc47de
-  firebase_messaging: 22394a5cf5c2ca7aab1b3fef132bf30ccfb62adb
+  firebase_messaging: 898930a9930c1bd21a01e88e16afc9fe0ba20dd4
   firebase_storage: b494850b54ea8cb506f01e90288e16240eb2694c
   FirebaseAnalytics: 6d790cd1b159b4eb61a99948df0934ce505a34f7
   FirebaseAppCheck: b91ab9185b0192dabe7efe83d4b66de33f0d83b0
@@ -1896,34 +1895,34 @@ SPEC CHECKSUMS:
   "gRPC-C++": cc207623316fb041a7a3e774c252cf68a058b9e8
   gRPC-Core: 860978b7db482de8b4f5e10677216309b5ff6330
   GTMSessionFetcher: 02d6e866e90bc236f48a703a041dfe43e6221a29
-  image_picker_ios: 7fe1ff8e34c1790d6fff70a32484959f563a928a
+  image_picker_ios: e0ece4aa2a75771a7de3fa735d26d90817041326
   IosAwnCore: 653786a911089012092ce831f2945cd339855a89
   leveldb-library: cc8b8f8e013647a295ad3f8cd2ddf49a6f19be19
   libwebp: 02b23773aedb6ff1fd38cec7a77b81414c6842a8
   location: 155caecf9da4f280ab5fe4a55f94ceccfab838f8
   Mantle: c5aa8794a29a022dfbbfc9799af95f477a69b62d
   nanopb: fad817b59e0457d11a5dfbde799381cd727c1275
+  objective_c: 89e720c30d716b036faf9c9684022048eee1eee2
   open_file_ios: 5ff7526df64e4394b4fe207636b67a95e83078bb
   OrderedSet: e539b66b644ff081c73a262d24ad552a69be3a94
   package_info_plus: 566e1b7a2f3900e4b0020914ad3fc051dcc95596
-  path_provider_foundation: 080d55be775b7414fd5a5ef3ac137b97b097e564
   pdfrx: 310e84d01e06fd2af26e16507a0e48c27e99195c
   permission_handler_apple: 4ed2196e43d0651e8ff7ca3483a069d469701f2d
-  pointer_interceptor_ios: ec847ef8b0915778bed2b2cef636f4d177fa8eed
+  pointer_interceptor_ios: da06a662d5bfd329602b45b2ab41bc0fb5fdb0f0
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
   PromisesSwift: 9d77319bbe72ebf6d872900551f7eeba9bce2851
   RecaptchaInterop: 11e0b637842dfb48308d242afc3f448062325aba
   SDWebImage: 9f177d83116802728e122410fb25ad88f5c7608a
   SDWebImageWebPCoder: e38c0a70396191361d60c092933e22c20d5b1380
   share_plus: 50da8cb520a8f0f65671c6c6a99b3617ed10a58a
-  shared_preferences_foundation: 9e1978ff2562383bd5676f64ec4e9aa8fa06a6f7
+  shared_preferences_foundation: 7036424c3d8ec98dfe75ff1667cb0cd531ec82bb
   sqflite_darwin: 20b2a3a3b70e43edae938624ce550a3cbf66a3d0
   SwiftyGif: 706c60cf65fa2bc5ee0313beece843c8eb8194d4
   syncfusion_flutter_pdfviewer: 90dc48305d2e33d4aa20681d1e98ddeda891bc14
-  url_launcher_ios: 694010445543906933d732453a59da0a173ae33d
-  video_player_avfoundation: 2cef49524dd1f16c5300b9cd6efd9611ce03639b
+  url_launcher_ios: 7a95fa5b60cc718a708b8f2966718e93db0cef1b
+  video_player_avfoundation: dd410b52df6d2466a42d28550e33e4146928280a
   wakelock_plus: e29112ab3ef0b318e58cfa5c32326458be66b556
-  webview_flutter_wkwebview: 1821ceac936eba6f7984d89a9f3bcb4dea99ebb2
+  webview_flutter_wkwebview: 8ebf4fded22593026f7dbff1fbff31ea98573c8d
 
 PODFILE CHECKSUM: 275946bcdc4261b9fc2fabd9b16a1bdb273968a0
 
