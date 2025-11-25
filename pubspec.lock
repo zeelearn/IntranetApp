@@ -573,9 +573,11 @@ packages:
   expensestracker:
     dependency: "direct main"
     description:
-      path: "D:/vishwan/expensestracker"
-      relative: false
-    source: path
+      path: "."
+      ref: vishwa
+      resolved-ref: "62aed653d0064fb04277967399a20950afabaa04"
+      url: "https://github.com/ZeeLearnLtd/excepsesmanagement.git"
+    source: git
     version: "1.0.0+9"
   fake_async:
     dependency: transitive
@@ -2249,7 +2251,7 @@ packages:
   saathi:
     dependency: "direct main"
     description:
-      path: "D:/vishwan/ZeeSathi"
+      path: "/Users/zlldev/Documents/GitHub/ZeeSathi"
       relative: false
     source: path
     version: "1.0.0+2"
