@@ -62,13 +62,13 @@ dependencies:
   #webviewx: ^0.2.2
   google_fonts: ^6.2.1
   get: ^4.6.5
-  pdfrx: ^1.1.21
+  # pdfrx: ^2.1.19
   square_percent_indicater: ^0.1.0
   flutter_screenutil: ^5.8.4
   flutter_icons_null_safety: ^1.1.0
   flutter_google_places: ^0.3.0
   geocoding: ^3.0.0
-  syncfusion_flutter_datepicker: ^30.2.6
+  # syncfusion_flutter_datepicker: ^30.2.6
   image_picker: ^1.0.7
   material_dialogs: ^1.1.4
   geolocator: ^12.0.0
@@ -94,7 +94,8 @@ dependencies:
   file_picker: ^8.0.5
   #flutter_webview_pro: ^3.0.1+4
   flutter_inappwebview: ^6.0.0
-  syncfusion_flutter_pdfviewer: ^30.2.6
+  
+  # syncfusion_flutter_pdfviewer: ^30.2.6
   location_geocoder: ^1.0.5
   order_tracker_zen: ^1.0.0+4
   location: ^6.0.2
@@ -113,7 +114,7 @@ dependencies:
   #calendar_date_picker2: ^1.1.5
   # device_calendar: ^4.3.2
 
-  syncfusion_flutter_calendar: ^30.2.6
+  # syncfusion_flutter_calendar: ^30.2.6
   fluttertoast: ^9.0.0
   grouped_list: ^6.0.0
   collection: ^1.18.0
@@ -129,23 +130,27 @@ dependencies:
   #flutter_slidable: ^2.0.0
 
   saathi:
-    path: /Users/zlldev/Documents/GitHub/ZeeSathi
+    git:
+      url: https://github.com/ZeeLearnLtd/ZeeSathi.git
+      ref: saathi_2.0
+    # path: D:/vishwan/ZeeSathi
 
   expensestracker:
-    # path: D:/vishwan/expensestracker
-    git:
-      url: https://github.com/ZeeLearnLtd/excepsesmanagement.git
-      ref: vishwa
+    path: D:/vishwan/expensestracker
+    # git:
+    #   url: https://github.com/ZeeLearnLtd/excepsesmanagement.git
+    #   ref: ui_enhancement
 
 
   fl_chart: ^0.68.0
 
   path_provider: any
+  google_maps_flutter: ^2.11.0
 
 dependency_overrides:
   #share_plus: ^10.0.2
   package_info_plus: ^4.0.0
-  pdfrx: ^1.1.14
+  pdfrx: ^2.2.24
   rxdart: ^0.26.0
   device_info_plus: ^10.0.0
   win32: ^5.4.0

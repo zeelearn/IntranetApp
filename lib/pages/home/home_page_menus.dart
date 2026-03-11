@@ -3,7 +3,10 @@ import 'dart:typed_data';
 
 import 'package:Intranet/pages/helper/LocalConstant.dart';
 import 'package:Intranet/pages/home/dashboard.dart';
+import 'package:Intranet/pages/outdoor/outdoor/myoutdoorplanner.dart';
 import 'package:Intranet/pages/pjp/cvf/mycvf.dart';
+import 'package:Intranet/pages/pjp/dashboard/presentation/dashboard_module.dart';
+import 'package:Intranet/pages/summary%20dashboard/summary_dashboard.dart';
 import 'package:Intranet/pages/widget/MyWebSiteView.dart';
 import 'package:expensestracker/app/hiveDatabase/hive_database.dart';
 import 'package:expensestracker/presentation/app.dart';
@@ -378,7 +381,7 @@ class HomePageMenu extends StatelessWidget {
                 mainAxisSize: MainAxisSize.max,
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  /* GestureDetector(
+                  GestureDetector(
                     onTap: () {
                       Navigator.push(
                           context,
@@ -436,7 +439,7 @@ class HomePageMenu extends StatelessWidget {
                         ),
                       ),
                     ),
-                  ), */
+                  ),
                   !notiflowAccessList.any(
                     (element) => element == empID,
                   )
@@ -519,12 +522,28 @@ class HomePageMenu extends StatelessWidget {
                   },
                   child: const Text('My Dashboard'),
                 )),
-            /*Row(
+            Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-              isBpms ? _getMenu(context, 'PJP-CVF Approval (Exp)', Icons.approval ,PJPManagerExceptionalScreen()) : SizedBox(width: 0,),
-              _getMenu(context, 'My Planning',Icons.approval , MyOutdoorPlanner())
-            ],)*/
+                isBpms
+                    ? _getMenu(context, 'PJP-CVF Approval (Exp)',
+                        Icons.approval, PJPManagerExceptionalScreen())
+                    : SizedBox(
+                        width: 0,
+                      ),
+                _getMenu(
+                    context, 'My Planning', Icons.approval, MyOutdoorPlanner())
+              ],
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                _getMenu(context, 'My Dashboard MAN', Icons.approval,
+                    DashboardScreen()),
+                _getMenu(context, 'My Team Summary', Icons.approval,
+                    SummaryDashboard())
+              ],
+            ),
           ]),
         ),
       ),

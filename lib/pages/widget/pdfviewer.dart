@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
+import 'package:pdfrx/pdfrx.dart';
 
 import '../helper/utils.dart';
 
@@ -12,15 +12,17 @@ class MyPdfApp extends StatefulWidget {
   String filename;
 
   MyPdfApp(
-      {required this.title, required this.filename, required this.module, required this.worksheetUrl});
+      {required this.title,
+      required this.filename,
+      required this.module,
+      required this.worksheetUrl});
 
   @override
   _HomePage createState() => _HomePage();
 }
 
 class _HomePage extends State<MyPdfApp> {
-
-  bool isLoading =true;
+  bool isLoading = true;
 
   File? mFile;
   @override
@@ -32,18 +34,19 @@ class _HomePage extends State<MyPdfApp> {
   }
 
   checkFile() async {
-    if(widget.module.isEmpty){
+    if (widget.module.isEmpty) {
       setState(() {
         isLoading = false;
       });
-    }else if(widget.module.isNotEmpty) {
+    } else if (widget.module.isNotEmpty) {
       String dir = (await getTemporaryDirectory()).path;
       String path = '${dir}/${widget.module}/${widget.filename}.pdf';
-      if(widget.filename.contains('.pdf')){
+      if (widget.filename.contains('.pdf')) {
         path = '${dir}/${widget.module}/${widget.filename}';
       }
-      if(!await Directory('${dir}/${widget.module}').exists()){
-        Directory myNewDir = await Directory('${dir}/${widget.module}').create(recursive: true);
+      if (!await Directory('${dir}/${widget.module}').exists()) {
+        Directory myNewDir =
+            await Directory('${dir}/${widget.module}').create(recursive: true);
         debugPrint('directory created');
       }
       debugPrint('path is ${path}');
@@ -74,11 +77,13 @@ class _HomePage extends State<MyPdfApp> {
       appBar: AppBar(
         title: Text(widget.title),
       ),
-      body: isLoading ? Utility.showLoader() : mFile != null
-          ? SfPdfViewer.file(mFile!)
-          : SfPdfViewer.network(
-              widget.worksheetUrl,
-            ),
+      body: isLoading
+          ? Utility.showLoader()
+          : mFile != null
+              ? PdfViewer.file(mFile!.path) /* SfPdfViewer.file(mFile!) */
+              : PdfViewer.uri(
+                  Uri.parse(widget.worksheetUrl),
+                ),
     );
   }
 }

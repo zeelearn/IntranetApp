@@ -10,9 +10,7 @@ import 'package:Intranet/pages/helper/LightColor.dart';
 import 'package:Intranet/pages/helper/constants.dart';
 import 'package:Intranet/pages/helper/utils.dart';
 import 'package:Intranet/pages/pjp/cvf/mypjpcvf.dart';
-import 'package:location/location.dart';
-import 'package:permission_handler/permission_handler.dart';
-import 'package:syncfusion_flutter_datepicker/datepicker.dart';
+import 'package:table_calendar/table_calendar.dart';
 
 import '../../api/APIService.dart';
 import '../../api/request/pjp/add_pjp_request.dart';
@@ -20,7 +18,6 @@ import '../../api/response/pjp/add_pjp_response.dart';
 import '../helper/DBConstant.dart';
 import '../helper/DatabaseHelper.dart';
 import '../helper/LocalConstant.dart';
-import '../helper/LocationHelper.dart';
 import '../iface/onClick.dart';
 import '../iface/onResponse.dart';
 import '../widget/primary_button.dart';
@@ -45,6 +42,7 @@ class _AddNewPJPState extends State<AddNewPJPScreen>
     implements onResponse, onClickListener {
   DateTime _fromDate = DateTime.now();
   DateTime _toDate = DateTime.now();
+  DateTime _focusedDay = DateTime.now();
   String _selectedDate = '';
   String _dateCount = '';
   String _range = '';
@@ -58,6 +56,7 @@ class _AddNewPJPState extends State<AddNewPJPScreen>
     super.initState();
     _fromDate = widget.currentDate;
     _toDate = widget.currentDate;
+    _focusedDay = widget.currentDate;
     mPjpModel = PJPModel(
         pjpId: 0,
         dateTime: DateTime.now(),
@@ -101,31 +100,49 @@ class _AddNewPJPState extends State<AddNewPJPScreen>
           padding: EdgeInsets.symmetric(horizontal: 14.0),
           child: Column(
             children: [
-              Container(
-                height: 300.0,
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.3),
-                  borderRadius: BorderRadius.circular(12.0),
+              TableCalendar(
+                firstDay:
+                    DateTime(DateTime.now().year, DateTime.now().month - 3, 1),
+                lastDay: DateTime.now().add(const Duration(days: 30)),
+                focusedDay: _focusedDay,
+                rangeStartDay: _fromDate,
+                rangeEndDay: _toDate,
+                rangeSelectionMode: RangeSelectionMode.toggledOn,
+                onRangeSelected: (start, end, focusedDay) {
+                  setState(() {
+                    _focusedDay = focusedDay;
+                    if (start != null) {
+                      _fromDate = start;
+                      _toDate = end ?? start;
+                    }
+                  });
+                },
+                headerStyle: const HeaderStyle(
+                  formatButtonVisible: false,
+                  titleCentered: true,
                 ),
-                child: SfDateRangePicker(
-                  selectionMode: DateRangePickerSelectionMode.range,
-                  minDate: DateTime(
-                      DateTime.now().year, DateTime.now().month - 3, 1),
-                  maxDate: DateTime.now().add(const Duration(days: 30)),
-                  todayHighlightColor: Colors.white,
-                  initialSelectedRange:
-                      PickerDateRange(widget.currentDate, widget.currentDate),
-                  onSelectionChanged: _onSelectionChanged,
-                  enableMultiView: false,
-                  startRangeSelectionColor: LightColor.lightBlue,
-                  endRangeSelectionColor: LightColor.lightBlue,
-                  showTodayButton: false,
-                  selectionShape: DateRangePickerSelectionShape.rectangle,
-                  selectionColor: Colors.red,
-                  selectionTextStyle: TextStyle(color: Colors.white),
-                  headerStyle: DateRangePickerHeaderStyle(
-                    textAlign: TextAlign.center,
+                calendarStyle: CalendarStyle(
+                  todayDecoration: BoxDecoration(
+                    color: Colors.transparent,
+                    border: Border.all(color: kPrimaryLightColor),
+                    // shape: BoxShape.rectangle,
+                    // borderRadius: BorderRadius.circular(4.0),
                   ),
+                  todayTextStyle: const TextStyle(color: Colors.black),
+                  selectedTextStyle: const TextStyle(color: Colors.white),
+                  rangeStartTextStyle: const TextStyle(color: Colors.white),
+                  rangeEndTextStyle: const TextStyle(color: Colors.white),
+                  rangeStartDecoration: BoxDecoration(
+                    color: LightColor.lightBlue,
+                    // shape: BoxShape.rectangle,
+                    // borderRadius: BorderRadius.circular(4.0),
+                  ),
+                  rangeEndDecoration: BoxDecoration(
+                    color: LightColor.lightBlue,
+                    // shape: BoxShape.rectangle,
+                    // borderRadius: BorderRadius.circular(4.0),
+                  ),
+                  rangeHighlightColor: Colors.red.withOpacity(0.2),
                 ),
               ),
               Card(
@@ -179,43 +196,6 @@ class _AddNewPJPState extends State<AddNewPJPScreen>
         ),
       ),
     );
-  }
-
-  void _onSelectionChanged(DateRangePickerSelectionChangedArgs args) {
-    /// The argument value will return the changed date as [DateTime] when the
-    /// widget [SfDateRangeSelectionMode] set as single.
-    ///
-    /// The argument value will return the changed dates as [List<DateTime>]
-    /// when the widget [SfDateRangeSelectionMode] set as multiple.
-    ///
-    /// The argument value will return the changed range as [PickerDateRange]
-    /// when the widget [SfDateRangeSelectionMode] set as range.
-    ///
-    /// The argument value will return the changed ranges as
-    /// [List<PickerDateRange] when the widget [SfDateRangeSelectionMode] set as
-    /// multi range.
-    setState(() {
-      if (args.value is PickerDateRange) {
-        debugPrint('range');
-        debugPrint(args.value.toString());
-        _fromDate = args.value.startDate;
-        _toDate = args.value.endDate ?? args.value.startDate;
-
-        _range = '${DateFormat('dd/MM/yyyy').format(args.value.startDate)} -'
-            // ignore: lines_longer_than_80_chars
-            ' ${DateFormat('dd/MM/yyyy').format(args.value.endDate ?? args.value.startDate)}';
-        debugPrint(_range);
-      } else if (args.value is DateTime) {
-        debugPrint('dateTime');
-        _selectedDate = args.value.toString();
-      } else if (args.value is List<DateTime>) {
-        debugPrint('datetime lise');
-        _dateCount = args.value.length.toString();
-      } else {
-        debugPrint('else');
-        _rangeCount = args.value.length.toString();
-      }
-    });
   }
 
   selectedDates() {
@@ -369,7 +349,8 @@ class _AddNewPJPState extends State<AddNewPJPScreen>
             debugPrint('New PJP ID ${mPjpModel.pjpId} ');
 
             addPJPinDB(1);
-            Utility.showMessageSingleButton(context, "PJP Added successfully", this);
+            Utility.showMessageSingleButton(
+                context, "PJP Added successfully", this);
             // Utility.showMessageMultiButton(context, "Done", "Add CVF",
             //     "Success", "PJP Added successfully", mPjpModel, this);
 

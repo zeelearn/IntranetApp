@@ -35,7 +35,7 @@ class _MyOutdoorPlannerState extends State<MyOutdoorPlanner> {
     var hive = Hive.box(LocalConstant.KidzeeDB);
 
     employeeID = hive.get(LocalConstant.KEY_EMPLOYEE_ID);
-    businessID = hive.get(LocalConstant.KEY_BUSINESS_ID);
+    businessID = hive.get(LocalConstant.KEY_BUSINESS_ID).toString();
     debugPrint('Business id is - $businessID');
     BlocProvider.of<GetplandetailsCubit>(context)
         .getPlanDetails(int.parse(employeeID), int.parse(businessID));
