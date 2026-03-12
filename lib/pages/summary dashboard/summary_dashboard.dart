@@ -1,9 +1,52 @@
+import 'dart:convert';
+
+import 'package:Intranet/api/ServiceHandler.dart';
+import 'package:Intranet/api/request/pjp/get_pjp_report_request.dart';
+import 'package:Intranet/api/response/pjp/pjplistresponse.dart';
+import 'package:Intranet/pages/helper/LocalConstant.dart';
+import 'package:Intranet/pages/helper/utils.dart';
+import 'package:Intranet/pages/iface/onResponse.dart';
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
+
+// This is a placeholder for the request model. Ideally, this should be in its own file
+// e.g., 'lib/api/request/pjp/get_pjp_report_request.dart'
+/* class PJPReportRequest {
+  final int Employee_id;
+  final int Business_id;
+  final String From_Date;
+  final String To_Date;
+
+  PJPReportRequest({
+    required this.Employee_id,
+    required this.Business_id,
+    required this.From_Date,
+    required this.To_Date,
+  });
+
+  String getJson() {
+    return jsonEncode({
+      'Employee_id': Employee_id,
+      'Business_id': Business_id,
+      'From_Date': From_Date,
+      'To_Date': To_Date,
+    });
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'Employee_id': Employee_id,
+      'Business_id': Business_id,
+      'From_Date': From_Date,
+      'To_Date': To_Date,
+    };
+  }
+} */
 
 class SummaryDashboard extends StatefulWidget {
   const SummaryDashboard({super.key});
@@ -12,7 +55,8 @@ class SummaryDashboard extends StatefulWidget {
   State<SummaryDashboard> createState() => _SummaryDashboardState();
 }
 
-class _SummaryDashboardState extends State<SummaryDashboard> {
+class _SummaryDashboardState extends State<SummaryDashboard>
+    implements onResponse {
   // ── colors ───────────────────────────────────────────────────────────────
   static const Color _sidebar = Color(0xFF1E1E2E);
   static const Color _accent = Color(0xFF26C6DA);
@@ -32,65 +76,176 @@ class _SummaryDashboardState extends State<SummaryDashboard> {
 
   bool _isSidebarVisible = true;
 
-  // Sample events
-  final List<_Event> _events = [
-    _Event(
-      title: 'Final project meeting',
-      time: '9:00 - 10:30 AM',
-      color: _green,
-      icon: Icons.circle,
-      start: DateTime.now(),
-      end: DateTime.now(),
-    ),
-    _Event(
-      title: 'Pizza party',
-      time: '1:00 - 2:00 PM',
-      color: _green,
-      icon: Icons.circle,
-      start: DateTime.now(),
-      end: DateTime.now(),
-    ),
-    _Event(
-      title: 'Team standup',
-      time: '10:00 AM',
-      color: _accent,
-      icon: Icons.circle,
-      start: DateTime.now().add(const Duration(days: 1)),
-      end: DateTime.now().add(const Duration(days: 1)),
-    ),
-    _Event(
-      title: "Stephanie's birthday",
-      time: '12:00 PM',
-      color: _accentSecondary,
-      icon: Icons.circle,
-      start: DateTime.now().add(const Duration(days: 3)),
-      end: DateTime.now().add(const Duration(days: 3)),
-    ),
-    _Event(
-      title: 'Clean fish tank',
-      time: '7:00 PM',
-      color: Colors.grey,
-      icon: Icons.check_box_outline_blank,
-      start: DateTime.now().add(const Duration(days: 3)),
-      end: DateTime.now().add(const Duration(days: 3)),
-    ),
-    _Event(
-      title: 'Lunch interview',
-      time: '12:00 - 1:00 PM',
-      color: _accent,
-      icon: Icons.circle,
-      start: DateTime.now().add(const Duration(days: 7)),
-      end: DateTime.now().add(const Duration(days: 7)),
-    ),
-    _Event(
-      title: 'Company Retreat',
-      time: 'All Day',
-      color: _orange,
-      icon: Icons.flight_takeoff,
-      start: DateTime.now().add(const Duration(days: 8)),
-      end: DateTime.now().add(const Duration(days: 10)),
-    ),
+  // API Data state
+  bool _isLoading = true;
+  List<PJPInfo> _pjpData = [];
+  final List<_Event> _events = [];
+
+  // KPI state
+  int _totalEmployees = 0;
+  int _presentToday = 0;
+  int _onLeave = 0; // This might need another API
+  int _openTasks = 0;
+
+  // User color mapping
+  final Map<String, Color> _userColors = {};
+  final Map<String, int> _userEventCount = {};
+  int _colorIndex = 0;
+  final List<Color> _colorPalette = [
+    _accent,
+    _accentSecondary,
+    _green,
+    _orange,
+    _red,
+    Colors.pinkAccent,
+    Colors.blueAccent,
+    Colors.purpleAccent,
+    Colors.brown,
+    Colors.teal,
   ];
+
+  Color _getColorForUser(String userName) {
+    if (!_userColors.containsKey(userName)) {
+      _userColors[userName] = _colorPalette[_colorIndex];
+      _colorIndex = (_colorIndex + 1) % _colorPalette.length;
+    }
+    return _userColors[userName]!;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchDashboardData();
+  }
+
+  Future<void> _fetchDashboardData() async {
+    try {
+      var hiveBox = await Utility.openBox();
+      // int employeeId =
+      //     int.parse(hiveBox.get(LocalConstant.KEY_EMPLOYEE_ID) as String);
+      // String employeeCode =
+      //     hiveBox.get(LocalConstant.KEY_EMPLOYEE_CODE) as String;
+      // int businessId = hiveBox.get(LocalConstant.KEY_BUSINESS_ID);
+
+      final now = DateTime.now();
+      final firstDayOfMonth = DateTime(now.year, now.month, 1);
+      final lastDayOfMonth = DateTime(now.year, now.month + 1, 0);
+
+      PJPReportRequest request = PJPReportRequest(
+        employeeCode: '14000120' /* employeeCode */,
+        // Business_id: businessId,
+        fromDate: DateFormat('yyyy-MM-dd').format(firstDayOfMonth),
+        toDate: DateFormat('yyyy-MM-dd').format(lastDayOfMonth),
+      );
+
+      IntranetServiceHandler.loadPjpReport(request, this);
+    } catch (e) {
+      onError(e.toString());
+    }
+  }
+
+  @override
+  void onStart() {
+    if (mounted) {
+      setState(() {
+        _isLoading = true;
+      });
+    }
+  }
+
+  @override
+  void onSuccess(value) {
+    print('Response from api is - ${value.toJson()}');
+    if (value is PjpListResponse) {
+      if (mounted) {
+        setState(() {
+          _pjpData = value.responseData;
+          _processPjpData();
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  @override
+  void onError(value) {
+    print('Error loading dashboard data: $value');
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
+      });
+      Utility.showMessages(context, 'Failed to load dashboard data: $value');
+    }
+  }
+
+  void _processPjpData() {
+    int presentCount = 0;
+    int openTasksCount = 0;
+    List<_Event> newEvents = [];
+    final today = DateTime.now();
+
+    Set<String> teamMembers = {};
+
+    _userColors.clear();
+    _userEventCount.clear();
+    _colorIndex = 0;
+
+    for (var pjpInfo in _pjpData) {
+      final userName = pjpInfo.displayName;
+      final baseColor = _getColorForUser(userName);
+      final eventCount = _userEventCount.putIfAbsent(userName, () => 0);
+
+      // Create a slightly different shade for each event
+      final eventColor =
+          Color.lerp(baseColor, Colors.black, eventCount * 0.05)!;
+      _userEventCount[userName] = eventCount + 1;
+
+      newEvents.add(_Event(
+        title: '${pjpInfo.displayName} - ${pjpInfo.Status}',
+        time: pjpInfo.Status,
+        color: eventColor,
+        icon: Icons.location_on,
+        start: Utility.convertDate(pjpInfo.fromDate),
+        end: Utility.convertDate(pjpInfo.toDate),
+      ));
+      teamMembers.add(pjpInfo.displayName);
+      /*  if (pjpInfo.getDetailedPJP != null) {
+        for (var cvf in pjpInfo.getDetailedPJP!) {
+          final visitDate = Utility.convertDate(cvf.visitDate);
+          if (visitDate != null) {
+            // Populate calendar events
+            newEvents.add(_Event(
+              title: 'Visit: ${cvf.franchiseeName}',
+              time: cvf.visitTime,
+              color: _accent,
+              icon: Icons.location_on,
+              start: visitDate,
+              end: visitDate,
+            ));
+
+            // Calculate KPIs for today
+            if (_isSameDay(visitDate, today)) {
+              if (cvf.Status.trim().toLowerCase() == 'check in') {
+                presentCount++;
+              }
+              if (cvf.Status.trim().toLowerCase() != 'completed') {
+                openTasksCount++;
+              }
+            }
+          }
+        }
+      } */
+    }
+
+    // Update state variables
+    _presentToday = presentCount;
+    _openTasks = openTasksCount;
+    _totalEmployees = teamMembers.isNotEmpty
+        ? teamMembers.length
+        : 1; // Avoid division by zero
+    _events.clear();
+    _events.addAll(newEvents);
+  }
 
   // ── helpers ───────────────────────────────────────────────────────────────
   List<_Event> _getEventsForDay(DateTime day) {
@@ -98,7 +253,8 @@ class _SummaryDashboardState extends State<SummaryDashboard> {
       final d = DateTime(day.year, day.month, day.day);
       final s = DateTime(event.start.year, event.start.month, event.start.day);
       final e = DateTime(event.end.year, event.end.month, event.end.day);
-      return (d.isAtSameMomentAs(s) || d.isAfter(s)) && (d.isAtSameMomentAs(e) || d.isBefore(e));
+      return (d.isAtSameMomentAs(s) || d.isAfter(s)) &&
+          (d.isAtSameMomentAs(e) || d.isBefore(e));
     }).toList();
   }
 
@@ -114,6 +270,10 @@ class _SummaryDashboardState extends State<SummaryDashboard> {
   @override
   Widget build(BuildContext context) {
     final w = MediaQuery.of(context).size.width;
+
+    if (_isLoading) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
 
     return Scaffold(
       backgroundColor: _mainBg,
@@ -163,10 +323,10 @@ class _SummaryDashboardState extends State<SummaryDashboard> {
           _buildMiniCalendarCard(),
           const SizedBox(height: 16),
           _buildUpcomingEventsCard(),
-          const SizedBox(height: 16),
-          _buildChartCard(),
-          const SizedBox(height: 16),
-          _buildAttendanceCard(),
+          // const SizedBox(height: 16),
+          // _buildChartCard(),
+          // const SizedBox(height: 16),
+          // _buildAttendanceCard(),
           const SizedBox(height: 80),
         ],
       ),
@@ -210,10 +370,10 @@ class _SummaryDashboardState extends State<SummaryDashboard> {
             ),
 
             // Weather row
-            Padding(
+            /*    Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
               child: _buildWeatherRow(now),
-            ),
+            ), */
 
             const Divider(color: Color(0xFF2E2E42), thickness: 1, height: 1),
 
@@ -291,6 +451,16 @@ class _SummaryDashboardState extends State<SummaryDashboard> {
             _selectedDay = selected;
             _focusedDay = focused;
           });
+          final events = _getEventsForDay(selected);
+          if (events.isNotEmpty) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) =>
+                    _DayEventsScreen(day: selected, events: events),
+              ),
+            );
+          }
         },
         onPageChanged: (focused) => setState(() => _focusedDay = focused),
         headerStyle: HeaderStyle(
@@ -447,7 +617,7 @@ class _SummaryDashboardState extends State<SummaryDashboard> {
                 SizedBox(height: desktop ? 24 : 16),
                 // Calendar + side cards
                 desktop
-                    ? Row(
+                    ? _buildFullCalendar() /* Row( 
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Expanded(flex: 5, child: _buildFullCalendar()),
@@ -463,14 +633,14 @@ class _SummaryDashboardState extends State<SummaryDashboard> {
                             ),
                           ),
                         ],
-                      )
+                      ) */
                     : Column(
                         children: [
                           _buildFullCalendar(),
-                          const SizedBox(height: 16),
+                          /*  const SizedBox(height: 16),
                           _buildChartCard(),
                           const SizedBox(height: 16),
-                          _buildAttendanceCard(),
+                          _buildAttendanceCard(), */
                         ],
                       ),
                 const SizedBox(height: 80),
@@ -659,15 +829,23 @@ class _SummaryDashboardState extends State<SummaryDashboard> {
 
   // ── KPI Cards ─────────────────────────────────────────────────────────────
   Widget _buildKPIRow({required bool isMobile}) {
+    String presentBadge = _totalEmployees > 0
+        ? '${((_presentToday / _totalEmployees) * 100).toStringAsFixed(0)}% attendance'
+        : '0% attendance';
+    // Note: 'On Leave' data is not available from this API. Using a placeholder.
+    String onLeaveBadge = _totalEmployees > 0
+        ? '${((_onLeave / _totalEmployees) * 100).toStringAsFixed(1)}% of team'
+        : '0% of team';
+
     final cards = [
-      const _KPICard('Total Employees', '248', Icons.people_alt_rounded,
-          _accent, '+12 this month', true),
-      const _KPICard('Present Today', '201', Icons.check_circle_rounded, _green,
-          '81% attendance', true),
-      const _KPICard('On Leave', '14', FontAwesomeIcons.umbrellaBeach, _orange,
-          '5.6% of team', false),
-      const _KPICard('Open Tasks', '37', Icons.task_alt_rounded,
-          _accentSecondary, '8 due today', true),
+      _KPICard('Total Employees', _totalEmployees.toString(),
+          Icons.people_alt_rounded, _accent, '', true),
+      _KPICard('Total Visit', _presentToday.toString(),
+          Icons.check_circle_rounded, _green, presentBadge, true),
+      _KPICard('Pending Approvals', _onLeave.toString(),
+          FontAwesomeIcons.umbrellaBeach, _orange, onLeaveBadge, false),
+      _KPICard('Approved PJPs', _openTasks.toString(), Icons.task_alt_rounded,
+          _accentSecondary, 'For Today', true),
     ];
 
     return isMobile
@@ -678,7 +856,7 @@ class _SummaryDashboardState extends State<SummaryDashboard> {
               crossAxisCount: 2,
               crossAxisSpacing: 12,
               mainAxisSpacing: 12,
-              childAspectRatio: 1.5,
+              childAspectRatio: 1.0,
             ),
             itemCount: cards.length,
             itemBuilder: (_, i) => _buildKPICardWidget(cards[i]),
@@ -803,9 +981,22 @@ class _SummaryDashboardState extends State<SummaryDashboard> {
               _selectedDay = selected;
               _focusedDay = focused;
             });
+            final events = _getEventsForDay(selected);
+            if (events.isNotEmpty) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      _DayEventsScreen(day: selected, events: events),
+                ),
+              );
+            }
           },
           onPageChanged: (focused) => setState(() => _focusedDay = focused),
           headerVisible: false,
+          calendarStyle: const CalendarStyle(
+            markerDecoration: BoxDecoration(),
+          ),
           daysOfWeekHeight: 36,
           rowHeight: 80,
           daysOfWeekStyle: DaysOfWeekStyle(
@@ -859,103 +1050,105 @@ class _SummaryDashboardState extends State<SummaryDashboard> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Day number
-          Padding(
-            padding: const EdgeInsets.all(4),
-            child: Align(
-              alignment: Alignment.topRight,
-              child: Container(
-                width: 24,
-                height: 24,
-                decoration: BoxDecoration(
-                  color: isToday
-                      ? _accent
-                      : isSelected
-                          ? _accentSecondary
-                          : Colors.transparent,
-                  shape: BoxShape.circle,
-                ),
-                alignment: Alignment.center,
-                child: Text(
-                  '${day.day}',
-                  style: GoogleFonts.inter(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                    color: isToday || isSelected
-                        ? Colors.white
-                        : isOutside
-                            ? _textSecondary.withValues(alpha: 0.3)
-                            : isWeekend
-                                ? _textSecondary
-                                : _textPrimary,
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.all(4),
+              child: Align(
+                alignment: Alignment.topRight,
+                child: Container(
+                  width: 24,
+                  height: 24,
+                  decoration: BoxDecoration(
+                    color: isToday
+                        ? _accent
+                        : isSelected
+                            ? _accentSecondary
+                            : Colors.transparent,
+                    shape: BoxShape.circle,
+                  ),
+                  alignment: Alignment.center,
+                  child: Text(
+                    '${day.day}',
+                    style: GoogleFonts.inter(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: isToday || isSelected
+                          ? Colors.white
+                          : isOutside
+                              ? _textSecondary.withValues(alpha: 0.3)
+                              : isWeekend
+                                  ? _textSecondary
+                                  : _textPrimary,
+                    ),
                   ),
                 ),
               ),
             ),
           ),
           // Events
-            ...events.take(2).map((e) {
-              final d = DateTime(day.year, day.month, day.day);
-              final s = DateTime(e.start.year, e.start.month, e.start.day);
-              final eDate = DateTime(e.end.year, e.end.month, e.end.day);
-              final isStart = d.isAtSameMomentAs(s);
-              final isEnd = d.isAtSameMomentAs(eDate);
-              final isSingleData = isStart && isEnd;
+          ...events.take(3).map((e) {
+            final d = DateTime(day.year, day.month, day.day);
+            final s = DateTime(e.start.year, e.start.month, e.start.day);
+            final eDate = DateTime(e.end.year, e.end.month, e.end.day);
+            final isStart = d.isAtSameMomentAs(s);
+            final isEnd = d.isAtSameMomentAs(eDate);
+            final isSingleDay = isStart && isEnd;
 
-              return Padding(
-                padding: EdgeInsets.only(
-                  top: 2,
-                  left: (isSingleData || isStart) ? 4 : 0,
-                  right: (isSingleData || isEnd) ? 4 : 0,
-                ),
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-                  decoration: BoxDecoration(
-                    color: e.color.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.horizontal(
-                      left: (isSingleData || isStart) ? const Radius.circular(3) : Radius.zero,
-                      right: (isSingleData || isEnd) ? const Radius.circular(3) : Radius.zero,
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      if (isSingleData || isStart) ...[
-                        Container(
-                          width: 4,
-                          height: 4,
-                          decoration: BoxDecoration(
-                              color: e.color, shape: BoxShape.circle),
-                        ),
-                        const SizedBox(width: 3),
-                      ] else
-                        const SizedBox(width: 7), // align text
-                      Expanded(
-                        child: Text(
-                          (isSingleData || isStart) ? e.title : '',
-                          style: GoogleFonts.inter(
-                              fontSize: 9,
-                              color: _textPrimary,
-                              fontWeight: FontWeight.w500),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            }),
-            if (events.length > 2)
-              Padding(
-                padding: const EdgeInsets.only(top: 1, left: 6),
-                child: Text('+${events.length - 2} more',
-                    style: GoogleFonts.inter(
-                        fontSize: 8,
-                        color: _accentSecondary,
-                        fontWeight: FontWeight.w600)),
+            return Padding(
+              padding: EdgeInsets.only(
+                top: 2,
+                left: isStart ? 4 : 0,
+                right: isEnd ? 4 : 0,
               ),
-          ],
-        ),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                decoration: BoxDecoration(
+                  color: e.color.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.horizontal(
+                    left: isStart ? const Radius.circular(3) : Radius.zero,
+                    right: isEnd ? const Radius.circular(3) : Radius.zero,
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    if (isStart) ...[
+                      Container(
+                        width: 4,
+                        height: 4,
+                        decoration: BoxDecoration(
+                            color: e.color, shape: BoxShape.circle),
+                      ),
+                      const SizedBox(width: 3),
+                    ] else
+                      const SizedBox(width: 7), // align text
+                    Expanded(
+                      child: Text(
+                        isStart ? e.title : '',
+                        style: GoogleFonts.inter(
+                            fontSize: 9,
+                            color: _textPrimary,
+                            fontWeight: FontWeight.w500),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }),
+          if (events.length > 3)
+            Padding(
+              padding: const EdgeInsets.only(top: 1, left: 6),
+              child: Text('+${events.length - 3} more',
+                  style: GoogleFonts.inter(
+                      fontSize: 8,
+                      color: _accentSecondary,
+                      fontWeight: FontWeight.w600)),
+            ),
+        ],
+      ),
     );
   }
 
@@ -981,11 +1174,21 @@ class _SummaryDashboardState extends State<SummaryDashboard> {
         eventLoader: _getEventsForDay,
         calendarFormat: CalendarFormat.month,
         availableCalendarFormats: const {CalendarFormat.month: 'Month'},
-        onDaySelected: (selected, focused) {
+        onDaySelected: (selected, focused) async {
           setState(() {
             _selectedDay = selected;
             _focusedDay = focused;
           });
+          final events = _getEventsForDay(selected);
+          if (events.isNotEmpty && mounted) {
+            await Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) =>
+                    _DayEventsScreen(day: selected, events: events),
+              ),
+            );
+          }
         },
         onPageChanged: (focused) => setState(() => _focusedDay = focused),
         headerStyle: HeaderStyle(
@@ -1004,9 +1207,7 @@ class _SummaryDashboardState extends State<SummaryDashboard> {
               color: _accentSecondary, shape: BoxShape.circle),
           selectedTextStyle: GoogleFonts.inter(
               color: Colors.white, fontWeight: FontWeight.bold),
-          markerDecoration:
-              const BoxDecoration(color: _accent, shape: BoxShape.circle),
-          markerSize: 4,
+          markerDecoration: const BoxDecoration(),
         ),
       ),
     );
@@ -1171,20 +1372,21 @@ class _SummaryDashboardState extends State<SummaryDashboard> {
       icon: Icons.group_rounded,
       child: Column(
         children: [
-          _buildStatusRow('Present', 201, 248, _green),
+          _buildStatusRow('Present', _presentToday, _totalEmployees, _green),
           const SizedBox(height: 10),
-          _buildStatusRow('On Leave', 14, 248, _orange),
+          _buildStatusRow('On Leave', _onLeave, _totalEmployees, _orange),
           const SizedBox(height: 10),
-          _buildStatusRow('Remote', 33, 248, _accentSecondary),
+          // 'Remote' data is not available from this API. Using a placeholder.
+          _buildStatusRow('Remote', 0, _totalEmployees, _accentSecondary),
           const SizedBox(height: 16),
           // Pie-like row
           Row(
             children: [
-              _buildStatChip('201', 'Present', _green),
-              const SizedBox(width: 8),
-              _buildStatChip('14', 'Leave', _orange),
-              const SizedBox(width: 8),
-              _buildStatChip('33', 'Remote', _accentSecondary),
+              _buildStatChip(_presentToday.toString(), 'Present', _green),
+              const SizedBox(width: 6),
+              _buildStatChip(_onLeave.toString(), 'Leave', _orange),
+              const SizedBox(width: 6),
+              _buildStatChip('0', 'Remote', _accentSecondary),
             ],
           ),
         ],
@@ -1193,7 +1395,7 @@ class _SummaryDashboardState extends State<SummaryDashboard> {
   }
 
   Widget _buildStatusRow(String label, int value, int total, Color color) {
-    final pct = value / total;
+    final pct = total > 0 ? value / total : 0.0;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1226,21 +1428,27 @@ class _SummaryDashboardState extends State<SummaryDashboard> {
   Widget _buildStatChip(String value, String label, Color color) {
     return Expanded(
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 8),
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 2),
         decoration: BoxDecoration(
           color: color.withValues(alpha: 0.08),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Column(
           children: [
-            Text(value,
-                style: GoogleFonts.inter(
-                    fontWeight: FontWeight.w800, fontSize: 18, color: color)),
-            Text(label,
-                style: GoogleFonts.inter(
-                    fontSize: 10,
-                    color: _textSecondary,
-                    fontWeight: FontWeight.w500)),
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(value,
+                  style: GoogleFonts.inter(
+                      fontWeight: FontWeight.w800, fontSize: 18, color: color)),
+            ),
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(label,
+                  style: GoogleFonts.inter(
+                      fontSize: 10,
+                      color: _textSecondary,
+                      fontWeight: FontWeight.w500)),
+            ),
           ],
         ),
       ),
@@ -1283,6 +1491,48 @@ class _SummaryDashboardState extends State<SummaryDashboard> {
           const SizedBox(height: 12),
           child,
         ],
+      ),
+    );
+  }
+}
+
+class _DayEventsScreen extends StatelessWidget {
+  final DateTime day;
+  final List<_Event> events;
+
+  const _DayEventsScreen({required this.day, required this.events});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Details for ${DateFormat.yMMMd().format(day)}'),
+        backgroundColor: const Color(0xFF1E1E2E), // _sidebar color
+        foregroundColor: Colors.white,
+      ),
+      body: ListView.builder(
+        padding: const EdgeInsets.all(16.0),
+        itemCount: events.length,
+        itemBuilder: (context, index) {
+          final event = events[index];
+          return Card(
+            margin: const EdgeInsets.only(bottom: 12.0),
+            elevation: 2,
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            child: ListTile(
+              leading: Icon(event.icon, color: event.color, size: 28),
+              title: Text(
+                event.title,
+                style: GoogleFonts.inter(fontWeight: FontWeight.w600),
+              ),
+              subtitle: Text('Status: ${event.time}',
+                  style: GoogleFonts.inter(color: Colors.grey[600])),
+              contentPadding:
+                  const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+            ),
+          );
+        },
       ),
     );
   }

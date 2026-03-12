@@ -103,6 +103,16 @@ import '../pages/pjp/cvf/model/getvisitplandatewisemodel.dart';
 import 'aws_s3_upload.dart';
 import 'request/zoho_request_model.dart';
 
+Map<String, String> commonHeaders = {
+  "Accept": "application/json",
+  "content-type": "application/json",
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Credentials": "false",
+  "Access-Control-Allow-Headers":
+      "Origin,Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,locale",
+  "Access-Control-Allow-Methods": "*"
+};
+
 class APIService {
   String url = LocalStrings.developmentBaseUrl;
   String bpms_url = LocalStrings.bpms;
@@ -125,21 +135,10 @@ class APIService {
       debugPrint(
           'URL PARSE ${Uri.parse(url + LocalStrings.GET_LOGIN).toString()}');
       try {
-        final response =
-            await http.post(Uri.parse(url + LocalStrings.GET_LOGIN),
-                headers: {
-                  "Accept": "application/json",
-                  "content-type": "application/json",
-                  "Access-Control-Allow-Origin": "*",
-                  // Required for CORS support to work
-                  "Access-Control-Allow-Credentials": "false",
-                  // Required for cookies, authorization headers with HTTPS
-                  "Access-Control-Allow-Methods": "POST, OPTIONS,POST,GET",
-                  "Access-Control-Allow-Headers":
-                      "Origin,Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,locale",
-                  "Access-Control-Allow-Methods": "*"
-                },
-                body: body);
+        final response = await http.post(
+            Uri.parse(url + LocalStrings.GET_LOGIN),
+            headers: commonHeaders,
+            body: body);
         print('Response ${response.body}');
         debugPrint(Uri.parse(url + LocalStrings.GET_LOGIN).toString());
         if (response.statusCode == 200 || response.statusCode == 400) {
@@ -172,10 +171,7 @@ class APIService {
 
       final response = await http.post(
           Uri.parse(url + LocalStrings.GET_EMPLOYEE_VISIT_DETAILS),
-          headers: {
-            "Accept": "application/json",
-            "content-type": "application/json"
-          },
+          headers: commonHeaders,
           body: body);
       debugPrint('Response in getVisitdetailsapi - ${response.body}');
       if (response.statusCode == 200) {
@@ -207,10 +203,7 @@ class APIService {
 
       final response = await http.post(
           Uri.parse(url + LocalStrings.GET_FRANCHISEE_LAST_VISIT),
-          headers: {
-            "Accept": "application/json",
-            "content-type": "application/json"
-          },
+          headers: commonHeaders,
           body: body);
       debugPrint('Response in getVisitdetailsapi - ${response.body} ');
       if (response.statusCode == 200) {
@@ -243,10 +236,7 @@ class APIService {
       debugPrint('Request  in create event - $request');
       final response = await http.post(
           Uri.parse(url + LocalStrings.CREATE_EMPLYEE_VISIT_PLANNER),
-          headers: {
-            "Accept": "application/json",
-            "content-type": "application/json"
-          },
+          headers: commonHeaders,
           body: request.toString());
 
       debugPrint('response from create event - ${response.body.toString()}');
@@ -275,10 +265,7 @@ class APIService {
       debugPrint('Request  in getplanvisidatevise event - $employeeId');
       final response = await http.post(
           Uri.parse(url + LocalStrings.GET_VISIT_PLANNER_DATEWISE),
-          headers: {
-            "Accept": "application/json",
-            "content-type": "application/json"
-          },
+          headers: commonHeaders,
           body: jsonEncode({
             "employee_id": employeeId,
             "from_date": fromDate,
@@ -307,10 +294,7 @@ class APIService {
     try {
       final response = await http.post(
           Uri.parse(url + LocalStrings.DELETE_EMPLOYEE_VISIT_PLAN),
-          headers: {
-            "Accept": "application/json",
-            "content-type": "application/json"
-          },
+          headers: commonHeaders,
           body: jsonEncode({"id": id}));
 
       debugPrint('response from delete event - ${response.body.toString()}');
@@ -335,18 +319,17 @@ class APIService {
         'PayrollFromYear': requestModel.PayrollFromYear,
         'PayrollToMonth': requestModel.PayrollToMonth,
         'PayrollToYear': requestModel.PayrollToYear,
-        'AppType': Platform.isAndroid
-            ? 'Android'
-            : Platform.isIOS
-                ? 'IOS'
-                : 'unknown'
+        'AppType': kIsWeb
+            ? 'Web'
+            : Platform.isAndroid
+                ? 'Android'
+                : Platform.isIOS
+                    ? 'IOS'
+                    : 'unknown'
       });
       final response = await http.post(
           Uri.parse(url + LocalStrings.GET_ATTENDANCE_SUMMERY),
-          headers: {
-            "Accept": "application/json",
-            "content-type": "application/json"
-          },
+          headers: commonHeaders,
           body: body);
       if (response.statusCode == 200 || response.statusCode == 400) {
         if (response.body is AttendanceSummeryResponse) {
@@ -372,18 +355,17 @@ class APIService {
         'Employee_Id': requestModel.Employee_Id,
         'FDay': requestModel.FDay,
         'TDay': requestModel.TDay,
-        'AppType': Platform.isAndroid
-            ? 'Android'
-            : Platform.isIOS
-                ? 'IOS'
-                : 'unknown'
+        'AppType': kIsWeb
+            ? 'Web'
+            : Platform.isAndroid
+                ? 'Android'
+                : Platform.isIOS
+                    ? 'IOS'
+                    : 'unknown'
       });
       final response = await http.post(
           Uri.parse(url + LocalStrings.GET_LEAVE_SUMMERY),
-          headers: {
-            "Accept": "application/json",
-            "content-type": "application/json"
-          },
+          headers: commonHeaders,
           body: body);
       if (response.statusCode == 200 || response.statusCode == 400) {
         if (response.body is AttendanceSummeryResponse) {
@@ -415,20 +397,19 @@ class APIService {
         'Role': requestModel.Role,
         'Status': requestModel.Status,
         'ToDate': requestModel.ToDate,
-        'AppType': Platform.isAndroid
-            ? 'Android'
-            : Platform.isIOS
-                ? 'IOS'
-                : 'unknown'
+        'AppType': kIsWeb
+            ? 'Web'
+            : Platform.isAndroid
+                ? 'Android'
+                : Platform.isIOS
+                    ? 'IOS'
+                    : 'unknown'
       });
       debugPrint(
           Uri.parse(url + LocalStrings.GET_LEAVE_REQUISITION).toString());
       final response = await http.post(
           Uri.parse(url + LocalStrings.GET_LEAVE_REQUISITION),
-          headers: {
-            "Accept": "application/json",
-            "content-type": "application/json"
-          },
+          headers: commonHeaders,
           body: body);
       debugPrint(response.body);
       if (response.statusCode == 200 || response.statusCode == 400) {
@@ -473,10 +454,7 @@ class APIService {
           .toString());
       final response = await http.post(
           Uri.parse(url + LocalStrings.GET_LEAVE_REQUISITION_MANAGER),
-          headers: {
-            "Accept": "application/json",
-            "content-type": "application/json"
-          },
+          headers: commonHeaders,
           body: body);
       debugPrint(response.body);
       if (response.statusCode == 200 || response.statusCode == 400) {
@@ -510,20 +488,19 @@ class APIService {
         'Workflow_Remark': requestModel.Workflow_Remark,
         'Workflow_UserType': requestModel.Workflow_UserType,
         'WorkflowTypeCode': requestModel.WorkflowTypeCode,
-        'AppType': Platform.isAndroid
-            ? 'Android'
-            : Platform.isIOS
-                ? 'IOS'
-                : 'unknown'
+        'AppType': kIsWeb
+            ? 'Web'
+            : Platform.isAndroid
+                ? 'Android'
+                : Platform.isIOS
+                    ? 'IOS'
+                    : 'unknown'
       });
       debugPrint(Uri.parse(url + LocalStrings.GET_APPROVE_LEAVE_REQUISITION)
           .toString());
       final response = await http.post(
           Uri.parse(url + LocalStrings.GET_APPROVE_LEAVE_REQUISITION),
-          headers: {
-            "Accept": "application/json",
-            "content-type": "application/json"
-          },
+          headers: commonHeaders,
           body: body);
       debugPrint(response.body);
       if (response.statusCode == 200 || response.statusCode == 400) {
@@ -552,11 +529,13 @@ class APIService {
       var body = jsonEncode({
         'xml': request.xml,
         'User_Id': request.userId,
-        'AppType': Platform.isAndroid
-            ? 'Android'
-            : Platform.isIOS
-                ? 'IOS'
-                : 'unknown'
+        'AppType': kIsWeb
+            ? 'Web'
+            : Platform.isAndroid
+                ? 'Android'
+                : Platform.isIOS
+                    ? 'IOS'
+                    : 'unknown'
       });
       debugPrint('request body');
       debugPrint(body);
@@ -565,10 +544,7 @@ class APIService {
               .toString());
       final response = await http.post(
           Uri.parse(url + LocalStrings.GET_APPROVE_LEAVE_REQUISITION_MULTIPLE),
-          headers: {
-            "Accept": "application/json",
-            "content-type": "application/json"
-          },
+          headers: commonHeaders,
           body: body);
       debugPrint(response.body);
       if (response.statusCode == 200) {
@@ -607,20 +583,19 @@ class APIService {
         'RequisitionTypeCode': requestModel.RequisitionTypeCode,
         'WorkLocation': requestModel.WorkLocation,
         'IsHappinessLeave': requestModel.IsHappinessLeave,
-        'AppType': Platform.isAndroid
-            ? 'Android'
-            : Platform.isIOS
-                ? 'IOS'
-                : 'unknown'
+        'AppType': kIsWeb
+            ? 'Web'
+            : Platform.isAndroid
+                ? 'Android'
+                : Platform.isIOS
+                    ? 'IOS'
+                    : 'unknown'
       });
       debugPrint(body);
       debugPrint(Uri.parse(url + LocalStrings.GET_APPLY_LEAVE).toString());
       final response = await http.post(
           Uri.parse(url + LocalStrings.GET_APPLY_LEAVE),
-          headers: {
-            "Accept": "application/json",
-            "content-type": "application/json"
-          },
+          headers: commonHeaders,
           body: body);
       debugPrint(response.body);
       if (response.statusCode == 200 || response.statusCode == 400) {
@@ -650,10 +625,7 @@ class APIService {
           Uri.parse(url + LocalStrings.GET_ATTENDANCE_MARKING).toString());
       final response = await http.post(
           Uri.parse(url + LocalStrings.GET_ATTENDANCE_MARKING),
-          headers: {
-            "Accept": "application/json",
-            "content-type": "application/json"
-          },
+          headers: commonHeaders,
           body: requestModel.getJson());
       debugPrint(response.body);
       debugPrint(requestModel.getJson());
@@ -684,10 +656,7 @@ class APIService {
           Uri.parse(url + LocalStrings.GET_OUTDOOR_REQUISITION).toString());
       final response = await http.post(
           Uri.parse(url + LocalStrings.GET_OUTDOOR_REQUISITION),
-          headers: {
-            "Accept": "application/json",
-            "content-type": "application/json"
-          },
+          headers: commonHeaders,
           body: requestModel.getJson());
       debugPrint(response.body);
       if (response.statusCode == 200 || response.statusCode == 400) {
@@ -717,10 +686,7 @@ class APIService {
           .toString());
       final response = await http.post(
           Uri.parse(url + LocalStrings.GET_ATTENDANCE_REQUISITION_MAN),
-          headers: {
-            "Accept": "application/json",
-            "content-type": "application/json"
-          },
+          headers: commonHeaders,
           body: requestModel.getJson());
       debugPrint(response.body);
       if (response.statusCode == 200 || response.statusCode == 400) {
@@ -748,11 +714,13 @@ class APIService {
       var body = jsonEncode({
         'xml': requestModel.xml,
         'Modified_By': requestModel.userId,
-        'AppType': Platform.isAndroid
-            ? 'Android'
-            : Platform.isIOS
-                ? 'IOS'
-                : 'unknown'
+        'AppType': kIsWeb
+            ? 'Web'
+            : Platform.isAndroid
+                ? 'Android'
+                : Platform.isIOS
+                    ? 'IOS'
+                    : 'unknown'
       });
       debugPrint('request body');
       debugPrint(body);
@@ -761,10 +729,7 @@ class APIService {
               .toString());
       final response = await http.post(
           Uri.parse(url + LocalStrings.GET_APPROVE_ATTENDANCE_REQUISITION_NEW),
-          headers: {
-            "Accept": "application/json",
-            "content-type": "application/json"
-          },
+          headers: commonHeaders,
           body: body);
       debugPrint(response.body);
       debugPrint(response.statusCode.toString());
@@ -793,10 +758,7 @@ class APIService {
       debugPrint(Uri.parse(url + LocalStrings.GET_EMPLOYEE_LIST).toString());
       final response = await http.get(
         Uri.parse(url + LocalStrings.GET_EMPLOYEE_LIST),
-        headers: {
-          "Accept": "application/json",
-          "content-type": "application/json"
-        },
+        headers: commonHeaders,
       );
       debugPrint(response.body);
       if (response.statusCode == 200 || response.statusCode == 400) {
@@ -823,10 +785,7 @@ class APIService {
       debugPrint(Uri.parse(url + LocalStrings.GET_CVF_CATEGORY).toString());
       final response = await http.post(
           Uri.parse(url + LocalStrings.GET_CVF_CATEGORY),
-          headers: {
-            "Accept": "application/json",
-            "content-type": "application/json"
-          },
+          headers: commonHeaders,
           body: requestModel.getJson());
       debugPrint(requestModel.getJson());
       debugPrint(response.body);
@@ -854,10 +813,7 @@ class APIService {
       debugPrint(Uri.parse(url + LocalStrings.GET_CVF_CENTER_LIST).toString());
       final response = await http.post(
           Uri.parse(url + LocalStrings.GET_CVF_CENTER_LIST),
-          headers: {
-            "Accept": "application/json",
-            "content-type": "application/json"
-          },
+          headers: commonHeaders,
           body: requestModel.getJson());
       debugPrint(requestModel.getJson());
       debugPrint(response.body);
@@ -885,10 +841,7 @@ class APIService {
       debugPrint(Uri.parse(url + LocalStrings.SAVE_NEW_PJP).toString());
       final response = await http.post(
           Uri.parse(url + LocalStrings.SAVE_NEW_PJP),
-          headers: {
-            "Accept": "application/json",
-            "content-type": "application/json"
-          },
+          headers: commonHeaders,
           body: requestModel.getJson());
       debugPrint(response.body);
       if (response.statusCode == 200 || response.statusCode == 400) {
@@ -915,10 +868,7 @@ class APIService {
       debugPrint(Uri.parse(url + LocalStrings.SAVE_CVF_PJP).toString());
       final response = await http.post(
           Uri.parse(url + LocalStrings.SAVE_CVF_PJP),
-          headers: {
-            "Accept": "application/json",
-            "content-type": "application/json"
-          },
+          headers: commonHeaders,
           body: requestModel.getJson());
       debugPrint(response.statusCode.toString());
       debugPrint(response.body);
@@ -946,10 +896,7 @@ class APIService {
       debugPrint(Uri.parse(url + LocalStrings.GET_CVF_QUESTIONS).toString());
       final response = await http.post(
           Uri.parse(url + LocalStrings.GET_CVF_QUESTIONS),
-          headers: {
-            "Accept": "application/json",
-            "content-type": "application/json"
-          },
+          headers: commonHeaders,
           body: requestModel.getJson());
       debugPrint(requestModel.toJson().toString());
       //debugPrint(response.body);
@@ -977,10 +924,7 @@ class APIService {
       print('pjp list ');
       final response = await http.post(
           Uri.parse(url + LocalStrings.GET_PJP_LIST),
-          headers: {
-            "Accept": "application/json",
-            "content-type": "application/json"
-          },
+          headers: commonHeaders,
           body: requestModel.getJson());
       print('RRR ${response.body.toString()}');
       print('status ${response.statusCode}');
@@ -1006,10 +950,7 @@ class APIService {
       print('pjp list ');
       final response = await http.post(
           Uri.parse(url + LocalStrings.GET_PJP_EXCEPTIONAL_LIST),
-          headers: {
-            "Accept": "application/json",
-            "content-type": "application/json"
-          },
+          headers: commonHeaders,
           body: requestModel.getJson());
       print('RRR ${response.body.toString()}');
       print('status ${response.statusCode}');
@@ -1032,10 +973,7 @@ class APIService {
       debugPrint(Uri.parse(url + LocalStrings.GET_PJP_REPORT).toString());
       final response = await http.post(
           Uri.parse(url + LocalStrings.GET_PJP_REPORT),
-          headers: {
-            "Accept": "application/json",
-            "content-type": "application/json"
-          },
+          headers: commonHeaders,
           body: requestModel.getJson());
       print(response.body);
       print(response.statusCode);
@@ -1059,10 +997,7 @@ class APIService {
       debugPrint(Uri.parse(url + LocalStrings.GET_PJP_EMPLOYEELIST).toString());
       final response = await http.post(
           Uri.parse(url + LocalStrings.GET_PJP_EMPLOYEELIST),
-          headers: {
-            "Accept": "application/json",
-            "content-type": "application/json"
-          },
+          headers: commonHeaders,
           body: requestModel.getJson());
       debugPrint(requestModel.getJson());
       debugPrint(response.body);
@@ -1089,10 +1024,7 @@ class APIService {
     try {
       final response = await http.post(
           Uri.parse(url + LocalStrings.GET_ALL_CVF),
-          headers: {
-            "Accept": "application/json",
-            "content-type": "application/json"
-          },
+          headers: commonHeaders,
           body: requestModel.getJson());
       debugPrint(LocalStrings.GET_ALL_CVF);
       debugPrint(response.body);
@@ -1122,10 +1054,7 @@ class APIService {
       debugPrint(Uri.parse(url + LocalStrings.GET_SAVE_CVF_ANSWERS).toString());
       final response = await http.post(
           Uri.parse(url + LocalStrings.GET_SAVE_CVF_ANSWERS),
-          headers: {
-            "Accept": "application/json",
-            "content-type": "application/json"
-          },
+          headers: commonHeaders,
           body: requestModel.getJson());
       debugPrint(requestModel.getJson());
       //debugPrint(response.body);
@@ -1154,10 +1083,7 @@ class APIService {
           Uri.parse(url + LocalStrings.GET_UPDATE_CVF_STATUS).toString());
       final response = await http.post(
           Uri.parse(url + LocalStrings.GET_UPDATE_CVF_STATUS),
-          headers: {
-            "Accept": "application/json",
-            "content-type": "application/json"
-          },
+          headers: commonHeaders,
           body: requestModel.getJson());
       //debugPrint(requestModel.toJson());
       //debugPrint(response.body);
@@ -1185,10 +1111,7 @@ class APIService {
       debugPrint(Uri.parse(url + LocalStrings.GET_GETPJPREPORT).toString());
       final response = await http.post(
           Uri.parse(url + LocalStrings.GET_GETPJPREPORT),
-          headers: {
-            "Accept": "application/json",
-            "content-type": "application/json"
-          },
+          headers: commonHeaders,
           body: requestModel.getJson());
       debugPrint(response.body);
       if (response.statusCode == 200 || response.statusCode == 400) {
@@ -1215,10 +1138,7 @@ class APIService {
       debugPrint(Uri.parse(url + LocalStrings.UPDATE_MODIFY_STATUS).toString());
       final response = await http.post(
           Uri.parse(url + LocalStrings.UPDATE_MODIFY_STATUS),
-          headers: {
-            "Accept": "application/json",
-            "content-type": "application/json"
-          },
+          headers: commonHeaders,
           body: requestModel.getJson());
       debugPrint(response.body);
       if (response.statusCode == 200 || response.statusCode == 400) {
@@ -1247,10 +1167,7 @@ class APIService {
           .toString());
       final response = await http.post(
           Uri.parse(url + LocalStrings.UPDATE_MODIFY_STATUS_MULTIPLE),
-          headers: {
-            "Accept": "application/json",
-            "content-type": "application/json"
-          },
+          headers: commonHeaders,
           body: requestModel.getJson());
       debugPrint(response.body);
       if (response.statusCode == 200 || response.statusCode == 400) {
@@ -1279,10 +1196,7 @@ class APIService {
           Uri.parse(url + LocalStrings.UPDATE_PJP_EXCEPTIONAL_LIST).toString());
       final response = await http.post(
           Uri.parse(url + LocalStrings.UPDATE_PJP_EXCEPTIONAL_LIST),
-          headers: {
-            "Accept": "application/json",
-            "content-type": "application/json"
-          },
+          headers: commonHeaders,
           body: requestModel.getExJson());
       print(requestModel.getExJson());
       print(response.body);
@@ -1310,11 +1224,7 @@ class APIService {
       debugPrint(Uri.parse(url + LocalStrings.UPDATE_FCM).toString());
       debugPrint(requestModel.getJson());
       final response = await http.post(Uri.parse(url + LocalStrings.UPDATE_FCM),
-          headers: {
-            "Accept": "application/json",
-            "content-type": "application/json"
-          },
-          body: requestModel.getJson());
+          headers: commonHeaders, body: requestModel.getJson());
       print('FCM--Updatting fcm token');
       print('FCM--${response.body}');
       print('FCM--${response.request!.url}');
@@ -1344,10 +1254,7 @@ class APIService {
       debugPrint(requestModel.toJson());
       final response = await http.post(
           Uri.parse(url + LocalStrings.GET_PHPSTATUSBYEMPID),
-          headers: {
-            "Accept": "application/json",
-            "content-type": "application/json"
-          },
+          headers: commonHeaders,
           body: requestModel.toJson());
       debugPrint(response.body);
       if (response.statusCode == 200 || response.statusCode == 400) {
@@ -1686,6 +1593,11 @@ class APIService {
               : Platform.isIOS
                   ? 'IOS'
                   : 'unknown',
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Credentials": "false",
+      "Access-Control-Allow-Headers":
+          "Origin,Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,locale",
+      "Access-Control-Allow-Methods": "*"
     };
   }
 

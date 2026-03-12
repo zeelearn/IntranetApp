@@ -176,8 +176,8 @@ class GetDetailedPJP implements Comparable<GetDetailedPJP> {
       CheckInAddress = json['CheckinAddress'] ?? ' NA';
       DateTimeOut = json['DateTimeOut'] ?? ' NA';
       DateTimeIn = json['DateTimeIn'] ?? ' NA';
-      Latitude = double.parse(json['Latitude'].toString() ?? "0.0");
-      Longitude = double.parse(json['Longitude'].toString() ?? "0.0") ?? 0.0;
+      Latitude = double.parse(json['Latitude']?.toString() ?? "0.0");
+      Longitude = double.parse(json['Longitude']?.toString() ?? "0.0");
       ActivityTitle = json['ActivityTitle'] ?? 'NA';
       approvalStatus = json.containsKey('Approval_Status')
           ? json['Approval_Status']

@@ -135,6 +135,8 @@ class _MyPjpReportListState extends State<MyPjpReportScreen>
           mPjpList.addAll(response.responseData);
         setState(() {});
       } catch (e) {
+        isLoading = false;
+        setState(() {});
         loadPjpReport();
       }
     }

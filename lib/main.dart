@@ -919,11 +919,9 @@ class _MyAppState extends State<MyApp> {
 
         ),*/
       ),
-      home:
-          SummaryDashboard() /* SplashScreen(
+      home: /*  SummaryDashboard() */ SplashScreen(
         receivedAction: widget.receivedAction,
-      ) */
-      ,
+      ),
     );
   }
 }

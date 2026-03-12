@@ -12,7 +12,13 @@ class BpmsStatRequest {
   toJson() {
     return jsonEncode({
       'user_Id': userId
-      /*'AppType' :Platform.isAndroid ? 'Android' : Platform.isIOS ? 'IOS' : 'unknown'*/
+      /*''AppType': kIsWeb
+          ? 'Web'
+          : Platform.isAndroid
+              ? 'Android'
+              : Platform.isIOS
+                  ? 'IOS'
+                  : 'unknown'*/
     });
   }
 
@@ -20,14 +26,26 @@ class BpmsStatRequest {
     return jsonEncode({
       'User_Id': userId,
       'Status': status
-      /*'AppType' :Platform.isAndroid ? 'Android' : Platform.isIOS ? 'IOS' : 'unknown'*/
+      /*''AppType': kIsWeb
+          ? 'Web'
+          : Platform.isAndroid
+              ? 'Android'
+              : Platform.isIOS
+                  ? 'IOS'
+                  : 'unknown'*/
     });
   }
 
   toJson1() {
     return jsonEncode({
       'userID': userId
-      /*'AppType' :Platform.isAndroid ? 'Android' : Platform.isIOS ? 'IOS' : 'unknown'*/
+      /*''AppType': kIsWeb
+          ? 'Web'
+          : Platform.isAndroid
+              ? 'Android'
+              : Platform.isIOS
+                  ? 'IOS'
+                  : 'unknown'*/
     });
   }
 }

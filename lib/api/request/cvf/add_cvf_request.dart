@@ -1,21 +1,28 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
+
 class AddCVFRequest {
   int PJP_Id;
   String DocXml;
-  int UserId=1;
+  int UserId = 1;
 
   AddCVFRequest(
-      {required this.PJP_Id,required this.DocXml,required this.UserId
-      });
+      {required this.PJP_Id, required this.DocXml, required this.UserId});
 
-  getJson(){
-    return jsonEncode( {
+  getJson() {
+    return jsonEncode({
       'PJP_Id': PJP_Id,
       'DocXml': DocXml,
       'UserId': UserId,
-      'AppType' :Platform.isAndroid ? 'Android' : Platform.isIOS ? 'IOS' : 'unknown'
+      'AppType': kIsWeb
+          ? 'Web'
+          : Platform.isAndroid
+              ? 'Android'
+              : Platform.isIOS
+                  ? 'IOS'
+                  : 'unknown'
     });
   }
 
