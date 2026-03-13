@@ -451,7 +451,7 @@ class HomePageMenu extends StatelessWidget {
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) => MyWebsiteView(
-                                    title: 'ZLLSaathi',
+                                    title: 'Notiflow',
                                     url:
                                         'https://notiflow-51883.web.app/?u_name=${empID}&password=12345&color=0277BD',
                                   ),
@@ -522,7 +522,7 @@ class HomePageMenu extends StatelessWidget {
                   },
                   child: const Text('My Dashboard'),
                 )),
-            Row(
+            /*  Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 isBpms
@@ -543,7 +543,7 @@ class HomePageMenu extends StatelessWidget {
                 _getMenu(context, 'My Team Summary', Icons.approval,
                     SummaryDashboard())
               ],
-            ),
+            ), */
           ]),
         ),
       ),
