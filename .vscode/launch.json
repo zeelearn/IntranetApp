@@ -25,7 +25,12 @@
             "name": "IntranetApp (release mode)",
             "request": "launch",
             "type": "dart",
-            "flutterMode": "release"
+            "flutterMode": "release",
+            "args": [
+                "-v",
+                "--web-browser-flag",
+                "--disable-web-security"
+            ]
         }
     ]
 }
