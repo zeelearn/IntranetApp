@@ -106,10 +106,15 @@ import 'request/zoho_request_model.dart';
 Map<String, String> commonHeaders = {
   "Accept": "application/json",
   "content-type": "application/json",
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Credentials": "false",
+  "Access-Control-Allow-Headers":
+      "Origin,Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,locale",
+  "Access-Control-Allow-Methods": "*"
 };
 
 class APIService {
-  String url = kIsWeb ? "" : LocalStrings.developmentBaseUrl;
+  String url = /* kIsWeb ? "" : */ LocalStrings.developmentBaseUrl;
   String bpms_url = LocalStrings.bpms;
 
   Future<dynamic> login(LoginRequestModel requestModel) async {
