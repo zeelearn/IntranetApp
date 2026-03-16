@@ -44,6 +44,8 @@ import 'package:saathi/dependency_Injection/dependency_injection.dart';
 import 'package:saathi/model/notificationModel/notificationModel.dart';
 import 'package:saathi/model/ticketModel/ticket_model.dart';
 import 'package:saathi/zllsaathi.dart';
+import 'package:sqflite/sqflite.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 import 'api/APIService.dart';
 import 'api/request/cvf/update_cvf_status_request.dart';
@@ -258,6 +260,7 @@ final localhostServer =
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
   pdfrxFlutterInitialize();
   _openBox();
 

@@ -1,12 +1,12 @@
-import 'dart:convert';
-
 import 'package:Intranet/api/ServiceHandler.dart';
 import 'package:Intranet/api/request/pjp/get_pjp_report_request.dart';
 import 'package:Intranet/api/response/pjp/pjplistresponse.dart';
 import 'package:Intranet/pages/helper/LocalConstant.dart';
 import 'package:Intranet/pages/helper/utils.dart';
 import 'package:Intranet/pages/iface/onResponse.dart';
+import 'package:Intranet/pages/pjp/cvf/cvf_questions.dart';
 import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:hive/hive.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -121,10 +121,10 @@ class _SummaryDashboardState extends State<SummaryDashboard>
   Future<void> _fetchDashboardData() async {
     try {
       var hiveBox = await Utility.openBox();
-      // int employeeId =
-      //     int.parse(hiveBox.get(LocalConstant.KEY_EMPLOYEE_ID) as String);
-      // String employeeCode =
-      //     hiveBox.get(LocalConstant.KEY_EMPLOYEE_CODE) as String;
+      int employeeId =
+          int.parse(hiveBox.get(LocalConstant.KEY_EMPLOYEE_ID) as String);
+      String employeeCode =
+          hiveBox.get(LocalConstant.KEY_EMPLOYEE_CODE) as String;
       // int businessId = hiveBox.get(LocalConstant.KEY_BUSINESS_ID);
 
       final now = DateTime.now();
@@ -132,7 +132,7 @@ class _SummaryDashboardState extends State<SummaryDashboard>
       final lastDayOfMonth = DateTime(now.year, now.month + 1, 0);
 
       PJPReportRequest request = PJPReportRequest(
-        employeeCode: '14000120' /* employeeCode */,
+        employeeCode: employeeCode,
         // Business_id: businessId,
         fromDate: DateFormat('yyyy-MM-dd').format(firstDayOfMonth),
         toDate: DateFormat('yyyy-MM-dd').format(lastDayOfMonth),
@@ -201,12 +201,13 @@ class _SummaryDashboardState extends State<SummaryDashboard>
       _userEventCount[userName] = eventCount + 1;
 
       newEvents.add(_Event(
-        title: '${pjpInfo.displayName} - ${pjpInfo.Status}',
+        title: '${pjpInfo.displayName}',
         time: pjpInfo.Status,
         color: eventColor,
         icon: Icons.location_on,
         start: Utility.convertDate(pjpInfo.fromDate),
         end: Utility.convertDate(pjpInfo.toDate),
+        pjpInfo: pjpInfo,
       ));
       teamMembers.add(pjpInfo.displayName);
       /*  if (pjpInfo.getDetailedPJP != null) {
@@ -278,8 +279,8 @@ class _SummaryDashboardState extends State<SummaryDashboard>
     return Scaffold(
       backgroundColor: _mainBg,
       appBar: _isMobile(w) ? _buildMobileAppBar() : null,
-      drawer:
-          _isMobile(w) ? Drawer(child: _buildSidebar(compact: false)) : null,
+      // drawer:
+      //     _isMobile(w) ? Drawer(child: _buildSidebar(compact: false)) : null,
       body: _isMobile(w)
           ? _buildMobileBody()
           : Row(
@@ -1496,43 +1497,805 @@ class _SummaryDashboardState extends State<SummaryDashboard>
   }
 }
 
+// ── Day Events Detail Screen ───────────────────────────────────────────────────
 class _DayEventsScreen extends StatelessWidget {
   final DateTime day;
   final List<_Event> events;
 
   const _DayEventsScreen({required this.day, required this.events});
 
+  static const Color _sidebar = Color(0xFF1E1E2E);
+  static const Color _mainBg = Color(0xFFF5F7FA);
+  static const Color _textSecondary = Color(0xFF6B7280);
+
+  @override
+  Widget build(BuildContext context) {
+    // Extract PJPInfo objects (non-null) from events
+    final pjpList = events.map((e) => e.pjpInfo).whereType<PJPInfo>().toList();
+
+    return Scaffold(
+      backgroundColor: _mainBg,
+      appBar: AppBar(
+        backgroundColor: _sidebar,
+        foregroundColor: Colors.white,
+        elevation: 0,
+        title: Text(
+          DateFormat('EEEE, d MMMM yyyy').format(day),
+          style: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 16),
+        ),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1),
+          child: Container(color: const Color(0xFF2E2E42), height: 1),
+        ),
+      ),
+      body: pjpList.isEmpty
+          ? Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.event_busy_rounded,
+                      size: 56, color: Colors.grey[300]),
+                  const SizedBox(height: 12),
+                  Text('No PJP entries for this day',
+                      style: GoogleFonts.inter(
+                          color: _textSecondary, fontSize: 14)),
+                ],
+              ),
+            )
+          : ListView.builder(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+              itemCount: pjpList.length,
+              itemBuilder: (context, index) {
+                final pjp = pjpList[index];
+                return _PjpInfoCard(
+                  pjp: pjp,
+                  color: events[index].color,
+                );
+              },
+            ),
+    );
+  }
+}
+
+// ── PJP Info Card ─────────────────────────────────────────────────────────────
+class _PjpInfoCard extends StatelessWidget {
+  final PJPInfo pjp;
+  final Color color;
+
+  const _PjpInfoCard({required this.pjp, required this.color});
+
+  static const Color _textPrimary = Color(0xFF1A1D2E);
+  static const Color _textSecondary = Color(0xFF6B7280);
+  static const Color _divider = Color(0xFFE8EDF2);
+  static const Color _accent = Color(0xFF26C6DA);
+  static const Color _green = Color(0xFF4CAF90);
+  static const Color _orange = Color(0xFFFF8A65);
+
+  Color _statusColor(String status) {
+    final s = status.trim().toLowerCase();
+    if (s.contains('approved')) return _green;
+    if (s.contains('pending')) return _orange;
+    if (s.contains('reject')) return const Color(0xFFEF5350);
+    return _textSecondary;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final hasLocations =
+        pjp.getDetailedPJP != null && pjp.getDetailedPJP!.isNotEmpty;
+    final validLocations = pjp.getDetailedPJP
+            ?.where((d) => d.Latitude != 0 || d.Longitude != 0)
+            .toList() ??
+        [];
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.06),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // ── Header strip ──────────────────────────────────────────────────
+          Container(
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.12),
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(14)),
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Row(
+              children: [
+                Container(
+                  width: 42,
+                  height: 42,
+                  decoration: BoxDecoration(
+                    color: color.withValues(alpha: 0.18),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(Icons.person_rounded, color: color, size: 22),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        pjp.displayName,
+                        style: GoogleFonts.inter(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          color: _textPrimary,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'PJP ID: ${pjp.PJP_Id}',
+                        style: GoogleFonts.inter(
+                          fontSize: 11,
+                          color: _textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                // Status badge
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: _statusColor(pjp.ApprovalStatus)
+                        .withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: _statusColor(pjp.ApprovalStatus)
+                          .withValues(alpha: 0.4),
+                    ),
+                  ),
+                  child: Text(
+                    pjp.ApprovalStatus,
+                    style: GoogleFonts.inter(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: _statusColor(pjp.ApprovalStatus),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // ── Info rows ─────────────────────────────────────────────────────
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Column(
+              children: [
+                _infoRow(
+                    Icons.calendar_today_rounded,
+                    'From Date',
+                    DateFormat('yyyy-MM-dd')
+                        .format(DateTime.parse(pjp.fromDate)),
+                    _accent),
+                _dividerLine(),
+                _infoRow(
+                    Icons.event_rounded,
+                    'To Date',
+                    DateFormat('yyyy-MM-dd').format(DateTime.parse(pjp.toDate)),
+                    _accent),
+                // _dividerLine(),
+                /* _infoRow(
+                    Icons.info_outline_rounded, 'Status', pjp.Status, _orange), */
+                if (pjp.remarks.trim().isNotEmpty &&
+                    pjp.remarks.trim() != 'NA') ...[
+                  _dividerLine(),
+                  _infoRow(Icons.notes_rounded, 'Remarks', pjp.remarks,
+                      _textSecondary),
+                ],
+                /*  if (pjp.isSelfPJP.isNotEmpty) ...[
+                  _dividerLine(),
+                  _infoRow(
+                    Icons.person_pin_rounded,
+                    'Self PJP',
+                    pjp.isSelfPJP.trim() == '1' ? 'Yes' : 'No',
+                    _textSecondary,
+                  ),
+                ], */
+              ],
+            ),
+          ),
+
+          // ── Detailed visits section ────────────────────────────────────────
+          if (hasLocations) ...[
+            const Divider(height: 1, color: _divider),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              child: Row(
+                children: [
+                  const Icon(Icons.location_on_rounded,
+                      size: 14, color: _accent),
+                  const SizedBox(width: 6),
+                  Text(
+                    '${pjp.getDetailedPJP!.length} Visit${pjp.getDetailedPJP!.length > 1 ? 's' : ''} Scheduled',
+                    style: GoogleFonts.inter(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: _textSecondary),
+                  ),
+                  const Spacer(),
+                  if (validLocations.isNotEmpty)
+                    TextButton.icon(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => _MapScreen(
+                              title: '${pjp.displayName} – Visits',
+                              visits: validLocations,
+                            ),
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.map_rounded, size: 14),
+                      label: Text('View on Map',
+                          style: GoogleFonts.inter(fontSize: 12)),
+                      style: TextButton.styleFrom(
+                        foregroundColor: _accent,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 4),
+                        visualDensity: VisualDensity.compact,
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            // Visit tiles
+            ...pjp.getDetailedPJP!.map((visit) => _VisitTile(
+                  visit: visit,
+                  isViewOnly: pjp.isSelfPJP.trim() != '1',
+                )),
+            const SizedBox(height: 8),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _infoRow(IconData icon, String label, String value, Color iconColor) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 15, color: iconColor),
+          const SizedBox(width: 10),
+          SizedBox(
+            width: 90,
+            child: Text(
+              label,
+              style: GoogleFonts.inter(
+                  fontSize: 12,
+                  color: _textSecondary,
+                  fontWeight: FontWeight.w500),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: GoogleFonts.inter(
+                  fontSize: 12,
+                  color: _textPrimary,
+                  fontWeight: FontWeight.w600),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _dividerLine() =>
+      const Divider(height: 1, color: Color(0xFFF0F0F5), thickness: 1);
+}
+
+// ── Visit Tile (inside PJP card) ──────────────────────────────────────────────
+class _VisitTile extends StatelessWidget {
+  final GetDetailedPJP visit;
+  final bool isViewOnly;
+
+  const _VisitTile({required this.visit, required this.isViewOnly});
+
+  static const Color _textPrimary = Color(0xFF1A1D2E);
+  static const Color _textSecondary = Color(0xFF6B7280);
+  static const Color _green = Color(0xFF4CAF90);
+  static const Color _orange = Color(0xFFFF8A65);
+  static const Color _divider = Color(0xFFE8EDF2);
+
+  Color _statusColor(String s) {
+    final lower = s.trim().toLowerCase();
+    if (lower.contains('check in')) return _green;
+    if (lower.contains('check out')) return _orange;
+    if (lower.contains('complete')) return const Color(0xFF26C6DA);
+    return _textSecondary;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: () async {
+        var hiveBox = await Utility.openBox();
+        int employeeId =
+            int.parse(hiveBox.get(LocalConstant.KEY_EMPLOYEE_ID) as String);
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) => QuestionListScreen(
+                    cvfView: visit,
+                    PJPCVF_Id: int.parse(visit.PJPCVF_Id),
+                    employeeId: employeeId,
+                    mCategory: visit.purpose?.first.categoryName ?? '',
+                    mCategoryId: visit.purpose?.first.categoryId ?? '',
+                    isViewOnly: isViewOnly,
+                  )),
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF8F9FC),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: _divider),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    visit.franchiseeName,
+                    style: GoogleFonts.inter(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: _textPrimary,
+                    ),
+                  ),
+                ),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: _statusColor(visit.Status).withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    visit.Status,
+                    style: GoogleFonts.inter(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                      color: _statusColor(visit.Status),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            if (visit.franchiseeCode.isNotEmpty &&
+                visit.franchiseeCode != 'NA') ...[
+              const SizedBox(height: 2),
+              Text(
+                'Code: ${visit.franchiseeCode}',
+                style: GoogleFonts.inter(fontSize: 11, color: _textSecondary),
+              ),
+            ],
+            if (visit.ActivityTitle.isNotEmpty &&
+                visit.ActivityTitle != 'NA') ...[
+              const SizedBox(height: 2),
+              Text(
+                visit.ActivityTitle,
+                style: GoogleFonts.inter(fontSize: 11, color: _textSecondary),
+              ),
+            ],
+            if (visit.visitDate.trim().isNotEmpty &&
+                visit.visitDate.trim() != 'NA') ...[
+              const SizedBox(height: 4),
+              Row(
+                children: [
+                  const Icon(Icons.access_time_rounded,
+                      size: 12, color: Color(0xFF6B7280)),
+                  const SizedBox(width: 4),
+                  Text(
+                    '${visit.visitDate}  ${visit.visitTime}',
+                    style:
+                        GoogleFonts.inter(fontSize: 11, color: _textSecondary),
+                  ),
+                ],
+              ),
+            ],
+            if (visit.Address.trim().isNotEmpty &&
+                visit.Address.trim() != 'NA') ...[
+              const SizedBox(height: 4),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(Icons.location_on_rounded,
+                      size: 12, color: Color(0xFF26C6DA)),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: Text(
+                      visit.Address,
+                      style: GoogleFonts.inter(
+                          fontSize: 11, color: _textSecondary),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── Map Screen ────────────────────────────────────────────────────────────────
+class _MapScreen extends StatefulWidget {
+  final String title;
+  final List<GetDetailedPJP> visits;
+
+  const _MapScreen({required this.title, required this.visits});
+
+  @override
+  State<_MapScreen> createState() => _MapScreenState();
+}
+
+class _MapScreenState extends State<_MapScreen> {
+  static const Color _sidebar = Color(0xFF1E1E2E);
+  static const Color _textPrimary = Color(0xFF1A1D2E);
+  static const Color _textSecondary = Color(0xFF6B7280);
+
+  GoogleMapController? _mapController;
+  final Set<Marker> _markers = {};
+
+  @override
+  void initState() {
+    super.initState();
+    _buildMarkers();
+  }
+
+  void _buildMarkers() {
+    for (int i = 0; i < widget.visits.length; i++) {
+      final visit = widget.visits[i];
+      if (visit.Latitude == 0 && visit.Longitude == 0) continue;
+      _markers.add(
+        Marker(
+          markerId: MarkerId('visit_${visit.PJPCVF_Id}_$i'),
+          position: LatLng(visit.Latitude, visit.Longitude),
+          infoWindow: InfoWindow.noText,
+          onTap: () => _showVisitDetails(visit),
+        ),
+      );
+    }
+  }
+
+  LatLng get _initialCenter {
+    if (widget.visits.isNotEmpty) {
+      final first = widget.visits.first;
+      return LatLng(first.Latitude, first.Longitude);
+    }
+    return const LatLng(20.5937, 78.9629); // centre of India fallback
+  }
+
+  void _showVisitDetails(GetDetailedPJP visit) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => _VisitDetailSheet(visit: visit),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Details for ${DateFormat.yMMMd().format(day)}'),
-        backgroundColor: const Color(0xFF1E1E2E), // _sidebar color
+        backgroundColor: _sidebar,
         foregroundColor: Colors.white,
+        elevation: 0,
+        title: Text(
+          widget.title,
+          style: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 15),
+        ),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1),
+          child: Container(color: const Color(0xFF2E2E42), height: 1),
+        ),
       ),
-      body: ListView.builder(
-        padding: const EdgeInsets.all(16.0),
-        itemCount: events.length,
-        itemBuilder: (context, index) {
-          final event = events[index];
-          return Card(
-            margin: const EdgeInsets.only(bottom: 12.0),
-            elevation: 2,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-            child: ListTile(
-              leading: Icon(event.icon, color: event.color, size: 28),
-              title: Text(
-                event.title,
-                style: GoogleFonts.inter(fontWeight: FontWeight.w600),
-              ),
-              subtitle: Text('Status: ${event.time}',
-                  style: GoogleFonts.inter(color: Colors.grey[600])),
-              contentPadding:
-                  const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+      body: Stack(
+        children: [
+          GoogleMap(
+            initialCameraPosition: CameraPosition(
+              target: _initialCenter,
+              zoom: 12,
             ),
-          );
-        },
+            markers: _markers,
+            onMapCreated: (controller) {
+              _mapController = controller;
+              // Fit all markers
+              if (widget.visits.length > 1) {
+                Future.delayed(const Duration(milliseconds: 300), () {
+                  _fitBounds();
+                });
+              }
+            },
+            myLocationButtonEnabled: true,
+            myLocationEnabled: false,
+            zoomControlsEnabled: true,
+            mapToolbarEnabled: false,
+          ),
+          // Legend bar at top
+          Positioned(
+            top: 12,
+            left: 12,
+            right: 12,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(10),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.1),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.location_on_rounded,
+                      color: Color(0xFF26C6DA), size: 16),
+                  const SizedBox(width: 6),
+                  Text(
+                    '${widget.visits.length} location${widget.visits.length > 1 ? 's' : ''}',
+                    style: GoogleFonts.inter(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: _textPrimary,
+                    ),
+                  ),
+                  const Spacer(),
+                  Text(
+                    'Tap a marker for details',
+                    style:
+                        GoogleFonts.inter(fontSize: 11, color: _textSecondary),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _fitBounds() {
+    if (_mapController == null) return;
+    double minLat = widget.visits.first.Latitude;
+    double maxLat = widget.visits.first.Latitude;
+    double minLng = widget.visits.first.Longitude;
+    double maxLng = widget.visits.first.Longitude;
+
+    for (final v in widget.visits) {
+      if (v.Latitude < minLat) minLat = v.Latitude;
+      if (v.Latitude > maxLat) maxLat = v.Latitude;
+      if (v.Longitude < minLng) minLng = v.Longitude;
+      if (v.Longitude > maxLng) maxLng = v.Longitude;
+    }
+
+    _mapController!.animateCamera(
+      CameraUpdate.newLatLngBounds(
+        LatLngBounds(
+          southwest: LatLng(minLat - 0.01, minLng - 0.01),
+          northeast: LatLng(maxLat + 0.01, maxLng + 0.01),
+        ),
+        60,
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _mapController?.dispose();
+    super.dispose();
+  }
+}
+
+// ── Visit Detail Bottom Sheet ─────────────────────────────────────────────────
+class _VisitDetailSheet extends StatelessWidget {
+  final GetDetailedPJP visit;
+
+  const _VisitDetailSheet({required this.visit});
+
+  static const Color _textPrimary = Color(0xFF1A1D2E);
+  static const Color _textSecondary = Color(0xFF6B7280);
+  static const Color _accent = Color(0xFF26C6DA);
+  static const Color _green = Color(0xFF4CAF90);
+  static const Color _orange = Color(0xFFFF8A65);
+  static const Color _divider = Color(0xFFE8EDF2);
+
+  Color _statusColor(String s) {
+    final lower = s.trim().toLowerCase();
+    if (lower.contains('check in')) return _green;
+    if (lower.contains('check out')) return _orange;
+    if (lower.contains('complete')) return _accent;
+    return _textSecondary;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(top: 60),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Handle
+          Container(
+            margin: const EdgeInsets.only(top: 10, bottom: 6),
+            width: 40,
+            height: 4,
+            decoration: BoxDecoration(
+              color: Colors.grey[300],
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          // Header
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 10, 20, 0),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        visit.franchiseeName,
+                        style: GoogleFonts.inter(
+                          fontSize: 17,
+                          fontWeight: FontWeight.w700,
+                          color: _textPrimary,
+                        ),
+                      ),
+                      if (visit.franchiseeCode.isNotEmpty &&
+                          visit.franchiseeCode != 'NA')
+                        Text(
+                          'Code: ${visit.franchiseeCode}',
+                          style: GoogleFonts.inter(
+                              fontSize: 12, color: _textSecondary),
+                        ),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: _statusColor(visit.Status).withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: _statusColor(visit.Status).withValues(alpha: 0.4),
+                    ),
+                  ),
+                  child: Text(
+                    visit.Status,
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: _statusColor(visit.Status),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+          const Divider(height: 1, color: _divider),
+          // Details list
+          SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+            child: Column(
+              children: [
+                if (visit.ActivityTitle != 'NA' &&
+                    visit.ActivityTitle.isNotEmpty)
+                  _detailRow(Icons.work_outline_rounded, 'Activity',
+                      visit.ActivityTitle),
+                _detailRow(Icons.calendar_today_rounded, 'Visit Date',
+                    visit.visitDate),
+                _detailRow(
+                    Icons.access_time_rounded, 'Visit Time', visit.visitTime),
+                if (visit.DateTimeIn.trim().isNotEmpty &&
+                    visit.DateTimeIn.trim() != 'NA')
+                  _detailRow(
+                      Icons.login_rounded, 'Check-in Time', visit.DateTimeIn),
+                if (visit.CheckInAddress.trim().isNotEmpty &&
+                    visit.CheckInAddress.trim() != 'NA')
+                  _detailRow(Icons.location_on_rounded, 'Check-in Address',
+                      visit.CheckInAddress),
+                if (visit.DateTimeOut.trim().isNotEmpty &&
+                    visit.DateTimeOut.trim() != 'NA')
+                  _detailRow(Icons.logout_rounded, 'Check-out Time',
+                      visit.DateTimeOut),
+                if (visit.CheckOutAddress.trim().isNotEmpty &&
+                    visit.CheckOutAddress.trim() != 'NA')
+                  _detailRow(Icons.location_off_rounded, 'Check-out Address',
+                      visit.CheckOutAddress),
+                if (visit.Address.trim().isNotEmpty &&
+                    visit.Address.trim() != 'NA')
+                  _detailRow(Icons.place_rounded, 'Address', visit.Address),
+                _detailRow(
+                    Icons.verified_rounded, 'Approval', visit.approvalStatus),
+                if (visit.purpose != null && visit.purpose!.isNotEmpty)
+                  _detailRow(
+                    Icons.category_rounded,
+                    'Purpose',
+                    visit.purpose!.map((p) => p.categoryName).join(', '),
+                  ),
+                _detailRow(
+                  Icons.gps_fixed_rounded,
+                  'Coordinates',
+                  '${visit.Latitude.toStringAsFixed(5)}, ${visit.Longitude.toStringAsFixed(5)}',
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+        ],
+      ),
+    );
+  }
+
+  Widget _detailRow(IconData icon, String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 16, color: _accent),
+          const SizedBox(width: 12),
+          SizedBox(
+            width: 120,
+            child: Text(
+              label,
+              style: GoogleFonts.inter(
+                fontSize: 12,
+                color: _textSecondary,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: GoogleFonts.inter(
+                fontSize: 12,
+                color: _textPrimary,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -1546,6 +2309,7 @@ class _Event {
   final IconData icon;
   final DateTime start;
   final DateTime end;
+  final PJPInfo? pjpInfo;
 
   const _Event({
     required this.title,
@@ -1554,6 +2318,7 @@ class _Event {
     required this.icon,
     required this.start,
     required this.end,
+    this.pjpInfo,
   });
 
   bool get isMultiDay {

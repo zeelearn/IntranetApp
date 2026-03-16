@@ -43,7 +43,7 @@
         android:name="${applicationName}" android:icon="@drawable/ic_launcher">
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyAa1aljZQyelpsQH6mlmXpjEJsK8uuQ2wo" />
+            android:value="AIzaSyA20o2gNqJ70-_SuHdcpNgIvKlHUhOlG-A" />
 
         <activity android:showWhenLocked="true" android:turnScreenOn="true"
             android:name=".MainActivity" android:exported="true" android:launchMode="singleTop"

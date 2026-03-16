@@ -6,24 +6,23 @@ import 'package:flutter/services.dart';
 import '../iface/onClick.dart';
 import '../utils/theme/colors/light_colors.dart';
 
-class Helpers{
+class Helpers {
   void nextScreen(BuildContext context, String route) {
     Navigator.of(context).pushNamed(route);
   }
 }
 
 Widget buildTextAreaField(
-    GlobalKey<FormState> key,
-    TextEditingController controller,
-    String hintText,
-    IconData icon,
-    size,
-    double width,
-    bool isDarkMode,
-
-    ) {
+  GlobalKey<FormState> key,
+  TextEditingController controller,
+  String hintText,
+  IconData icon,
+  size,
+  double width,
+  bool isDarkMode,
+) {
   return Padding(
-    padding: EdgeInsets.only(top: size.height * 0.025,bottom: 15),
+    padding: EdgeInsets.only(top: size.height * 0.025, bottom: 15),
     child: Container(
       width: width,
       height: size.height * 0.1,
@@ -37,8 +36,7 @@ Widget buildTextAreaField(
           maxLines: 4,
           controller: controller,
           inputFormatters: [
-            FilteringTextInputFormatter.deny(
-                RegExp(r'\s')),
+            FilteringTextInputFormatter.deny(RegExp(r'\s')),
           ],
           style: LightColors.textHeaderStyle13,
           textInputAction: TextInputAction.next,
@@ -53,7 +51,9 @@ Widget buildTextAreaField(
               top: 10,
             ),
             hintText: hintText,
-            prefixIcon: SizedBox(width: 14,height: 14,
+            prefixIcon: SizedBox(
+                width: 14,
+                height: 14,
                 child: Icon(
                   icon,
                   color: const Color(0xff7B6F72),
@@ -65,8 +65,13 @@ Widget buildTextAreaField(
   );
 }
 
-
-Widget getTextAreaField(GlobalKey<FormState> key,TextEditingController controller,String hint,IconData icon,Size size,double width){
+Widget getTextAreaField(
+    GlobalKey<FormState> key,
+    TextEditingController controller,
+    String hint,
+    IconData icon,
+    Size size,
+    double width) {
   return Form(
     child: buildTextAreaField(
       key,
@@ -80,18 +85,18 @@ Widget getTextAreaField(GlobalKey<FormState> key,TextEditingController controlle
   );
 }
 
-Widget getDropdownField(GlobalKey<FormState> key,String title,String hint,List<String> options,onClickListener listener,Size size,double width, int action){
+Widget getDropdownField(
+    GlobalKey<FormState> key,
+    String title,
+    String hint,
+    List<String> options,
+    onClickListener listener,
+    Size size,
+    double width,
+    int action) {
   return Form(
     child: buildDropdownField(
-        key,
-        title,
-        hint,
-        options,
-        listener,
-        size,
-        width,
-        false,action
-    ),
+        key, title, hint, options, listener, size, width, false, action),
   );
 }
 
@@ -103,8 +108,8 @@ Widget buildDropdownField(
     onClickListener listener,
     Size size,
     double width,
-    bool isDark,int action
-    ) {
+    bool isDark,
+    int action) {
   return Padding(
     padding: EdgeInsets.only(top: size.height * 0.025),
     child: Container(
@@ -116,7 +121,7 @@ Widget buildDropdownField(
       ),
       child: Form(
         key: key,
-        child: getDropdownButton(title,label, options, action, listener),
+        child: getDropdownButton(title, label, options, action, listener),
       ),
     ),
   );
@@ -124,7 +129,8 @@ Widget buildDropdownField(
 
 Widget getDropdownButton(String title, String _chosenValue,
     List<String> options, int action, onClickListener listener) {
-  return Padding(padding: EdgeInsets.only(left: 5,right: 5),
+  return Padding(
+    padding: EdgeInsets.only(left: 5, right: 5),
     child: DropdownButton<String>(
       isExpanded: true,
       icon: Icon(Icons.keyboard_arrow_down),
@@ -151,14 +157,13 @@ Widget getDropdownButton(String title, String _chosenValue,
         _chosenValue = value!;
         listener.onClick(action, value);
       },
-    ),);
+    ),
+  );
 }
 
 class LifecycleEventHandler extends WidgetsBindingObserver {
   final AsyncCallback resumeCallBack;
   final AsyncCallback suspendingCallBack;
-
-
 
   LifecycleEventHandler({
     required this.resumeCallBack,
@@ -176,6 +181,11 @@ class LifecycleEventHandler extends WidgetsBindingObserver {
       case AppLifecycleState.inactive:
       case AppLifecycleState.paused:
       case AppLifecycleState.detached:
+        if (suspendingCallBack != null) {
+          await suspendingCallBack();
+        }
+        break;
+      case AppLifecycleState.hidden:
         if (suspendingCallBack != null) {
           await suspendingCallBack();
         }
@@ -248,9 +258,8 @@ Future<String> getUniqueDeviceId() async {
   return uniqueDeviceId;
 }*/
 
-
 void showSnackBar(String content, BuildContext context) {
- /* ScaffoldMessenger.of(context)
+  /* ScaffoldMessenger.of(context)
     ..hideCurrentSnackBar()
     ..showSnackBar(
       SnackBar(
