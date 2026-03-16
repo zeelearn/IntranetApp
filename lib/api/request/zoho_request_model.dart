@@ -1,14 +1,18 @@
 class ZohoRequestModel {
   List<Requests>? requests;
   String? error;
+  int? totalCount;
 
-  ZohoRequestModel({this.requests});
+  ZohoRequestModel({this.requests, this.totalCount});
   ZohoRequestModel.setError(String message) {
     error = message;
   }
 
   ZohoRequestModel.fromJson(Map<String, dynamic> json) {
     final dynamic rawRequests = json['requests'] ?? json['agreements'];
+    if (json['total_count'] != null) {
+      totalCount = int.tryParse(json['total_count'].toString());
+    }
     if (rawRequests != null) {
       requests = <Requests>[];
       rawRequests.forEach((v) {
@@ -21,6 +25,9 @@ class ZohoRequestModel {
     final Map<String, dynamic> data = <String, dynamic>{};
     if (requests != null) {
       data['requests'] = requests!.map((v) => v.toJson()).toList();
+    }
+    if (totalCount != null) {
+      data['total_count'] = totalCount;
     }
     return data;
   }
@@ -118,7 +125,8 @@ class Requests {
     inProcess = json['in_process'];
     validity = json['validity'];
     requestTypeName = json['request_type_name'];
-    requestId = json['request_id'] ?? json['agrement_id']; // Handle "agrement_id" typo in API
+    requestId = json['request_id'] ??
+        json['agrement_id']; // Handle "agrement_id" typo in API
     zsdocumentid = json['zsdocumentid'];
     requestTypeId = json['request_type_id'];
     ownerLastName = json['owner_last_name'];
@@ -134,7 +142,8 @@ class Requests {
           actionType: json['action_type'],
           actionStatus: json['action_status'],
           recipientName: json['recipient_name'],
-          recipientEmail: json['recipient_email'] ?? json['recipient'], // Handle 'recipient' key if exists
+          recipientEmail: json['recipient_email'] ??
+              json['recipient'], // Handle 'recipient' key if exists
         )
       ];
     }

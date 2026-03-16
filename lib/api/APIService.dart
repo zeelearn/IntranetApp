@@ -1965,9 +1965,9 @@ class APIService {
       final List<Requests> allRequests = [];
       int startIndex = 1;
       const int rowCount = 100;
-      bool hasMoreData = true;
+      int? totalCount;
 
-      while (hasMoreData) {
+      while (true) {
         final uri = Uri.parse(
             'https://www.zohoapis.in/crm/v7/functions/get_zoho_sign_documnet_data1/actions/execute?auth_type=apikey&zapikey=1003.cf825177f2ce96ebc934296577eac040.f9c4c7b8967068e0cafbd4e62b900368&name=null');
 
@@ -2000,33 +2000,37 @@ class APIService {
             final ZohoRequestModel batchModel =
                 ZohoRequestModel.fromJson(outputJson);
 
+            if (totalCount == null) {
+              totalCount = batchModel.totalCount;
+            }
+
             if (batchModel.requests != null &&
                 batchModel.requests!.isNotEmpty) {
               print(
                   'BatchModel Requests length - ${batchModel.requests!.length}');
               allRequests.addAll(batchModel.requests!);
-              if (batchModel.requests!.length < rowCount) {
-                hasMoreData = false;
-              } else {
-                startIndex += rowCount;
-              }
             } else {
-              hasMoreData = false;
+              break;
+            }
+            startIndex += rowCount;
+
+            if (totalCount != null && startIndex > totalCount) {
+              break;
             }
           } else {
             debugPrint('No output in response details');
-            hasMoreData = false;
+            break;
           }
         } else {
           debugPrint('Error in batch - ${response.body}');
           if (allRequests.isEmpty) {
             return ZohoRequestModel.setError('Something went wrong.');
           }
-          hasMoreData = false;
+          break;
         }
       }
 
-      return ZohoRequestModel(requests: allRequests);
+      return ZohoRequestModel(requests: allRequests, totalCount: totalCount);
     } catch (e) {
       debugPrint('Exception in getRecipientList - ${e.toString()}');
       return ZohoRequestModel.setError('Something went wrong.');

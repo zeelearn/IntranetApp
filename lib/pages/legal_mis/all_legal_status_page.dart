@@ -116,7 +116,8 @@ class _AllLegalStatusPageState extends State<AllLegalStatusPage> {
                                 child: Padding(
                                   padding: const EdgeInsets.symmetric(
                                       horizontal: 16),
-                                  child: Text(getDisplayTitle(status)),
+                                  child: Text(
+                                      '${getDisplayTitle(status)} (${getFilteredRequests(status).length})'),
                                 ),
                               ))
                           .toList(),
