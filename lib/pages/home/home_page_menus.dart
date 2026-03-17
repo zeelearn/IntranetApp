@@ -211,7 +211,7 @@ class HomePageMenu extends StatelessWidget {
                         );
                       },
                     ),
-                  _buildMenuCard(
+                  /*  _buildMenuCard(
                     title: 'My Dashboard',
                     icon: Icons.dashboard,
                     onTap: () {
@@ -222,7 +222,7 @@ class HomePageMenu extends StatelessWidget {
                         ),
                       );
                     },
-                  ),
+                  ), */
                   if (isBpms)
                     _buildMenuCard(
                       title: 'PJP-CVF Approval (Exp)',
@@ -236,7 +236,7 @@ class HomePageMenu extends StatelessWidget {
                         );
                       },
                     ),
-                  _buildMenuCard(
+                  /*   _buildMenuCard(
                     title: 'My Planning',
                     icon: Icons.calendar_view_day,
                     onTap: () {
@@ -259,9 +259,9 @@ class HomePageMenu extends StatelessWidget {
                         ),
                       );
                     },
-                  ),
+                  ), */
                   _buildMenuCard(
-                    title: 'My Team Summary',
+                    title: 'PJP Summary',
                     icon: Icons.group,
                     onTap: () {
                       Navigator.push(
