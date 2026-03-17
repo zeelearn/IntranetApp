@@ -393,7 +393,7 @@ class _MyPjpListState extends State<MyPjpManPListScreen>
   getView(PJPInfo pjpInfo, int index) {
     return GestureDetector(
       onTap: () {
-        if(pjpInfo.ApprovalStatus == 'Pending'){
+        if (pjpInfo.ApprovalStatus == 'Pending') {
           Navigator.push(
               context,
               MaterialPageRoute(
@@ -401,7 +401,7 @@ class _MyPjpListState extends State<MyPjpManPListScreen>
                         mPjpInfo: pjpInfo,
                         isView: false,
                       )));
-        }else if (pjpInfo.ApprovalStatus == 'Approved') {
+        } else if (pjpInfo.ApprovalStatus == 'Approved') {
           Navigator.push(
               context,
               MaterialPageRoute(
@@ -886,6 +886,7 @@ class _MyPjpListState extends State<MyPjpManPListScreen>
           'PJP status has been updated Successfully', this);
     }
     debugPrint('length ${mPjpList.length}');
+    if (!mounted) return;
     setState(() {
       //mPjpList.addAll(response.responseData);
     });

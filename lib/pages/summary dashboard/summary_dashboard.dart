@@ -73,6 +73,8 @@ class _SummaryDashboardState extends State<SummaryDashboard>
   // ── state ─────────────────────────────────────────────────────────────────
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
+  final DateTime _lastDay =
+      DateTime.utc(DateTime.now().year, DateTime.now().month + 4, 0);
 
   bool _isSidebarVisible = true;
 
@@ -83,9 +85,9 @@ class _SummaryDashboardState extends State<SummaryDashboard>
 
   // KPI state
   int _totalEmployees = 0;
-  int _presentToday = 0;
-  int _onLeave = 0; // This might need another API
-  int _openTasks = 0;
+  int _totalVisits = 0;
+  int _pendingApprovals = 0; // This might need another API
+  int _approvedPJP = 0;
 
   // User color mapping
   final Map<String, Color> _userColors = {};
@@ -179,8 +181,9 @@ class _SummaryDashboardState extends State<SummaryDashboard>
   }
 
   void _processPjpData() {
-    int presentCount = 0;
-    int openTasksCount = 0;
+    int totalVisits = 0;
+    int pendingApprovals = 0;
+    int approvedPjps = 0;
     List<_Event> newEvents = [];
     final today = DateTime.now();
 
@@ -210,37 +213,23 @@ class _SummaryDashboardState extends State<SummaryDashboard>
         pjpInfo: pjpInfo,
       ));
       teamMembers.add(pjpInfo.displayName);
-      /*  if (pjpInfo.getDetailedPJP != null) {
-        for (var cvf in pjpInfo.getDetailedPJP!) {
-          final visitDate = Utility.convertDate(cvf.visitDate);
-          if (visitDate != null) {
-            // Populate calendar events
-            newEvents.add(_Event(
-              title: 'Visit: ${cvf.franchiseeName}',
-              time: cvf.visitTime,
-              color: _accent,
-              icon: Icons.location_on,
-              start: visitDate,
-              end: visitDate,
-            ));
 
-            // Calculate KPIs for today
-            if (_isSameDay(visitDate, today)) {
-              if (cvf.Status.trim().toLowerCase() == 'check in') {
-                presentCount++;
-              }
-              if (cvf.Status.trim().toLowerCase() != 'completed') {
-                openTasksCount++;
-              }
-            }
-          }
-        }
-      } */
+      if (pjpInfo.getDetailedPJP != null) {
+        totalVisits += pjpInfo.getDetailedPJP!.length;
+      }
+
+      if (pjpInfo.ApprovalStatus.trim().toLowerCase() == 'pending') {
+        pendingApprovals++;
+      }
+      if (pjpInfo.ApprovalStatus.trim().toLowerCase() == 'approved') {
+        approvedPjps++;
+      }
     }
 
     // Update state variables
-    _presentToday = presentCount;
-    _openTasks = openTasksCount;
+    _totalVisits = totalVisits;
+    _pendingApprovals = pendingApprovals;
+    _approvedPJP = approvedPjps;
     _totalEmployees = teamMembers.isNotEmpty
         ? teamMembers.length
         : 1; // Avoid division by zero
@@ -301,7 +290,7 @@ class _SummaryDashboardState extends State<SummaryDashboard>
       backgroundColor: _sidebar,
       foregroundColor: Colors.white,
       elevation: 0,
-      title: Text('Summary Dashboard',
+      title: Text('PJP Dashboard',
           style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
       actions: [
         /*   IconButton(
@@ -320,7 +309,7 @@ class _SummaryDashboardState extends State<SummaryDashboard>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildKPIRow(isMobile: true),
-          const SizedBox(height: 16),
+          // const SizedBox(height: 6),
           _buildMiniCalendarCard(),
           const SizedBox(height: 16),
           _buildUpcomingEventsCard(),
@@ -328,7 +317,6 @@ class _SummaryDashboardState extends State<SummaryDashboard>
           // _buildChartCard(),
           // const SizedBox(height: 16),
           // _buildAttendanceCard(),
-          const SizedBox(height: 80),
         ],
       ),
     );
@@ -440,7 +428,7 @@ class _SummaryDashboardState extends State<SummaryDashboard>
       data: ThemeData.dark(),
       child: TableCalendar<_Event>(
         firstDay: DateTime.utc(2020, 1, 1),
-        lastDay: DateTime.utc(2030, 12, 31),
+        lastDay: _lastDay,
         focusedDay: _focusedDay,
         selectedDayPredicate: (day) =>
             _selectedDay != null && _isSameDay(day, _selectedDay!),
@@ -580,11 +568,11 @@ class _SummaryDashboardState extends State<SummaryDashboard>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (event.time.isNotEmpty)
+                /* if (event.time.isNotEmpty)
                   Text(event.time,
                       style: GoogleFonts.inter(
                           color: Colors.white.withValues(alpha: 0.4),
-                          fontSize: compact ? 9 : 10)),
+                          fontSize: compact ? 9 : 10)), */
                 Text(event.title,
                     style: GoogleFonts.inter(
                         color: Colors.white,
@@ -609,15 +597,16 @@ class _SummaryDashboardState extends State<SummaryDashboard>
         _buildTopBar(desktop: desktop),
         Expanded(
           child: SingleChildScrollView(
-            padding: EdgeInsets.all(desktop ? 24 : 16),
+            padding: EdgeInsets.all(/* desktop ? 24 : */ 16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // KPI cards
                 _buildKPIRow(isMobile: false),
-                SizedBox(height: desktop ? 24 : 16),
+                SizedBox(height: /* desktop ? 24 : */ 16),
                 // Calendar + side cards
-                desktop
+                _buildFullCalendar(),
+                /*  desktop
                     ? _buildFullCalendar() /* Row( 
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -643,7 +632,7 @@ class _SummaryDashboardState extends State<SummaryDashboard>
                           const SizedBox(height: 16),
                           _buildAttendanceCard(), */
                         ],
-                      ),
+                      ), */
                 const SizedBox(height: 80),
               ],
             ),
@@ -660,6 +649,10 @@ class _SummaryDashboardState extends State<SummaryDashboard>
           EdgeInsets.symmetric(horizontal: desktop ? 24 : 16, vertical: 10),
       child: Row(
         children: [
+          _topBarNavBtn(Icons.arrow_back, () {
+            Navigator.of(context).pop();
+          }),
+          const SizedBox(width: 8),
           // Toggle sidebar
           InkWell(
             onTap: () => setState(() => _isSidebarVisible = !_isSidebarVisible),
@@ -673,6 +666,7 @@ class _SummaryDashboardState extends State<SummaryDashboard>
               ),
             ),
           ),
+
           // Nav arrows
           const SizedBox(width: 8),
           _topBarNavBtn(Icons.chevron_left, () {
@@ -680,6 +674,10 @@ class _SummaryDashboardState extends State<SummaryDashboard>
                 DateTime(_focusedDay.year, _focusedDay.month - 1));
           }),
           _topBarNavBtn(Icons.chevron_right, () {
+            if (_lastDay.month == _focusedDay.month &&
+                _lastDay.year == _focusedDay.year) {
+              return;
+            }
             setState(() => _focusedDay =
                 DateTime(_focusedDay.year, _focusedDay.month + 1));
           }),
@@ -709,7 +707,7 @@ class _SummaryDashboardState extends State<SummaryDashboard>
                   color: _textPrimary)),
           const Spacer(),
           // Format switcher (desktop only)
-          if (desktop) _buildFormatSwitcher(),
+          /*  if (desktop) _buildFormatSwitcher(),
           const SizedBox(width: 12),
           // Search
           if (desktop)
@@ -757,9 +755,9 @@ class _SummaryDashboardState extends State<SummaryDashboard>
                 ),
               ),
             ],
-          ),
+          ), */
           // Profile
-          Container(
+          /*  Container(
             width: 34,
             height: 34,
             decoration: const BoxDecoration(
@@ -777,7 +775,7 @@ class _SummaryDashboardState extends State<SummaryDashboard>
                       fontSize: 12,
                       fontWeight: FontWeight.bold)),
             ),
-          ),
+          ), */
         ],
       ),
     );
@@ -830,23 +828,24 @@ class _SummaryDashboardState extends State<SummaryDashboard>
 
   // ── KPI Cards ─────────────────────────────────────────────────────────────
   Widget _buildKPIRow({required bool isMobile}) {
-    String presentBadge = _totalEmployees > 0
-        ? '${((_presentToday / _totalEmployees) * 100).toStringAsFixed(0)}% attendance'
-        : '0% attendance';
+    String presentBadge = '';
     // Note: 'On Leave' data is not available from this API. Using a placeholder.
-    String onLeaveBadge = _totalEmployees > 0
-        ? '${((_onLeave / _totalEmployees) * 100).toStringAsFixed(1)}% of team'
+    String onLeaveBadge = _pjpData.isNotEmpty
+        ? '${((_pendingApprovals / _pjpData.length) * 100).toStringAsFixed(1)}% of PJPs'
         : '0% of team';
+    String approvedBadge = _pjpData.isNotEmpty
+        ? '${((_approvedPJP / _pjpData.length) * 100).toStringAsFixed(1)}% of PJPs'
+        : '0% of PJPs';
 
     final cards = [
-      _KPICard('Total Employees', _totalEmployees.toString(),
+      _KPICard('Employees', _totalEmployees.toString(),
           Icons.people_alt_rounded, _accent, '', true),
-      _KPICard('Total Visit', _presentToday.toString(),
-          Icons.check_circle_rounded, _green, presentBadge, true),
-      _KPICard('Pending Approvals', _onLeave.toString(),
+      _KPICard('Visits', _totalVisits.toString(), Icons.check_circle_rounded,
+          _green, presentBadge, true),
+      _KPICard('Pending Approvals', _pendingApprovals.toString(),
           FontAwesomeIcons.umbrellaBeach, _orange, onLeaveBadge, false),
-      _KPICard('Approved PJPs', _openTasks.toString(), Icons.task_alt_rounded,
-          _accentSecondary, 'For Today', true),
+      _KPICard('Approved PJPs', _approvedPJP.toString(), Icons.task_alt_rounded,
+          _accentSecondary, approvedBadge, true),
     ];
 
     return isMobile
@@ -855,9 +854,9 @@ class _SummaryDashboardState extends State<SummaryDashboard>
             physics: const NeverScrollableScrollPhysics(),
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2,
-              crossAxisSpacing: 12,
-              mainAxisSpacing: 12,
-              childAspectRatio: 1.0,
+              crossAxisSpacing: 6,
+              mainAxisSpacing: 6,
+              childAspectRatio: 4 / 3.3,
             ),
             itemCount: cards.length,
             itemBuilder: (_, i) => _buildKPICardWidget(cards[i]),
@@ -881,73 +880,97 @@ class _SummaryDashboardState extends State<SummaryDashboard>
 
   Widget _buildKPICardWidget(_KPICard card) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: _cardBg,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
+              color: Colors.black.withOpacity(0.05),
               blurRadius: 10,
               offset: const Offset(0, 4)),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                width: 40,
-                height: 40,
+                width: 36,
+                height: 36,
                 decoration: BoxDecoration(
-                  color: card.color.withValues(alpha: 0.12),
+                  color: card.color.withOpacity(0.12),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: Icon(card.icon, color: card.color, size: 20),
+                child: Icon(card.icon, color: card.color, size: 18),
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: card.isPositive
-                      ? _green.withValues(alpha: 0.1)
-                      : _red.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      card.isPositive
-                          ? Icons.trending_up_rounded
-                          : Icons.trending_down_rounded,
-                      size: 12,
-                      color: card.isPositive ? _green : _red,
+              if (card.badge.isNotEmpty)
+                Flexible(
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: (card.isPositive ? _green : _red).withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(20),
                     ),
-                    const SizedBox(width: 3),
-                    Text(card.badge,
-                        style: GoogleFonts.inter(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w600,
-                            color: card.isPositive ? _green : _red)),
-                  ],
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        Icon(
+                          card.isPositive
+                              ? Icons.trending_up_rounded
+                              : Icons.trending_down_rounded,
+                          size: 12,
+                          color: card.isPositive ? _green : _red,
+                        ),
+                        const SizedBox(width: 4),
+                        Flexible(
+                          child: Text(
+                            card.badge,
+                            textAlign: TextAlign.end,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.inter(
+                                fontSize: 9,
+                                fontWeight: FontWeight.w600,
+                                color: card.isPositive ? _green : _red),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
+            ],
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  card.value,
+                  style: GoogleFonts.inter(
+                      fontSize: 28,
+                      fontWeight: FontWeight.w800,
+                      color: _textPrimary),
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                card.title,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.inter(
+                    fontSize: 12,
+                    color: _textSecondary,
+                    fontWeight: FontWeight.w500),
               ),
             ],
           ),
-          const SizedBox(height: 12),
-          Text(card.value,
-              style: GoogleFonts.inter(
-                  fontSize: 28,
-                  fontWeight: FontWeight.w800,
-                  color: _textPrimary)),
-          const SizedBox(height: 2),
-          Text(card.title,
-              style: GoogleFonts.inter(
-                  fontSize: 12,
-                  color: _textSecondary,
-                  fontWeight: FontWeight.w500)),
         ],
       ),
     );
@@ -970,7 +993,7 @@ class _SummaryDashboardState extends State<SummaryDashboard>
         borderRadius: BorderRadius.circular(12),
         child: TableCalendar<_Event>(
           firstDay: DateTime.utc(2020, 1, 1),
-          lastDay: DateTime.utc(2030, 12, 31),
+          lastDay: _lastDay,
           focusedDay: _focusedDay,
           selectedDayPredicate: (day) =>
               _selectedDay != null && _isSameDay(day, _selectedDay!),
@@ -1153,6 +1176,66 @@ class _SummaryDashboardState extends State<SummaryDashboard>
     );
   }
 
+  Widget _buildMobileCalCell(DateTime day,
+      {List<_Event> events = const [],
+      bool isToday = false,
+      bool isSelected = false,
+      bool isOutside = false}) {
+    if (isOutside) {
+      return Center(
+        child: Text(
+          '${day.day}',
+          style: GoogleFonts.inter(color: _textSecondary.withOpacity(0.5)),
+        ),
+      );
+    }
+    return Center(
+      child: Container(
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+          color: isSelected
+              ? _accentSecondary
+              : (isToday ? _accent : Colors.transparent),
+          shape: BoxShape.circle,
+        ),
+        child: Stack(
+          alignment: Alignment.center,
+          clipBehavior: Clip.none,
+          children: [
+            Text(
+              '${day.day}',
+              style: GoogleFonts.inter(
+                  color: isSelected || isToday ? Colors.white : _textPrimary),
+            ),
+            if (events.isNotEmpty)
+              Positioned(
+                top: 0,
+                right: 0,
+                child: Container(
+                  padding: const EdgeInsets.all(2),
+                  decoration: BoxDecoration(
+                      color: _red,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white, width: 1)),
+                  constraints:
+                      const BoxConstraints(minWidth: 16, minHeight: 16),
+                  child: Text(
+                    '${events.length}',
+                    style: GoogleFonts.inter(
+                        color: Colors.white,
+                        fontSize: 9,
+                        fontWeight: FontWeight.bold),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
   // ── Mini calendar card (mobile) ───────────────────────────────────────────
   Widget _buildMiniCalendarCard() {
     return Container(
@@ -1161,14 +1244,14 @@ class _SummaryDashboardState extends State<SummaryDashboard>
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
+              color: Colors.black.withOpacity(0.05),
               blurRadius: 10,
               offset: const Offset(0, 4))
         ],
       ),
       child: TableCalendar<_Event>(
         firstDay: DateTime.utc(2020, 1, 1),
-        lastDay: DateTime.utc(2030, 12, 31),
+        lastDay: _lastDay,
         focusedDay: _focusedDay,
         selectedDayPredicate: (day) =>
             _selectedDay != null && _isSameDay(day, _selectedDay!),
@@ -1198,17 +1281,24 @@ class _SummaryDashboardState extends State<SummaryDashboard>
           titleTextStyle: GoogleFonts.inter(
               fontWeight: FontWeight.w700, fontSize: 15, color: _textPrimary),
         ),
-        calendarStyle: CalendarStyle(
+        calendarStyle: const CalendarStyle(
           outsideDaysVisible: false,
-          todayDecoration:
-              const BoxDecoration(color: _accent, shape: BoxShape.circle),
-          todayTextStyle: GoogleFonts.inter(
-              color: Colors.white, fontWeight: FontWeight.bold),
-          selectedDecoration: const BoxDecoration(
-              color: _accentSecondary, shape: BoxShape.circle),
-          selectedTextStyle: GoogleFonts.inter(
-              color: Colors.white, fontWeight: FontWeight.bold),
-          markerDecoration: const BoxDecoration(),
+        ),
+        calendarBuilders: CalendarBuilders(
+          defaultBuilder: (context, day, focusedDay) {
+            return _buildMobileCalCell(day, events: _getEventsForDay(day));
+          },
+          todayBuilder: (context, day, focusedDay) {
+            return _buildMobileCalCell(day,
+                events: _getEventsForDay(day), isToday: true);
+          },
+          selectedBuilder: (context, day, focusedDay) {
+            return _buildMobileCalCell(day,
+                events: _getEventsForDay(day), isSelected: true);
+          },
+          outsideBuilder: (context, day, focusedDay) {
+            return _buildMobileCalCell(day, isOutside: true);
+          },
         ),
       ),
     );
@@ -1276,10 +1366,10 @@ class _SummaryDashboardState extends State<SummaryDashboard>
                         fontSize: 13,
                         fontWeight: FontWeight.w500,
                         color: _textPrimary)),
-                if (event.time.isNotEmpty)
+                /*   if (event.time.isNotEmpty)
                   Text(event.time,
                       style: GoogleFonts.inter(
-                          fontSize: 11, color: _textSecondary)),
+                          fontSize: 11, color: _textSecondary)), */
               ],
             ),
           ),
@@ -1373,9 +1463,11 @@ class _SummaryDashboardState extends State<SummaryDashboard>
       icon: Icons.group_rounded,
       child: Column(
         children: [
-          _buildStatusRow('Present', _presentToday, _totalEmployees, _green),
+          _buildStatusRow(
+              'Total Visits', _totalVisits, _totalEmployees, _green),
           const SizedBox(height: 10),
-          _buildStatusRow('On Leave', _onLeave, _totalEmployees, _orange),
+          _buildStatusRow(
+              'Pending Approvals', _pendingApprovals, _totalEmployees, _orange),
           const SizedBox(height: 10),
           // 'Remote' data is not available from this API. Using a placeholder.
           _buildStatusRow('Remote', 0, _totalEmployees, _accentSecondary),
@@ -1383,9 +1475,9 @@ class _SummaryDashboardState extends State<SummaryDashboard>
           // Pie-like row
           Row(
             children: [
-              _buildStatChip(_presentToday.toString(), 'Present', _green),
+              _buildStatChip(_totalVisits.toString(), 'Visits', _green),
               const SizedBox(width: 6),
-              _buildStatChip(_onLeave.toString(), 'Leave', _orange),
+              _buildStatChip(_pendingApprovals.toString(), 'Pending', _orange),
               const SizedBox(width: 6),
               _buildStatChip('0', 'Remote', _accentSecondary),
             ],
@@ -1528,31 +1620,34 @@ class _DayEventsScreen extends StatelessWidget {
           child: Container(color: const Color(0xFF2E2E42), height: 1),
         ),
       ),
-      body: pjpList.isEmpty
-          ? Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.event_busy_rounded,
-                      size: 56, color: Colors.grey[300]),
-                  const SizedBox(height: 12),
-                  Text('No PJP entries for this day',
-                      style: GoogleFonts.inter(
-                          color: _textSecondary, fontSize: 14)),
-                ],
+      body: SafeArea(
+        child: pjpList.isEmpty
+            ? Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.event_busy_rounded,
+                        size: 56, color: Colors.grey[300]),
+                    const SizedBox(height: 12),
+                    Text('No PJP entries for this day',
+                        style: GoogleFonts.inter(
+                            color: _textSecondary, fontSize: 14)),
+                  ],
+                ),
+              )
+            : ListView.builder(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+                itemCount: pjpList.length,
+                itemBuilder: (context, index) {
+                  final pjp = pjpList[index];
+                  return _PjpInfoCard(
+                    pjp: pjp,
+                    color: events[index].color,
+                  );
+                },
               ),
-            )
-          : ListView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-              itemCount: pjpList.length,
-              itemBuilder: (context, index) {
-                final pjp = pjpList[index];
-                return _PjpInfoCard(
-                  pjp: pjp,
-                  color: events[index].color,
-                );
-              },
-            ),
+      ),
     );
   }
 }
@@ -2019,70 +2114,73 @@ class _MapScreenState extends State<_MapScreen> {
           child: Container(color: const Color(0xFF2E2E42), height: 1),
         ),
       ),
-      body: Stack(
-        children: [
-          GoogleMap(
-            initialCameraPosition: CameraPosition(
-              target: _initialCenter,
-              zoom: 12,
-            ),
-            markers: _markers,
-            onMapCreated: (controller) {
-              _mapController = controller;
-              // Fit all markers
-              if (widget.visits.length > 1) {
-                Future.delayed(const Duration(milliseconds: 300), () {
-                  _fitBounds();
-                });
-              }
-            },
-            myLocationButtonEnabled: true,
-            myLocationEnabled: false,
-            zoomControlsEnabled: true,
-            mapToolbarEnabled: false,
-          ),
-          // Legend bar at top
-          Positioned(
-            top: 12,
-            left: 12,
-            right: 12,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(10),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.1),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
+      body: SafeArea(
+        child: Stack(
+          children: [
+            GoogleMap(
+              initialCameraPosition: CameraPosition(
+                target: _initialCenter,
+                zoom: 12,
               ),
-              child: Row(
-                children: [
-                  const Icon(Icons.location_on_rounded,
-                      color: Color(0xFF26C6DA), size: 16),
-                  const SizedBox(width: 6),
-                  Text(
-                    '${widget.visits.length} location${widget.visits.length > 1 ? 's' : ''}',
-                    style: GoogleFonts.inter(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: _textPrimary,
+              markers: _markers,
+              onMapCreated: (controller) {
+                _mapController = controller;
+                // Fit all markers
+                if (widget.visits.length > 1) {
+                  Future.delayed(const Duration(milliseconds: 300), () {
+                    _fitBounds();
+                  });
+                }
+              },
+              myLocationButtonEnabled: true,
+              myLocationEnabled: false,
+              zoomControlsEnabled: true,
+              mapToolbarEnabled: false,
+            ),
+            // Legend bar at top
+            Positioned(
+              top: 12,
+              left: 12,
+              right: 12,
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(10),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.1),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
                     ),
-                  ),
-                  const Spacer(),
-                  Text(
-                    'Tap a marker for details',
-                    style:
-                        GoogleFonts.inter(fontSize: 11, color: _textSecondary),
-                  ),
-                ],
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.location_on_rounded,
+                        color: Color(0xFF26C6DA), size: 16),
+                    const SizedBox(width: 6),
+                    Text(
+                      '${widget.visits.length} location${widget.visits.length > 1 ? 's' : ''}',
+                      style: GoogleFonts.inter(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: _textPrimary,
+                      ),
+                    ),
+                    const Spacer(),
+                    Text(
+                      'Tap a marker for details',
+                      style: GoogleFonts.inter(
+                          fontSize: 11, color: _textSecondary),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -2142,126 +2240,129 @@ class _VisitDetailSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(top: 60),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Handle
-          Container(
-            margin: const EdgeInsets.only(top: 10, bottom: 6),
-            width: 40,
-            height: 4,
-            decoration: BoxDecoration(
-              color: Colors.grey[300],
-              borderRadius: BorderRadius.circular(2),
+    return SafeArea(
+      child: Container(
+        margin: const EdgeInsets.only(top: 60),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Handle
+            Container(
+              margin: const EdgeInsets.only(top: 10, bottom: 6),
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(2),
+              ),
             ),
-          ),
-          // Header
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 10, 20, 0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        visit.franchiseeName,
-                        style: GoogleFonts.inter(
-                          fontSize: 17,
-                          fontWeight: FontWeight.w700,
-                          color: _textPrimary,
-                        ),
-                      ),
-                      if (visit.franchiseeCode.isNotEmpty &&
-                          visit.franchiseeCode != 'NA')
+            // Header
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 10, 20, 0),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
                         Text(
-                          'Code: ${visit.franchiseeCode}',
+                          visit.franchiseeName,
                           style: GoogleFonts.inter(
-                              fontSize: 12, color: _textSecondary),
+                            fontSize: 17,
+                            fontWeight: FontWeight.w700,
+                            color: _textPrimary,
+                          ),
                         ),
-                    ],
-                  ),
-                ),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: _statusColor(visit.Status).withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: _statusColor(visit.Status).withValues(alpha: 0.4),
+                        if (visit.franchiseeCode.isNotEmpty &&
+                            visit.franchiseeCode != 'NA')
+                          Text(
+                            'Code: ${visit.franchiseeCode}',
+                            style: GoogleFonts.inter(
+                                fontSize: 12, color: _textSecondary),
+                          ),
+                      ],
                     ),
                   ),
-                  child: Text(
-                    visit.Status,
-                    style: GoogleFonts.inter(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: _statusColor(visit.Status),
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: _statusColor(visit.Status).withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color:
+                            _statusColor(visit.Status).withValues(alpha: 0.4),
+                      ),
+                    ),
+                    child: Text(
+                      visit.Status,
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: _statusColor(visit.Status),
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-          const SizedBox(height: 12),
-          const Divider(height: 1, color: _divider),
-          // Details list
-          SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-            child: Column(
-              children: [
-                if (visit.ActivityTitle != 'NA' &&
-                    visit.ActivityTitle.isNotEmpty)
-                  _detailRow(Icons.work_outline_rounded, 'Activity',
-                      visit.ActivityTitle),
-                _detailRow(Icons.calendar_today_rounded, 'Visit Date',
-                    visit.visitDate),
-                _detailRow(
-                    Icons.access_time_rounded, 'Visit Time', visit.visitTime),
-                if (visit.DateTimeIn.trim().isNotEmpty &&
-                    visit.DateTimeIn.trim() != 'NA')
+            const SizedBox(height: 12),
+            const Divider(height: 1, color: _divider),
+            // Details list
+            SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+              child: Column(
+                children: [
+                  if (visit.ActivityTitle != 'NA' &&
+                      visit.ActivityTitle.isNotEmpty)
+                    _detailRow(Icons.work_outline_rounded, 'Activity',
+                        visit.ActivityTitle),
+                  _detailRow(Icons.calendar_today_rounded, 'Visit Date',
+                      visit.visitDate),
                   _detailRow(
-                      Icons.login_rounded, 'Check-in Time', visit.DateTimeIn),
-                if (visit.CheckInAddress.trim().isNotEmpty &&
-                    visit.CheckInAddress.trim() != 'NA')
-                  _detailRow(Icons.location_on_rounded, 'Check-in Address',
-                      visit.CheckInAddress),
-                if (visit.DateTimeOut.trim().isNotEmpty &&
-                    visit.DateTimeOut.trim() != 'NA')
-                  _detailRow(Icons.logout_rounded, 'Check-out Time',
-                      visit.DateTimeOut),
-                if (visit.CheckOutAddress.trim().isNotEmpty &&
-                    visit.CheckOutAddress.trim() != 'NA')
-                  _detailRow(Icons.location_off_rounded, 'Check-out Address',
-                      visit.CheckOutAddress),
-                if (visit.Address.trim().isNotEmpty &&
-                    visit.Address.trim() != 'NA')
-                  _detailRow(Icons.place_rounded, 'Address', visit.Address),
-                _detailRow(
-                    Icons.verified_rounded, 'Approval', visit.approvalStatus),
-                if (visit.purpose != null && visit.purpose!.isNotEmpty)
+                      Icons.access_time_rounded, 'Visit Time', visit.visitTime),
+                  if (visit.DateTimeIn.trim().isNotEmpty &&
+                      visit.DateTimeIn.trim() != 'NA')
+                    _detailRow(
+                        Icons.login_rounded, 'Check-in Time', visit.DateTimeIn),
+                  if (visit.CheckInAddress.trim().isNotEmpty &&
+                      visit.CheckInAddress.trim() != 'NA')
+                    _detailRow(Icons.location_on_rounded, 'Check-in Address',
+                        visit.CheckInAddress),
+                  if (visit.DateTimeOut.trim().isNotEmpty &&
+                      visit.DateTimeOut.trim() != 'NA')
+                    _detailRow(Icons.logout_rounded, 'Check-out Time',
+                        visit.DateTimeOut),
+                  if (visit.CheckOutAddress.trim().isNotEmpty &&
+                      visit.CheckOutAddress.trim() != 'NA')
+                    _detailRow(Icons.location_off_rounded, 'Check-out Address',
+                        visit.CheckOutAddress),
+                  if (visit.Address.trim().isNotEmpty &&
+                      visit.Address.trim() != 'NA')
+                    _detailRow(Icons.place_rounded, 'Address', visit.Address),
                   _detailRow(
-                    Icons.category_rounded,
-                    'Purpose',
-                    visit.purpose!.map((p) => p.categoryName).join(', '),
+                      Icons.verified_rounded, 'Approval', visit.approvalStatus),
+                  if (visit.purpose != null && visit.purpose!.isNotEmpty)
+                    _detailRow(
+                      Icons.category_rounded,
+                      'Purpose',
+                      visit.purpose!.map((p) => p.categoryName).join(', '),
+                    ),
+                  _detailRow(
+                    Icons.gps_fixed_rounded,
+                    'Coordinates',
+                    '${visit.Latitude.toStringAsFixed(5)}, ${visit.Longitude.toStringAsFixed(5)}',
                   ),
-                _detailRow(
-                  Icons.gps_fixed_rounded,
-                  'Coordinates',
-                  '${visit.Latitude.toStringAsFixed(5)}, ${visit.Longitude.toStringAsFixed(5)}',
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-          const SizedBox(height: 16),
-        ],
+            const SizedBox(height: 16),
+          ],
+        ),
       ),
     );
   }
