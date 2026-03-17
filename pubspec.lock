@@ -557,9 +557,11 @@ packages:
   expensestracker:
     dependency: "direct main"
     description:
-      path: "D:/vishwan/expensestracker"
-      relative: false
-    source: path
+      path: "."
+      ref: ui_enhancement
+      resolved-ref: "3e421b75c0feec426334539a24730313c68c0063"
+      url: "https://github.com/ZeeLearnLtd/excepsesmanagement.git"
+    source: git
     version: "1.0.2+11"
   fake_async:
     dependency: transitive
@@ -2281,9 +2283,11 @@ packages:
   saathi:
     dependency: "direct main"
     description:
-      path: "D:/vishwan/ZeeSathi"
-      relative: false
-    source: path
+      path: "."
+      ref: "saathi_2.0"
+      resolved-ref: "9d639c8d2f8e8dccc42110c22e2571e1d7429d58"
+      url: "https://github.com/ZeeLearnLtd/ZeeSathi.git"
+    source: git
     version: "1.0.10+12"
   sanitize_html:
     dependency: transitive
@@ -2830,10 +2834,10 @@ packages:
     dependency: transitive
     description:
       name: webview_flutter_wkwebview
-      sha256: fc0af89d403e1c053f03d023d97550412fa79f35332e2939514c82e6fe633198
+      sha256: "2df8fd9ada04d699b9db8e79aa783a16e5d89b69e5b74009b87e16b59912cf98"
       url: "https://pub.dev"
     source: hosted
-    version: "3.23.8"
+    version: "3.24.0"
   win32:
     dependency: "direct overridden"
     description:
