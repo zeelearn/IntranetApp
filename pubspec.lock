@@ -2284,7 +2284,7 @@ packages:
       path: "D:/vishwan/ZeeSathi"
       relative: false
     source: path
-    version: "1.0.3+5"
+    version: "1.0.10+12"
   sanitize_html:
     dependency: transitive
     description:
