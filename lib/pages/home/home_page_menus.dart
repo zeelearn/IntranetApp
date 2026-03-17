@@ -261,7 +261,7 @@ class HomePageMenu extends StatelessWidget {
                     },
                   ), */
                   _buildMenuCard(
-                    title: 'PJP Summary',
+                    title: 'PJP Dashboard',
                     icon: Icons.group,
                     onTap: () {
                       Navigator.push(

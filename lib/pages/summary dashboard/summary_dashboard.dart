@@ -2,6 +2,7 @@ import 'package:Intranet/api/ServiceHandler.dart';
 import 'package:Intranet/api/request/pjp/get_pjp_report_request.dart';
 import 'package:Intranet/api/response/pjp/pjplistresponse.dart';
 import 'package:Intranet/pages/helper/LocalConstant.dart';
+import 'package:Intranet/pages/helper/constants.dart';
 import 'package:Intranet/pages/helper/utils.dart';
 import 'package:Intranet/pages/iface/onResponse.dart';
 import 'package:Intranet/pages/pjp/cvf/cvf_questions.dart';
@@ -58,7 +59,7 @@ class SummaryDashboard extends StatefulWidget {
 class _SummaryDashboardState extends State<SummaryDashboard>
     implements onResponse {
   // ── colors ───────────────────────────────────────────────────────────────
-  static const Color _sidebar = Color(0xFF1E1E2E);
+    Color _sidebar = kPrimaryLightColor;
   static const Color _accent = Color(0xFF26C6DA);
   static const Color _accentSecondary = Color(0xFF7C83E5);
   static const Color _green = Color(0xFF4CAF90);
@@ -1596,7 +1597,7 @@ class _DayEventsScreen extends StatelessWidget {
 
   const _DayEventsScreen({required this.day, required this.events});
 
-  static const Color _sidebar = Color(0xFF1E1E2E);
+  static const Color _sidebar = kPrimaryLightColor;
   static const Color _mainBg = Color(0xFFF5F7FA);
   static const Color _textSecondary = Color(0xFF6B7280);
 
@@ -2053,7 +2054,7 @@ class _MapScreen extends StatefulWidget {
 }
 
 class _MapScreenState extends State<_MapScreen> {
-  static const Color _sidebar = Color(0xFF1E1E2E);
+  static const Color _sidebar = kPrimaryLightColor;
   static const Color _textPrimary = Color(0xFF1A1D2E);
   static const Color _textSecondary = Color(0xFF6B7280);
 
