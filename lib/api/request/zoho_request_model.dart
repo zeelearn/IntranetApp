@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 class ZohoRequestModel {
   List<Requests>? requests;
   String? error;
@@ -9,9 +11,18 @@ class ZohoRequestModel {
   }
 
   ZohoRequestModel.fromJson(Map<String, dynamic> json) {
-    final dynamic rawRequests = json['requests'] ?? json['agreements'];
-    if (json['total_count'] != null) {
-      totalCount = int.tryParse(json['total_count'].toString());
+    Map<String, dynamic> data = json;
+    if (json['details'] != null && json['details']['output'] != null) {
+      try {
+        data = jsonDecode(json['details']['output']);
+      } catch (e) {
+        // Fallback to original json if parsing fails
+      }
+    }
+
+    final dynamic rawRequests = data['requests'] ?? data['agreements'];
+    if (data['total_count'] != null) {
+      totalCount = int.tryParse(data['total_count'].toString());
     }
     if (rawRequests != null) {
       requests = <Requests>[];
@@ -96,7 +107,17 @@ class Requests {
 
   Requests.fromJson(Map<String, dynamic> json) {
     // Handle both old and new Zoho API key names
-    requestStatus = json['request_status'] ?? json['agreement_status'];
+    requestStatus = json['agreement_status'] != 'draft' &&
+            json['agreement_status'] != 'expired' &&
+            json['agreement_status'] != 'recalled' &&
+            json['agreement_status'] != 'declined'
+        ? (json['action_status'] == 'APPROVED' ||
+                json['action_status'] == 'SIGNED')
+            ? 'completed'
+            : json['action_status'] == 'NOACTION'
+                ? 'No Action'
+                : json['request_status'] ?? json['agreement_status']
+        : json['agreement_status'];
     notes = json['notes'];
     reminderPeriod = json['reminder_period'];
     ownerId = json['owner_id'];

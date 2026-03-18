@@ -928,6 +928,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.2.1"
+  flutter_dotenv:
+    dependency: "direct main"
+    description:
+      name: flutter_dotenv
+      sha256: d4130c4a43e0b13fefc593bc3961f2cb46e30cb79e253d4a526b1b5d24ae1ce4
+      url: "https://pub.dev"
+    source: hosted
+    version: "6.0.0"
   flutter_downloader:
     dependency: "direct main"
     description:
@@ -1811,10 +1819,10 @@ packages:
     dependency: transitive
     description:
       name: markdown
-      sha256: "935e23e1ff3bc02d390bad4d4be001208ee92cc217cb5b5a6c19bc14aaa318c1"
+      sha256: ee85086ad7698b42522c6ad42fe195f1b9898e4d974a1af4576c1a3a176cada9
       url: "https://pub.dev"
     source: hosted
-    version: "7.3.0"
+    version: "7.3.1"
   matcher:
     dependency: transitive
     description:
@@ -2315,17 +2323,11 @@ packages:
   saathi:
     dependency: "direct main"
     description:
-<<<<<<< HEAD
-      path: "D:/vishwan/ZeeSathi"
-      relative: false
-    source: path
-=======
       path: "."
       ref: "saathi_2.0"
       resolved-ref: "9d639c8d2f8e8dccc42110c22e2571e1d7429d58"
       url: "https://github.com/ZeeLearnLtd/ZeeSathi.git"
     source: git
->>>>>>> pjp_enhancement
     version: "1.0.10+12"
   sanitize_html:
     dependency: transitive

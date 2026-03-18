@@ -1922,7 +1922,7 @@ class APIService {
                   'BatchModel Requests length - ${batchModel.requests!.length}');
               allRequests.addAll(batchModel.requests!);
             } else {
-              break;
+              // break;
             }
             startIndex += rowCount;
 

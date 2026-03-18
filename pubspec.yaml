@@ -130,10 +130,10 @@ dependencies:
   #flutter_slidable: ^2.0.0
 
   saathi:
-    # git:
-    #   url: https://github.com/ZeeLearnLtd/ZeeSathi.git
-    #   ref: saathi_2.0
-    path: D:/vishwan/ZeeSathi
+    git:
+      url: https://github.com/ZeeLearnLtd/ZeeSathi.git
+      ref: saathi_2.0
+    # path: D:/vishwan/ZeeSathi
 
   expensestracker:
     # path: D:/vishwan/expensestracker
@@ -146,6 +146,7 @@ dependencies:
 
   path_provider: any
   google_maps_flutter: ^2.11.0
+  flutter_dotenv: ^6.0.0
   
 
 dependency_overrides:
@@ -217,6 +218,7 @@ flutter:
     - assets/images/
     - assets/icons/
     - assets/json/
+    - .env
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
 
