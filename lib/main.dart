@@ -289,9 +289,9 @@ Future<void> main() async {
   // }
 
   NotificationController.startListeningNotificationEvents();
+  await NotificationController.initializeLocalNotifications();
 
   if (!kIsWeb) {
-    await NotificationController.initializeLocalNotifications();
     await NotificationController.initializeIsolateReceivePort();
     // messaging = FirebaseMessaging.instance;
 
@@ -328,7 +328,7 @@ Future<void> main() async {
     // await FirebaseMessaging.instance.setAutoInitEnabled(true);
   }
   //_requestPermission();
-  await PermissionUtil.requestPermission();
+  PermissionUtil.requestPermission();
 
   await Hive.initFlutter();
   await Hive.openBox(LocalConstant.communicationKey); // settings

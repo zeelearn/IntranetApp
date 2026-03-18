@@ -59,7 +59,7 @@ class SummaryDashboard extends StatefulWidget {
 class _SummaryDashboardState extends State<SummaryDashboard>
     implements onResponse {
   // ── colors ───────────────────────────────────────────────────────────────
-    Color _sidebar = kPrimaryLightColor;
+  Color _sidebar = kPrimaryLightColor;
   static const Color _accent = Color(0xFF26C6DA);
   static const Color _accentSecondary = Color(0xFF7C83E5);
   static const Color _green = Color(0xFF4CAF90);
@@ -327,7 +327,7 @@ class _SummaryDashboardState extends State<SummaryDashboard>
   Widget _buildSidebar({required bool compact}) {
     final now = DateTime.now();
     return Container(
-      color: _sidebar,
+      color: Color(0xFF1E1E2E),
       child: SafeArea(
         child: Column(
           children: [
@@ -337,7 +337,7 @@ class _SummaryDashboardState extends State<SummaryDashboard>
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('Dashboard',
+                  Text('PJP Dashboard',
                       style: GoogleFonts.inter(
                           color: Colors.white,
                           fontWeight: FontWeight.w700,
