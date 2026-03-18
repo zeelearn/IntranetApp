@@ -113,6 +113,16 @@ Map<String, String> commonHeaders = {
   "Access-Control-Allow-Methods": "*"
 };
 
+Map<String, String> commonHeaders = {
+  "Accept": "application/json",
+  "content-type": "application/json",
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Credentials": "false",
+  "Access-Control-Allow-Headers":
+      "Origin,Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,locale",
+  "Access-Control-Allow-Methods": "*"
+};
+
 class APIService {
   String url = /* kIsWeb ? "" : */ LocalStrings.developmentBaseUrl;
   String bpms_url = LocalStrings.bpms;
@@ -1874,31 +1884,26 @@ class APIService {
 
   Future<ZohoRequestModel> getRecipientList(String email) async {
     try {
-      final List<Requests> allRequests = [];
-      int startIndex = 1;
-      const int rowCount = 100;
-      int? totalCount;
+      final uri = Uri.parse(
+              'https://www.zohoapis.in/crm/v7/functions/get_zoho_sign_documnet_data/actions/execute')
+          .replace(queryParameters: {
+        'auth_type': 'apikey',
+        'zapikey':
+            '1003.cf825177f2ce96ebc934296577eac040.f9c4c7b8967068e0cafbd4e62b900368',
+      });
 
-      while (true) {
-        final uri = Uri.parse(
-            'https://www.zohoapis.in/crm/v7/functions/get_zoho_sign_documnet_data1/actions/execute?auth_type=apikey&zapikey=1003.cf825177f2ce96ebc934296577eac040.f9c4c7b8967068e0cafbd4e62b900368&name=null');
+      final request = http.MultipartRequest('POST', uri);
 
-        final request = http.MultipartRequest('POST', uri);
+      request.headers['Cookie'] =
+          '_zcsr_tmp=f2d99b38-26a2-4b1e-84ac-9391a3c224ce; '
+          'crmcsr=f2d99b38-26a2-4b1e-84ac-9391a3c224ce; '
+          'group_name=usergroup1';
 
-        request.headers['Cookie'] =
-            '_zcsr_tmp=83c3ae70-8128-44c6-90b5-45f6e674ee15; '
-            'crmcsr=83c3ae70-8128-44c6-90b5-45f6e674ee15; '
-            'group_name=usergroup1; '
-            '_zcsr_tmp=08457b0d-c89e-4a49-895f-54a64707990a; '
-            'crmcsr=08457b0d-c89e-4a49-895f-54a64707990a; '
-            'group_name=usergroup1';
+      request.fields['start_index'] = '0';
+      request.fields['row_count'] = '1000';
 
-        request.fields['row_count'] = rowCount.toString();
-        request.fields['start_index'] = startIndex.toString();
-        request.fields['recipient_email'] = email;
-
-        final streamedResponse = await request.send();
-        final response = await http.Response.fromStream(streamedResponse);
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
 
         if (response.statusCode == 200) {
           debugPrint('Zoho response body - ${response.body}');
@@ -1944,8 +1949,9 @@ class APIService {
 
       return ZohoRequestModel(requests: allRequests, totalCount: totalCount);
     } catch (e) {
-      debugPrint('Exception in getRecipientList - ${e.toString()}');
-      return ZohoRequestModel.setError('Something went wrong.');
+      debugPrint('Exception - ${e.toString()}');
+
+      return ZohoRequestModel.setError(e.toString());
     }
   }
 
