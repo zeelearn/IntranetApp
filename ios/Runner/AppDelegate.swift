@@ -2,6 +2,7 @@ import UIKit
 import Flutter
 import awesome_notifications
 import flutter_downloader
+import GoogleMaps
 
 
 @main
@@ -12,7 +13,7 @@ import flutter_downloader
   ) -> Bool {
 
 //    SwiftFlutterBackgroundServicePlugin.taskIdentifier = "your.custom.task.identifier"
-
+GMSServices.provideAPIKey("AIzaSyA20o2gNqJ70-_SuHdcpNgIvKlHUhOlG-A")
     GeneratedPluginRegistrant.register(with: self)
       SwiftAwesomeNotificationsPlugin.setPluginRegistrantCallback { registry in
               SwiftAwesomeNotificationsPlugin.register(

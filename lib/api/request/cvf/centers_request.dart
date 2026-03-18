@@ -1,20 +1,28 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
+
 class CentersRequestModel {
   int EmployeeId;
   int Brand;
 
-  CentersRequestModel(
-      {required this.EmployeeId,
-        required this.Brand,
-      });
+  CentersRequestModel({
+    required this.EmployeeId,
+    required this.Brand,
+  });
 
-  getJson(){
-    return jsonEncode( {
+  getJson() {
+    return jsonEncode({
       'EmployeeId': EmployeeId,
       'Brand': Brand,
-      'AppType' :Platform.isAndroid ? 'Android' : Platform.isIOS ? 'IOS' : 'unknown'
+      'AppType': kIsWeb
+          ? 'Web'
+          : Platform.isAndroid
+              ? 'Android'
+              : Platform.isIOS
+                  ? 'IOS'
+                  : 'unknown'
     });
   }
 

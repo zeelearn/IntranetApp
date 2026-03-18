@@ -44,6 +44,8 @@ import 'package:saathi/dependency_Injection/dependency_injection.dart';
 import 'package:saathi/model/notificationModel/notificationModel.dart';
 import 'package:saathi/model/ticketModel/ticket_model.dart';
 import 'package:saathi/zllsaathi.dart';
+import 'package:sqflite/sqflite.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 import 'api/APIService.dart';
 import 'api/request/cvf/update_cvf_status_request.dart';
@@ -258,6 +260,7 @@ final localhostServer =
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
   pdfrxFlutterInitialize();
   _openBox();
 
@@ -286,9 +289,9 @@ Future<void> main() async {
   // }
 
   NotificationController.startListeningNotificationEvents();
+  await NotificationController.initializeLocalNotifications();
 
   if (!kIsWeb) {
-    await NotificationController.initializeLocalNotifications();
     await NotificationController.initializeIsolateReceivePort();
     // messaging = FirebaseMessaging.instance;
 
@@ -325,7 +328,7 @@ Future<void> main() async {
     // await FirebaseMessaging.instance.setAutoInitEnabled(true);
   }
   //_requestPermission();
-  await PermissionUtil.requestPermission();
+  PermissionUtil.requestPermission();
 
   await Hive.initFlutter();
   await Hive.openBox(LocalConstant.communicationKey); // settings
@@ -919,7 +922,7 @@ class _MyAppState extends State<MyApp> {
 
         ),*/
       ),
-      home: /* SummaryDashboard() */ SplashScreen(
+      home: /*  SummaryDashboard() */ SplashScreen(
         receivedAction: widget.receivedAction,
       ),
     );

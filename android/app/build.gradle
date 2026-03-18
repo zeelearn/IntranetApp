@@ -48,8 +48,8 @@ android {
         // For more information, see: https://docs.flutter.dev/deployment/android#reviewing-the-build-configuration.
         minSdkVersion flutter.minSdkVersion
         targetSdkVersion 36
-        versionCode 45
-        versionName '1.7.6' 
+        versionCode 47
+        versionName '1.7.7' 
         manifestPlaceholders['foregroundServiceType'] = 'DataSync'
         multiDexEnabled true
         ndk {
@@ -59,15 +59,15 @@ android {
 
     }
 
-    signingConfigs {
+    signingConfigs {    
         release {
             storeFile file('..\\zeelearn_android.jks')
             storePassword 'zils@1234'
-            keyAlias 'zeel'
+            keyAlias 'zeel' 
             keyPassword 'zils@1234'
         }
     }
-    buildTypes {
+    buildTypes {    
         release {
             // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig signingConfigs.release

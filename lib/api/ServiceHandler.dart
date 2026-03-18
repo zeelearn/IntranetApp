@@ -26,11 +26,12 @@ import '../pages/helper/LocationHelper.dart';
 import '../pages/iface/onResponse.dart';
 import 'APIService.dart';
 
-class IntranetServiceHandler{
-
-  static loadPjpSummery(int employeeId,int pjpId,int bid,onResponse onResponse) {
+class IntranetServiceHandler {
+  static loadPjpSummery(
+      int employeeId, int pjpId, int bid, onResponse onResponse) {
     onResponse.onStart();
-    PJPListRequest request = PJPListRequest(Employee_id: employeeId,PJP_id: pjpId, Business_id: bid);
+    PJPListRequest request = PJPListRequest(
+        Employee_id: employeeId, PJP_id: pjpId, Business_id: bid);
     debugPrint(request.toJson().toString());
     APIService apiService = APIService();
     apiService.getPJPList(request).then((value) {
@@ -41,22 +42,22 @@ class IntranetServiceHandler{
         } else if (value is PjpListResponse) {
           try {
             onResponse.onSuccess(value);
-          }catch(e){
+          } catch (e) {
             onResponse.onError('PJP List not avaliable ${e.toString()} ');
           }
-
         } else {
           onResponse.onError('PJP List not avaliable ');
         }
-      }else{
+      } else {
         onResponse.onError('PJP List not avaliable ');
       }
     });
   }
 
-  static loadPjpExceptionalSummery(int employeeId,onResponse onResponse) {
+  static loadPjpExceptionalSummery(int employeeId, onResponse onResponse) {
     onResponse.onStart();
-    PJPExceptionalRequest request = PJPExceptionalRequest(Manager_Emp_id: employeeId);
+    PJPExceptionalRequest request =
+        PJPExceptionalRequest(Manager_Emp_id: employeeId);
     debugPrint(request.toJson().toString());
     APIService apiService = APIService();
     apiService.getPJPExceptionalList(request).then((value) {
@@ -67,31 +68,25 @@ class IntranetServiceHandler{
         } else if (value is PjpExceptionalResponse) {
           try {
             onResponse.onSuccess(value);
-          }catch(e){
+          } catch (e) {
             onResponse.onError('PJP List not avaliable 2 ${e.toString()}');
           }
-
         } else {
           onResponse.onError('PJP List not avaliable 3');
         }
-      }else{
+      } else {
         onResponse.onError('PJP List not avaliable 4');
       }
     });
   }
 
-  static loadPjpReport(PJPReportRequest request,onResponse onResponse) {
+  static loadPjpReport(PJPReportRequest request, onResponse onResponse) {
     onResponse.onStart();
-    debugPrint(request.toJson().toString());
+    print('PJP Report Request is - ${request.getJson().toString()}');
     APIService apiService = APIService();
     apiService.getPJPReport(request).then((value) {
-      debugPrint(value.toString());
+      print('PJP Report is - ${value.toString()}');
       if (value != null) {
-        /*String data = value.toString().replaceAll('null', '\"NA\"');
-        PjpListResponse response = PjpListResponse.fromJson(
-          json.decode(data),
-        );
-        onResponse.onSuccess(response);*/
         if (value == null || value.responseData == null) {
           onResponse.onError('PJP List not avaliable ');
         } else if (value is PjpListResponse) {
@@ -99,24 +94,23 @@ class IntranetServiceHandler{
           onResponse.onSuccess(response);
         } else {
           onResponse.onError('PJP List not avaliable ');
-
         }
-      }else{
+      } else {
         onResponse.onError('PJP List not avaliable ');
       }
     });
   }
 
-  static updateCVFStatus(int employeeId,GetDetailedPJP cvfView,String date,String status,onResponse onResponse) async{
-
-    double latitude=0.0;
-    double longitude=0.0;
+  static updateCVFStatus(int employeeId, GetDetailedPJP cvfView, String date,
+      String status, onResponse onResponse) async {
+    double latitude = 0.0;
+    double longitude = 0.0;
     LocationData location = await LocationHelper.getLocation(null);
-    if(location!=null){
+    if (location != null) {
       latitude = location.latitude!;
       longitude = location.longitude!;
       print('Location is ${latitude} ${longitude}');
-    }else{
+    } else {
       print('location data not found');
     }
 
@@ -137,13 +131,20 @@ class IntranetServiceHandler{
       }
     }*/
     String address = await Utility.getAddress(latitude, longitude);
-      // Either the permission was already granted before or the user just granted it.
+    // Either the permission was already granted before or the user just granted it.
     onResponse.onStart();
-    UpdateCVFStatusRequest request = UpdateCVFStatusRequest(PJPCVF_id: cvfView.PJPCVF_Id, DateTime: date,
-        Status: status, Employee_id: employeeId,
-        Latitude: cvfView.Status=='FILL CVF' ? cvfView.Latitude : latitude,
-        Longitude: cvfView.Status=='FILL CVF' ? cvfView.Longitude : longitude,
-        CheckOutLatitude: status=='Completed' ? latitude : 0.0, CheckOutLongitude: status=='Completed' ? longitude : 0.0, CheckOutAddress: status.trim()=='Check In' ? '' : address , Address: cvfView.Status.trim()=='Check In' ? address : cvfView.Address);
+    UpdateCVFStatusRequest request = UpdateCVFStatusRequest(
+        PJPCVF_id: cvfView.PJPCVF_Id,
+        DateTime: date,
+        Status: status,
+        Employee_id: employeeId,
+        Latitude: cvfView.Status == 'FILL CVF' ? cvfView.Latitude : latitude,
+        Longitude: cvfView.Status == 'FILL CVF' ? cvfView.Longitude : longitude,
+        CheckOutLatitude: status == 'Completed' ? latitude : 0.0,
+        CheckOutLongitude: status == 'Completed' ? longitude : 0.0,
+        CheckOutAddress: status.trim() == 'Check In' ? '' : address,
+        Address:
+            cvfView.Status.trim() == 'Check In' ? address : cvfView.Address);
     APIService apiService = APIService();
     apiService.updateCVFStatus(request).then((value) {
       debugPrint(value.toString());
@@ -156,37 +157,33 @@ class IntranetServiceHandler{
         } else {
           onResponse.onError('Unable to update the status ');
         }
-      }else{
+      } else {
         onResponse.onError('Unable to update the status');
       }
     });
-
   }
 
-  static updateCVFOfflineStatus(UpdateCVFStatusRequest request,onResponse onResponse) async{
-
-      APIService apiService = APIService();
-      apiService.updateCVFStatus(request).then((value) {
-        debugPrint(value.toString());
-        if (value != null) {
-          if (value == null || value.responseData == null) {
-            onResponse.onError('Unable to update the status');
-          } else if (value is UpdateCVFStatusResponse) {
-            UpdateCVFStatusResponse response = value;
-            onResponse.onSuccess(response);
-          } else {
-            onResponse.onError('Unable to update the status ');
-          }
-        }else{
+  static updateCVFOfflineStatus(
+      UpdateCVFStatusRequest request, onResponse onResponse) async {
+    APIService apiService = APIService();
+    apiService.updateCVFStatus(request).then((value) {
+      debugPrint(value.toString());
+      if (value != null) {
+        if (value == null || value.responseData == null) {
           onResponse.onError('Unable to update the status');
+        } else if (value is UpdateCVFStatusResponse) {
+          UpdateCVFStatusResponse response = value;
+          onResponse.onSuccess(response);
+        } else {
+          onResponse.onError('Unable to update the status ');
         }
-      });
-
+      } else {
+        onResponse.onError('Unable to update the status');
+      }
+    });
   }
 
-
-  static getMyReport(MyReportRequest request,onResponse onResponse) {
-
+  static getMyReport(MyReportRequest request, onResponse onResponse) {
     onResponse.onStart();
     APIService apiService = APIService();
     apiService.getMyReports(request).then((value) {
@@ -200,13 +197,14 @@ class IntranetServiceHandler{
         } else {
           onResponse.onError('Unable to get Reports ');
         }
-      }else{
+      } else {
         onResponse.onError('Unable to get Reports');
       }
     });
   }
 
-  static updatePJPStatusList(UpdatePJPStatusListRequest request,onResponse onResponse) {
+  static updatePJPStatusList(
+      UpdatePJPStatusListRequest request, onResponse onResponse) {
     onResponse.onStart();
     APIService apiService = APIService();
     apiService.updatePjpStatusList(request).then((value) {
@@ -220,13 +218,14 @@ class IntranetServiceHandler{
         } else {
           onResponse.onError('Unable to get Reports ');
         }
-      }else{
+      } else {
         onResponse.onError('Unable to get Reports');
       }
     });
   }
 
-  static updatePJPStatusExceptional(UpdatePJPStatusListRequest request,onResponse onResponse) {
+  static updatePJPStatusExceptional(
+      UpdatePJPStatusListRequest request, onResponse onResponse) {
     onResponse.onStart();
     APIService apiService = APIService();
     apiService.updatePjpStatusExceptionalList(request).then((value) {
@@ -240,14 +239,14 @@ class IntranetServiceHandler{
         } else {
           onResponse.onError('Unable to get Reports ');
         }
-      }else{
+      } else {
         onResponse.onError('Unable to get Reports');
       }
     });
   }
 
-  static updatePJPStatus(UpdatePJPStatusRequest request,onResponse onResponse) {
-
+  static updatePJPStatus(
+      UpdatePJPStatusRequest request, onResponse onResponse) {
     onResponse.onStart();
     APIService apiService = APIService();
     apiService.updatePjpStatus(request).then((value) {
@@ -262,7 +261,7 @@ class IntranetServiceHandler{
         } else {
           onResponse.onError('Unable to get Reports ');
         }
-      }else{
+      } else {
         onResponse.onError('Unable to get Reports');
       }
     });
@@ -285,11 +284,13 @@ class IntranetServiceHandler{
           response.onSuccess(responseModel);
         } else {
           print('Unable to update Task');
-          response.onError('Unable to update the Task Details Please try again later');
+          response.onError(
+              'Unable to update the Task Details Please try again later');
         }
       } else {
         print('Unable to update Task else');
-        response.onError('Unable to Update the Task Details Please try again later');
+        response.onError(
+            'Unable to Update the Task Details Please try again later');
       }
     });
   }
@@ -305,10 +306,12 @@ class IntranetServiceHandler{
           responseModel = value;
           response.onSuccess(responseModel);
         } else {
-          response.onError('Unable to update the Task File Upload Please try again later');
+          response.onError(
+              'Unable to update the Task File Upload Please try again later');
         }
       } else {
-        response.onError('Unable to Update the Task File Upload Please try again later');
+        response.onError(
+            'Unable to Update the Task File Upload Please try again later');
       }
     });
   }
@@ -324,10 +327,12 @@ class IntranetServiceHandler{
           responseModel = value;
           response.onSuccess(responseModel);
         } else {
-          response.onError('Unable to update the Task Details Please try again later');
+          response.onError(
+              'Unable to update the Task Details Please try again later');
         }
       } else {
-        response.onError('Unable to Update the Task Details Please try again later');
+        response.onError(
+            'Unable to Update the Task Details Please try again later');
       }
     });
   }

@@ -55,496 +55,227 @@ class HomePageMenu extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    double width = MediaQuery.of(context).size.width;
     return Scaffold(
       backgroundColor: LightColors.kLightYellow,
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsetsDirectional.fromSTEB(0, 20, 0, 12),
-          child: ListView(children: [
-            Row(
-              mainAxisSize: MainAxisSize.max,
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => MyPjpListScreen(
-                                  mFilterSelection: FilterSelection(
-                                      filters: [], type: FILTERStatus.MYSELF),
-                                )));
-                  },
-                  child: Padding(
-                    padding: const EdgeInsetsDirectional.fromSTEB(8, 8, 8, 8),
-                    child: Container(
-                      width: MediaQuery.of(context).size.width * 0.4,
-                      height: 150,
-                      decoration: BoxDecoration(
-                        color: Colors.blue,
-                        boxShadow: const [
-                          BoxShadow(
-                            blurRadius: 3,
-                            color: Colors.indigoAccent,
-                            offset: Offset(0, 1),
-                          )
-                        ],
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: const Column(
-                        mainAxisSize: MainAxisSize.max,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Padding(
-                            padding:
-                                EdgeInsetsDirectional.fromSTEB(0, 16, 0, 0),
-                            child: Icon(
-                              Icons.electric_car,
-                              color: Colors.white,
-                              size: 44,
-                            ),
-                          ),
-                          Padding(
-                            padding: EdgeInsetsDirectional.fromSTEB(0, 8, 0, 0),
-                            child: Text(
-                              'My PJP',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontFamily: 'Lexend Deca',
-                                color: Colors.white,
-                                fontSize: 18,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => MyCVFListScreen()));
-                  },
-                  child: Padding(
-                    padding: const EdgeInsetsDirectional.fromSTEB(8, 8, 8, 8),
-                    child: Container(
-                      width: MediaQuery.of(context).size.width * 0.4,
-                      height: 150,
-                      decoration: BoxDecoration(
-                        color: Colors.blue,
-                        boxShadow: const [
-                          BoxShadow(
-                            blurRadius: 3,
-                            color: Colors.indigoAccent,
-                            offset: Offset(0, 1),
-                          )
-                        ],
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: const Column(
-                        mainAxisSize: MainAxisSize.max,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Padding(
-                            padding:
-                                EdgeInsetsDirectional.fromSTEB(0, 16, 0, 0),
-                            child: Icon(
-                              Icons.calendar_today,
-                              color: Colors.white,
-                              size: 44,
-                            ),
-                          ),
-                          Padding(
-                            padding: EdgeInsetsDirectional.fromSTEB(0, 8, 0, 0),
-                            child: Text(
-                              'My CVF',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontFamily: 'Lexend Deca',
-                                color: Colors.white,
-                                fontSize: 18,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            Padding(
-                padding: const EdgeInsetsDirectional.fromSTEB(8, 8, 8, 8),
-                child: Row(
-                  mainAxisSize: MainAxisSize.max,
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    //_getMenu(context, 'BPMS', BPMSHome()),
-                    _getMenu(context, 'My Report', Icons.multiline_chart,
-                        MyReportsScreen()),
-                    !isBpms
-                        ? _getMenu(context, 'PJP-CVF Approval (Exp)',
-                            Icons.approval, PJPManagerExceptionalScreen())
-                        : GestureDetector(
-                            onTap: () async {
-                              var box = await Utility.openBox();
-                              try {
-                                int frichiseeId =
-                                    box.get(LocalConstant.KEY_FRANCHISEE_ID)
-                                        as int;
-                                Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) => BPMSDashboard(
-                                            userId: frichiseeId.toString())));
-                              } catch (e) {
-                                Utility.showMessage(context,
-                                    'BPMS is not application for current user');
-                              }
-                            },
-                            child: Padding(
-                              padding: const EdgeInsetsDirectional.fromSTEB(
-                                  8, 8, 8, 8),
-                              child: Container(
-                                width: MediaQuery.of(context).size.width * 0.4,
-                                height: 150,
-                                decoration: BoxDecoration(
-                                  color: Colors.blue,
-                                  boxShadow: const [
-                                    BoxShadow(
-                                      blurRadius: 3,
-                                      color: Colors.indigoAccent,
-                                      offset: Offset(0, 1),
-                                    )
-                                  ],
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: const Column(
-                                  mainAxisSize: MainAxisSize.max,
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Padding(
-                                      padding: EdgeInsetsDirectional.fromSTEB(
-                                          0, 16, 0, 0),
-                                      child: Icon(
-                                        Icons.calendar_today,
-                                        color: Colors.white,
-                                        size: 44,
-                                      ),
-                                    ),
-                                    Padding(
-                                      padding: EdgeInsetsDirectional.fromSTEB(
-                                          0, 8, 0, 0),
-                                      child: Text(
-                                        'BPMS',
-                                        textAlign: TextAlign.center,
-                                        style: TextStyle(
-                                          fontFamily: 'Lexend Deca',
-                                          color: Colors.white,
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
-                                    )
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                  ],
-                )),
-            Padding(
-                padding: const EdgeInsetsDirectional.fromSTEB(8, 8, 8, 8),
-                child: Row(
-                  mainAxisSize: MainAxisSize.max,
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    //_getMenu(context, 'BPMS', BPMSHome()),
-                    GestureDetector(
-                      onTap: () {
-                        openSaarthi(context);
-                      },
-                      child: Padding(
-                        padding:
-                            const EdgeInsetsDirectional.fromSTEB(8, 8, 8, 8),
-                        child: Container(
-                          width: MediaQuery.of(context).size.width * 0.4,
-                          height: 150,
-                          decoration: BoxDecoration(
-                            color: Colors.blue,
-                            boxShadow: const [
-                              BoxShadow(
-                                blurRadius: 3,
-                                color: Colors.indigoAccent,
-                                offset: Offset(0, 1),
-                              )
-                            ],
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: const Column(
-                            mainAxisSize: MainAxisSize.max,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Padding(
-                                padding:
-                                    EdgeInsetsDirectional.fromSTEB(0, 16, 0, 0),
-                                child: Icon(
-                                  Icons.ac_unit,
-                                  color: Colors.white,
-                                  size: 44,
-                                ),
-                              ),
-                              Padding(
-                                padding:
-                                    EdgeInsetsDirectional.fromSTEB(0, 8, 0, 0),
-                                child: Text(
-                                  'ZllSaathi',
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    fontFamily: 'Lexend Deca',
-                                    color: Colors.white,
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
+          padding: const EdgeInsets.all(8.0),
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              int crossAxisCount;
 
-                    GestureDetector(
-                      onTap: () {
-                        openExpense(context);
-                      },
-                      child: Padding(
-                        padding:
-                            const EdgeInsetsDirectional.fromSTEB(8, 8, 8, 8),
-                        child: Container(
-                          width: MediaQuery.of(context).size.width * 0.4,
-                          height: 150,
-                          decoration: BoxDecoration(
-                            color: Colors.blue,
-                            boxShadow: const [
-                              BoxShadow(
-                                blurRadius: 3,
-                                color: Colors.indigoAccent,
-                                offset: Offset(0, 1),
-                              )
-                            ],
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: const Column(
-                            mainAxisSize: MainAxisSize.max,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Padding(
-                                padding:
-                                    EdgeInsetsDirectional.fromSTEB(0, 16, 0, 0),
-                                child: Icon(
-                                  Icons.ac_unit,
-                                  color: Colors.white,
-                                  size: 44,
-                                ),
-                              ),
-                              Padding(
-                                padding:
-                                    EdgeInsetsDirectional.fromSTEB(0, 8, 0, 0),
-                                child: Text(
-                                  'Expense',
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    fontFamily: 'Lexend Deca',
-                                    color: Colors.white,
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                )),
-            Padding(
-              padding: const EdgeInsetsDirectional.fromSTEB(8, 8, 8, 8),
-              child: Row(
-                mainAxisSize: MainAxisSize.max,
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              double childAspectRatio;
+
+              if (constraints.maxWidth > 1200) {
+                crossAxisCount = 6;
+
+                childAspectRatio = 1;
+              } else if (constraints.maxWidth > 800) {
+                crossAxisCount = 4;
+
+                childAspectRatio = 1.1;
+              } else if (constraints.maxWidth > 600) {
+                crossAxisCount = 3;
+
+                childAspectRatio = 1;
+              } else {
+                crossAxisCount = 2;
+
+                childAspectRatio = 1;
+              }
+
+              return GridView.count(
+                crossAxisCount: crossAxisCount,
+                crossAxisSpacing: 16,
+                mainAxisSpacing: 16,
+                childAspectRatio: childAspectRatio,
                 children: [
-                  GestureDetector(
+                  _buildMenuCard(
+                    title: 'My PJP',
+                    icon: Icons.electric_car,
                     onTap: () {
                       Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => AllLegalStatusPage(
-                              email: name,
-                            ),
-                          ));
-                      // openExpense(context);
-                    },
-                    child: Padding(
-                      padding: const EdgeInsetsDirectional.fromSTEB(8, 8, 8, 8),
-                      child: Container(
-                        width: MediaQuery.of(context).size.width * 0.4,
-                        height: 150,
-                        decoration: BoxDecoration(
-                          color: Colors.blue,
-                          boxShadow: const [
-                            BoxShadow(
-                              blurRadius: 3,
-                              color: Colors.indigoAccent,
-                              offset: Offset(0, 1),
-                            )
-                          ],
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Column(
-                          mainAxisSize: MainAxisSize.max,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Padding(
-                              padding:
-                                  EdgeInsetsDirectional.fromSTEB(0, 16, 0, 0),
-                              child: Icon(
-                                Icons.legend_toggle_sharp,
-                                color: Colors.white,
-                                size: 44,
-                              ),
-                            ),
-                            Padding(
-                              padding:
-                                  EdgeInsetsDirectional.fromSTEB(0, 8, 0, 0),
-                              child: Text(
-                                'Legal MIS',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  fontFamily: 'Lexend Deca',
-                                  color: Colors.white,
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                  !notiflowAccessList.any(
-                    (element) => element == empID,
-                  )
-                      ? SizedBox.shrink()
-                      : GestureDetector(
-                          onTap: () {
-                            print('EMPID is - ${empID}');
-                            Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => MyWebsiteView(
-                                    title: 'Notiflow',
-                                    url:
-                                        'https://notiflow-51883.web.app/?u_name=${empID}&password=12345&color=0277BD',
-                                  ),
-                                ));
-                            // openExpense(context);
-                          },
-                          child: Padding(
-                            padding: const EdgeInsetsDirectional.fromSTEB(
-                                8, 8, 8, 8),
-                            child: Container(
-                              width: MediaQuery.of(context).size.width * 0.4,
-                              height: 150,
-                              decoration: BoxDecoration(
-                                color: Colors.blue,
-                                boxShadow: const [
-                                  BoxShadow(
-                                    blurRadius: 3,
-                                    color: Colors.indigoAccent,
-                                    offset: Offset(0, 1),
-                                  )
-                                ],
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: const Column(
-                                mainAxisSize: MainAxisSize.max,
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Padding(
-                                    padding: EdgeInsetsDirectional.fromSTEB(
-                                        0, 16, 0, 0),
-                                    child: Icon(
-                                      Icons.legend_toggle_sharp,
-                                      color: Colors.white,
-                                      size: 44,
-                                    ),
-                                  ),
-                                  Padding(
-                                    padding: EdgeInsetsDirectional.fromSTEB(
-                                        0, 8, 0, 0),
-                                    child: Text(
-                                      'Notiflow',
-                                      textAlign: TextAlign.center,
-                                      style: TextStyle(
-                                        fontFamily: 'Lexend Deca',
-                                        color: Colors.white,
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => MyPjpListScreen(
+                            mFilterSelection: FilterSelection(
+                              filters: [],
+                              type: FILTERStatus.MYSELF,
                             ),
                           ),
                         ),
-                ],
-              ),
-            ),
-            Container(
-                alignment: Alignment.center,
-                padding: const EdgeInsets.all(5),
-                child: GestureDetector(
-                  onTap: () {
-                    Navigator.push(
+                      );
+                    },
+                  ),
+                  _buildMenuCard(
+                    title: 'My CVF',
+                    icon: Icons.calendar_today,
+                    onTap: () {
+                      Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) => const DashboardPage()));
-                  },
-                  child: const Text('My Dashboard'),
-                )),
-            /*  Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                isBpms
-                    ? _getMenu(context, 'PJP-CVF Approval (Exp)',
-                        Icons.approval, PJPManagerExceptionalScreen())
-                    : SizedBox(
-                        width: 0,
-                      ),
-                _getMenu(
-                    context, 'My Planning', Icons.approval, MyOutdoorPlanner())
-              ],
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                _getMenu(context, 'My Dashboard MAN', Icons.approval,
-                    DashboardScreen()),
-                _getMenu(context, 'My Team Summary', Icons.approval,
-                    SummaryDashboard())
-              ],
-            ), */
-          ]),
+                          builder: (context) => MyCVFListScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                  _buildMenuCard(
+                    title: 'My Report',
+                    icon: Icons.multiline_chart,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => MyReportsScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                  if (!isBpms)
+                    _buildMenuCard(
+                      title: 'PJP-CVF Approval (Exp)',
+                      icon: Icons.approval,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => PJPManagerExceptionalScreen(),
+                          ),
+                        );
+                      },
+                    )
+                  else
+                    _buildMenuCard(
+                      title: 'BPMS',
+                      icon: Icons.business,
+                      onTap: () async {
+                        var box = await Utility.openBox();
+                        try {
+                          int franchiseeId =
+                              box.get(LocalConstant.KEY_FRANCHISEE_ID) as int;
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => BPMSDashboard(
+                                  userId: franchiseeId.toString()),
+                            ),
+                          );
+                        } catch (e) {
+                          Utility.showMessage(context,
+                              'BPMS is not applicable for the current user');
+                        }
+                      },
+                    ),
+                  _buildMenuCard(
+                    title: 'ZllSaathi',
+                    icon: Icons.ac_unit,
+                    onTap: () {
+                      openSaarthi(context);
+                    },
+                  ),
+                  _buildMenuCard(
+                    title: 'Expense',
+                    icon: Icons.account_balance_wallet,
+                    onTap: () {
+                      openExpense(context);
+                    },
+                  ),
+                  _buildMenuCard(
+                    title: 'Legal MIS',
+                    icon: Icons.legend_toggle_sharp,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => AllLegalStatusPage(
+                            email: name,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  if (notiflowAccessList.any((element) => element == empID))
+                    _buildMenuCard(
+                      title: 'Notiflow',
+                      icon: Icons.notifications,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => MyWebsiteView(
+                              title: 'ZLLSaathi',
+                              url:
+                                  'https://notiflow-51883.web.app/?u_name=${empID}&password=12345&color=0277BD',
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  /*  _buildMenuCard(
+                    title: 'My Dashboard',
+                    icon: Icons.dashboard,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const DashboardPage(),
+                        ),
+                      );
+                    },
+                  ), */
+                  if (isBpms)
+                    _buildMenuCard(
+                      title: 'PJP-CVF Approval (Exp)',
+                      icon: Icons.approval,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => PJPManagerExceptionalScreen(),
+                          ),
+                        );
+                      },
+                    ),
+                  /*   _buildMenuCard(
+                    title: 'My Planning',
+                    icon: Icons.calendar_view_day,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => MyOutdoorPlanner(),
+                        ),
+                      );
+                    },
+                  ),
+                  _buildMenuCard(
+                    title: 'My Dashboard MAN',
+                    icon: Icons.dashboard_customize,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => DashboardScreen(),
+                        ),
+                      );
+                    },
+                  ), */
+                  _buildMenuCard(
+                    title: 'PJP Dashboard',
+                    icon: Icons.group,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => SummaryDashboard(),
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              );
+            },
+          ),
         ),
       ),
     );
@@ -595,51 +326,44 @@ class HomePageMenu extends StatelessWidget {
     // }
   }
 
-  _getMenu(BuildContext context, String title, IconData icon, action) {
+  Widget _buildMenuCard({
+    required String title,
+    required IconData icon,
+    required VoidCallback onTap,
+  }) {
     return GestureDetector(
-      onTap: () {
-        Navigator.push(
-            context, MaterialPageRoute(builder: (context) => action));
-      },
-      child: Padding(
-        padding: const EdgeInsetsDirectional.fromSTEB(8, 8, 8, 8),
+      onTap: onTap,
+      child: Card(
+        elevation: 4,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
         child: Container(
-          width: MediaQuery.of(context).size.width * 0.4,
-          height: 150,
           decoration: BoxDecoration(
-            color: Colors.blue,
-            boxShadow: const [
-              BoxShadow(
-                blurRadius: 3,
-                color: Colors.indigoAccent,
-                offset: Offset(0, 1),
-              )
-            ],
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(12),
+            gradient: LinearGradient(
+              colors: [Colors.blue.withOpacity(0.8), Colors.blue],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
           ),
           child: Column(
-            mainAxisSize: MainAxisSize.max,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Padding(
-                padding: const EdgeInsetsDirectional.fromSTEB(0, 16, 0, 0),
-                child: Icon(
-                  icon,
-                  color: Colors.white,
-                  size: 44,
-                ),
+              Icon(
+                icon,
+                size: 44,
+                color: Colors.white,
               ),
-              Padding(
-                padding: const EdgeInsetsDirectional.fromSTEB(0, 8, 0, 0),
-                child: Text(
-                  title,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontFamily: 'Lexend Deca',
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w500,
-                  ),
+              const SizedBox(height: 8),
+              Text(
+                title,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontFamily: 'Lexend Deca',
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
             ],
@@ -647,13 +371,5 @@ class HomePageMenu extends StatelessWidget {
         ),
       ),
     );
-  }
-}
-
-class RandomColorModel {
-  Random random = Random();
-  Color getColor() {
-    return Color.fromARGB(random.nextInt(300), random.nextInt(300),
-        random.nextInt(300), random.nextInt(300));
   }
 }
