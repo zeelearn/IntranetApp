@@ -6,6 +6,7 @@ import 'package:Intranet/pages/legal_mis/responsive_layout.dart';
 import 'package:Intranet/pages/utils/util.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 
 class DocumentStatusScreen extends ConsumerWidget {
@@ -50,19 +51,42 @@ class DocumentStatusScreen extends ConsumerWidget {
   }
 
   Widget _buildMobileLayout(BuildContext context, DocumentStatus status) {
-    return ListView(
-      padding: const EdgeInsets.all(16.0),
-      children: [
-        _buildHeaderSection(context, status, isMobile: true),
-        const SizedBox(height: 24),
-        const Text(
-          'Recipient status',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 16),
-        ...status.recipientList.asMap().entries.map((entry) =>
-            _buildRecipientCardMobile(context, entry.value, entry.key + 1)),
-      ],
+    return Container(
+      color: Colors.grey[50],
+      child: ListView(
+        padding: const EdgeInsets.all(16.0),
+        children: [
+          _buildHeaderSection(context, status, isMobile: true),
+          const SizedBox(height: 24),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4.0),
+            child: Row(
+              children: [
+                Container(
+                  width: 4,
+                  height: 20,
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).primaryColor,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                const Text(
+                  'Recipient Activity',
+                  style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF333333)),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          ...status.recipientList.asMap().entries.map((entry) =>
+              _buildRecipientCardMobile(context, entry.value, entry.key + 1)),
+          const SizedBox(height: 40),
+        ],
+      ),
     );
   }
 
@@ -113,141 +137,146 @@ class DocumentStatusScreen extends ConsumerWidget {
           double.parse(status.signPercentage.replaceAll('%', '').trim()) / 100;
     } catch (_) {}
 
-    /*  Widget imageBlock = Container(
-      width: 70,
-      height: 90,
-      decoration: BoxDecoration(
-        color: Colors.grey[800],
-        borderRadius: BorderRadius.circular(4),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          // const Icon(Icons.description, color: Colors.white54, size: 30),
-          const Spacer(),
-          /*   Container(
-            width: double.infinity,
-            color: Colors.green,
-            padding: const EdgeInsets.symmetric(vertical: 2),
-            child: const Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.visibility, color: Colors.white, size: 12),
-                SizedBox(width: 4),
-                Text("View",
-                    style: TextStyle(color: Colors.white, fontSize: 10)),
-              ],
-            ),
-          ) */
-        ],
-      ),
-    ); */
-
-    Widget infoBlock =
-        Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Text(status.reqId, // Assuming ID as Title
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-      const SizedBox(height: 4),
-      Text("Status: ${Util.getDisplayTitle(status.reqStatus)}",
-          style: TextStyle(color: Colors.grey[700], fontSize: 14)),
-      const SizedBox(height: 4),
-      Text(
-          "Submitted on ${DateFormat('MMM dd, yyyy HH:mm').format(DateTime.fromMillisecondsSinceEpoch(requests.createdTime!.toInt()))}",
-          style: TextStyle(color: Colors.grey[600], fontSize: 13)),
-      const SizedBox(height: 4),
-      Text(
-          "Last updated on ${DateFormat('MMM dd, yyyy HH:mm').format(DateFormat('dd-MMM-yyyy HH:mm:ss').parse(status.actionTime!))}",
-          style: TextStyle(color: Colors.grey[600], fontSize: 13)),
-    ]);
-
-    Widget chartBlock;
-    if (percent >= 1.0) {
-      chartBlock = SizedBox(
-        width: 100,
-        height: 100,
-        child: Container(
-          width: 80,
-          height: 80,
-          decoration: const BoxDecoration(
-            color: Color(0xFF2E8B57), // Sea Green
-            shape: BoxShape.circle,
-          ),
-          child: const Icon(
-            Icons.check,
-            color: Colors.white,
-            size: 50,
-          ),
-        ),
-      );
-    } else if (requests.requestStatus?.toLowerCase() == 'declined') {
-      chartBlock = SizedBox(
-        width: 100,
-        height: 100,
-        child: Container(
-          width: 80,
-          height: 80,
-          decoration: BoxDecoration(
-            color: Colors.redAccent,
-            shape: BoxShape.circle,
-          ),
-          child: const Icon(
-            Icons.clear,
-            color: Colors.white,
-            size: 40,
-          ),
-        ),
-      );
-    } else {
-      chartBlock = SizedBox(
-        width: 100,
-        height: 100,
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            SizedBox(
-              width: 80,
-              height: 80,
-              child: CustomPaint(
-                painter: _CircularArrowProgressPainter(
-                  percentage: percent,
-                  backgroundColor: Colors.grey[100] ?? Colors.grey,
-                  color: Colors.lightBlueAccent,
-                  strokeWidth: 8,
-                ),
-              ),
-            ),
-            Text(status.signPercentage,
-                style: const TextStyle(
-                    color: Colors.lightBlueAccent,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold)),
-          ],
-        ),
-      );
-    }
-
-    if (isMobile) {
-      return Column(
-        children: [
+    // Refined Info Block
+    Widget infoBlock = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (isMobile) ...[
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // imageBlock,
-              // const SizedBox(width: 16),
-              if (percent >= 1.0 ||
-                  requests.requestStatus?.toLowerCase() == 'declined') ...[
-                chartBlock,
-                const SizedBox(height: 16),
-              ],
-              Expanded(child: infoBlock),
+              Expanded(
+                child: Text(
+                  requests.requestName ?? status.reqId,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 16,
+                    color: Color(0xFF2C3E50),
+                  ),
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.copy_outlined, size: 20),
+                color: Colors.grey.shade600,
+                tooltip: 'Copy Request ID',
+                onPressed: () {
+                  Clipboard.setData(ClipboardData(text: status.reqId));
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                      content: Text('Request ID copied to clipboard')));
+                },
+              ),
             ],
           ),
-          if (!(percent >= 1.0 ||
-              requests.requestStatus?.toLowerCase() == 'declined')) ...[
-            const SizedBox(height: 16),
-            chartBlock,
-          ]
+          const SizedBox(height: 8),
+          _buildStatusChip(status.reqStatus),
+        ] else ...[
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Flexible(
+                child: Text(
+                  requests.requestName ?? status.reqId,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 16,
+                    color: Color(0xFF2C3E50),
+                  ),
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.copy_outlined, size: 18),
+                color: Colors.grey.shade600,
+                tooltip: 'Copy Request ID',
+                onPressed: () {
+                  Clipboard.setData(ClipboardData(text: status.reqId));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                        content: Text('Request ID copied to clipboard')),
+                  );
+                },
+              ),
+              const SizedBox(width: 8),
+              _buildStatusChip(status.reqStatus),
+            ],
+          ),
         ],
+        const SizedBox(height: 16),
+        _buildInfoRow(
+          Icons.tag,
+          "ReqID",
+          status.reqId,
+          trailing: InkWell(
+            onTap: () {
+              Clipboard.setData(ClipboardData(text: status.reqId));
+              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                  content: Text('Request ID copied to clipboard')));
+            },
+            child: Padding(
+              padding: const EdgeInsets.only(left: 8.0),
+              child: Icon(Icons.copy, size: 16, color: Colors.grey[600]),
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        _buildInfoRow(
+            Icons.calendar_today_outlined,
+            "Submitted",
+            DateFormat('MMM dd, yyyy • HH:mm').format(
+                DateTime.fromMillisecondsSinceEpoch(
+                    requests.createdTime!.toInt()))),
+        const SizedBox(height: 8),
+        _buildInfoRow(
+            Icons.history,
+            "Last Updated",
+            DateFormat('MMM dd, yyyy • HH:mm').format(
+                DateFormat('dd-MMM-yyyy HH:mm:ss').parse(status.actionTime!))),
+      ],
+    );
+
+    // Chart Block
+    Widget chartBlock = _buildChartBlock(
+        context, percent, status.signPercentage, requests.requestStatus);
+
+    if (isMobile) {
+      return Card(
+        elevation: 0,
+        color: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(color: Colors.grey.shade200),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            children: [
+              infoBlock,
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 20.0),
+                child: Divider(height: 1, thickness: 1),
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Column(
+                    children: [
+                      const Text(
+                        "Completion Status",
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Colors.grey,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      chartBlock,
+                    ],
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
       );
     }
 
@@ -270,47 +299,222 @@ class DocumentStatusScreen extends ConsumerWidget {
     );
   }
 
+  Widget _buildStatusChip(String status) {
+    Color color = Colors.blue;
+    if (status.toLowerCase().contains('progress'))
+      color = Colors.orange.shade700;
+    if (status.toLowerCase().contains('complete') ||
+        status.toLowerCase().contains('approved') ||
+        status.toLowerCase().contains('signed')) color = Colors.green.shade700;
+    if (status.toLowerCase().contains('decline')) color = Colors.red.shade700;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: color.withOpacity(0.2)),
+      ),
+      child: Text(
+        Util.getDisplayTitle(status),
+        style:
+            TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.bold),
+      ),
+    );
+  }
+
+  Widget _buildInfoRow(IconData icon, String label, String value,
+      {Widget? trailing}) {
+    return Row(
+      children: [
+        Icon(icon, size: 16, color: Colors.grey[500]),
+        const SizedBox(width: 8),
+        Text(
+          "$label: ",
+          style: TextStyle(
+              color: Colors.grey[600],
+              fontSize: 13,
+              fontWeight: FontWeight.w500),
+        ),
+        Flexible(
+          child: Text(
+            value,
+            style: const TextStyle(
+                color: Color(0xFF444444),
+                fontSize: 13,
+                fontWeight: FontWeight.w600),
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+        if (trailing != null) trailing,
+      ],
+    );
+  }
+
+  Widget _buildChartBlock(BuildContext context, double percent,
+      String percentText, String? requestStatus) {
+    if (percent >= 1.0) {
+      return SizedBox(
+        width: 100,
+        height: 100,
+        child: Container(
+          width: 80,
+          height: 80,
+          decoration: BoxDecoration(
+            color: const Color(0xFF2E8B57).withOpacity(0.1),
+            shape: BoxShape.circle,
+            border: Border.all(color: const Color(0xFF2E8B57), width: 2),
+          ),
+          child: const Icon(
+            Icons.check,
+            color: Color(0xFF2E8B57),
+            size: 50,
+          ),
+        ),
+      );
+    } else if (requestStatus?.toLowerCase() == 'declined') {
+      return SizedBox(
+        width: 100,
+        height: 100,
+        child: Container(
+          width: 80,
+          height: 80,
+          decoration: BoxDecoration(
+            color: Colors.redAccent.withOpacity(0.1),
+            shape: BoxShape.circle,
+            border: Border.all(color: Colors.redAccent, width: 2),
+          ),
+          child: const Icon(
+            Icons.clear,
+            color: Colors.redAccent,
+            size: 40,
+          ),
+        ),
+      );
+    } else {
+      return SizedBox(
+        width: 100,
+        height: 100,
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            SizedBox(
+              width: 80,
+              height: 80,
+              child: TweenAnimationBuilder<double>(
+                tween: Tween<double>(begin: 0, end: percent),
+                duration: const Duration(seconds: 2),
+                curve: Curves.easeOutCubic,
+                builder: (context, value, child) {
+                  return CustomPaint(
+                    painter: _CircularArrowProgressPainter(
+                      percentage: value,
+                      backgroundColor: Colors.grey[200]!,
+                      color: Theme.of(context).primaryColor,
+                      strokeWidth: 8,
+                    ),
+                  );
+                },
+              ),
+            ),
+            Text(percentText,
+                style: TextStyle(
+                    color: Theme.of(context).primaryColor,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold)),
+          ],
+        ),
+      );
+    }
+  }
+
   Widget _buildRecipientCardMobile(
       BuildContext context, Recipient recipient, int index) {
+    // Generate initials
+    String initials = "";
+    if (recipient.recipientName.isNotEmpty) {
+      List<String> names = recipient.recipientName.trim().split(" ");
+      if (names.isNotEmpty) {
+        initials = names[0][0];
+        if (names.length > 1) initials += names[names.length - 1][0];
+      }
+    }
+    initials = initials.toUpperCase();
+
     return Card(
-      elevation: 2,
+      elevation: 0,
       margin: const EdgeInsets.only(bottom: 12),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: Colors.grey.shade200, width: 1),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Text('$index',
-                    style: const TextStyle(
+                CircleAvatar(
+                  backgroundColor: Colors.blueGrey[50],
+                  radius: 22,
+                  child: Text(
+                    initials,
+                    style: TextStyle(
+                        color: Colors.blueGrey[700],
                         fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                        color: Colors.black54)),
+                        fontSize: 14),
+                  ),
+                ),
                 const SizedBox(width: 16),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(recipient.recipientName,
-                          style: const TextStyle(fontWeight: FontWeight.w600)),
+                          style: const TextStyle(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 15,
+                              color: Color(0xFF2C3E50))),
+                      const SizedBox(height: 2),
                       Text(recipient.recipientEmail,
                           style:
                               TextStyle(color: Colors.grey[600], fontSize: 13)),
-                      const SizedBox(height: 4),
-                      Text("Action: ${recipient.actionType}",
-                          style:
-                              TextStyle(color: Colors.grey[500], fontSize: 12)),
                     ],
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 20),
-            _TimelineStatus(
-                status: recipient.actionStatus,
-                actionType: recipient.actionType),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.grey[50],
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Column(
+                children: [
+                  Row(
+                    children: [
+                      const Icon(Icons.touch_app_outlined,
+                          size: 16, color: Colors.grey),
+                      const SizedBox(width: 8),
+                      Text("Action Required: ",
+                          style:
+                              TextStyle(color: Colors.grey[600], fontSize: 12)),
+                      Text(recipient.actionType,
+                          style: const TextStyle(
+                              fontWeight: FontWeight.w600, fontSize: 12)),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  _TimelineStatus(
+                      status: recipient.actionStatus,
+                      actionType: recipient.actionType),
+                ],
+              ),
+            )
           ],
         ),
       ),
@@ -463,13 +667,7 @@ class _TimelineStatus extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildStep(activeColor, inactiveColor, "Mailed", 1 <= currentStep),
-          Expanded(
-              child: Padding(
-            padding: const EdgeInsets.only(top: 8.0),
-            child: Container(
-                height: 2,
-                color: 2 <= currentStep ? activeColor : inactiveColor),
-          )),
+          _buildLine(activeColor, inactiveColor, 2 <= currentStep),
           _buildStep(activeColor, inactiveColor, "Viewed", 2 <= currentStep),
         ],
       );
@@ -485,31 +683,45 @@ class _TimelineStatus extends StatelessWidget {
       lastStepLabel = "Approved";
     }
 
+    final Color lastStepColor =
+        s == 'DECLINED' ? Colors.redAccent : activeColor;
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildStep(activeColor, inactiveColor, "Mailed", 1 <= currentStep),
-        Expanded(
-            child: Padding(
-          padding: const EdgeInsets.only(top: 8.0),
-          child: Container(
-              height: 2, color: 2 <= currentStep ? activeColor : inactiveColor),
-        )),
+        _buildLine(activeColor, inactiveColor, 2 <= currentStep),
         _buildStep(activeColor, inactiveColor, "Viewed", 2 <= currentStep),
-        Expanded(
-            child: Padding(
-          padding: const EdgeInsets.only(top: 8.0),
-          child: Container(
-              height: 2,
-              color: 3 <= currentStep
-                  ? s == 'DECLINED'
-                      ? Colors.redAccent
-                      : activeColor
-                  : inactiveColor),
-        )),
-        _buildStep(s == 'DECLINED' ? Colors.redAccent : activeColor,
-            inactiveColor, lastStepLabel, 3 <= currentStep),
+        _buildLine(lastStepColor, inactiveColor, 3 <= currentStep),
+        _buildStep(
+            lastStepColor, inactiveColor, lastStepLabel, 3 <= currentStep),
       ],
+    );
+  }
+
+  Widget _buildLine(Color activeColor, Color inactiveColor, bool isActive) {
+    return Expanded(
+      child: Padding(
+        padding: const EdgeInsets.only(top: 8.0),
+        child: Stack(
+          children: [
+            Container(height: 2, color: inactiveColor),
+            if (isActive)
+              TweenAnimationBuilder<double>(
+                tween: Tween(begin: 0, end: 1),
+                duration: const Duration(seconds: 2),
+                curve: Curves.easeInOut,
+                builder: (context, value, child) {
+                  return FractionallySizedBox(
+                    widthFactor: value,
+                    child: child,
+                  );
+                },
+                child: Container(height: 2, color: activeColor),
+              ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -517,7 +729,19 @@ class _TimelineStatus extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(Icons.circle, color: isActive ? active : inactive, size: 18),
+        TweenAnimationBuilder<double>(
+          tween: Tween(begin: 0.0, end: 1.0),
+          duration: const Duration(seconds: 1),
+          curve: Curves.elasticOut,
+          builder: (context, value, child) {
+            return Transform.scale(
+              scale: isActive ? value : 1.0,
+              child: child,
+            );
+          },
+          child:
+              Icon(Icons.circle, color: isActive ? active : inactive, size: 18),
+        ),
         const SizedBox(height: 4),
         Text(label,
             style: TextStyle(

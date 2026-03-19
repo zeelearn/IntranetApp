@@ -134,6 +134,7 @@ class _AllLegalStatusPageState extends State<AllLegalStatusPage> {
         !isLoading && (zohoRequestModel?.requests?.isEmpty ?? true);
 
     return DefaultTabController(
+      key: ValueKey(statusOrder.length),
       length: statusOrder.length,
       initialIndex: initialTabIndex,
       child: Scaffold(
@@ -200,6 +201,8 @@ class _AllLegalStatusPageState extends State<AllLegalStatusPage> {
                                 },
                                 decoration: InputDecoration(
                                   hintText: 'Search by Agreement Name or ID',
+                                  hintStyle: const TextStyle(
+                                      color: Colors.grey, fontSize: 14),
                                   prefixIcon: const Icon(Icons.search,
                                       color: Colors.grey),
                                   filled: true,
@@ -386,7 +389,6 @@ class AgreementCard extends StatelessWidget {
                 requests: request,
               ),
             ));
-        ;
       },
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
