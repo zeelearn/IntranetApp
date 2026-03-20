@@ -9,10 +9,10 @@ class ApiService {
       '/crm/v7/functions/getzohosigndocumentstatus/actions/execute';
 
   Future<DocumentStatus> getDocumentStatus(String requestId) async {
-    final apiKey = dotenv.env['ZOHO_API_KEY'];
-    if (apiKey == null) {
-      throw Exception('ZOHO_API_KEY not found in environment variables.');
-    }
+    final apiKey = '1003.cf825177f2ce96ebc934296577eac040.f9c4c7b8967068e0cafbd4e62b900368' /* dotenv.env['ZOHO_API_KEY'] */;
+    // if (apiKey == null) {
+    //   throw Exception('ZOHO_API_KEY not found in environment variables.');
+    // }
 
     final queryParameters = {
       'auth_type': 'apikey',

@@ -218,7 +218,7 @@ flutter:
     - assets/images/
     - assets/icons/
     - assets/json/
-    - .env
+    # - .env
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
 
