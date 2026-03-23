@@ -771,8 +771,6 @@ class _IntranetHomePageState extends State<IntranetHomePage>
         employeeId.toString(), id ?? '0', useragent);
     // }
 
-  
-
     // FirebaseMessaging.instance.onTokenRefresh.listen(
     //   (event) {
     //     firebaseMessaging.sendFcm(
@@ -1009,7 +1007,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
         // ),
         appBar: getAppbar(),
         drawer: getNavigationalDrawar(),
-        body: getScreen(),
+        body: SafeArea(child: getScreen()),
         bottomNavigationBar: Utility.footer(appVersion),
         /*floatingActionButton:_selectedDestination==MENU_HOME ? FloatingActionButton.extended(
           onPressed: () {

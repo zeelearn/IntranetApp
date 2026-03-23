@@ -1874,65 +1874,78 @@ class APIService {
 
   Future<ZohoRequestModel> getRecipientList(String email) async {
     try {
-      final uri = Uri.parse(
-              'https://www.zohoapis.in/crm/v7/functions/get_zoho_sign_documnet_data/actions/execute')
-          .replace(queryParameters: {
-        'auth_type': 'apikey',
-        'zapikey':
-            '1003.cf825177f2ce96ebc934296577eac040.f9c4c7b8967068e0cafbd4e62b900368',
-      });
+      final List<Requests> allRequests = [];
+      int startIndex = 1;
+      const int rowCount = 100;
+      int? totalCount;
 
-      final request = http.MultipartRequest('POST', uri);
+      while (true) {
+        final uri = Uri.parse(
+            'https://www.zohoapis.in/crm/v7/functions/get_zoho_sign_documnet_data1/actions/execute?auth_type=apikey&zapikey=1003.cf825177f2ce96ebc934296577eac040.f9c4c7b8967068e0cafbd4e62b900368&name=null');
 
-      request.headers['Cookie'] =
-          '_zcsr_tmp=f2d99b38-26a2-4b1e-84ac-9391a3c224ce; '
-          'crmcsr=f2d99b38-26a2-4b1e-84ac-9391a3c224ce; '
-          'group_name=usergroup1';
+        final request = http.MultipartRequest('POST', uri);
 
-      request.fields['start_index'] = '0';
-      request.fields['row_count'] = '1000';
+        request.headers['Cookie'] =
+            '_zcsr_tmp=83c3ae70-8128-44c6-90b5-45f6e674ee15; '
+            'crmcsr=83c3ae70-8128-44c6-90b5-45f6e674ee15; '
+            'group_name=usergroup1; '
+            '_zcsr_tmp=08457b0d-c89e-4a49-895f-54a64707990a; '
+            'crmcsr=08457b0d-c89e-4a49-895f-54a64707990a; '
+            'group_name=usergroup1';
 
-      final streamedResponse = await request.send();
-      final response = await http.Response.fromStream(streamedResponse);
+        request.fields['row_count'] = rowCount.toString();
+        request.fields['start_index'] = startIndex.toString();
+        request.fields['recipient_email'] = email;
 
-      /* final response = await http.post(
-        Uri.parse(LocalStrings.API_ZOHO_RECIPIENT),
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          'Cookie':
-              '_zcsr_tmp=f2d99b38-26a2-4b1e-84ac-9391a3c224ce; crmcsr=f2d99b38-26a2-4b1e-84ac-9391a3c224ce; group_name=usergroup1'
-        },
-        body: {
-          'start_index': '0',
-          'row_count': '100',
-        },
-      ); */
-      debugPrint('Zoho response body - ${response.body}');
+        final streamedResponse = await request.send();
+        final response = await http.Response.fromStream(streamedResponse);
 
-      if (response.statusCode == 200 &&
-          jsonDecode(response.body)['details']['output'] != null) {
-        ZohoRequestModel zohoRequestModel = ZohoRequestModel.fromJson(
-            jsonDecode(jsonDecode(response.body)['details']['output']));
-        /*  zohoRequestModel.requests?.removeWhere(
-          (element) {
-            return !(element.actions?.any(
-                  (element) => (element.recipientEmail?.contains(
-                          'vismeet.mehta@zeelearn.com' /* email */) ??
-                      false),
-                ) ??
-                false);
-          },
-        ); */
-        return zohoRequestModel;
-      } else {
-        debugPrint('Error - ${response.body}');
-        return ZohoRequestModel.setError(
-            jsonDecode(response.body)['message'] ?? response.body);
+        if (response.statusCode == 200) {
+          debugPrint('Zoho response body - ${response.body}');
+          final decodedBody = jsonDecode(response.body);
+          if (decodedBody['details'] != null &&
+              decodedBody['details']['output'] != null) {
+            final dynamic output = decodedBody['details']['output'];
+            final dynamic outputJson =
+                (output is String) ? jsonDecode(output) : output;
+
+            final ZohoRequestModel batchModel =
+                ZohoRequestModel.fromJson(outputJson);
+
+            if (totalCount == null) {
+              totalCount = batchModel.totalCount;
+            }
+
+            if (batchModel.requests != null &&
+                batchModel.requests!.isNotEmpty) {
+              print(
+                  'BatchModel Requests length - ${batchModel.requests!.length}');
+              allRequests.addAll(batchModel.requests!);
+            } else {
+              // break;
+            }
+            startIndex += rowCount;
+
+            if (totalCount != null && startIndex > totalCount) {
+              break;
+            }
+          } else {
+            debugPrint('No output in response details');
+            break;
+          }
+        } else {
+          debugPrint('Error in batch - ${response.body}');
+          if (allRequests.isEmpty) {
+            return ZohoRequestModel.setError('Something went wrong.');
+          }
+          break;
+        }
       }
-    } catch (e) {
-      debugPrint('Exception - ${e.toString()}');
 
-      return ZohoRequestModel.setError(e.toString());
+      return ZohoRequestModel(requests: allRequests, totalCount: totalCount);
+    } catch (e) {
+      debugPrint('Exception in getRecipientList - ${e.toString()}');
+      return ZohoRequestModel.setError('Something went wrong.');
     }
   }
 

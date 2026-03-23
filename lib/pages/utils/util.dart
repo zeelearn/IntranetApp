@@ -12,7 +12,26 @@ import '../helper/LocalConstant.dart';
 import '../helper/constants.dart';
 
 class Util {
- static Future<FirebaseApp> getCurrentFirebaseApp() async {
+  static String getDisplayTitle(String status) {
+    switch (status) {
+      case 'All':
+        return 'All';
+      case 'pending':
+        return 'Pending';
+      case 'inprogress':
+        return 'In Progress';
+      case 'completed':
+        return 'Completed';
+      case 'draft':
+        return 'Draft';
+      default:
+        return status.isNotEmpty
+            ? '${status[0].toUpperCase()}${status.substring(1)}'
+            : status;
+    }
+  }
+
+  static Future<FirebaseApp> getCurrentFirebaseApp() async {
     FirebaseApp app;
     try {
       if (!kIsWeb) {

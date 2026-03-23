@@ -1,16 +1,32 @@
+import 'dart:convert';
+
 class ZohoRequestModel {
   List<Requests>? requests;
   String? error;
+  int? totalCount;
 
-  ZohoRequestModel({this.requests});
+  ZohoRequestModel({this.requests, this.totalCount});
   ZohoRequestModel.setError(String message) {
     error = message;
   }
 
   ZohoRequestModel.fromJson(Map<String, dynamic> json) {
-    if (json['requests'] != null) {
+    Map<String, dynamic> data = json;
+    if (json['details'] != null && json['details']['output'] != null) {
+      try {
+        data = jsonDecode(json['details']['output']);
+      } catch (e) {
+        // Fallback to original json if parsing fails
+      }
+    }
+
+    final dynamic rawRequests = data['requests'] ?? data['agreements'];
+    if (data['total_count'] != null) {
+      totalCount = int.tryParse(data['total_count'].toString());
+    }
+    if (rawRequests != null) {
       requests = <Requests>[];
-      json['requests'].forEach((v) {
+      rawRequests.forEach((v) {
         requests!.add(Requests.fromJson(v));
       });
     }
@@ -20,6 +36,9 @@ class ZohoRequestModel {
     final Map<String, dynamic> data = <String, dynamic>{};
     if (requests != null) {
       data['requests'] = requests!.map((v) => v.toJson()).toList();
+    }
+    if (totalCount != null) {
+      data['total_count'] = totalCount;
     }
     return data;
   }
@@ -87,12 +106,23 @@ class Requests {
       this.actions});
 
   Requests.fromJson(Map<String, dynamic> json) {
-    requestStatus = json['request_status'];
+    // Handle both old and new Zoho API key names
+    requestStatus = json['agreement_status'] != 'draft' &&
+            json['agreement_status'] != 'expired' &&
+            json['agreement_status'] != 'recalled' &&
+            json['agreement_status'] != 'declined'
+        ? (json['action_status'] == 'APPROVED' ||
+                json['action_status'] == 'SIGNED')
+            ? 'completed'
+            : json['action_status'] == 'NOACTION'
+                ? 'No Action'
+                : json['request_status'] ?? json['agreement_status']
+        : json['agreement_status'];
     notes = json['notes'];
     reminderPeriod = json['reminder_period'];
     ownerId = json['owner_id'];
     description = json['description'];
-    requestName = json['request_name'];
+    requestName = json['request_name'] ?? json['agreement_name'];
     modifiedTime = json['modified_time'];
     actionTime = json['action_time'];
     isDeleted = json['is_deleted'];
@@ -102,7 +132,7 @@ class Requests {
 
     ownerFirstName = json['owner_first_name'];
     signPercentage = json['sign_percentage'];
-    expireBy = json['expire_by'];
+    expireBy = json['expire_by'] ?? json['expire_time'];
     ownerEmail = json['owner_email'];
     createdTime = json['created_time'];
     emailReminders = json['email_reminders'];
@@ -116,7 +146,8 @@ class Requests {
     inProcess = json['in_process'];
     validity = json['validity'];
     requestTypeName = json['request_type_name'];
-    requestId = json['request_id'];
+    requestId = json['request_id'] ??
+        json['agrement_id']; // Handle "agrement_id" typo in API
     zsdocumentid = json['zsdocumentid'];
     requestTypeId = json['request_type_id'];
     ownerLastName = json['owner_last_name'];
@@ -125,6 +156,17 @@ class Requests {
       json['actions'].forEach((v) {
         actions!.add(Actions.fromJson(v));
       });
+    } else if (json['action_type'] != null || json['action_status'] != null) {
+      // Map flat action fields to actions list for backward compatibility with UI
+      actions = [
+        Actions(
+          actionType: json['action_type'],
+          actionStatus: json['action_status'],
+          recipientName: json['recipient_name'],
+          recipientEmail: json['recipient_email'] ??
+              json['recipient'], // Handle 'recipient' key if exists
+        )
+      ];
     }
   }
 
