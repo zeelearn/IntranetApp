@@ -4,42 +4,28 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 
 class ApiService {
-  final String _baseUrl = 'www.zohoapis.in';
-  final String _path =
-      '/crm/v7/functions/getzohosigndocumentstatus/actions/execute';
+  final String _baseUrl =
+      'commonapi.zeelearn.com';
+  final String _path = '/api/bp/agreementstatus';
+ 
 
   Future<DocumentStatus> getDocumentStatus(String requestId) async {
-    final apiKey = '1003.cf825177f2ce96ebc934296577eac040.f9c4c7b8967068e0cafbd4e62b900368' /* dotenv.env['ZOHO_API_KEY'] */;
-    // if (apiKey == null) {
-    //   throw Exception('ZOHO_API_KEY not found in environment variables.');
-    // }
-
-    final queryParameters = {
-      'auth_type': 'apikey',
-      'zapikey': apiKey,
-      'request_id': requestId,
-    };
-
-    final uri = Uri.https(_baseUrl, _path, queryParameters);
+  
+    final uri = Uri.https(_baseUrl, _path);
 
     try {
-      final response = await http.get(uri, headers: {
-        'Cookie':
-            '_zcsr_tmp=15cd5135-3d85-4142-99e5-cfcb5c245569; crmcsr=15cd5135-3d85-4142-99e5-cfcb5c245569; group_name=usergroup1'
-      });
+      final response = await http.post(uri,
+          body: jsonEncode({"request_id": requestId}), headers: {"content-type": "application/json","dbid": "1"});
 
-      if (response.statusCode == 200) {
+
+      // print('API Response Status:  ${requestId} ${response.statusCode} - ${response.body.runtimeType} - ${response.body} ');
+      if (response.statusCode == 200 || response.statusCode == 201) {
         final Map<String, dynamic> body = json.decode(response.body);
 
-        // 1. Check if the response is the data directly (Unwrapped)
-        if (body.containsKey('req_id')) {
-          return DocumentStatus.fromJson(body);
-        }
-
         // 2. Check if the response is wrapped in standard Zoho Function structure
-        if ((body['code'] == 'success' || body['code'] == 'SUCCESS') &&
-            body['details']?['output'] != null) {
-          final dynamic output = body['details']['output'];
+        if (body['success']  &&
+            body['data']?['output'] != null) {
+          final dynamic output = body['data']['output'];
           if (output is String) {
             return DocumentStatus.fromJson(json.decode(output));
           } else {
