@@ -192,50 +192,62 @@ class _AllLegalStatusPageState extends State<AllLegalStatusPage> {
                           children: [
                             Padding(
                               padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-                              child: TextField(
-                                controller: _searchController,
-                                onChanged: (value) {
-                                  setState(() {
-                                    _searchQuery = value;
-                                  });
-                                },
-                                decoration: InputDecoration(
-                                  hintText: 'Search by Agreement Name or ID',
-                                  hintStyle: const TextStyle(
-                                      color: Colors.grey, fontSize: 14),
-                                  prefixIcon: const Icon(Icons.search,
-                                      color: Colors.grey),
-                                  filled: true,
-                                  fillColor: Colors.white,
-                                  contentPadding: const EdgeInsets.symmetric(
-                                      vertical: 10.0),
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(12.0),
-                                    borderSide: BorderSide.none,
+                              child: Center(
+                                child: ConstrainedBox(
+                                  constraints:
+                                      const BoxConstraints(maxWidth: 800),
+                                  child: TextField(
+                                    controller: _searchController,
+                                    onChanged: (value) {
+                                      setState(() {
+                                        _searchQuery = value;
+                                      });
+                                    },
+                                    decoration: InputDecoration(
+                                      hintText:
+                                          'Search by Agreement Name or ID',
+                                      hintStyle: const TextStyle(
+                                          color: Colors.grey, fontSize: 14),
+                                      prefixIcon: const Icon(Icons.search,
+                                          color: Colors.grey),
+                                      filled: true,
+                                      fillColor: Colors.white,
+                                      contentPadding:
+                                          const EdgeInsets.symmetric(
+                                              vertical: 10.0),
+                                      border: OutlineInputBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(12.0),
+                                        borderSide: BorderSide.none,
+                                      ),
+                                      enabledBorder: OutlineInputBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(12.0),
+                                        borderSide: BorderSide(
+                                            color:
+                                                Colors.grey.withOpacity(0.2)),
+                                      ),
+                                      focusedBorder: OutlineInputBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(12.0),
+                                        borderSide: BorderSide(
+                                            color: kPrimaryLightColor
+                                                .withOpacity(0.5)),
+                                      ),
+                                      suffixIcon: _searchQuery.isNotEmpty
+                                          ? IconButton(
+                                              icon: const Icon(Icons.clear,
+                                                  color: Colors.grey),
+                                              onPressed: () {
+                                                _searchController.clear();
+                                                setState(() {
+                                                  _searchQuery = '';
+                                                });
+                                              },
+                                            )
+                                          : null,
+                                    ),
                                   ),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(12.0),
-                                    borderSide: BorderSide(
-                                        color: Colors.grey.withOpacity(0.2)),
-                                  ),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(12.0),
-                                    borderSide: BorderSide(
-                                        color: kPrimaryLightColor
-                                            .withOpacity(0.5)),
-                                  ),
-                                  suffixIcon: _searchQuery.isNotEmpty
-                                      ? IconButton(
-                                          icon: const Icon(Icons.clear,
-                                              color: Colors.grey),
-                                          onPressed: () {
-                                            _searchController.clear();
-                                            setState(() {
-                                              _searchQuery = '';
-                                            });
-                                          },
-                                        )
-                                      : null,
                                 ),
                               ),
                             ),
@@ -331,18 +343,41 @@ class _AllLegalStatusPageState extends State<AllLegalStatusPage> {
       );
     }
 
-    return ListView.builder(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      itemCount: requests.length,
-      itemBuilder: (context, index) {
-        final request = requests[index];
-        return AgreementCard(
-          request: request,
-          effectiveStatus: _getEffectiveStatus(request),
-          email: widget.email,
+    return LayoutBuilder(builder: (context, constraints) {
+      if (constraints.maxWidth > 700) {
+        return GridView.builder(
+          padding: const EdgeInsets.only(left: 16, right: 16, top: 16),
+          gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+            maxCrossAxisExtent: 500,
+            childAspectRatio: constraints.maxWidth > 1100 ? 1.9 : 1.7,
+            crossAxisSpacing: 16,
+            mainAxisSpacing: 16,
+          ),
+          itemCount: requests.length,
+          itemBuilder: (context, index) {
+            final request = requests[index];
+            return AgreementCard(
+              request: request,
+              effectiveStatus: _getEffectiveStatus(request),
+              email: widget.email,
+              margin: EdgeInsets.zero,
+            );
+          },
         );
-      },
-    );
+      }
+      return ListView.builder(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        itemCount: requests.length,
+        itemBuilder: (context, index) {
+          final request = requests[index];
+          return AgreementCard(
+            request: request,
+            effectiveStatus: _getEffectiveStatus(request),
+            email: widget.email,
+          );
+        },
+      );
+    });
   }
 }
 
@@ -350,11 +385,13 @@ class AgreementCard extends StatelessWidget {
   final zohoaction.Requests request;
   final String email;
   final String effectiveStatus;
+  final EdgeInsetsGeometry? margin;
 
   const AgreementCard(
       {required this.request,
       required this.email,
       required this.effectiveStatus,
+      this.margin,
       super.key});
 
   void _copyToClipboard(BuildContext context, String text, String label) {
@@ -391,7 +428,8 @@ class AgreementCard extends StatelessWidget {
             ));
       },
       child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        margin:
+            margin ?? const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(8),
@@ -419,6 +457,8 @@ class AgreementCard extends StatelessWidget {
                         Expanded(
                           child: Text(
                             request.requestName ?? 'Agreement',
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
                               fontWeight: FontWeight.w600,
                               fontSize: 16,
@@ -482,6 +522,7 @@ class AgreementCard extends StatelessWidget {
                   Expanded(
                     child: Text(
                       request.requestId ?? 'N/A',
+                      maxLines: 1,
                       style: const TextStyle(
                           color: Colors.black87,
                           fontSize: 12,

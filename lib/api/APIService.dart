@@ -1872,7 +1872,127 @@ class APIService {
     return null;
   }
 
+  /* Future<ZohoRequestModel> getRecipientList(String email) async {
+    try {
+      final uri =
+          Uri.parse('https://commonapi.zeelearn.com/api/bp/getagreementstatus');
+      var body = jsonEncode({
+        "user_email": email,
+        "status": null,
+      });
+
+      final response = await http.post(uri,
+          headers: {"content-type": "application/json", "dbid": "1"},
+          body: body);
+
+      debugPrint('getRecipientList response: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> responseBody = json.decode(response.body);
+        if (responseBody['success'] == 200 || responseBody['success'] == true) {
+          return ZohoRequestModel.fromJson(responseBody);
+        }
+        return ZohoRequestModel.setError(
+            responseBody['message'] ?? 'Unknown error');
+      } else {
+        return ZohoRequestModel.setError(
+            'Failed to load data: ${response.statusCode}');
+      }
+    } catch (e) {
+      debugPrint('Exception in getRecipientList - ${e.toString()}');
+      return ZohoRequestModel.setError('Something went wrong: $e');
+    }
+  } */
+
   Future<ZohoRequestModel> getRecipientList(String email) async {
+    try {
+      final List<Requests> allRequests = [];
+      int startIndex = 1;
+      const int rowCount = 100;
+      int? totalCount;
+
+      while (true) {
+        final uri = Uri.parse(
+            'https://kubapi.zeelearn.com/V1/legalmis/api/legal/getzohosigndocumnetdata');
+        // final uri = Uri.parse(
+        //     'https://www.zohoapis.in/crm/v7/functions/get_zoho_sign_documnet_data1/actions/execute?auth_type=apikey&zapikey=1003.cf825177f2ce96ebc934296577eac040.f9c4c7b8967068e0cafbd4e62b900368&name=null');
+
+        final response = await http.post(uri,
+            body: jsonEncode({
+              'row_count': rowCount.toString(),
+              'start_index': startIndex.toString(),
+              'recipient_email': email,
+            }),
+            headers: {
+              "content-type": "application/json",
+              "dbid": "1",
+            });
+
+        // request.headers['Cookie'] =
+        //     '_zcsr_tmp=83c3ae70-8128-44c6-90b5-45f6e674ee15; '
+        //     'crmcsr=83c3ae70-8128-44c6-90b5-45f6e674ee15; '
+        //     'group_name=usergroup1; '
+        //     '_zcsr_tmp=08457b0d-c89e-4a49-895f-54a64707990a; '
+        //     'crmcsr=08457b0d-c89e-4a49-895f-54a64707990a; '
+        //     'group_name=usergroup1';
+
+        // request.fields['row_count'] = rowCount.toString();
+        // request.fields['start_index'] = startIndex.toString();
+        // request.fields['recipient_email'] = email;
+
+        // final streamedResponse = await request.send();
+        // final response = await http.Response.fromStream(streamedResponse);
+
+        if (response.statusCode == 200 || response.statusCode == 201) {
+          debugPrint('Zoho response body - ${response.body}');
+          final decodedBody = jsonDecode(response.body);
+          if (decodedBody['data'] != null &&
+              decodedBody['data']['output'] != null) {
+            final dynamic output = decodedBody['data']['output'];
+            final dynamic outputJson =
+                (output is String) ? jsonDecode(output) : output;
+
+            final ZohoRequestModel batchModel =
+                ZohoRequestModel.fromJson(outputJson);
+
+            if (totalCount == null) {
+              totalCount = batchModel.totalCount;
+            }
+
+            if (batchModel.requests != null &&
+                batchModel.requests!.isNotEmpty) {
+              print(
+                  'BatchModel Requests length - ${batchModel.requests!.length}');
+              allRequests.addAll(batchModel.requests!);
+            } else {
+              // break;
+            }
+            startIndex += rowCount;
+
+            if (totalCount != null && startIndex > totalCount) {
+              break;
+            }
+          } else {
+            debugPrint('No output in response details');
+            break;
+          }
+        } else {
+          debugPrint('Error in batch - ${response.body}');
+          if (allRequests.isEmpty) {
+            return ZohoRequestModel.setError('Something went wrong.');
+          }
+          break;
+        }
+      }
+
+      return ZohoRequestModel(requests: allRequests, totalCount: totalCount);
+    } catch (e) {
+      debugPrint('Exception in getRecipientList - ${e.toString()}');
+      return ZohoRequestModel.setError('Something went wrong.');
+    }
+  }
+
+  /*  Future<ZohoRequestModel> getRecipientList(String email) async {
     try {
       final List<Requests> allRequests = [];
       int startIndex = 1;
@@ -1947,7 +2067,7 @@ class APIService {
       debugPrint('Exception in getRecipientList - ${e.toString()}');
       return ZohoRequestModel.setError('Something went wrong.');
     }
-  }
+  } */
 
   Future<Either<String, String>> getViewDocumentURl(
       {required String requestId, required String actionId}) async {

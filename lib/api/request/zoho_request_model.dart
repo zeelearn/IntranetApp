@@ -11,19 +11,39 @@ class ZohoRequestModel {
   }
 
   ZohoRequestModel.fromJson(Map<String, dynamic> json) {
-    Map<String, dynamic> data = json;
-    if (json['details'] != null && json['details']['output'] != null) {
-      try {
-        data = jsonDecode(json['details']['output']);
-      } catch (e) {
-        // Fallback to original json if parsing fails
+    dynamic rawRequests;
+
+    if (json['data'] is List) {
+      final List dataList = json['data'];
+      if (dataList.isNotEmpty) {
+        final Map<String, dynamic> firstItem = dataList[0];
+        rawRequests = firstItem['agreements'];
+        if (firstItem['total_count'] != null) {
+          totalCount = int.tryParse(firstItem['total_count'].toString());
+        }
+      }
+    } else {
+      // Handle old/legacy response structure
+      Map<String, dynamic> data = json;
+      if (json['data'] != null) {
+        if (json['data'] is String) {
+          try {
+            data = jsonDecode(json['data']);
+          } catch (e) {
+            // Fallback to original json if parsing fails
+          }
+        } else if (json['data'] is Map<String, dynamic>) {
+          data = json['data'];
+        }
+      }
+
+      rawRequests = data['requests'] ?? data['agreements'];
+      if (data['total_count'] != null) {
+        totalCount = int.tryParse(data['total_count'].toString());
       }
     }
-
-    final dynamic rawRequests = data['requests'] ?? data['agreements'];
-    if (data['total_count'] != null) {
-      totalCount = int.tryParse(data['total_count'].toString());
-    }
+    print(
+        'ZohoRequestModel.fromJson: rawRequests type: ${rawRequests.runtimeType}');
     if (rawRequests != null) {
       requests = <Requests>[];
       rawRequests.forEach((v) {
@@ -122,7 +142,7 @@ class Requests {
     reminderPeriod = json['reminder_period'];
     ownerId = json['owner_id'];
     description = json['description'];
-    requestName = json['request_name'] ?? json['agreement_name'];
+    requestName = json['document_name'] ?? json['agreement_name'];
     modifiedTime = json['modified_time'];
     actionTime = json['action_time'];
     isDeleted = json['is_deleted'];
