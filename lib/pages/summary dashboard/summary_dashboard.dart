@@ -83,6 +83,8 @@ class _SummaryDashboardState extends State<SummaryDashboard>
 
   // API Data state
   bool _isLoading = true;
+  List<PJPInfo> _rawPjpData = [];
+  bool _isTeamView = true;
   List<PJPInfo> _pjpData = [];
   List<PJPInfo> _filteredPjpData = [];
   Set<String> _allTeamMembers = {};
@@ -169,22 +171,33 @@ class _SummaryDashboardState extends State<SummaryDashboard>
     if (value is PjpListResponse) {
       if (mounted) {
         setState(() {
-          _pjpData = value.responseData
-              .where((pjp) => pjp.isSelfPJP.trim() != '1')
-              .toList();
-
-          // Populate all team members and select all by default
-          _allTeamMembers = _pjpData.map((pjp) => pjp.displayName).toSet();
-          _selectedTeamMembers = Set.from(_allTeamMembers);
-
-          // Assign colors once
-          _assignUserColors();
-
-          _processFilteredData();
+          _rawPjpData = value.responseData;
+          _updateViewMode();
           _isLoading = false;
         });
       }
     }
+  }
+
+  void _updateViewMode() {
+    if (_isTeamView) {
+      _pjpData = _rawPjpData
+          .where((pjp) => pjp.isSelfPJP.trim() != '1')
+          .toList();
+    } else {
+      _pjpData = _rawPjpData
+          .where((pjp) => pjp.isSelfPJP.trim() == '1')
+          .toList();
+    }
+
+    // Populate all team members and select all by default
+    _allTeamMembers = _pjpData.map((pjp) => pjp.displayName).toSet();
+    _selectedTeamMembers = Set.from(_allTeamMembers);
+
+    // Assign colors once
+    _assignUserColors();
+
+    _processFilteredData();
   }
 
   @override
@@ -226,16 +239,11 @@ class _SummaryDashboardState extends State<SummaryDashboard>
     for (var pjpInfo in _filteredPjpData) {
       final userName = pjpInfo.displayName;
       final baseColor = _getColorForUser(userName);
-      final eventCount = _userEventCount.putIfAbsent(userName, () => 0);
-
-      final eventColor =
-          Color.lerp(baseColor, Colors.black, eventCount * 0.05)!;
-      _userEventCount[userName] = eventCount + 1;
 
       newEvents.add(_Event(
         title: '${pjpInfo.displayName}',
         time: pjpInfo.Status,
-        color: eventColor,
+        color: baseColor,
         icon: Icons.location_on,
         start: Utility.convertDate(pjpInfo.fromDate),
         end: Utility.convertDate(pjpInfo.toDate),
@@ -266,7 +274,40 @@ class _SummaryDashboardState extends State<SummaryDashboard>
     _totalPJP = _filteredPjpData.length;
     _totalEmployees = teamMembersInFilteredData.length;
     _events.clear();
-    _events.addAll(newEvents);
+
+    // ── Calculate Layout Slots (Lanes) ──────────────────────────────────────
+    // 1. Sort events: Start Date ASC, then Duration DESC
+    newEvents.sort((a, b) {
+      int cmp = a.start.compareTo(b.start);
+      if (cmp != 0) return cmp;
+      return b.end.difference(b.start).compareTo(a.end.difference(a.start));
+    });
+
+    // 2. Assign slots
+    List<DateTime> laneEndDates = [];
+    List<_Event> slottedEvents = [];
+
+    for (var event in newEvents) {
+      int lane = -1;
+      // Find the first lane where this event fits (starts after lane ends)
+      for (int i = 0; i < laneEndDates.length; i++) {
+        if (event.start.isAfter(laneEndDates[i])) {
+          lane = i;
+          laneEndDates[i] = event.end;
+          break;
+        }
+      }
+
+      // If no fit, add new lane
+      if (lane == -1) {
+        lane = laneEndDates.length;
+        laneEndDates.add(event.end);
+      }
+
+      slottedEvents.add(event.copyWith(slotIndex: lane));
+    }
+
+    _events.addAll(slottedEvents);
   }
 
   // ── helpers ───────────────────────────────────────────────────────────────
@@ -325,9 +366,16 @@ class _SummaryDashboardState extends State<SummaryDashboard>
       backgroundColor: _sidebar,
       foregroundColor: Colors.white,
       elevation: 0,
-      title: Text('PJP Dashboard',
-          style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
+      title: Row(
+        children: [
+          Text('PJP Dashboard',
+              style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
+          const Spacer(),
+          _buildViewSwitcher(isDark: true),
+        ],
+      ),
       actions: [
+        if (_isTeamView)
         IconButton(
           icon: const Icon(Icons.filter_list),
           onPressed: _showMobileFilter,
@@ -394,8 +442,10 @@ class _SummaryDashboardState extends State<SummaryDashboard>
             ),
 
             const Divider(color: Color(0xFF2E2E42), thickness: 1, height: 1),
-            _buildEmployeeFilter(compact: compact),
-            const Divider(color: Color(0xFF2E2E42), thickness: 1, height: 1),
+            if (_isTeamView) ...[
+              _buildEmployeeFilter(compact: compact),
+              const Divider(color: Color(0xFF2E2E42), thickness: 1, height: 1),
+            ],
             // Weather row
             /*    Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
@@ -998,6 +1048,8 @@ class _SummaryDashboardState extends State<SummaryDashboard>
                   fontWeight: FontWeight.w700,
                   fontSize: desktop ? 18 : 14,
                   color: _textPrimary)),
+          const SizedBox(width: 16),
+          _buildViewSwitcher(),
           const Spacer(),
           // Format switcher (desktop only)
           if (desktop) _buildFormatSwitcher(),
@@ -1085,6 +1137,70 @@ class _SummaryDashboardState extends State<SummaryDashboard>
     );
   }
 
+  Widget _buildViewSwitcher({bool isDark = false}) {
+    final bgColor = isDark ? Colors.black26 : const Color(0xFFF1F5F9);
+    final activeColor = isDark ? Colors.white.withOpacity(0.2) : Colors.white;
+    final inactiveTextColor = isDark ? Colors.white60 : _textSecondary;
+    final activeTextColor = isDark ? Colors.white : _textPrimary;
+
+    return Container(
+      height: 32,
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      padding: const EdgeInsets.all(2),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _switcherBtn('Self', !_isTeamView, activeColor, activeTextColor,
+              inactiveTextColor),
+          _switcherBtn('My Team', _isTeamView, activeColor, activeTextColor,
+              inactiveTextColor),
+        ],
+      ),
+    );
+  }
+
+  Widget _switcherBtn(String label, bool isActive, Color activeBg,
+      Color activeText, Color inactiveText) {
+    return InkWell(
+      onTap: () {
+        if ((label == 'My Team') != _isTeamView) {
+          setState(() {
+            _isTeamView = label == 'My Team';
+            _updateViewMode();
+          });
+        }
+      },
+      borderRadius: BorderRadius.circular(6),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: isActive ? activeBg : Colors.transparent,
+          borderRadius: BorderRadius.circular(6),
+          boxShadow: isActive && activeBg == Colors.white
+              ? [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 2,
+                  )
+                ]
+              : null,
+        ),
+        child: Text(
+          label,
+          style: GoogleFonts.inter(
+            fontSize: 12,
+            fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
+            color: isActive ? activeText : inactiveText,
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildFormatSwitcher() {
     final formats = ['Week', 'Month'];
     return Container(
@@ -1140,8 +1256,9 @@ class _SummaryDashboardState extends State<SummaryDashboard>
         : '0% of PJPs';
 
     final cards = [
-      _KPICard('Employees', _totalEmployees.toString(),
-          Icons.people_alt_rounded, _accent, '', true),
+      if (_isTeamView)
+        _KPICard('Employees', _totalEmployees.toString(),
+            Icons.people_alt_rounded, _accent, '', true),
       _KPICard('Total PJP', _totalPJP.toString(), Icons.assignment_rounded,
           Colors.blueAccent, '', true),
       _KPICard('CVF', _totalVisits.toString(), Icons.check_circle_rounded,
@@ -1338,7 +1455,7 @@ class _SummaryDashboardState extends State<SummaryDashboard>
             markerDecoration: BoxDecoration(),
           ),
           daysOfWeekHeight: 36,
-          rowHeight: 80,
+          rowHeight: 120,
           daysOfWeekStyle: DaysOfWeekStyle(
             decoration: const BoxDecoration(
                 border: Border(bottom: BorderSide(color: _divider))),
@@ -1390,103 +1507,120 @@ class _SummaryDashboardState extends State<SummaryDashboard>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Day number
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(4),
-              child: Align(
-                alignment: Alignment.topRight,
-                child: Container(
-                  width: 24,
-                  height: 24,
-                  decoration: BoxDecoration(
-                    color: isToday
-                        ? _accent
-                        : isSelected
-                            ? _accentSecondary
-                            : Colors.transparent,
-                    shape: BoxShape.circle,
-                  ),
-                  alignment: Alignment.center,
-                  child: Text(
-                    '${day.day}',
-                    style: GoogleFonts.inter(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      color: isToday || isSelected
-                          ? Colors.white
-                          : isOutside
-                              ? _textSecondary.withValues(alpha: 0.3)
-                              : isWeekend
-                                  ? _textSecondary
-                                  : _textPrimary,
-                    ),
+          Padding(
+            padding: const EdgeInsets.all(4),
+            child: Align(
+              alignment: Alignment.topRight,
+              child: Container(
+                width: 24,
+                height: 24,
+                decoration: BoxDecoration(
+                  color: isToday
+                      ? _accent
+                      : isSelected
+                          ? _accentSecondary
+                          : Colors.transparent,
+                  shape: BoxShape.circle,
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  '${day.day}',
+                  style: GoogleFonts.inter(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: isToday || isSelected
+                        ? Colors.white
+                        : isOutside
+                            ? _textSecondary.withValues(alpha: 0.3)
+                            : isWeekend
+                                ? _textSecondary
+                                : _textPrimary,
                   ),
                 ),
               ),
             ),
           ),
           // Events
-          ...events.take(3).map((e) {
-            final d = DateTime(day.year, day.month, day.day);
-            final s = DateTime(e.start.year, e.start.month, e.start.day);
-            final eDate = DateTime(e.end.year, e.end.month, e.end.day);
-            final isStart = d.isAtSameMomentAs(s);
-            final isEnd = d.isAtSameMomentAs(eDate);
-            final isSingleDay = isStart && isEnd;
+          ...List.generate(3, (index) {
+            // Find the event assigned to this slot (index)
+            final e = events.firstWhere(
+              (ev) => ev.slotIndex == index,
+              orElse: () => _Event.empty(),
+            );
 
-            return Padding(
-              padding: EdgeInsets.only(
-                top: 2,
-                left: isStart ? 4 : 0,
-                right: isEnd ? 4 : 0,
-              ),
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-                decoration: BoxDecoration(
-                  color: e.color.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.horizontal(
-                    left: isStart ? const Radius.circular(3) : Radius.zero,
-                    right: isEnd ? const Radius.circular(3) : Radius.zero,
+            if (e.slotIndex == index) {
+              final d = DateTime(day.year, day.month, day.day);
+              final s = DateTime(e.start.year, e.start.month, e.start.day);
+              final eDate = DateTime(e.end.year, e.end.month, e.end.day);
+              final isStart = d.isAtSameMomentAs(s);
+              final isEnd = d.isAtSameMomentAs(eDate);
+
+              return Padding(
+                padding: EdgeInsets.only(
+                  top: 2,
+                  left: isStart ? 4 : 0,
+                  right: isEnd ? 4 : 0,
+                ),
+                child: Container(
+                  height: 20, // Fixed height for alignment
+                  width: double.infinity,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                  decoration: BoxDecoration(
+                    color: e.color.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.horizontal(
+                      left: isStart ? const Radius.circular(3) : Radius.zero,
+                      right: isEnd ? const Radius.circular(3) : Radius.zero,
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      if (isStart) ...[
+                        Container(
+                          width: 4,
+                          height: 4,
+                          decoration: BoxDecoration(
+                              color: e.color, shape: BoxShape.circle),
+                        ),
+                        const SizedBox(width: 3),
+                      ] else
+                        const SizedBox(width: 7), // align text
+                      Expanded(
+                        child: Text(
+                          isStart ? e.title : '',
+                          style: GoogleFonts.inter(
+                              fontSize: 12,
+                              color: _textPrimary,
+                              fontWeight: FontWeight.w500),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                child: Row(
-                  children: [
-                    if (isStart) ...[
-                      Container(
-                        width: 4,
-                        height: 4,
-                        decoration: BoxDecoration(
-                            color: e.color, shape: BoxShape.circle),
-                      ),
-                      const SizedBox(width: 3),
-                    ] else
-                      const SizedBox(width: 7), // align text
-                    Expanded(
-                      child: Text(
-                        isStart ? e.title : '',
-                        style: GoogleFonts.inter(
-                            fontSize: 9,
-                            color: _textPrimary,
-                            fontWeight: FontWeight.w500),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            );
+              );
+            } else {
+              // Render a gap if there are events in lower slots (higher indices)
+              bool hasHigherEvents = events.any((ev) => ev.slotIndex > index);
+              if (hasHigherEvents) {
+                return const SizedBox(height: 22); // 20 + 2 top padding
+              } else {
+                return const SizedBox.shrink();
+              }
+            }
           }),
-          if (events.length > 3)
+          if (events.any((e) => e.slotIndex >= 3))
             Padding(
               padding: const EdgeInsets.only(top: 1, left: 6),
-              child: Text('+${events.length - 3} more',
+              child: Text(
+                  '+${events.where((e) => e.slotIndex >= 3).length} more',
                   style: GoogleFonts.inter(
                       fontSize: 8,
                       color: _accentSecondary,
                       fontWeight: FontWeight.w600)),
             ),
+          const Spacer(), // Push content to top
         ],
       ),
     );
@@ -2757,6 +2891,7 @@ class _Event {
   final DateTime start;
   final DateTime end;
   final PJPInfo? pjpInfo;
+  final int slotIndex;
 
   const _Event({
     required this.title,
@@ -2766,7 +2901,33 @@ class _Event {
     required this.start,
     required this.end,
     this.pjpInfo,
+    this.slotIndex = 0,
   });
+
+  factory _Event.empty() {
+    return _Event(
+      title: '',
+      time: '',
+      color: Colors.transparent,
+      icon: Icons.error,
+      start: DateTime(1900),
+      end: DateTime(1900),
+      slotIndex: -1,
+    );
+  }
+
+  _Event copyWith({int? slotIndex}) {
+    return _Event(
+      title: title,
+      time: time,
+      color: color,
+      icon: icon,
+      start: start,
+      end: end,
+      pjpInfo: pjpInfo,
+      slotIndex: slotIndex ?? this.slotIndex,
+    );
+  }
 
   bool get isMultiDay {
     final s = DateTime(start.year, start.month, start.day);

@@ -160,9 +160,9 @@ class DocumentStatusScreen extends ConsumerWidget {
                 color: Colors.grey.shade600,
                 tooltip: 'Copy Request ID',
                 onPressed: () {
-                  Clipboard.setData(ClipboardData(text: status.reqId));
+                  Clipboard.setData(ClipboardData(text: requests.requestName ?? '${status.reqId}'));
                   ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                      content: Text('Request ID copied to clipboard')));
+                      content: Text('Request Name copied to clipboard')));
                 },
               ),
             ],
