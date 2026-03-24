@@ -78,10 +78,15 @@ class _SummaryDashboardState extends State<SummaryDashboard>
       DateTime.utc(DateTime.now().year, DateTime.now().month + 4, 0);
 
   bool _isSidebarVisible = true;
+  CalendarFormat _calendarFormat = CalendarFormat.month;
+  String _currentFormat = 'Month';
 
   // API Data state
   bool _isLoading = true;
   List<PJPInfo> _pjpData = [];
+  List<PJPInfo> _filteredPjpData = [];
+  Set<String> _allTeamMembers = {};
+  Set<String> _selectedTeamMembers = {};
   final List<_Event> _events = [];
 
   // KPI state
@@ -89,6 +94,8 @@ class _SummaryDashboardState extends State<SummaryDashboard>
   int _totalVisits = 0;
   int _pendingApprovals = 0; // This might need another API
   int _approvedPJP = 0;
+  int _totalPJP = 0;
+  int _rejectedPJP = 0;
 
   // User color mapping
   final Map<String, Color> _userColors = {};
@@ -162,8 +169,18 @@ class _SummaryDashboardState extends State<SummaryDashboard>
     if (value is PjpListResponse) {
       if (mounted) {
         setState(() {
-          _pjpData = value.responseData;
-          _processPjpData();
+          _pjpData = value.responseData
+              .where((pjp) => pjp.isSelfPJP.trim() != '1')
+              .toList();
+
+          // Populate all team members and select all by default
+          _allTeamMembers = _pjpData.map((pjp) => pjp.displayName).toSet();
+          _selectedTeamMembers = Set.from(_allTeamMembers);
+
+          // Assign colors once
+          _assignUserColors();
+
+          _processFilteredData();
           _isLoading = false;
         });
       }
@@ -181,25 +198,36 @@ class _SummaryDashboardState extends State<SummaryDashboard>
     }
   }
 
-  void _processPjpData() {
+  void _assignUserColors() {
+    _userColors.clear();
+    _colorIndex = 0;
+    // Sort to have a consistent color assignment
+    final sortedMembers = _allTeamMembers.toList()..sort();
+    for (final userName in sortedMembers) {
+      _getColorForUser(userName); // This will assign a color if not present
+    }
+  }
+
+  void _processFilteredData() {
+    _filteredPjpData = _pjpData
+        .where((pjp) => _selectedTeamMembers.contains(pjp.displayName))
+        .toList();
+
     int totalVisits = 0;
     int pendingApprovals = 0;
     int approvedPjps = 0;
+    int rejectedPjps = 0;
     List<_Event> newEvents = [];
-    final today = DateTime.now();
 
-    Set<String> teamMembers = {};
+    Set<String> teamMembersInFilteredData = {};
 
-    _userColors.clear();
     _userEventCount.clear();
-    _colorIndex = 0;
 
-    for (var pjpInfo in _pjpData) {
+    for (var pjpInfo in _filteredPjpData) {
       final userName = pjpInfo.displayName;
       final baseColor = _getColorForUser(userName);
       final eventCount = _userEventCount.putIfAbsent(userName, () => 0);
 
-      // Create a slightly different shade for each event
       final eventColor =
           Color.lerp(baseColor, Colors.black, eventCount * 0.05)!;
       _userEventCount[userName] = eventCount + 1;
@@ -213,7 +241,7 @@ class _SummaryDashboardState extends State<SummaryDashboard>
         end: Utility.convertDate(pjpInfo.toDate),
         pjpInfo: pjpInfo,
       ));
-      teamMembers.add(pjpInfo.displayName);
+      teamMembersInFilteredData.add(pjpInfo.displayName);
 
       if (pjpInfo.getDetailedPJP != null) {
         totalVisits += pjpInfo.getDetailedPJP!.length;
@@ -225,15 +253,18 @@ class _SummaryDashboardState extends State<SummaryDashboard>
       if (pjpInfo.ApprovalStatus.trim().toLowerCase() == 'approved') {
         approvedPjps++;
       }
+      if (pjpInfo.ApprovalStatus.trim().toLowerCase().contains('reject')) {
+        rejectedPjps++;
+      }
     }
 
     // Update state variables
     _totalVisits = totalVisits;
     _pendingApprovals = pendingApprovals;
     _approvedPJP = approvedPjps;
-    _totalEmployees = teamMembers.isNotEmpty
-        ? teamMembers.length
-        : 1; // Avoid division by zero
+    _rejectedPJP = rejectedPjps;
+    _totalPJP = _filteredPjpData.length;
+    _totalEmployees = teamMembersInFilteredData.length;
     _events.clear();
     _events.addAll(newEvents);
   }
@@ -263,7 +294,8 @@ class _SummaryDashboardState extends State<SummaryDashboard>
     final w = MediaQuery.of(context).size.width;
 
     if (_isLoading) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return const Scaffold(
+          body: SafeArea(child: Center(child: CircularProgressIndicator())));
     }
 
     return Scaffold(
@@ -271,17 +303,19 @@ class _SummaryDashboardState extends State<SummaryDashboard>
       appBar: _isMobile(w) ? _buildMobileAppBar() : null,
       // drawer:
       //     _isMobile(w) ? Drawer(child: _buildSidebar(compact: false)) : null,
-      body: _isMobile(w)
-          ? _buildMobileBody()
-          : Row(
-              children: [
-                if (_isDesktop(w) && _isSidebarVisible)
-                  SizedBox(width: 280, child: _buildSidebar(compact: false))
-                else if (_isTablet(w) && _isSidebarVisible)
-                  SizedBox(width: 240, child: _buildSidebar(compact: true)),
-                Expanded(child: _buildMainContent(w)),
-              ],
-            ),
+      body: SafeArea(
+        child: _isMobile(w)
+            ? _buildMobileBody()
+            : Row(
+                children: [
+                  if (_isDesktop(w) && _isSidebarVisible)
+                    SizedBox(width: 280, child: _buildSidebar(compact: false))
+                  else if (_isTablet(w) && _isSidebarVisible)
+                    SizedBox(width: 240, child: _buildSidebar(compact: true)),
+                  Expanded(child: _buildMainContent(w)),
+                ],
+              ),
+      ),
     );
   }
 
@@ -294,10 +328,10 @@ class _SummaryDashboardState extends State<SummaryDashboard>
       title: Text('PJP Dashboard',
           style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
       actions: [
-        /*   IconButton(
-          icon: const Icon(Icons.notifications_none_rounded),
-          onPressed: () {},
-        ) */
+        IconButton(
+          icon: const Icon(Icons.filter_list),
+          onPressed: _showMobileFilter,
+        )
       ],
     );
   }
@@ -310,7 +344,7 @@ class _SummaryDashboardState extends State<SummaryDashboard>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildKPIRow(isMobile: true),
-          // const SizedBox(height: 6),
+          const SizedBox(height: 16),
           _buildMiniCalendarCard(),
           const SizedBox(height: 16),
           _buildUpcomingEventsCard(),
@@ -359,6 +393,9 @@ class _SummaryDashboardState extends State<SummaryDashboard>
               child: _buildSidebarMiniCalendar(compact: compact),
             ),
 
+            const Divider(color: Color(0xFF2E2E42), thickness: 1, height: 1),
+            _buildEmployeeFilter(compact: compact),
+            const Divider(color: Color(0xFF2E2E42), thickness: 1, height: 1),
             // Weather row
             /*    Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
@@ -376,24 +413,28 @@ class _SummaryDashboardState extends State<SummaryDashboard>
                     label: 'TODAY  ${DateFormat('M/d/yy').format(now)}',
                     events: _getEventsForDay(now),
                     compact: compact,
+                    day: now,
                   ),
                   _buildSidebarDaySection(
                     label:
                         'TOMORROW  ${DateFormat('M/d/yy').format(now.add(const Duration(days: 1)))}',
                     events: _getEventsForDay(now.add(const Duration(days: 1))),
                     compact: compact,
+                    day: now.add(const Duration(days: 1)),
                   ),
                   _buildSidebarDaySection(
                     label:
                         '${DateFormat('EEEE').format(now.add(const Duration(days: 2))).toUpperCase()}  ${DateFormat('M/d/yy').format(now.add(const Duration(days: 2)))}',
                     events: _getEventsForDay(now.add(const Duration(days: 2))),
                     compact: compact,
+                    day: now.add(const Duration(days: 2)),
                   ),
                   _buildSidebarDaySection(
                     label:
                         '${DateFormat('EEEE').format(now.add(const Duration(days: 3))).toUpperCase()}  ${DateFormat('M/d/yy').format(now.add(const Duration(days: 3)))}',
                     events: _getEventsForDay(now.add(const Duration(days: 3))),
                     compact: compact,
+                    day: now.add(const Duration(days: 3)),
                   ),
                 ],
               ),
@@ -477,29 +518,265 @@ class _SummaryDashboardState extends State<SummaryDashboard>
           weekendStyle: GoogleFonts.inter(
               color: Colors.white38, fontSize: 10, fontWeight: FontWeight.w500),
         ),
-        calendarStyle: CalendarStyle(
+        calendarStyle: const CalendarStyle(
           outsideDaysVisible: true,
-          defaultTextStyle:
-              GoogleFonts.inter(color: Colors.white70, fontSize: 11),
-          weekendTextStyle:
-              GoogleFonts.inter(color: Colors.white54, fontSize: 11),
-          outsideTextStyle:
-              GoogleFonts.inter(color: Colors.white24, fontSize: 11),
-          todayDecoration:
-              const BoxDecoration(color: _accent, shape: BoxShape.circle),
-          todayTextStyle: GoogleFonts.inter(
-              color: Colors.black, fontSize: 11, fontWeight: FontWeight.w700),
-          selectedDecoration: const BoxDecoration(
-              color: _accentSecondary, shape: BoxShape.circle),
-          selectedTextStyle: GoogleFonts.inter(
-              color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700),
-          markerDecoration:
-              const BoxDecoration(color: _accent, shape: BoxShape.circle),
-          markerSize: 4,
-          markersMaxCount: 3,
-          cellMargin: const EdgeInsets.all(2),
+          cellMargin: EdgeInsets.all(2),markersMaxCount: 0
+        ),
+        calendarBuilders: CalendarBuilders(
+          defaultBuilder: (context, day, focusedDay) =>
+              _buildSidebarCalCell(day, events: _getEventsForDay(day)),
+          todayBuilder: (context, day, focusedDay) => _buildSidebarCalCell(day,
+              events: _getEventsForDay(day), isToday: true),
+          selectedBuilder: (context, day, focusedDay) => _buildSidebarCalCell(
+              day,
+              events: _getEventsForDay(day),
+              isSelected: true),
+          outsideBuilder: (context, day, focusedDay) =>
+              _buildSidebarCalCell(day, isOutside: true),
         ),
       ),
+    );
+  }
+
+  Widget _buildSidebarCalCell(DateTime day,
+      {List<_Event> events = const [],
+      bool isToday = false,
+      bool isSelected = false,
+      bool isOutside = false}) {
+    if (isOutside) {
+      return Center(
+        child: Text(
+          '${day.day}',
+          style: GoogleFonts.inter(color: Colors.white24, fontSize: 11),
+        ),
+      );
+    }
+    return Center(
+      child: Container(
+        width: 28,
+        height: 28,
+        decoration: BoxDecoration(
+          color: isSelected
+              ? _accentSecondary
+              : (isToday ? _accent : Colors.transparent),
+          shape: BoxShape.circle,
+        ),
+        child: Stack(
+          alignment: Alignment.center,
+          clipBehavior: Clip.none,
+          children: [
+            Text(
+              '${day.day}',
+              style: GoogleFonts.inter(
+                  color: isToday
+                      ? Colors.black
+                      : (isSelected ? Colors.white : Colors.white70),
+                  fontSize: 11,
+                  fontWeight: (isToday || isSelected)
+                      ? FontWeight.w700
+                      : FontWeight.normal),
+            ),
+            if (events.isNotEmpty)
+              Positioned(
+                top: -3,
+                right: -3,
+                child: Container(
+                  padding: const EdgeInsets.all(1),
+                  decoration: BoxDecoration(
+                      color: _red,
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                          color: const Color(0xFF1E1E2E), width: 1.5)),
+                  constraints:
+                      const BoxConstraints(minWidth: 14, minHeight: 14),
+                  child: Text(
+                    '${events.length}',
+                    style: GoogleFonts.inter(
+                        color: Colors.white,
+                        fontSize: 8,
+                        fontWeight: FontWeight.bold),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showMobileFilter() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: const Color(0xFF1E1E2E),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setSheetState) {
+            final sortedMembers = _allTeamMembers.toList()..sort();
+            return Container(
+              height: MediaQuery.of(context).size.height * 0.7,
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Filter Team Members',
+                        style: GoogleFonts.inter(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close, color: Colors.white60),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                    ],
+                  ),
+                  const Divider(color: Color(0xFF2E2E42)),
+                  CheckboxListTile(
+                    title: Text('Select All',
+                        style: GoogleFonts.inter(color: Colors.white)),
+                    value:
+                        _selectedTeamMembers.length == _allTeamMembers.length &&
+                            _allTeamMembers.isNotEmpty,
+                    activeColor: _accent,
+                    checkColor: Colors.black,
+                    onChanged: (val) {
+                      setSheetState(() {
+                        if (val == true) {
+                          _selectedTeamMembers = Set.from(_allTeamMembers);
+                        } else {
+                          _selectedTeamMembers.clear();
+                        }
+                      });
+                      setState(() {
+                        _processFilteredData();
+                      });
+                    },
+                  ),
+                  const Divider(height: 1, color: Color(0xFF2E2E42)),
+                  Expanded(
+                    child: ListView.builder(
+                      itemCount: sortedMembers.length,
+                      itemBuilder: (context, index) {
+                        final employeeName = sortedMembers[index];
+                        return CheckboxListTile(
+                          title: Text(employeeName,
+                              style: GoogleFonts.inter(color: Colors.white)),
+                          value: _selectedTeamMembers.contains(employeeName),
+                          activeColor: _accent,
+                          checkColor: Colors.black,
+                          secondary: Icon(Icons.circle,
+                              color: _userColors[employeeName] ?? Colors.grey,
+                              size: 12),
+                          onChanged: (val) {
+                            setSheetState(() {
+                              if (val == true) {
+                                _selectedTeamMembers.add(employeeName);
+                              } else {
+                                _selectedTeamMembers.remove(employeeName);
+                              }
+                            });
+                            setState(() {
+                              _processFilteredData();
+                            });
+                          },
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildEmployeeFilter({required bool compact}) {
+    // Sort the team members alphabetically
+    final sortedMembers = _allTeamMembers.toList()..sort();
+
+    return ExpansionTile(
+      iconColor: Colors.white60,
+      collapsedIconColor: Colors.white60,
+      initiallyExpanded: true,
+      title: Text(
+        'Team Members (${_selectedTeamMembers.length}/${_allTeamMembers.length})',
+        style: GoogleFonts.inter(
+          color: Colors.white,
+          fontWeight: FontWeight.w700,
+          fontSize: compact ? 13 : 14,
+        ),
+      ),
+      children: [
+        CheckboxListTile(
+          title: Text('Select All',
+              style: GoogleFonts.inter(
+                  color: Colors.white, fontSize: compact ? 11 : 12)),
+          value: _selectedTeamMembers.length == _allTeamMembers.length &&
+              _allTeamMembers.isNotEmpty,
+          onChanged: (bool? value) {
+            setState(() {
+              if (value == true) {
+                _selectedTeamMembers = Set.from(_allTeamMembers);
+              } else {
+                _selectedTeamMembers.clear();
+              }
+              _processFilteredData();
+            });
+          },
+          dense: true,
+          controlAffinity: ListTileControlAffinity.leading,
+          activeColor: _accent,
+          checkColor: Colors.black,
+        ),
+        const Divider(height: 1, color: Color(0xFF2E2E42)),
+        ConstrainedBox(
+          constraints: const BoxConstraints(maxHeight: 300),
+          child: ListView.builder(
+            shrinkWrap: true,
+            padding: EdgeInsets.zero,
+            itemCount: sortedMembers.length,
+            itemBuilder: (context, index) {
+              final employeeName = sortedMembers[index];
+              return CheckboxListTile(
+                title: Text(
+                  employeeName,
+                  style: GoogleFonts.inter(
+                      color: Colors.white, fontSize: compact ? 11 : 12),
+                  overflow: TextOverflow.ellipsis,
+                ),
+                value: _selectedTeamMembers.contains(employeeName),
+                onChanged: (bool? value) {
+                  setState(() {
+                    if (value == true) {
+                      _selectedTeamMembers.add(employeeName);
+                    } else {
+                      _selectedTeamMembers.remove(employeeName);
+                    }
+                    _processFilteredData();
+                  });
+                },
+                secondary: Icon(Icons.circle,
+                    color: _userColors[employeeName] ?? Colors.grey, size: 12),
+                dense: true,
+                controlAffinity: ListTileControlAffinity.leading,
+                activeColor: _accent,
+                checkColor: Colors.black,
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 
@@ -527,6 +804,7 @@ class _SummaryDashboardState extends State<SummaryDashboard>
     required String label,
     required List<_Event> events,
     required bool compact,
+    required DateTime day,
   }) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -548,43 +826,57 @@ class _SummaryDashboardState extends State<SummaryDashboard>
                       GoogleFonts.inter(color: Colors.white30, fontSize: 11)),
             )
           else
-            ...events.map((e) => _buildSidebarEventTile(e, compact)),
+            ...events.map((e) => _buildSidebarEventTile(e, compact, day)),
         ],
       ),
     );
   }
 
-  Widget _buildSidebarEventTile(_Event event, bool compact) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 4),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(top: 3),
-            child: Icon(event.icon, color: event.color, size: 8),
-          ),
-          const SizedBox(width: 6),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                /* if (event.time.isNotEmpty)
-                  Text(event.time,
-                      style: GoogleFonts.inter(
-                          color: Colors.white.withValues(alpha: 0.4),
-                          fontSize: compact ? 9 : 10)), */
-                Text(event.title,
-                    style: GoogleFonts.inter(
-                        color: Colors.white,
-                        fontSize: compact ? 10 : 11,
-                        fontWeight: FontWeight.w500),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis),
-              ],
+  Widget _buildSidebarEventTile(_Event event, bool compact, DateTime day) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) =>
+                  _DayEventsScreen(day: day, events: _getEventsForDay(day)),
             ),
+          );
+        },
+        child: Padding(
+          padding: const EdgeInsets.only(bottom: 4),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(top: 3),
+                child: Icon(event.icon, color: event.color, size: 8),
+              ),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    /* if (event.time.isNotEmpty)
+                      Text(event.time,
+                          style: GoogleFonts.inter(
+                              color: Colors.white.withValues(alpha: 0.4),
+                              fontSize: compact ? 9 : 10)), */
+                    Text(event.title,
+                        style: GoogleFonts.inter(
+                            color: Colors.white,
+                            fontSize: compact ? 10 : 11,
+                            fontWeight: FontWeight.w500),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis),
+                  ],
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -708,8 +1000,8 @@ class _SummaryDashboardState extends State<SummaryDashboard>
                   color: _textPrimary)),
           const Spacer(),
           // Format switcher (desktop only)
-          /*  if (desktop) _buildFormatSwitcher(),
-          const SizedBox(width: 12),
+          if (desktop) _buildFormatSwitcher(),
+          /* const SizedBox(width: 12),
           // Search
           if (desktop)
             SizedBox(
@@ -794,7 +1086,7 @@ class _SummaryDashboardState extends State<SummaryDashboard>
   }
 
   Widget _buildFormatSwitcher() {
-    final formats = ['Day', 'Week', 'Month', 'Year'];
+    final formats = ['Week', 'Month'];
     return Container(
       height: 32,
       decoration: BoxDecoration(
@@ -804,9 +1096,15 @@ class _SummaryDashboardState extends State<SummaryDashboard>
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: formats.map((f) {
-          final isSelected = f == 'Month';
+          final isSelected = f == _currentFormat;
           return GestureDetector(
-            onTap: () {},
+            onTap: () {
+              setState(() {
+                _currentFormat = f;
+                if (f == 'Month') _calendarFormat = CalendarFormat.month;
+                if (f == 'Week') _calendarFormat = CalendarFormat.week;
+              });
+            },
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12),
               height: 30,
@@ -831,22 +1129,29 @@ class _SummaryDashboardState extends State<SummaryDashboard>
   Widget _buildKPIRow({required bool isMobile}) {
     String presentBadge = '';
     // Note: 'On Leave' data is not available from this API. Using a placeholder.
-    String onLeaveBadge = _pjpData.isNotEmpty
-        ? '${((_pendingApprovals / _pjpData.length) * 100).toStringAsFixed(1)}% of PJPs'
-        : '0% of team';
-    String approvedBadge = _pjpData.isNotEmpty
-        ? '${((_approvedPJP / _pjpData.length) * 100).toStringAsFixed(1)}% of PJPs'
+    String onLeaveBadge = _filteredPjpData.isNotEmpty
+        ? '${((_pendingApprovals / _filteredPjpData.length) * 100).toStringAsFixed(1)}% of PJPs'
+        : '0% of PJPs';
+    String approvedBadge = _filteredPjpData.isNotEmpty
+        ? '${((_approvedPJP / _filteredPjpData.length) * 100).toStringAsFixed(1)}% of PJPs'
+        : '0% of PJPs';
+    String rejectedBadge = _filteredPjpData.isNotEmpty
+        ? '${((_rejectedPJP / _filteredPjpData.length) * 100).toStringAsFixed(1)}% of PJPs'
         : '0% of PJPs';
 
     final cards = [
       _KPICard('Employees', _totalEmployees.toString(),
           Icons.people_alt_rounded, _accent, '', true),
-      _KPICard('Visits', _totalVisits.toString(), Icons.check_circle_rounded,
+      _KPICard('Total PJP', _totalPJP.toString(), Icons.assignment_rounded,
+          Colors.blueAccent, '', true),
+      _KPICard('CVF', _totalVisits.toString(), Icons.check_circle_rounded,
           _green, presentBadge, true),
       _KPICard('Pending Approvals', _pendingApprovals.toString(),
           FontAwesomeIcons.umbrellaBeach, _orange, onLeaveBadge, false),
       _KPICard('Approved PJPs', _approvedPJP.toString(), Icons.task_alt_rounded,
           _accentSecondary, approvedBadge, true),
+      _KPICard('Rejected PJPs', _rejectedPJP.toString(), Icons.cancel_rounded,
+          _red, rejectedBadge, false),
     ];
 
     return isMobile
@@ -999,8 +1304,11 @@ class _SummaryDashboardState extends State<SummaryDashboard>
           selectedDayPredicate: (day) =>
               _selectedDay != null && _isSameDay(day, _selectedDay!),
           eventLoader: _getEventsForDay,
-          calendarFormat: CalendarFormat.month,
-          availableCalendarFormats: const {CalendarFormat.month: 'Month'},
+          calendarFormat: _calendarFormat,
+          availableCalendarFormats: const {
+            CalendarFormat.month: 'Month',
+            CalendarFormat.week: 'Week',
+          },
           onDaySelected: (selected, focused) {
             setState(() {
               _selectedDay = selected;
@@ -1018,6 +1326,13 @@ class _SummaryDashboardState extends State<SummaryDashboard>
             }
           },
           onPageChanged: (focused) => setState(() => _focusedDay = focused),
+          onFormatChanged: (format) {
+            setState(() {
+              _calendarFormat = format;
+              if (format == CalendarFormat.month) _currentFormat = 'Month';
+              if (format == CalendarFormat.week) _currentFormat = 'Week';
+            });
+          },
           headerVisible: false,
           calendarStyle: const CalendarStyle(
             markerDecoration: BoxDecoration(),
@@ -1251,6 +1566,7 @@ class _SummaryDashboardState extends State<SummaryDashboard>
         ],
       ),
       child: TableCalendar<_Event>(
+        availableGestures: AvailableGestures.horizontalSwipe,
         firstDay: DateTime.utc(2020, 1, 1),
         lastDay: _lastDay,
         focusedDay: _focusedDay,
@@ -1282,9 +1598,8 @@ class _SummaryDashboardState extends State<SummaryDashboard>
           titleTextStyle: GoogleFonts.inter(
               fontWeight: FontWeight.w700, fontSize: 15, color: _textPrimary),
         ),
-        calendarStyle: const CalendarStyle(
-          outsideDaysVisible: false,
-        ),
+        calendarStyle:
+            const CalendarStyle(outsideDaysVisible: false, markersMaxCount: 0),
         calendarBuilders: CalendarBuilders(
           defaultBuilder: (context, day, focusedDay) {
             return _buildMobileCalCell(day, events: _getEventsForDay(day));
@@ -1337,7 +1652,7 @@ class _SummaryDashboardState extends State<SummaryDashboard>
                       letterSpacing: 0.5),
                 ),
               ),
-              ...entry.value.map((e) => _buildEventRow(e)),
+              ...entry.value.map((e) => _buildEventRow(e, entry.key)),
               const Divider(height: 1),
             ],
           );
@@ -1346,35 +1661,49 @@ class _SummaryDashboardState extends State<SummaryDashboard>
     );
   }
 
-  Widget _buildEventRow(_Event event) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        children: [
-          Container(
-            width: 3,
-            height: 36,
-            decoration: BoxDecoration(
-                color: event.color, borderRadius: BorderRadius.circular(2)),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(event.title,
-                    style: GoogleFonts.inter(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                        color: _textPrimary)),
-                /*   if (event.time.isNotEmpty)
-                  Text(event.time,
-                      style: GoogleFonts.inter(
-                          fontSize: 11, color: _textSecondary)), */
-              ],
+  Widget _buildEventRow(_Event event, DateTime day) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) =>
+                  _DayEventsScreen(day: day, events: _getEventsForDay(day)),
             ),
+          );
+        },
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4),
+          child: Row(
+            children: [
+              Container(
+                width: 3,
+                height: 36,
+                decoration: BoxDecoration(
+                    color: event.color, borderRadius: BorderRadius.circular(2)),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(event.title,
+                        style: GoogleFonts.inter(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                            color: _textPrimary)),
+                    /*   if (event.time.isNotEmpty)
+                      Text(event.time,
+                          style: GoogleFonts.inter(
+                              fontSize: 11, color: _textSecondary)), */
+                  ],
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -1577,7 +1906,7 @@ class _SummaryDashboardState extends State<SummaryDashboard>
                       fontSize: 13,
                       color: _textPrimary)),
               const Spacer(),
-              const Icon(Icons.more_horiz, size: 16, color: _textSecondary),
+              // const Icon(Icons.more_horiz, size: 16, color: _textSecondary),
             ],
           ),
           const SizedBox(height: 14),
@@ -1774,6 +2103,13 @@ class _PjpInfoCard extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             child: Column(
               children: [
+                if ((pjp.managerName?.trim().isNotEmpty ?? false) &&
+                    pjp.managerName?.trim() != 'NA') ...[
+                  _infoRow(Icons.supervisor_account_rounded, 'Manager',
+                      pjp.managerName ?? '', _accent),
+                  _dividerLine(),
+                ],
+
                 _infoRow(
                     Icons.calendar_today_rounded,
                     'From Date',
@@ -1954,32 +2290,36 @@ class _VisitTile extends StatelessWidget {
           children: [
             Row(
               children: [
-                Expanded(
-                  child: Text(
-                    visit.franchiseeName,
-                    style: GoogleFonts.inter(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: _textPrimary,
+                if (visit.franchiseeName.trim().isNotEmpty &&
+                    visit.franchiseeName.trim() != 'NA')
+                  Expanded(
+                    child: Text(
+                      visit.franchiseeName,
+                      style: GoogleFonts.inter(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: _textPrimary,
+                      ),
                     ),
                   ),
-                ),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: _statusColor(visit.Status).withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    visit.Status,
-                    style: GoogleFonts.inter(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w600,
-                      color: _statusColor(visit.Status),
+                if (visit.Status.trim().isNotEmpty &&
+                    visit.Status.trim() != 'NA')
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: _statusColor(visit.Status).withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      visit.Status,
+                      style: GoogleFonts.inter(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                        color: _statusColor(visit.Status),
+                      ),
                     ),
                   ),
-                ),
               ],
             ),
             if (visit.franchiseeCode.isNotEmpty &&
@@ -2270,14 +2610,16 @@ class _VisitDetailSheet extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          visit.franchiseeName,
-                          style: GoogleFonts.inter(
-                            fontSize: 17,
-                            fontWeight: FontWeight.w700,
-                            color: _textPrimary,
+                        if (visit.franchiseeName.isNotEmpty &&
+                            visit.franchiseeName != 'NA')
+                          Text(
+                            visit.franchiseeName,
+                            style: GoogleFonts.inter(
+                              fontSize: 17,
+                              fontWeight: FontWeight.w700,
+                              color: _textPrimary,
+                            ),
                           ),
-                        ),
                         if (visit.franchiseeCode.isNotEmpty &&
                             visit.franchiseeCode != 'NA')
                           Text(
@@ -2288,26 +2630,29 @@ class _VisitDetailSheet extends StatelessWidget {
                       ],
                     ),
                   ),
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: _statusColor(visit.Status).withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color:
-                            _statusColor(visit.Status).withValues(alpha: 0.4),
-                      ),
-                    ),
-                    child: Text(
-                      visit.Status,
-                      style: GoogleFonts.inter(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: _statusColor(visit.Status),
-                      ),
-                    ),
-                  ),
+                  visit.Status.isNotEmpty && visit.Status != 'NA'
+                      ? Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: _statusColor(visit.Status)
+                                .withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: _statusColor(visit.Status)
+                                  .withValues(alpha: 0.4),
+                            ),
+                          ),
+                          child: Text(
+                            visit.Status,
+                            style: GoogleFonts.inter(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: _statusColor(visit.Status),
+                            ),
+                          ),
+                        )
+                      : SizedBox.shrink(),
                 ],
               ),
             ),

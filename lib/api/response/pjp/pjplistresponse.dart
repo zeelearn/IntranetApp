@@ -48,6 +48,7 @@ class PJPInfo {
   late String PJP_Id;
   late String Status;
   late String ApprovalStatus;
+  String? managerName;
   List<GetDetailedPJP>? getDetailedPJP = [];
 
   PJPInfo(
@@ -59,18 +60,20 @@ class PJPInfo {
       required this.isSelfPJP,
       required this.Status,
       required this.ApprovalStatus,
+      this.managerName,
       this.getDetailedPJP});
 
   PJPInfo.fromJson(Map<String, dynamic> json) {
     try {
       PJP_Id = json['PJP_Id'];
-      displayName = json['DisplayName'] ?? ' NA';
-      fromDate = json['FromDate'] ?? ' NA';
-      toDate = json['ToDate'] ?? ' NA';
+      displayName = json['DisplayName'] ?? 'NA';
+      managerName = json['ManagerName'] ?? '';
+      fromDate = json['FromDate'] ?? '';
+      toDate = json['ToDate'] ?? '';
       Status = json['Status'] ?? 'Check In';
-      ApprovalStatus = json['ApprovalStatus'] ?? 'NA';
+      ApprovalStatus = json['ApprovalStatus'] ?? '';
       remarks = json['Remarks'] == null || json['Remarks'] == 'null'
-          ? ' NA'
+          ? ' '
           : json['Remarks'];
       isSelfPJP = json['isSelfPJP'] ?? ' 0';
       getDetailedPJP = <GetDetailedPJP>[];
@@ -166,16 +169,16 @@ class GetDetailedPJP implements Comparable<GetDetailedPJP> {
   GetDetailedPJP.fromJson(Map<String, dynamic> json) {
     try {
       PJPCVF_Id = json['PJPCVF_Id'] ?? '0';
-      visitDate = json['Visit_Date'] ?? ' NA';
-      visitTime = json['Visit_Time'] ?? ' NA';
+      visitDate = json['Visit_Date'] ?? 'NA';
+      visitTime = json['Visit_Time'] ?? 'NA';
       Status = json['Status'] ?? ' Check In';
       franchiseeCode = json['Franchisee_Code'] ?? 'NA';
       franchiseeName = json['Franchisee_Name'] ?? 'NA';
-      Address = json['Address'] ?? ' NA';
-      CheckOutAddress = json['CheckOutAddress'] ?? ' NA';
-      CheckInAddress = json['CheckinAddress'] ?? ' NA';
-      DateTimeOut = json['DateTimeOut'] ?? ' NA';
-      DateTimeIn = json['DateTimeIn'] ?? ' NA';
+      Address = json['Address'] ?? 'NA';
+      CheckOutAddress = json['CheckOutAddress'] ?? 'NA';
+      CheckInAddress = json['CheckinAddress'] ?? 'NA';
+      DateTimeOut = json['DateTimeOut'] ?? 'NA';
+      DateTimeIn = json['DateTimeIn'] ?? 'NA';
       Latitude = double.parse(json['Latitude']?.toString() ?? "0.0");
       Longitude = double.parse(json['Longitude']?.toString() ?? "0.0");
       ActivityTitle = json['ActivityTitle'] ?? 'NA';
@@ -242,8 +245,8 @@ class Purpose {
   Purpose({required this.categoryId, required this.categoryName});
 
   Purpose.fromJson(Map<dynamic, dynamic> json) {
-    categoryId = json['Category_id'] ?? ' NA';
-    categoryName = json['Category_Name'] ?? ' NA';
+    categoryId = json['Category_id'] ?? 'NA';
+    categoryName = json['Category_Name'] ?? 'NA';
   }
 
   Map<String, dynamic> toJson() {

@@ -550,17 +550,19 @@ class Utility {
   }
 
   static footer(String appVersion) {
-    return Container(
-      height: 30,
-      decoration: const BoxDecoration(
-        color: LightColors.kLightGray,
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(20),
-          topRight: Radius.circular(20),
+    return SafeArea(
+      child: Container(
+        height: 30,
+        decoration: const BoxDecoration(
+          color: LightColors.kLightGray,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(20),
+            topRight: Radius.circular(20),
+          ),
         ),
-      ),
-      child: Center(
-        child: Text('Intranet_$appVersion'),
+        child: Center(
+          child: Text('Intranet_$appVersion'),
+        ),
       ),
     );
   }
