@@ -734,14 +734,20 @@ class Utility {
   }
 
   static DateTime convertDate(String value) {
-    DateTime dt = DateTime.now();
-    //2022-07-18T00:00:00
     try {
-      dt = DateFormat('yyyy-MM-dd\'T\'HH:mm:ss').parse(value);
+      // Try parsing as ISO 8601 format first (e.g., "2023-10-27T10:00:00")
+      return DateTime.parse(value);
     } catch (e) {
-      e.toString();
+      // Fallback to custom format if ISO parsing fails
+      try {
+        // Format: "dd-MM-yyyy'T'HH:mm:ss"
+        return DateFormat('dd-MM-yyyy\'T\'HH:mm:ss').parse(value);
+      } catch (e2) {
+        debugPrint('Could not parse date: "$value". Error: $e2');
+        // Return current time as a last resort
+        return DateTime.now();
+      }
     }
-    return dt;
   }
 
   static DateTime convertServerDate(String value) {

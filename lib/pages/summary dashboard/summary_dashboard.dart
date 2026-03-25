@@ -94,6 +94,8 @@ class _SummaryDashboardState extends State<SummaryDashboard>
   // Search state
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
+  final FocusNode _searchFocusNode = FocusNode();
+  final FocusNode _mobileSearchFocusNode = FocusNode();
   bool _isMobileSearchActive = false;
 
   // KPI state
@@ -138,6 +140,8 @@ class _SummaryDashboardState extends State<SummaryDashboard>
   @override
   void dispose() {
     _searchController.dispose();
+    _searchFocusNode.dispose();
+    _mobileSearchFocusNode.dispose();
     super.dispose();
   }
 
@@ -192,13 +196,11 @@ class _SummaryDashboardState extends State<SummaryDashboard>
 
   void _updateViewMode() {
     if (_isTeamView) {
-      _pjpData = _rawPjpData
-          .where((pjp) => pjp.isSelfPJP.trim() != '1')
-          .toList();
+      _pjpData =
+          _rawPjpData.where((pjp) => pjp.isSelfPJP.trim() != '1').toList();
     } else {
-      _pjpData = _rawPjpData
-          .where((pjp) => pjp.isSelfPJP.trim() == '1')
-          .toList();
+      _pjpData =
+          _rawPjpData.where((pjp) => pjp.isSelfPJP.trim() == '1').toList();
     }
 
     // Populate all team members and select all by default
@@ -237,7 +239,7 @@ class _SummaryDashboardState extends State<SummaryDashboard>
       final bool matchesTeam = _selectedTeamMembers.contains(pjp.displayName);
       final bool matchesSearch = _searchQuery.isEmpty ||
           pjp.displayName.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-          pjp.PJP_Id.toString().contains(_searchQuery);
+          pjp.PJP_Id.toString().contains(_searchQuery) || pjp.remarks.toString().contains(_searchQuery);
 
       return matchesTeam && matchesSearch;
     }).toList();
@@ -383,50 +385,113 @@ class _SummaryDashboardState extends State<SummaryDashboard>
       foregroundColor: Colors.white,
       elevation: 0,
       titleSpacing: _isMobileSearchActive ? 0 : 16,
-      title: _isMobileSearchActive
-          ? Container(
-              height: 40,
-              margin: const EdgeInsets.only(right: 8),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.15),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: TextField(
-                controller: _searchController,
-                autofocus: true,
-                textAlignVertical: TextAlignVertical.center,
-                style: GoogleFonts.inter(color: Colors.white, fontSize: 14),
-                cursorColor: _accent,
-                decoration: InputDecoration(fillColor: Colors.white.withOpacity(0.15),
-                  hintText: 'Search...',
-                  hintStyle:
-                      GoogleFonts.inter(color: Colors.white54, fontSize: 14),
-                  border: InputBorder.none,
-                  prefixIcon:
-                      const Icon(Icons.search, color: Colors.white54, size: 20),
-                  suffixIcon: _searchQuery.isNotEmpty
-                      ? IconButton(
-                          icon: const Icon(Icons.cancel,
-                              color: Colors.white54, size: 18),
-                          onPressed: () {
-                            _searchController.clear();
-                            setState(() {
-                              _searchQuery = '';
-                              _processFilteredData();
-                            });
-                          },
-                        )
-                      : null,
-                  contentPadding: EdgeInsets.zero,
-                  isDense: true,
-                ),
-                onChanged: (val) {
-                  setState(() {
-                    _searchQuery = val;
-                    _processFilteredData();
-                  });
-                },
-              ),
+      title: _isMobileSearchActive ? RawAutocomplete<PJPInfo>(
+              textEditingController: _searchController,
+              focusNode: _mobileSearchFocusNode,
+              optionsBuilder: (TextEditingValue textEditingValue) {
+                if (textEditingValue.text.isEmpty) {
+                  return const Iterable<PJPInfo>.empty();
+                }
+                return _pjpData.where((pjp) {
+                  final query = textEditingValue.text.toLowerCase();
+                  return pjp.displayName.toLowerCase().contains(query) ||
+                      pjp.PJP_Id.toString().contains(query) ||
+                      pjp.remarks.toLowerCase().contains(query);
+                });
+              },
+              onSelected: (PJPInfo selection) {
+                setState(() {
+                  _searchController.text = selection.PJP_Id.toString();
+                  _searchQuery = _searchController.text;
+                  _focusedDay = Utility.convertDate(selection.fromDate);
+                  _selectedDay = Utility.convertDate(selection.fromDate);
+                  _processFilteredData();
+                  _isMobileSearchActive = false; // Close search on mobile
+                  _mobileSearchFocusNode.unfocus();
+                });
+              },
+              displayStringForOption: (PJPInfo option) =>
+                  '${option.displayName} - PJP ID: ${option.PJP_Id}',
+              optionsViewBuilder: (context, onSelected, options) {
+                return Align(
+                  alignment: Alignment.topLeft,
+                  child: Material(
+                    elevation: 4.0,
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                          maxHeight: MediaQuery.of(context).size.height * 0.5),
+                      child: ListView.builder(
+                        padding: EdgeInsets.zero,
+                        shrinkWrap: true,
+                        itemCount: options.length,
+                        itemBuilder: (BuildContext context, int index) {
+                          final PJPInfo option = options.elementAt(index);
+                          return InkWell(
+                            onTap: () => onSelected(option),
+                            child: ListTile(
+                              title: Text(
+                                  '${option.displayName} - PJP: ${option.PJP_Id}'),
+                              subtitle: Text(
+                                option.remarks,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                );
+              },
+              fieldViewBuilder: (context, textEditingController,
+                  focusNode, onFieldSubmitted) {
+                return Container(
+                  height: 40,
+                  margin: const EdgeInsets.only(right: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: TextField(
+                    controller: textEditingController,
+                    focusNode: focusNode,
+                    autofocus: true,
+                    textAlignVertical: TextAlignVertical.center,
+                    style: GoogleFonts.inter(color: Colors.white, fontSize: 14),
+                    cursorColor: _accent,
+                    decoration: InputDecoration(
+                      hintText: 'Search...',
+                      hintStyle:
+                          GoogleFonts.inter(color: Colors.white54, fontSize: 14),
+                      border: InputBorder.none,
+                      prefixIcon: const Icon(Icons.search,
+                          color: Colors.white54, size: 20),
+                      suffixIcon: _searchController.text.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(Icons.cancel,
+                                  color: Colors.white54, size: 18),
+                              onPressed: () {
+                                _searchController.clear();
+                                setState(() {
+                                  _searchQuery = '';
+                                  _processFilteredData();
+                                });
+                              },
+                            )
+                          : null,
+                      contentPadding: EdgeInsets.zero,
+                      isDense: true,
+                    ),
+                    onChanged: (val) {
+                      setState(() {
+                        _searchQuery = val;
+                        _processFilteredData();
+                      });
+                    },
+                  ),
+                );
+              },
             )
           : Row(
               children: [
@@ -450,8 +515,8 @@ class _SummaryDashboardState extends State<SummaryDashboard>
                 _processFilteredData();
               });
             },
-            child: Text('Cancel',
-                style: GoogleFonts.inter(color: Colors.white)),
+            child:
+                Text('Cancel', style: GoogleFonts.inter(color: Colors.white)),
           )
         else ...[
           IconButton(
@@ -532,7 +597,8 @@ class _SummaryDashboardState extends State<SummaryDashboard>
                     padding: const EdgeInsets.symmetric(vertical: 4),
                     child: _buildSidebarMiniCalendar(compact: compact),
                   ),
-                  const Divider(color: Color(0xFF2E2E42), thickness: 1, height: 1),
+                  const Divider(
+                      color: Color(0xFF2E2E42), thickness: 1, height: 1),
                   // Events
                   _buildSidebarDaySection(
                     label: 'TODAY  ${DateFormat('M/d/yy').format(now)}',
@@ -541,19 +607,22 @@ class _SummaryDashboardState extends State<SummaryDashboard>
                     day: now,
                   ),
                   _buildSidebarDaySection(
-                    label: 'TOMORROW  ${DateFormat('M/d/yy').format(now.add(const Duration(days: 1)))}',
+                    label:
+                        'TOMORROW  ${DateFormat('M/d/yy').format(now.add(const Duration(days: 1)))}',
                     events: _getEventsForDay(now.add(const Duration(days: 1))),
                     compact: compact,
                     day: now.add(const Duration(days: 1)),
                   ),
                   _buildSidebarDaySection(
-                    label: '${DateFormat('EEEE').format(now.add(const Duration(days: 2))).toUpperCase()}  ${DateFormat('M/d/yy').format(now.add(const Duration(days: 2)))}',
+                    label:
+                        '${DateFormat('EEEE').format(now.add(const Duration(days: 2))).toUpperCase()}  ${DateFormat('M/d/yy').format(now.add(const Duration(days: 2)))}',
                     events: _getEventsForDay(now.add(const Duration(days: 2))),
                     compact: compact,
                     day: now.add(const Duration(days: 2)),
                   ),
                   _buildSidebarDaySection(
-                    label: '${DateFormat('EEEE').format(now.add(const Duration(days: 3))).toUpperCase()}  ${DateFormat('M/d/yy').format(now.add(const Duration(days: 3)))}',
+                    label:
+                        '${DateFormat('EEEE').format(now.add(const Duration(days: 3))).toUpperCase()}  ${DateFormat('M/d/yy').format(now.add(const Duration(days: 3)))}',
                     events: _getEventsForDay(now.add(const Duration(days: 3))),
                     compact: compact,
                     day: now.add(const Duration(days: 3)),
@@ -641,9 +710,9 @@ class _SummaryDashboardState extends State<SummaryDashboard>
               color: Colors.white38, fontSize: 10, fontWeight: FontWeight.w500),
         ),
         calendarStyle: const CalendarStyle(
-          outsideDaysVisible: true,
-          cellMargin: EdgeInsets.all(2),markersMaxCount: 0
-        ),
+            outsideDaysVisible: true,
+            cellMargin: EdgeInsets.all(2),
+            markersMaxCount: 0),
         calendarBuilders: CalendarBuilders(
           defaultBuilder: (context, day, focusedDay) =>
               _buildSidebarCalCell(day, events: _getEventsForDay(day)),
@@ -1041,8 +1110,119 @@ class _SummaryDashboardState extends State<SummaryDashboard>
                   fontWeight: FontWeight.w700,
                   fontSize: desktop ? 18 : 14,
                   color: _textPrimary)),
-          const SizedBox(width: 16),
-          _buildViewSwitcher(),
+          // Search
+          if (desktop) ...[
+            SizedBox(width: 16),
+            SizedBox(
+              width: 220,
+              child: RawAutocomplete<PJPInfo>(
+                textEditingController: _searchController,
+                focusNode: _searchFocusNode,
+                optionsBuilder: (TextEditingValue textEditingValue) {
+                  if (textEditingValue.text.isEmpty) {
+                    return const Iterable<PJPInfo>.empty();
+                  }
+                  return _pjpData.where((pjp) {
+                    final query = textEditingValue.text.toLowerCase();
+                    return pjp.displayName.toLowerCase().contains(query) ||
+                        pjp.PJP_Id.toString().contains(query) ||
+                        pjp.remarks.toLowerCase().contains(query);
+                  });
+                },
+                onSelected: (PJPInfo selection) {
+                  setState(() {
+                    _searchController.text = selection.PJP_Id.toString();
+                    _searchQuery = _searchController.text;
+                    _focusedDay = Utility.convertDate(selection.fromDate);
+                    _selectedDay = Utility.convertDate(selection.fromDate);
+                    _processFilteredData();
+                    _searchFocusNode.unfocus();
+                  });
+                },
+                displayStringForOption: (PJPInfo option) =>
+                    '${option.displayName} - PJP ID: ${option.PJP_Id}',
+                optionsViewBuilder: (context, onSelected, options) {
+                  return Align(
+                    alignment: Alignment.topLeft,
+                    child: Material(
+                      elevation: 4.0,
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(
+                            maxHeight: 200, maxWidth: 350),
+                        child: ListView.builder(
+                          padding: EdgeInsets.zero,
+                          shrinkWrap: true,
+                          itemCount: options.length,
+                          itemBuilder: (BuildContext context, int index) {
+                            final PJPInfo option = options.elementAt(index);
+                            return InkWell(
+                              onTap: () => onSelected(option),
+                              child: ListTile(
+                                title: Text(
+                                    '${option.displayName} - PJP: ${option.PJP_Id}'),
+                                subtitle: Text(
+                                  option.remarks,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                  );
+                },
+                fieldViewBuilder: (context, textEditingController,
+                    focusNode, onFieldSubmitted) {
+                  return SizedBox(
+                    height: 34,
+                    child: TextField(
+                      controller: textEditingController,
+                      focusNode: focusNode,
+                      onChanged: (value) {
+                        setState(() {
+                          _searchQuery = value;
+                          _processFilteredData();
+                        });
+                      },
+                      decoration: InputDecoration(
+                        hintText: 'Search PJP...',
+                        hintStyle: GoogleFonts.inter(
+                            fontSize: 12, color: _textSecondary),
+                        prefixIcon: const Icon(Icons.search,
+                            size: 16, color: _textSecondary),
+                        filled: true,
+                        fillColor: _mainBg,
+                        contentPadding: EdgeInsets.zero,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(color: _divider),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(color: _divider),
+                        ),
+                        suffixIcon: _searchController.text.isNotEmpty
+                            ? IconButton(
+                                icon: const Icon(Icons.clear,
+                                    size: 16, color: _textSecondary),
+                                onPressed: () {
+                                  _searchController.clear();
+                                  setState(() {
+                                    _searchQuery = '';
+                                    _processFilteredData();
+                                  });
+                                },
+                              )
+                            : null,
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
           const Spacer(),
           if (desktop && _isTeamView) ...[
             _buildDesktopFilterButton(),
@@ -1051,39 +1231,8 @@ class _SummaryDashboardState extends State<SummaryDashboard>
           // Format switcher (desktop only)
           if (desktop) _buildFormatSwitcher(),
           const SizedBox(width: 12),
-          // Search
-          if (desktop)
-            SizedBox(
-              width: 180,
-              height: 34,
-              child: TextField(
-                controller: _searchController,
-                onChanged: (value) {
-                  setState(() {
-                    _searchQuery = value;
-                    _processFilteredData();
-                  });
-                },
-                decoration: InputDecoration(
-                  hintText: 'Search',
-                  hintStyle:
-                      GoogleFonts.inter(fontSize: 12, color: _textSecondary),
-                  prefixIcon:
-                      const Icon(Icons.search, size: 16, color: _textSecondary),
-                  filled: true,
-                  fillColor: _mainBg,
-                  contentPadding: EdgeInsets.zero,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: const BorderSide(color: _divider),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: const BorderSide(color: _divider),
-                  ),
-                ),
-              ),
-            ),
+          _buildViewSwitcher(),
+
           /* const SizedBox(width: 12),
           // Notifications
           Stack(
@@ -2390,14 +2539,13 @@ class _PjpInfoCard extends StatelessWidget {
                 _infoRow(
                     Icons.calendar_today_rounded,
                     'From Date',
-                    DateFormat('yyyy-MM-dd')
-                        .format(DateTime.parse(pjp.fromDate)),
+                    DateFormat('dd-MM-yyyy').format(Utility.convertDate(pjp.fromDate)),
                     _accent),
                 _dividerLine(),
                 _infoRow(
                     Icons.event_rounded,
                     'To Date',
-                    DateFormat('yyyy-MM-dd').format(DateTime.parse(pjp.toDate)),
+                    DateFormat('dd-MM-yyyy').format(Utility.convertDate(pjp.toDate)),
                     _accent),
                 // _dividerLine(),
                 /* _infoRow(
