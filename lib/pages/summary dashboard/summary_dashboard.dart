@@ -460,7 +460,7 @@ class _SummaryDashboardState extends State<SummaryDashboard>
                     textAlignVertical: TextAlignVertical.center,
                     style: GoogleFonts.inter(color: Colors.white, fontSize: 14),
                     cursorColor: _accent,
-                    decoration: InputDecoration(
+                    decoration: InputDecoration(fillColor: Colors.white54.withOpacity(0.15),
                       hintText: 'Search...',
                       hintStyle:
                           GoogleFonts.inter(color: Colors.white54, fontSize: 14),
@@ -493,16 +493,20 @@ class _SummaryDashboardState extends State<SummaryDashboard>
                 );
               },
             )
-          : Row(
-              children: [
-                Expanded(
-                  child: Text('PJP Dashboard',
-                      overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
+          : Text('PJP Dashboard',
+              overflow: TextOverflow.ellipsis,
+              style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
+      bottom: _isMobileSearchActive
+          ? null
+          : PreferredSize(
+              preferredSize: const Size.fromHeight(50),
+              child: Padding(
+                padding: const EdgeInsets.only(left: 16, right: 16, bottom: 10),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: _buildViewSwitcher(isDark: true),
                 ),
-                const SizedBox(width: 8),
-                _buildViewSwitcher(isDark: true),
-              ],
+              ),
             ),
       actions: [
         if (_isMobileSearchActive)
