@@ -382,51 +382,92 @@ class _SummaryDashboardState extends State<SummaryDashboard>
       backgroundColor: _sidebar,
       foregroundColor: Colors.white,
       elevation: 0,
+      titleSpacing: _isMobileSearchActive ? 0 : 16,
       title: _isMobileSearchActive
-          ? TextField(
-              controller: _searchController,
-              autofocus: true,
-              style: GoogleFonts.inter(color: Colors.white),
-              cursorColor: _accent,
-              decoration: InputDecoration(
-                hintText: 'Search Name or ID...',
-                hintStyle: GoogleFonts.inter(color: Colors.white54),
-                border: InputBorder.none,
+          ? Container(
+              height: 40,
+              margin: const EdgeInsets.only(right: 8),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.15),
+                borderRadius: BorderRadius.circular(8),
               ),
-              onChanged: (val) {
-                setState(() {
-                  _searchQuery = val;
-                  _processFilteredData();
-                });
-              },
+              child: TextField(
+                controller: _searchController,
+                autofocus: true,
+                textAlignVertical: TextAlignVertical.center,
+                style: GoogleFonts.inter(color: Colors.white, fontSize: 14),
+                cursorColor: _accent,
+                decoration: InputDecoration(fillColor: Colors.white.withOpacity(0.15),
+                  hintText: 'Search...',
+                  hintStyle:
+                      GoogleFonts.inter(color: Colors.white54, fontSize: 14),
+                  border: InputBorder.none,
+                  prefixIcon:
+                      const Icon(Icons.search, color: Colors.white54, size: 20),
+                  suffixIcon: _searchQuery.isNotEmpty
+                      ? IconButton(
+                          icon: const Icon(Icons.cancel,
+                              color: Colors.white54, size: 18),
+                          onPressed: () {
+                            _searchController.clear();
+                            setState(() {
+                              _searchQuery = '';
+                              _processFilteredData();
+                            });
+                          },
+                        )
+                      : null,
+                  contentPadding: EdgeInsets.zero,
+                  isDense: true,
+                ),
+                onChanged: (val) {
+                  setState(() {
+                    _searchQuery = val;
+                    _processFilteredData();
+                  });
+                },
+              ),
             )
           : Row(
               children: [
-                Text('PJP Dashboard',
-                    style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
-                const Spacer(),
+                Expanded(
+                  child: Text('PJP Dashboard',
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
+                ),
+                const SizedBox(width: 8),
                 _buildViewSwitcher(isDark: true),
               ],
             ),
       actions: [
-        IconButton(
-          icon: Icon(_isMobileSearchActive ? Icons.close : Icons.search),
-          onPressed: () {
-            setState(() {
-              _isMobileSearchActive = !_isMobileSearchActive;
-              if (!_isMobileSearchActive) {
+        if (_isMobileSearchActive)
+          TextButton(
+            onPressed: () {
+              setState(() {
+                _isMobileSearchActive = false;
                 _searchQuery = '';
                 _searchController.clear();
                 _processFilteredData();
-              }
-            });
-          },
-        ),
-        if (!_isMobileSearchActive && _isTeamView)
-        IconButton(
-          icon: const Icon(Icons.filter_list),
-          onPressed: _showMobileFilter,
-        )
+              });
+            },
+            child: Text('Cancel',
+                style: GoogleFonts.inter(color: Colors.white)),
+          )
+        else ...[
+          IconButton(
+            icon: const Icon(Icons.search),
+            onPressed: () {
+              setState(() {
+                _isMobileSearchActive = true;
+              });
+            },
+          ),
+          if (_isTeamView)
+            IconButton(
+              icon: const Icon(Icons.filter_list),
+              onPressed: _showMobileFilter,
+            ),
+        ]
       ],
     );
   }

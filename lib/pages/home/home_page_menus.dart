@@ -181,7 +181,7 @@ class HomePageMenu extends StatelessWidget {
                     },
                   ),
                   _buildMenuCard(
-                    title: 'Legal MIS',
+                    title: 'Contracts',
                     icon: Icons.legend_toggle_sharp,
                     onTap: () {
                       Navigator.push(

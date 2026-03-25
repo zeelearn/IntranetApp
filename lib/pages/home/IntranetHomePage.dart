@@ -753,7 +753,9 @@ class _IntranetHomePageState extends State<IntranetHomePage>
     var deviceInfo = DeviceInfoPlugin();
     String? id;
     String useragent = 'Android';
-    if (Platform.isIOS) {
+    if (kIsWeb) {
+      useragent = 'Web';
+    } else if (Platform.isIOS) {
       // import 'dart:io'
       var iosDeviceInfo = await deviceInfo.iosInfo;
       id = iosDeviceInfo.identifierForVendor; // unique ID on iOS

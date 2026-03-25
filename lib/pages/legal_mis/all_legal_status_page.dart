@@ -83,18 +83,20 @@ class _AllLegalStatusPageState extends State<AllLegalStatusPage> {
   getAllRequest() async {
     zohoRequestModel = await APIService().getRecipientList(widget.email);
 
-    if (zohoRequestModel?.requests != null) {
+    if (zohoRequestModel?.requests != null &&
+        zohoRequestModel!.requests!.isNotEmpty) {
+      zohoRequestModel!.requests!
+          .removeWhere((r) => _getRequestStatus(r) == 'draft');
       Set<String> statuses = {};
       for (var request in zohoRequestModel!.requests!) {
         final status = _getRequestStatus(request);
         if (status.isNotEmpty) statuses.add(status);
       }
 
-      List<String> desiredOrder = [
+      const List<String> desiredOrder = [
         'inprogress',
         'completed',
         'no action',
-        'draft',
         'recalled',
         'expired'
       ];
@@ -140,7 +142,7 @@ class _AllLegalStatusPageState extends State<AllLegalStatusPage> {
       child: Scaffold(
         backgroundColor: const Color(0xFFF5F6F8),
         appBar: AppBar(
-          title: const Text('Legal MIS'),
+          title: const Text('Contracts'),
           elevation: 0,
           bottom: (isLoading || (zohoRequestModel?.error != null) || hasNoData)
               ? null
@@ -205,7 +207,7 @@ class _AllLegalStatusPageState extends State<AllLegalStatusPage> {
                                     },
                                     decoration: InputDecoration(
                                       hintText:
-                                          'Search by Agreement Name or ID',
+                                          'Search by Agreement Name',
                                       hintStyle: const TextStyle(
                                           color: Colors.grey, fontSize: 14),
                                       prefixIcon: const Icon(Icons.search,
@@ -348,8 +350,8 @@ class _AllLegalStatusPageState extends State<AllLegalStatusPage> {
         return GridView.builder(
           padding: const EdgeInsets.only(left: 16, right: 16, top: 16),
           gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-            maxCrossAxisExtent: 500,
-            childAspectRatio: constraints.maxWidth > 1100 ? 1.9 : 1.7,
+            maxCrossAxisExtent: 550,
+            childAspectRatio: constraints.maxWidth > 1100 ? 3.1 : constraints.maxWidth > 950 ? 2.7: 2.7,
             crossAxisSpacing: 16,
             mainAxisSpacing: 16,
           ),
@@ -446,6 +448,7 @@ class AgreementCard extends StatelessWidget {
           padding: const EdgeInsets.all(16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -500,17 +503,9 @@ class AgreementCard extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                      child: _buildInfoItem(Icons.calendar_today_outlined,
-                          'Created On', createdDate)),
-                  Expanded(
-                      child: _buildInfoItem(
-                          Icons.event_busy_outlined, 'Expires On', expiryDate)),
-                ],
-              ),
-              const SizedBox(height: 16),
+              _buildInfoItem(
+                  Icons.event_busy_outlined, 'Expires On', expiryDate),
+              /* const SizedBox(height: 16),
               const Divider(height: 1, color: Color(0xFFEEEEEE)),
               const SizedBox(height: 12),
               Row(
@@ -544,7 +539,7 @@ class AgreementCard extends StatelessWidget {
                     ),
                   ),
                 ],
-              ),
+              ), */
             ],
           ),
         ),

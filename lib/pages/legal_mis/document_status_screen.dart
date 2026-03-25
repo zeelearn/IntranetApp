@@ -158,9 +158,9 @@ class DocumentStatusScreen extends ConsumerWidget {
               IconButton(
                 icon: const Icon(Icons.copy_outlined, size: 20),
                 color: Colors.grey.shade600,
-                tooltip: 'Copy Request ID',
+                tooltip: 'Copy Request Name',
                 onPressed: () {
-                  Clipboard.setData(ClipboardData(text: requests.requestName ?? '${status.reqId}'));
+                  Clipboard.setData(ClipboardData(text: requests.requestName ?? ''));
                   ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
                       content: Text('Request Name copied to clipboard')));
                 },
@@ -186,12 +186,12 @@ class DocumentStatusScreen extends ConsumerWidget {
               IconButton(
                 icon: const Icon(Icons.copy_outlined, size: 18),
                 color: Colors.grey.shade600,
-                tooltip: 'Copy Request ID',
+                tooltip: 'Copy Request Name',
                 onPressed: () {
-                  Clipboard.setData(ClipboardData(text: status.reqId));
+                  Clipboard.setData(ClipboardData(text: requests.requestName ?? ''));
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
-                        content: Text('Request ID copied to clipboard')),
+                        content: Text('Request Name copied to clipboard')),
                   );
                 },
               ),
@@ -201,7 +201,7 @@ class DocumentStatusScreen extends ConsumerWidget {
           ),
         ],
         const SizedBox(height: 16),
-        _buildInfoRow(
+        /* _buildInfoRow(
           Icons.tag,
           "ReqID",
           status.reqId,
@@ -217,7 +217,7 @@ class DocumentStatusScreen extends ConsumerWidget {
             ),
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 8), */
         _buildInfoRow(
             Icons.calendar_today_outlined,
             "Submitted",
