@@ -78,17 +78,33 @@ class _SummaryDashboardState extends State<SummaryDashboard>
       DateTime.utc(DateTime.now().year, DateTime.now().month + 4, 0);
 
   bool _isSidebarVisible = true;
+  CalendarFormat _calendarFormat = CalendarFormat.month;
+  String _currentFormat = 'Month';
 
   // API Data state
   bool _isLoading = true;
+  List<PJPInfo> _rawPjpData = [];
+  bool _isTeamView = true;
   List<PJPInfo> _pjpData = [];
+  List<PJPInfo> _filteredPjpData = [];
+  Set<String> _allTeamMembers = {};
+  Set<String> _selectedTeamMembers = {};
   final List<_Event> _events = [];
+
+  // Search state
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
+  final FocusNode _searchFocusNode = FocusNode();
+  final FocusNode _mobileSearchFocusNode = FocusNode();
+  bool _isMobileSearchActive = false;
 
   // KPI state
   int _totalEmployees = 0;
   int _totalVisits = 0;
   int _pendingApprovals = 0; // This might need another API
   int _approvedPJP = 0;
+  int _totalPJP = 0;
+  int _rejectedPJP = 0;
 
   // User color mapping
   final Map<String, Color> _userColors = {};
@@ -119,6 +135,14 @@ class _SummaryDashboardState extends State<SummaryDashboard>
   void initState() {
     super.initState();
     _fetchDashboardData();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _searchFocusNode.dispose();
+    _mobileSearchFocusNode.dispose();
+    super.dispose();
   }
 
   Future<void> _fetchDashboardData() async {
@@ -162,12 +186,31 @@ class _SummaryDashboardState extends State<SummaryDashboard>
     if (value is PjpListResponse) {
       if (mounted) {
         setState(() {
-          _pjpData = value.responseData;
-          _processPjpData();
+          _rawPjpData = value.responseData;
+          _updateViewMode();
           _isLoading = false;
         });
       }
     }
+  }
+
+  void _updateViewMode() {
+    if (_isTeamView) {
+      _pjpData =
+          _rawPjpData.where((pjp) => pjp.isSelfPJP.trim() != '1').toList();
+    } else {
+      _pjpData =
+          _rawPjpData.where((pjp) => pjp.isSelfPJP.trim() == '1').toList();
+    }
+
+    // Populate all team members and select all by default
+    _allTeamMembers = _pjpData.map((pjp) => pjp.displayName).toSet();
+    _selectedTeamMembers = Set.from(_allTeamMembers);
+
+    // Assign colors once
+    _assignUserColors();
+
+    _processFilteredData();
   }
 
   @override
@@ -181,39 +224,50 @@ class _SummaryDashboardState extends State<SummaryDashboard>
     }
   }
 
-  void _processPjpData() {
+  void _assignUserColors() {
+    _userColors.clear();
+    _colorIndex = 0;
+    // Sort to have a consistent color assignment
+    final sortedMembers = _allTeamMembers.toList()..sort();
+    for (final userName in sortedMembers) {
+      _getColorForUser(userName); // This will assign a color if not present
+    }
+  }
+
+  void _processFilteredData() {
+    _filteredPjpData = _pjpData.where((pjp) {
+      final bool matchesTeam = _selectedTeamMembers.contains(pjp.displayName);
+      final bool matchesSearch = _searchQuery.isEmpty ||
+          pjp.displayName.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+          pjp.PJP_Id.toString().contains(_searchQuery) || pjp.remarks.toString().contains(_searchQuery);
+
+      return matchesTeam && matchesSearch;
+    }).toList();
+
     int totalVisits = 0;
     int pendingApprovals = 0;
     int approvedPjps = 0;
+    int rejectedPjps = 0;
     List<_Event> newEvents = [];
-    final today = DateTime.now();
 
-    Set<String> teamMembers = {};
+    Set<String> teamMembersInFilteredData = {};
 
-    _userColors.clear();
     _userEventCount.clear();
-    _colorIndex = 0;
 
-    for (var pjpInfo in _pjpData) {
+    for (var pjpInfo in _filteredPjpData) {
       final userName = pjpInfo.displayName;
       final baseColor = _getColorForUser(userName);
-      final eventCount = _userEventCount.putIfAbsent(userName, () => 0);
-
-      // Create a slightly different shade for each event
-      final eventColor =
-          Color.lerp(baseColor, Colors.black, eventCount * 0.05)!;
-      _userEventCount[userName] = eventCount + 1;
 
       newEvents.add(_Event(
         title: '${pjpInfo.displayName}',
         time: pjpInfo.Status,
-        color: eventColor,
+        color: baseColor,
         icon: Icons.location_on,
         start: Utility.convertDate(pjpInfo.fromDate),
         end: Utility.convertDate(pjpInfo.toDate),
         pjpInfo: pjpInfo,
       ));
-      teamMembers.add(pjpInfo.displayName);
+      teamMembersInFilteredData.add(pjpInfo.displayName);
 
       if (pjpInfo.getDetailedPJP != null) {
         totalVisits += pjpInfo.getDetailedPJP!.length;
@@ -225,17 +279,53 @@ class _SummaryDashboardState extends State<SummaryDashboard>
       if (pjpInfo.ApprovalStatus.trim().toLowerCase() == 'approved') {
         approvedPjps++;
       }
+      if (pjpInfo.ApprovalStatus.trim().toLowerCase().contains('reject')) {
+        rejectedPjps++;
+      }
     }
 
     // Update state variables
     _totalVisits = totalVisits;
     _pendingApprovals = pendingApprovals;
     _approvedPJP = approvedPjps;
-    _totalEmployees = teamMembers.isNotEmpty
-        ? teamMembers.length
-        : 1; // Avoid division by zero
+    _rejectedPJP = rejectedPjps;
+    _totalPJP = _filteredPjpData.length;
+    _totalEmployees = teamMembersInFilteredData.length;
     _events.clear();
-    _events.addAll(newEvents);
+
+    // ── Calculate Layout Slots (Lanes) ──────────────────────────────────────
+    // 1. Sort events: Start Date ASC, then Duration DESC
+    newEvents.sort((a, b) {
+      int cmp = a.start.compareTo(b.start);
+      if (cmp != 0) return cmp;
+      return b.end.difference(b.start).compareTo(a.end.difference(a.start));
+    });
+
+    // 2. Assign slots
+    List<DateTime> laneEndDates = [];
+    List<_Event> slottedEvents = [];
+
+    for (var event in newEvents) {
+      int lane = -1;
+      // Find the first lane where this event fits (starts after lane ends)
+      for (int i = 0; i < laneEndDates.length; i++) {
+        if (event.start.isAfter(laneEndDates[i])) {
+          lane = i;
+          laneEndDates[i] = event.end;
+          break;
+        }
+      }
+
+      // If no fit, add new lane
+      if (lane == -1) {
+        lane = laneEndDates.length;
+        laneEndDates.add(event.end);
+      }
+
+      slottedEvents.add(event.copyWith(slotIndex: lane));
+    }
+
+    _events.addAll(slottedEvents);
   }
 
   // ── helpers ───────────────────────────────────────────────────────────────
@@ -263,7 +353,8 @@ class _SummaryDashboardState extends State<SummaryDashboard>
     final w = MediaQuery.of(context).size.width;
 
     if (_isLoading) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return const Scaffold(
+          body: SafeArea(child: Center(child: CircularProgressIndicator())));
     }
 
     return Scaffold(
@@ -271,17 +362,19 @@ class _SummaryDashboardState extends State<SummaryDashboard>
       appBar: _isMobile(w) ? _buildMobileAppBar() : null,
       // drawer:
       //     _isMobile(w) ? Drawer(child: _buildSidebar(compact: false)) : null,
-      body: _isMobile(w)
-          ? _buildMobileBody()
-          : Row(
-              children: [
-                if (_isDesktop(w) && _isSidebarVisible)
-                  SizedBox(width: 280, child: _buildSidebar(compact: false))
-                else if (_isTablet(w) && _isSidebarVisible)
-                  SizedBox(width: 240, child: _buildSidebar(compact: true)),
-                Expanded(child: _buildMainContent(w)),
-              ],
-            ),
+      body: SafeArea(
+        child: _isMobile(w)
+            ? _buildMobileBody()
+            : Row(
+                children: [
+                  if (_isDesktop(w) && _isSidebarVisible)
+                    SizedBox(width: 280, child: _buildSidebar(compact: false))
+                  else if (_isTablet(w) && _isSidebarVisible)
+                    SizedBox(width: 240, child: _buildSidebar(compact: true)),
+                  Expanded(child: _buildMainContent(w)),
+                ],
+              ),
+      ),
     );
   }
 
@@ -291,13 +384,159 @@ class _SummaryDashboardState extends State<SummaryDashboard>
       backgroundColor: _sidebar,
       foregroundColor: Colors.white,
       elevation: 0,
-      title: Text('PJP Dashboard',
-          style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
+      titleSpacing: _isMobileSearchActive ? 0 : 16,
+      title: _isMobileSearchActive ? RawAutocomplete<PJPInfo>(
+              textEditingController: _searchController,
+              focusNode: _mobileSearchFocusNode,
+              optionsBuilder: (TextEditingValue textEditingValue) {
+                if (textEditingValue.text.isEmpty) {
+                  return const Iterable<PJPInfo>.empty();
+                }
+                return _pjpData.where((pjp) {
+                  final query = textEditingValue.text.toLowerCase();
+                  return pjp.displayName.toLowerCase().contains(query) ||
+                      pjp.PJP_Id.toString().contains(query) ||
+                      pjp.remarks.toLowerCase().contains(query);
+                });
+              },
+              onSelected: (PJPInfo selection) {
+                setState(() {
+                  _searchController.text = selection.PJP_Id.toString();
+                  _searchQuery = _searchController.text;
+                  _focusedDay = Utility.convertDate(selection.fromDate);
+                  _selectedDay = Utility.convertDate(selection.fromDate);
+                  _processFilteredData();
+                  _isMobileSearchActive = false; // Close search on mobile
+                  _mobileSearchFocusNode.unfocus();
+                });
+              },
+              displayStringForOption: (PJPInfo option) =>
+                  '${option.displayName} - PJP ID: ${option.PJP_Id}',
+              optionsViewBuilder: (context, onSelected, options) {
+                return Align(
+                  alignment: Alignment.topLeft,
+                  child: Material(
+                    elevation: 4.0,
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                          maxHeight: MediaQuery.of(context).size.height * 0.5),
+                      child: ListView.builder(
+                        padding: EdgeInsets.zero,
+                        shrinkWrap: true,
+                        itemCount: options.length,
+                        itemBuilder: (BuildContext context, int index) {
+                          final PJPInfo option = options.elementAt(index);
+                          return InkWell(
+                            onTap: () => onSelected(option),
+                            child: ListTile(
+                              title: Text(
+                                  '${option.displayName} - PJP: ${option.PJP_Id}'),
+                              subtitle: Text(
+                                option.remarks,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                );
+              },
+              fieldViewBuilder: (context, textEditingController,
+                  focusNode, onFieldSubmitted) {
+                return Container(
+                  height: 40,
+                  margin: const EdgeInsets.only(right: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: TextField(
+                    controller: textEditingController,
+                    focusNode: focusNode,
+                    autofocus: true,
+                    textAlignVertical: TextAlignVertical.center,
+                    style: GoogleFonts.inter(color: Colors.white, fontSize: 14),
+                    cursorColor: _accent,
+                    decoration: InputDecoration(fillColor: Colors.white54.withOpacity(0.15),
+                      hintText: 'Search...',
+                      hintStyle:
+                          GoogleFonts.inter(color: Colors.white54, fontSize: 14),
+                      border: InputBorder.none,
+                      prefixIcon: const Icon(Icons.search,
+                          color: Colors.white54, size: 20),
+                      suffixIcon: _searchController.text.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(Icons.cancel,
+                                  color: Colors.white54, size: 18),
+                              onPressed: () {
+                                _searchController.clear();
+                                setState(() {
+                                  _searchQuery = '';
+                                  _processFilteredData();
+                                });
+                              },
+                            )
+                          : null,
+                      contentPadding: EdgeInsets.zero,
+                      isDense: true,
+                    ),
+                    onChanged: (val) {
+                      setState(() {
+                        _searchQuery = val;
+                        _processFilteredData();
+                      });
+                    },
+                  ),
+                );
+              },
+            )
+          : Text('PJP Dashboard',
+              overflow: TextOverflow.ellipsis,
+              style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
+      bottom: _isMobileSearchActive
+          ? null
+          : PreferredSize(
+              preferredSize: const Size.fromHeight(50),
+              child: Padding(
+                padding: const EdgeInsets.only(left: 16, right: 16, bottom: 10),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: _buildViewSwitcher(isDark: true),
+                ),
+              ),
+            ),
       actions: [
-        /*   IconButton(
-          icon: const Icon(Icons.notifications_none_rounded),
-          onPressed: () {},
-        ) */
+        if (_isMobileSearchActive)
+          TextButton(
+            onPressed: () {
+              setState(() {
+                _isMobileSearchActive = false;
+                _searchQuery = '';
+                _searchController.clear();
+                _processFilteredData();
+              });
+            },
+            child:
+                Text('Cancel', style: GoogleFonts.inter(color: Colors.white)),
+          )
+        else ...[
+          IconButton(
+            icon: const Icon(Icons.search),
+            onPressed: () {
+              setState(() {
+                _isMobileSearchActive = true;
+              });
+            },
+          ),
+          if (_isTeamView)
+            IconButton(
+              icon: const Icon(Icons.filter_list),
+              onPressed: _showMobileFilter,
+            ),
+        ]
       ],
     );
   }
@@ -310,7 +549,7 @@ class _SummaryDashboardState extends State<SummaryDashboard>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildKPIRow(isMobile: true),
-          // const SizedBox(height: 6),
+          const SizedBox(height: 16),
           _buildMiniCalendarCard(),
           const SizedBox(height: 16),
           _buildUpcomingEventsCard(),
@@ -327,7 +566,7 @@ class _SummaryDashboardState extends State<SummaryDashboard>
   Widget _buildSidebar({required bool compact}) {
     final now = DateTime.now();
     return Container(
-      color: Color(0xFF1E1E2E),
+      color: Colors.black87,
       child: SafeArea(
         child: Column(
           children: [
@@ -353,47 +592,44 @@ class _SummaryDashboardState extends State<SummaryDashboard>
               ),
             ),
 
-            // Mini Calendar
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              child: _buildSidebarMiniCalendar(compact: compact),
-            ),
-
-            // Weather row
-            /*    Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-              child: _buildWeatherRow(now),
-            ), */
-
-            const Divider(color: Color(0xFF2E2E42), thickness: 1, height: 1),
-
-            // Events
             Expanded(
               child: ListView(
-                padding: const EdgeInsets.all(0),
+                padding: const EdgeInsets.symmetric(horizontal: 8),
                 children: [
+                  // Mini Calendar
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: _buildSidebarMiniCalendar(compact: compact),
+                  ),
+                  const Divider(
+                      color: Color(0xFF2E2E42), thickness: 1, height: 1),
+                  // Events
                   _buildSidebarDaySection(
                     label: 'TODAY  ${DateFormat('M/d/yy').format(now)}',
                     events: _getEventsForDay(now),
                     compact: compact,
+                    day: now,
                   ),
                   _buildSidebarDaySection(
                     label:
                         'TOMORROW  ${DateFormat('M/d/yy').format(now.add(const Duration(days: 1)))}',
                     events: _getEventsForDay(now.add(const Duration(days: 1))),
                     compact: compact,
+                    day: now.add(const Duration(days: 1)),
                   ),
                   _buildSidebarDaySection(
                     label:
                         '${DateFormat('EEEE').format(now.add(const Duration(days: 2))).toUpperCase()}  ${DateFormat('M/d/yy').format(now.add(const Duration(days: 2)))}',
                     events: _getEventsForDay(now.add(const Duration(days: 2))),
                     compact: compact,
+                    day: now.add(const Duration(days: 2)),
                   ),
                   _buildSidebarDaySection(
                     label:
                         '${DateFormat('EEEE').format(now.add(const Duration(days: 3))).toUpperCase()}  ${DateFormat('M/d/yy').format(now.add(const Duration(days: 3)))}',
                     events: _getEventsForDay(now.add(const Duration(days: 3))),
                     compact: compact,
+                    day: now.add(const Duration(days: 3)),
                   ),
                 ],
               ),
@@ -477,29 +713,186 @@ class _SummaryDashboardState extends State<SummaryDashboard>
           weekendStyle: GoogleFonts.inter(
               color: Colors.white38, fontSize: 10, fontWeight: FontWeight.w500),
         ),
-        calendarStyle: CalendarStyle(
-          outsideDaysVisible: true,
-          defaultTextStyle:
-              GoogleFonts.inter(color: Colors.white70, fontSize: 11),
-          weekendTextStyle:
-              GoogleFonts.inter(color: Colors.white54, fontSize: 11),
-          outsideTextStyle:
-              GoogleFonts.inter(color: Colors.white24, fontSize: 11),
-          todayDecoration:
-              const BoxDecoration(color: _accent, shape: BoxShape.circle),
-          todayTextStyle: GoogleFonts.inter(
-              color: Colors.black, fontSize: 11, fontWeight: FontWeight.w700),
-          selectedDecoration: const BoxDecoration(
-              color: _accentSecondary, shape: BoxShape.circle),
-          selectedTextStyle: GoogleFonts.inter(
-              color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700),
-          markerDecoration:
-              const BoxDecoration(color: _accent, shape: BoxShape.circle),
-          markerSize: 4,
-          markersMaxCount: 3,
-          cellMargin: const EdgeInsets.all(2),
+        calendarStyle: const CalendarStyle(
+            outsideDaysVisible: true,
+            cellMargin: EdgeInsets.all(2),
+            markersMaxCount: 0),
+        calendarBuilders: CalendarBuilders(
+          defaultBuilder: (context, day, focusedDay) =>
+              _buildSidebarCalCell(day, events: _getEventsForDay(day)),
+          todayBuilder: (context, day, focusedDay) => _buildSidebarCalCell(day,
+              events: _getEventsForDay(day), isToday: true),
+          selectedBuilder: (context, day, focusedDay) => _buildSidebarCalCell(
+              day,
+              events: _getEventsForDay(day),
+              isSelected: true),
+          outsideBuilder: (context, day, focusedDay) =>
+              _buildSidebarCalCell(day, isOutside: true),
         ),
       ),
+    );
+  }
+
+  Widget _buildSidebarCalCell(DateTime day,
+      {List<_Event> events = const [],
+      bool isToday = false,
+      bool isSelected = false,
+      bool isOutside = false}) {
+    if (isOutside) {
+      return Center(
+        child: Text(
+          '${day.day}',
+          style: GoogleFonts.inter(color: Colors.white24, fontSize: 11),
+        ),
+      );
+    }
+    return Center(
+      child: Container(
+        width: 28,
+        height: 28,
+        decoration: BoxDecoration(
+          color: isSelected
+              ? _accentSecondary
+              : (isToday ? _accent : Colors.transparent),
+          shape: BoxShape.circle,
+        ),
+        child: Stack(
+          alignment: Alignment.center,
+          clipBehavior: Clip.none,
+          children: [
+            Text(
+              '${day.day}',
+              style: GoogleFonts.inter(
+                  color: isToday
+                      ? Colors.black
+                      : (isSelected ? Colors.white : Colors.white70),
+                  fontSize: 11,
+                  fontWeight: (isToday || isSelected)
+                      ? FontWeight.w700
+                      : FontWeight.normal),
+            ),
+            if (events.isNotEmpty)
+              Positioned(
+                top: -3,
+                right: -3,
+                child: Container(
+                  padding: const EdgeInsets.all(1),
+                  decoration: BoxDecoration(
+                      color: _red,
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                          color: const Color(0xFF1E1E2E), width: 1.5)),
+                  constraints:
+                      const BoxConstraints(minWidth: 14, minHeight: 14),
+                  child: Text(
+                    '${events.length}',
+                    style: GoogleFonts.inter(
+                        color: Colors.white,
+                        fontSize: 8,
+                        fontWeight: FontWeight.bold),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showMobileFilter() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: const Color(0xFF1E1E2E),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setSheetState) {
+            final sortedMembers = _allTeamMembers.toList()..sort();
+            return Container(
+              height: MediaQuery.of(context).size.height * 0.7,
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Filter Team Members',
+                        style: GoogleFonts.inter(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close, color: Colors.white60),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                    ],
+                  ),
+                  const Divider(color: Color(0xFF2E2E42)),
+                  CheckboxListTile(
+                    title: Text('Select All',
+                        style: GoogleFonts.inter(color: Colors.white)),
+                    value:
+                        _selectedTeamMembers.length == _allTeamMembers.length &&
+                            _allTeamMembers.isNotEmpty,
+                    activeColor: _accent,
+                    checkColor: Colors.black,
+                    onChanged: (val) {
+                      setSheetState(() {
+                        if (val == true) {
+                          _selectedTeamMembers = Set.from(_allTeamMembers);
+                        } else {
+                          _selectedTeamMembers.clear();
+                        }
+                      });
+                      setState(() {
+                        _processFilteredData();
+                      });
+                    },
+                  ),
+                  const Divider(height: 1, color: Color(0xFF2E2E42)),
+                  Expanded(
+                    child: ListView.builder(
+                      itemCount: sortedMembers.length,
+                      itemBuilder: (context, index) {
+                        final employeeName = sortedMembers[index];
+                        return CheckboxListTile(
+                          title: Text(employeeName,
+                              style: GoogleFonts.inter(color: Colors.white)),
+                          value: _selectedTeamMembers.contains(employeeName),
+                          activeColor: _accent,
+                          checkColor: Colors.black,
+                          secondary: Icon(Icons.circle,
+                              color: _userColors[employeeName] ?? Colors.grey,
+                              size: 12),
+                          onChanged: (val) {
+                            setSheetState(() {
+                              if (val == true) {
+                                _selectedTeamMembers.add(employeeName);
+                              } else {
+                                _selectedTeamMembers.remove(employeeName);
+                              }
+                            });
+                            setState(() {
+                              _processFilteredData();
+                            });
+                          },
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
     );
   }
 
@@ -527,6 +920,7 @@ class _SummaryDashboardState extends State<SummaryDashboard>
     required String label,
     required List<_Event> events,
     required bool compact,
+    required DateTime day,
   }) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -548,43 +942,57 @@ class _SummaryDashboardState extends State<SummaryDashboard>
                       GoogleFonts.inter(color: Colors.white30, fontSize: 11)),
             )
           else
-            ...events.map((e) => _buildSidebarEventTile(e, compact)),
+            ...events.map((e) => _buildSidebarEventTile(e, compact, day)),
         ],
       ),
     );
   }
 
-  Widget _buildSidebarEventTile(_Event event, bool compact) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 4),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(top: 3),
-            child: Icon(event.icon, color: event.color, size: 8),
-          ),
-          const SizedBox(width: 6),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                /* if (event.time.isNotEmpty)
-                  Text(event.time,
-                      style: GoogleFonts.inter(
-                          color: Colors.white.withValues(alpha: 0.4),
-                          fontSize: compact ? 9 : 10)), */
-                Text(event.title,
-                    style: GoogleFonts.inter(
-                        color: Colors.white,
-                        fontSize: compact ? 10 : 11,
-                        fontWeight: FontWeight.w500),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis),
-              ],
+  Widget _buildSidebarEventTile(_Event event, bool compact, DateTime day) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) =>
+                  _DayEventsScreen(day: day, events: _getEventsForDay(day)),
             ),
+          );
+        },
+        child: Padding(
+          padding: const EdgeInsets.only(bottom: 4),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(top: 3),
+                child: Icon(event.icon, color: event.color, size: 8),
+              ),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    /* if (event.time.isNotEmpty)
+                      Text(event.time,
+                          style: GoogleFonts.inter(
+                              color: Colors.white.withValues(alpha: 0.4),
+                              fontSize: compact ? 9 : 10)), */
+                    Text(event.title,
+                        style: GoogleFonts.inter(
+                            color: Colors.white,
+                            fontSize: compact ? 10 : 11,
+                            fontWeight: FontWeight.w500),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis),
+                  ],
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -706,37 +1114,130 @@ class _SummaryDashboardState extends State<SummaryDashboard>
                   fontWeight: FontWeight.w700,
                   fontSize: desktop ? 18 : 14,
                   color: _textPrimary)),
-          const Spacer(),
-          // Format switcher (desktop only)
-          /*  if (desktop) _buildFormatSwitcher(),
-          const SizedBox(width: 12),
           // Search
-          if (desktop)
+          if (desktop) ...[
+            SizedBox(width: 16),
             SizedBox(
-              width: 180,
-              height: 34,
-              child: TextField(
-                decoration: InputDecoration(
-                  hintText: 'Search',
-                  hintStyle:
-                      GoogleFonts.inter(fontSize: 12, color: _textSecondary),
-                  prefixIcon:
-                      const Icon(Icons.search, size: 16, color: _textSecondary),
-                  filled: true,
-                  fillColor: _mainBg,
-                  contentPadding: EdgeInsets.zero,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: const BorderSide(color: _divider),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: const BorderSide(color: _divider),
-                  ),
-                ),
+              width: 220,
+              child: RawAutocomplete<PJPInfo>(
+                textEditingController: _searchController,
+                focusNode: _searchFocusNode,
+                optionsBuilder: (TextEditingValue textEditingValue) {
+                  if (textEditingValue.text.isEmpty) {
+                    return const Iterable<PJPInfo>.empty();
+                  }
+                  return _pjpData.where((pjp) {
+                    final query = textEditingValue.text.toLowerCase();
+                    return pjp.displayName.toLowerCase().contains(query) ||
+                        pjp.PJP_Id.toString().contains(query) ||
+                        pjp.remarks.toLowerCase().contains(query);
+                  });
+                },
+                onSelected: (PJPInfo selection) {
+                  setState(() {
+                    _searchController.text = selection.PJP_Id.toString();
+                    _searchQuery = _searchController.text;
+                    _focusedDay = Utility.convertDate(selection.fromDate);
+                    _selectedDay = Utility.convertDate(selection.fromDate);
+                    _processFilteredData();
+                    _searchFocusNode.unfocus();
+                  });
+                },
+                displayStringForOption: (PJPInfo option) =>
+                    '${option.displayName} - PJP ID: ${option.PJP_Id}',
+                optionsViewBuilder: (context, onSelected, options) {
+                  return Align(
+                    alignment: Alignment.topLeft,
+                    child: Material(
+                      elevation: 4.0,
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(
+                            maxHeight: 200, maxWidth: 350),
+                        child: ListView.builder(
+                          padding: EdgeInsets.zero,
+                          shrinkWrap: true,
+                          itemCount: options.length,
+                          itemBuilder: (BuildContext context, int index) {
+                            final PJPInfo option = options.elementAt(index);
+                            return InkWell(
+                              onTap: () => onSelected(option),
+                              child: ListTile(
+                                title: Text(
+                                    '${option.displayName} - PJP: ${option.PJP_Id}'),
+                                subtitle: Text(
+                                  option.remarks,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                  );
+                },
+                fieldViewBuilder: (context, textEditingController,
+                    focusNode, onFieldSubmitted) {
+                  return SizedBox(
+                    height: 34,
+                    child: TextField(
+                      controller: textEditingController,
+                      focusNode: focusNode,
+                      onChanged: (value) {
+                        setState(() {
+                          _searchQuery = value;
+                          _processFilteredData();
+                        });
+                      },
+                      decoration: InputDecoration(
+                        hintText: 'Search PJP...',
+                        hintStyle: GoogleFonts.inter(
+                            fontSize: 12, color: _textSecondary),
+                        prefixIcon: const Icon(Icons.search,
+                            size: 16, color: _textSecondary),
+                        filled: true,
+                        fillColor: _mainBg,
+                        contentPadding: EdgeInsets.zero,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(color: _divider),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(color: _divider),
+                        ),
+                        suffixIcon: _searchController.text.isNotEmpty
+                            ? IconButton(
+                                icon: const Icon(Icons.clear,
+                                    size: 16, color: _textSecondary),
+                                onPressed: () {
+                                  _searchController.clear();
+                                  setState(() {
+                                    _searchQuery = '';
+                                    _processFilteredData();
+                                  });
+                                },
+                              )
+                            : null,
+                      ),
+                    ),
+                  );
+                },
               ),
             ),
+          ],
+          const Spacer(),
+          if (desktop && _isTeamView) ...[
+            _buildDesktopFilterButton(),
+            const SizedBox(width: 12),
+          ],
+          // Format switcher (desktop only)
+          if (desktop) _buildFormatSwitcher(),
           const SizedBox(width: 12),
+          _buildViewSwitcher(),
+
+          /* const SizedBox(width: 12),
           // Notifications
           Stack(
             children: [
@@ -793,8 +1294,211 @@ class _SummaryDashboardState extends State<SummaryDashboard>
     );
   }
 
+  Widget _buildViewSwitcher({bool isDark = false}) {
+    final bgColor = isDark ? Colors.black26 : const Color(0xFFF1F5F9);
+    final activeColor = isDark ? Colors.white.withOpacity(0.2) : Colors.white;
+    final inactiveTextColor = isDark ? Colors.white60 : _textSecondary;
+    final activeTextColor = isDark ? Colors.white : _textPrimary;
+
+    return Container(
+      height: 32,
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      padding: const EdgeInsets.all(2),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _switcherBtn('Self', !_isTeamView, activeColor, activeTextColor,
+              inactiveTextColor),
+          _switcherBtn('My Team', _isTeamView, activeColor, activeTextColor,
+              inactiveTextColor),
+        ],
+      ),
+    );
+  }
+
+  Widget _switcherBtn(String label, bool isActive, Color activeBg,
+      Color activeText, Color inactiveText) {
+    return InkWell(
+      onTap: () {
+        if ((label == 'My Team') != _isTeamView) {
+          setState(() {
+            _isTeamView = label == 'My Team';
+            _updateViewMode();
+          });
+        }
+      },
+      borderRadius: BorderRadius.circular(6),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: isActive ? activeBg : Colors.transparent,
+          borderRadius: BorderRadius.circular(6),
+          boxShadow: isActive && activeBg == Colors.white
+              ? [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 2,
+                  )
+                ]
+              : null,
+        ),
+        child: Text(
+          label,
+          style: GoogleFonts.inter(
+            fontSize: 12,
+            fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
+            color: isActive ? activeText : inactiveText,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDesktopFilterButton() {
+    return InkWell(
+      onTap: _showDesktopFilterDialog,
+      borderRadius: BorderRadius.circular(6),
+      child: Container(
+        height: 32,
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        decoration: BoxDecoration(
+          border: Border.all(color: _divider),
+          borderRadius: BorderRadius.circular(6),
+          color: Colors.white,
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.filter_list_rounded,
+                size: 16, color: _textSecondary),
+            const SizedBox(width: 8),
+            Text('Filters',
+                style: GoogleFonts.inter(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: _textPrimary)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showDesktopFilterDialog() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return Dialog(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          child: Container(
+            width: 400,
+            constraints: BoxConstraints(
+                maxHeight: MediaQuery.of(context).size.height * 0.8),
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('Filters',
+                        style: GoogleFonts.inter(
+                            fontSize: 18, fontWeight: FontWeight.w700)),
+                    IconButton(
+                      onPressed: () => Navigator.pop(context),
+                      icon: const Icon(Icons.close, size: 20),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                const Divider(height: 1, color: _divider),
+                const SizedBox(height: 16),
+                Text('Team Members',
+                    style: GoogleFonts.inter(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: _textPrimary)),
+                const SizedBox(height: 12),
+                Expanded(
+                  child: StatefulBuilder(
+                    builder: (context, setDialogState) {
+                      final sortedMembers = _allTeamMembers.toList()..sort();
+                      return ListView(
+                        children: [
+                          CheckboxListTile(
+                            title: Text('Select All',
+                                style: GoogleFonts.inter(
+                                    fontSize: 13, color: _textPrimary)),
+                            value: _selectedTeamMembers.length ==
+                                    _allTeamMembers.length &&
+                                _allTeamMembers.isNotEmpty,
+                            onChanged: (val) {
+                              setDialogState(() {
+                                if (val == true) {
+                                  _selectedTeamMembers =
+                                      Set.from(_allTeamMembers);
+                                } else {
+                                  _selectedTeamMembers.clear();
+                                }
+                              });
+                              setState(() {
+                                _processFilteredData();
+                              });
+                            },
+                            contentPadding: EdgeInsets.zero,
+                            activeColor: _accent,
+                            dense: true,
+                            controlAffinity: ListTileControlAffinity.leading,
+                          ),
+                          ...sortedMembers.map((member) {
+                            return CheckboxListTile(
+                              title: Text(member,
+                                  style: GoogleFonts.inter(
+                                      fontSize: 13, color: _textPrimary)),
+                              value: _selectedTeamMembers.contains(member),
+                              onChanged: (val) {
+                                setDialogState(() {
+                                  if (val == true) {
+                                    _selectedTeamMembers.add(member);
+                                  } else {
+                                    _selectedTeamMembers.remove(member);
+                                  }
+                                });
+                                setState(() {
+                                  _processFilteredData();
+                                });
+                              },
+                              secondary: Icon(Icons.circle,
+                                  color: _userColors[member] ?? Colors.grey,
+                                  size: 10),
+                              contentPadding: EdgeInsets.zero,
+                              activeColor: _accent,
+                              dense: true,
+                              controlAffinity: ListTileControlAffinity.leading,
+                            );
+                          }),
+                        ],
+                      );
+                    },
+                  ),
+                ),
+                // Note: You can add the Zone filter section here in the future
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   Widget _buildFormatSwitcher() {
-    final formats = ['Day', 'Week', 'Month', 'Year'];
+    final formats = ['Week', 'Month'];
     return Container(
       height: 32,
       decoration: BoxDecoration(
@@ -804,9 +1508,15 @@ class _SummaryDashboardState extends State<SummaryDashboard>
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: formats.map((f) {
-          final isSelected = f == 'Month';
+          final isSelected = f == _currentFormat;
           return GestureDetector(
-            onTap: () {},
+            onTap: () {
+              setState(() {
+                _currentFormat = f;
+                if (f == 'Month') _calendarFormat = CalendarFormat.month;
+                if (f == 'Week') _calendarFormat = CalendarFormat.week;
+              });
+            },
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12),
               height: 30,
@@ -831,22 +1541,30 @@ class _SummaryDashboardState extends State<SummaryDashboard>
   Widget _buildKPIRow({required bool isMobile}) {
     String presentBadge = '';
     // Note: 'On Leave' data is not available from this API. Using a placeholder.
-    String onLeaveBadge = _pjpData.isNotEmpty
-        ? '${((_pendingApprovals / _pjpData.length) * 100).toStringAsFixed(1)}% of PJPs'
-        : '0% of team';
-    String approvedBadge = _pjpData.isNotEmpty
-        ? '${((_approvedPJP / _pjpData.length) * 100).toStringAsFixed(1)}% of PJPs'
+    String onLeaveBadge = _filteredPjpData.isNotEmpty
+        ? '${((_pendingApprovals / _filteredPjpData.length) * 100).toStringAsFixed(1)}% of PJPs'
+        : '0% of PJPs';
+    String approvedBadge = _filteredPjpData.isNotEmpty
+        ? '${((_approvedPJP / _filteredPjpData.length) * 100).toStringAsFixed(1)}% of PJPs'
+        : '0% of PJPs';
+    String rejectedBadge = _filteredPjpData.isNotEmpty
+        ? '${((_rejectedPJP / _filteredPjpData.length) * 100).toStringAsFixed(1)}% of PJPs'
         : '0% of PJPs';
 
     final cards = [
-      _KPICard('Employees', _totalEmployees.toString(),
-          Icons.people_alt_rounded, _accent, '', true),
-      _KPICard('Visits', _totalVisits.toString(), Icons.check_circle_rounded,
+      if (_isTeamView)
+        _KPICard('Employees', _totalEmployees.toString(),
+            Icons.people_alt_rounded, _accent, '', true),
+      _KPICard('Total PJP', _totalPJP.toString(), Icons.assignment_rounded,
+          Colors.blueAccent, '', true),
+      _KPICard('CVF', _totalVisits.toString(), Icons.check_circle_rounded,
           _green, presentBadge, true),
       _KPICard('Pending Approvals', _pendingApprovals.toString(),
           FontAwesomeIcons.umbrellaBeach, _orange, onLeaveBadge, false),
       _KPICard('Approved PJPs', _approvedPJP.toString(), Icons.task_alt_rounded,
           _accentSecondary, approvedBadge, true),
+      _KPICard('Rejected PJPs', _rejectedPJP.toString(), Icons.cancel_rounded,
+          _red, rejectedBadge, false),
     ];
 
     return isMobile
@@ -999,8 +1717,11 @@ class _SummaryDashboardState extends State<SummaryDashboard>
           selectedDayPredicate: (day) =>
               _selectedDay != null && _isSameDay(day, _selectedDay!),
           eventLoader: _getEventsForDay,
-          calendarFormat: CalendarFormat.month,
-          availableCalendarFormats: const {CalendarFormat.month: 'Month'},
+          calendarFormat: _calendarFormat,
+          availableCalendarFormats: const {
+            CalendarFormat.month: 'Month',
+            CalendarFormat.week: 'Week',
+          },
           onDaySelected: (selected, focused) {
             setState(() {
               _selectedDay = selected;
@@ -1018,12 +1739,19 @@ class _SummaryDashboardState extends State<SummaryDashboard>
             }
           },
           onPageChanged: (focused) => setState(() => _focusedDay = focused),
+          onFormatChanged: (format) {
+            setState(() {
+              _calendarFormat = format;
+              if (format == CalendarFormat.month) _currentFormat = 'Month';
+              if (format == CalendarFormat.week) _currentFormat = 'Week';
+            });
+          },
           headerVisible: false,
           calendarStyle: const CalendarStyle(
             markerDecoration: BoxDecoration(),
           ),
           daysOfWeekHeight: 36,
-          rowHeight: 80,
+          rowHeight: 120,
           daysOfWeekStyle: DaysOfWeekStyle(
             decoration: const BoxDecoration(
                 border: Border(bottom: BorderSide(color: _divider))),
@@ -1075,103 +1803,120 @@ class _SummaryDashboardState extends State<SummaryDashboard>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Day number
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(4),
-              child: Align(
-                alignment: Alignment.topRight,
-                child: Container(
-                  width: 24,
-                  height: 24,
-                  decoration: BoxDecoration(
-                    color: isToday
-                        ? _accent
-                        : isSelected
-                            ? _accentSecondary
-                            : Colors.transparent,
-                    shape: BoxShape.circle,
-                  ),
-                  alignment: Alignment.center,
-                  child: Text(
-                    '${day.day}',
-                    style: GoogleFonts.inter(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      color: isToday || isSelected
-                          ? Colors.white
-                          : isOutside
-                              ? _textSecondary.withValues(alpha: 0.3)
-                              : isWeekend
-                                  ? _textSecondary
-                                  : _textPrimary,
-                    ),
+          Padding(
+            padding: const EdgeInsets.all(4),
+            child: Align(
+              alignment: Alignment.topRight,
+              child: Container(
+                width: 24,
+                height: 24,
+                decoration: BoxDecoration(
+                  color: isToday
+                      ? _accent
+                      : isSelected
+                          ? _accentSecondary
+                          : Colors.transparent,
+                  shape: BoxShape.circle,
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  '${day.day}',
+                  style: GoogleFonts.inter(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: isToday || isSelected
+                        ? Colors.white
+                        : isOutside
+                            ? _textSecondary.withValues(alpha: 0.3)
+                            : isWeekend
+                                ? _textSecondary
+                                : _textPrimary,
                   ),
                 ),
               ),
             ),
           ),
           // Events
-          ...events.take(3).map((e) {
-            final d = DateTime(day.year, day.month, day.day);
-            final s = DateTime(e.start.year, e.start.month, e.start.day);
-            final eDate = DateTime(e.end.year, e.end.month, e.end.day);
-            final isStart = d.isAtSameMomentAs(s);
-            final isEnd = d.isAtSameMomentAs(eDate);
-            final isSingleDay = isStart && isEnd;
+          ...List.generate(3, (index) {
+            // Find the event assigned to this slot (index)
+            final e = events.firstWhere(
+              (ev) => ev.slotIndex == index,
+              orElse: () => _Event.empty(),
+            );
 
-            return Padding(
-              padding: EdgeInsets.only(
-                top: 2,
-                left: isStart ? 4 : 0,
-                right: isEnd ? 4 : 0,
-              ),
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-                decoration: BoxDecoration(
-                  color: e.color.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.horizontal(
-                    left: isStart ? const Radius.circular(3) : Radius.zero,
-                    right: isEnd ? const Radius.circular(3) : Radius.zero,
+            if (e.slotIndex == index) {
+              final d = DateTime(day.year, day.month, day.day);
+              final s = DateTime(e.start.year, e.start.month, e.start.day);
+              final eDate = DateTime(e.end.year, e.end.month, e.end.day);
+              final isStart = d.isAtSameMomentAs(s);
+              final isEnd = d.isAtSameMomentAs(eDate);
+
+              return Padding(
+                padding: EdgeInsets.only(
+                  top: 2,
+                  left: isStart ? 4 : 0,
+                  right: isEnd ? 4 : 0,
+                ),
+                child: Container(
+                  height: 20, // Fixed height for alignment
+                  width: double.infinity,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                  decoration: BoxDecoration(
+                    color: e.color.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.horizontal(
+                      left: isStart ? const Radius.circular(3) : Radius.zero,
+                      right: isEnd ? const Radius.circular(3) : Radius.zero,
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      if (isStart) ...[
+                        Container(
+                          width: 4,
+                          height: 4,
+                          decoration: BoxDecoration(
+                              color: e.color, shape: BoxShape.circle),
+                        ),
+                        const SizedBox(width: 3),
+                      ] else
+                        const SizedBox(width: 7), // align text
+                      Expanded(
+                        child: Text(
+                          isStart ? e.title : '',
+                          style: GoogleFonts.inter(
+                              fontSize: 12,
+                              color: _textPrimary,
+                              fontWeight: FontWeight.w500),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                child: Row(
-                  children: [
-                    if (isStart) ...[
-                      Container(
-                        width: 4,
-                        height: 4,
-                        decoration: BoxDecoration(
-                            color: e.color, shape: BoxShape.circle),
-                      ),
-                      const SizedBox(width: 3),
-                    ] else
-                      const SizedBox(width: 7), // align text
-                    Expanded(
-                      child: Text(
-                        isStart ? e.title : '',
-                        style: GoogleFonts.inter(
-                            fontSize: 9,
-                            color: _textPrimary,
-                            fontWeight: FontWeight.w500),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            );
+              );
+            } else {
+              // Render a gap if there are events in lower slots (higher indices)
+              bool hasHigherEvents = events.any((ev) => ev.slotIndex > index);
+              if (hasHigherEvents) {
+                return const SizedBox(height: 22); // 20 + 2 top padding
+              } else {
+                return const SizedBox.shrink();
+              }
+            }
           }),
-          if (events.length > 3)
+          if (events.any((e) => e.slotIndex >= 3))
             Padding(
               padding: const EdgeInsets.only(top: 1, left: 6),
-              child: Text('+${events.length - 3} more',
+              child: Text(
+                  '+${events.where((e) => e.slotIndex >= 3).length} more',
                   style: GoogleFonts.inter(
                       fontSize: 8,
                       color: _accentSecondary,
                       fontWeight: FontWeight.w600)),
             ),
+          const Spacer(), // Push content to top
         ],
       ),
     );
@@ -1251,6 +1996,7 @@ class _SummaryDashboardState extends State<SummaryDashboard>
         ],
       ),
       child: TableCalendar<_Event>(
+        availableGestures: AvailableGestures.horizontalSwipe,
         firstDay: DateTime.utc(2020, 1, 1),
         lastDay: _lastDay,
         focusedDay: _focusedDay,
@@ -1282,9 +2028,8 @@ class _SummaryDashboardState extends State<SummaryDashboard>
           titleTextStyle: GoogleFonts.inter(
               fontWeight: FontWeight.w700, fontSize: 15, color: _textPrimary),
         ),
-        calendarStyle: const CalendarStyle(
-          outsideDaysVisible: false,
-        ),
+        calendarStyle:
+            const CalendarStyle(outsideDaysVisible: false, markersMaxCount: 0),
         calendarBuilders: CalendarBuilders(
           defaultBuilder: (context, day, focusedDay) {
             return _buildMobileCalCell(day, events: _getEventsForDay(day));
@@ -1337,7 +2082,7 @@ class _SummaryDashboardState extends State<SummaryDashboard>
                       letterSpacing: 0.5),
                 ),
               ),
-              ...entry.value.map((e) => _buildEventRow(e)),
+              ...entry.value.map((e) => _buildEventRow(e, entry.key)),
               const Divider(height: 1),
             ],
           );
@@ -1346,35 +2091,49 @@ class _SummaryDashboardState extends State<SummaryDashboard>
     );
   }
 
-  Widget _buildEventRow(_Event event) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        children: [
-          Container(
-            width: 3,
-            height: 36,
-            decoration: BoxDecoration(
-                color: event.color, borderRadius: BorderRadius.circular(2)),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(event.title,
-                    style: GoogleFonts.inter(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                        color: _textPrimary)),
-                /*   if (event.time.isNotEmpty)
-                  Text(event.time,
-                      style: GoogleFonts.inter(
-                          fontSize: 11, color: _textSecondary)), */
-              ],
+  Widget _buildEventRow(_Event event, DateTime day) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) =>
+                  _DayEventsScreen(day: day, events: _getEventsForDay(day)),
             ),
+          );
+        },
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4),
+          child: Row(
+            children: [
+              Container(
+                width: 3,
+                height: 36,
+                decoration: BoxDecoration(
+                    color: event.color, borderRadius: BorderRadius.circular(2)),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(event.title,
+                        style: GoogleFonts.inter(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                            color: _textPrimary)),
+                    /*   if (event.time.isNotEmpty)
+                      Text(event.time,
+                          style: GoogleFonts.inter(
+                              fontSize: 11, color: _textSecondary)), */
+                  ],
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -1577,7 +2336,7 @@ class _SummaryDashboardState extends State<SummaryDashboard>
                       fontSize: 13,
                       color: _textPrimary)),
               const Spacer(),
-              const Icon(Icons.more_horiz, size: 16, color: _textSecondary),
+              // const Icon(Icons.more_horiz, size: 16, color: _textSecondary),
             ],
           ),
           const SizedBox(height: 14),
@@ -1774,17 +2533,23 @@ class _PjpInfoCard extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             child: Column(
               children: [
+                if ((pjp.managerName?.trim().isNotEmpty ?? false) &&
+                    pjp.managerName?.trim() != 'NA') ...[
+                  _infoRow(Icons.supervisor_account_rounded, 'Manager',
+                      pjp.managerName ?? '', _accent),
+                  _dividerLine(),
+                ],
+
                 _infoRow(
                     Icons.calendar_today_rounded,
                     'From Date',
-                    DateFormat('yyyy-MM-dd')
-                        .format(DateTime.parse(pjp.fromDate)),
+                    DateFormat('dd-MM-yyyy').format(Utility.convertDate(pjp.fromDate)),
                     _accent),
                 _dividerLine(),
                 _infoRow(
                     Icons.event_rounded,
                     'To Date',
-                    DateFormat('yyyy-MM-dd').format(DateTime.parse(pjp.toDate)),
+                    DateFormat('dd-MM-yyyy').format(Utility.convertDate(pjp.toDate)),
                     _accent),
                 // _dividerLine(),
                 /* _infoRow(
@@ -1954,32 +2719,36 @@ class _VisitTile extends StatelessWidget {
           children: [
             Row(
               children: [
-                Expanded(
-                  child: Text(
-                    visit.franchiseeName,
-                    style: GoogleFonts.inter(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: _textPrimary,
+                if (visit.franchiseeName.trim().isNotEmpty &&
+                    visit.franchiseeName.trim() != 'NA')
+                  Expanded(
+                    child: Text(
+                      visit.franchiseeName,
+                      style: GoogleFonts.inter(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: _textPrimary,
+                      ),
                     ),
                   ),
-                ),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: _statusColor(visit.Status).withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    visit.Status,
-                    style: GoogleFonts.inter(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w600,
-                      color: _statusColor(visit.Status),
+                if (visit.Status.trim().isNotEmpty &&
+                    visit.Status.trim() != 'NA')
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: _statusColor(visit.Status).withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      visit.Status,
+                      style: GoogleFonts.inter(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                        color: _statusColor(visit.Status),
+                      ),
                     ),
                   ),
-                ),
               ],
             ),
             if (visit.franchiseeCode.isNotEmpty &&
@@ -2270,14 +3039,16 @@ class _VisitDetailSheet extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          visit.franchiseeName,
-                          style: GoogleFonts.inter(
-                            fontSize: 17,
-                            fontWeight: FontWeight.w700,
-                            color: _textPrimary,
+                        if (visit.franchiseeName.isNotEmpty &&
+                            visit.franchiseeName != 'NA')
+                          Text(
+                            visit.franchiseeName,
+                            style: GoogleFonts.inter(
+                              fontSize: 17,
+                              fontWeight: FontWeight.w700,
+                              color: _textPrimary,
+                            ),
                           ),
-                        ),
                         if (visit.franchiseeCode.isNotEmpty &&
                             visit.franchiseeCode != 'NA')
                           Text(
@@ -2288,26 +3059,29 @@ class _VisitDetailSheet extends StatelessWidget {
                       ],
                     ),
                   ),
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: _statusColor(visit.Status).withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color:
-                            _statusColor(visit.Status).withValues(alpha: 0.4),
-                      ),
-                    ),
-                    child: Text(
-                      visit.Status,
-                      style: GoogleFonts.inter(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: _statusColor(visit.Status),
-                      ),
-                    ),
-                  ),
+                  visit.Status.isNotEmpty && visit.Status != 'NA'
+                      ? Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: _statusColor(visit.Status)
+                                .withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: _statusColor(visit.Status)
+                                  .withValues(alpha: 0.4),
+                            ),
+                          ),
+                          child: Text(
+                            visit.Status,
+                            style: GoogleFonts.inter(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: _statusColor(visit.Status),
+                            ),
+                          ),
+                        )
+                      : SizedBox.shrink(),
                 ],
               ),
             ),
@@ -2412,6 +3186,7 @@ class _Event {
   final DateTime start;
   final DateTime end;
   final PJPInfo? pjpInfo;
+  final int slotIndex;
 
   const _Event({
     required this.title,
@@ -2421,7 +3196,33 @@ class _Event {
     required this.start,
     required this.end,
     this.pjpInfo,
+    this.slotIndex = 0,
   });
+
+  factory _Event.empty() {
+    return _Event(
+      title: '',
+      time: '',
+      color: Colors.transparent,
+      icon: Icons.error,
+      start: DateTime(1900),
+      end: DateTime(1900),
+      slotIndex: -1,
+    );
+  }
+
+  _Event copyWith({int? slotIndex}) {
+    return _Event(
+      title: title,
+      time: time,
+      color: color,
+      icon: icon,
+      start: start,
+      end: end,
+      pjpInfo: pjpInfo,
+      slotIndex: slotIndex ?? this.slotIndex,
+    );
+  }
 
   bool get isMultiDay {
     final s = DateTime(start.year, start.month, start.day);
