@@ -146,6 +146,8 @@ class _LoginPage extends State<LoginPage> {
               //sign in button & sign in with text
               signInButton(size),
 
+              const SizedBox(height: 20),
+
               //sign up text here
               Center(
                 child: footerText(),
@@ -156,6 +158,15 @@ class _LoginPage extends State<LoginPage> {
       ),
       bottomNavigationBar: Utility.footer(appVersion),
     );
+  }
+
+  _launchForgotPasswordURL() async {
+    const url = 'https://intranet.zeelearn.com/ForgotPassword.aspx';
+    if (await canLaunch(url)) {
+      await launch(url);
+    } else {
+      throw 'Could not launch $url';
+    }
   }
 
   _launchURL() async {
@@ -410,30 +421,17 @@ class _LoginPage extends State<LoginPage> {
 
   //sign up text here
   Widget footerText() {
-    return Text.rich(
-      TextSpan(
+    return GestureDetector(
+      onTap: () {
+        _launchForgotPasswordURL();
+      },
+      child: Text(
+        'Forgot Password?',
         style: GoogleFonts.inter(
-          fontSize: 12.0,
-          color: const Color(0xFF3B4C68),
+          fontSize: 14.0,
+          color: const Color(0xFF21899C),
+          fontWeight: FontWeight.w700,
         ),
-        children: const [
-          TextSpan(
-            text: '',
-          ),
-          TextSpan(
-            text: ' ',
-            style: TextStyle(
-              color: Color(0xFF21899C),
-            ),
-          ),
-          /*TextSpan(
-            text: 'Forgot Password',
-            style: TextStyle(
-              color: Color(0xFF21899C),
-              fontWeight: FontWeight.w700,
-            ),
-          ),*/
-        ],
       ),
     );
   }
