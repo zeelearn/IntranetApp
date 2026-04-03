@@ -277,6 +277,12 @@ class GetDetailedPJP implements Comparable<GetDetailedPJP> {
   late String DateTimeIn = '';
   late String DateTimeOut = '';
   late String ActivityTitle = '';
+  late double LatitudeIn = 0.0;
+  late double LongitudeIn = 0.0;
+  late String AddressIn = '';
+  late double LatitudeOut = 0.0;
+  late double LongitudeOut = 0.0;
+  late String AddressOut = '';
   late String Status = '';
   late List<Purpose>? purpose = [];
 
@@ -302,6 +308,12 @@ class GetDetailedPJP implements Comparable<GetDetailedPJP> {
       required this.CheckOutAddress,
       required this.DateTimeOut,
       required this.DateTimeIn,
+      required this.LatitudeIn,
+      required this.LongitudeIn,
+      required this.AddressIn,
+      required this.LatitudeOut,
+      required this.LongitudeOut,
+      required this.AddressOut,
       required this.Status,
       required this.ActivityTitle,
       required this.purpose,
@@ -337,6 +349,12 @@ class GetDetailedPJP implements Comparable<GetDetailedPJP> {
       DateTimeIn = json['DateTimeIn'] ?? 'NA';
       Latitude = double.parse(json['Latitude']?.toString() ?? "0.0");
       Longitude = double.parse(json['Longitude']?.toString() ?? "0.0");
+      LatitudeIn = double.parse(json['LatitudeIn']?.toString() ?? "0.0");
+      LongitudeIn = double.parse(json['LongitudeIn']?.toString() ?? "0.0");
+      AddressIn = json['AddressIn'] ?? 'NA';
+      LatitudeOut = double.parse(json['LatitudeOut']?.toString() ?? "0.0");
+      LongitudeOut = double.parse(json['LongitudeOut']?.toString() ?? "0.0");
+      AddressOut = json['AddressOut'] ?? 'NA';
       ActivityTitle = json['ActivityTitle'] ?? 'NA';
       approvalStatus = json.containsKey('Approval_Status')
           ? json['Approval_Status']
@@ -383,6 +401,12 @@ class GetDetailedPJP implements Comparable<GetDetailedPJP> {
     data['CheckOutAddress'] = CheckOutAddress;
     data['DateTimeIn'] = DateTimeIn;
     data['CheckOutAddress'] = CheckOutAddress;
+    data['LatitudeIn'] = LatitudeIn;
+    data['LongitudeIn'] = LongitudeIn;
+    data['AddressIn'] = AddressIn;
+    data['LatitudeOut'] = LatitudeOut;
+    data['LongitudeOut'] = LongitudeOut;
+    data['AddressOut'] = AddressOut;
     data['ActivityTitle'] = ActivityTitle;
     data['approvalStatus'] = approvalStatus;
     if (purpose != null) {

@@ -5,6 +5,9 @@ import 'package:Intranet/pages/helper/LocalConstant.dart';
 import 'package:Intranet/pages/helper/constants.dart';
 import 'package:Intranet/pages/helper/utils.dart';
 import 'package:Intranet/pages/iface/onResponse.dart';
+import 'package:Intranet/pages/outdoor/apply_outdoor.dart';
+import 'package:Intranet/pages/pjp/add_new_pjp.dart';
+import 'package:Intranet/pages/pjp/cvf/add_cvf.dart';
 import 'package:Intranet/pages/pjp/cvf/cvf_questions.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -58,6 +61,10 @@ class SummaryDashboard extends StatefulWidget {
 
 class _SummaryDashboardState extends State<SummaryDashboard>
     implements onResponse {
+  int employeeId = 0;
+  String employeeCode = '';
+  int businessId = 0;
+
   // ── colors ───────────────────────────────────────────────────────────────
   Color _sidebar = kPrimaryLightColor;
   static const Color _accent = Color(0xFF26C6DA);
@@ -152,11 +159,10 @@ class _SummaryDashboardState extends State<SummaryDashboard>
   Future<void> _fetchDashboardData() async {
     try {
       var hiveBox = await Utility.openBox();
-      int employeeId =
+      employeeId =
           int.parse(hiveBox.get(LocalConstant.KEY_EMPLOYEE_ID) as String);
-      String employeeCode =
-          hiveBox.get(LocalConstant.KEY_EMPLOYEE_CODE) as String;
-      // int businessId = hiveBox.get(LocalConstant.KEY_BUSINESS_ID);
+      employeeCode = hiveBox.get(LocalConstant.KEY_EMPLOYEE_CODE) as String;
+      businessId = hiveBox.get(LocalConstant.KEY_BUSINESS_ID);
 
       final now = DateTime.now();
       final firstDayOfMonth = DateTime(now.year, now.month, 1);
@@ -564,6 +570,23 @@ class _SummaryDashboardState extends State<SummaryDashboard>
               });
             },
           ),
+          if (!_isTeamView) ...[
+            IconButton(
+              icon: const Icon(Icons.add_task),
+              tooltip: 'Add PJP',
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => AddNewPJPScreen(
+                            employeeId: employeeId,
+                            businessId: businessId,
+                            currentDate: DateTime.now(),
+                          )),
+                );
+              },
+            ),
+          ],
           if (_isTeamView)
             IconButton(
               icon: const Icon(Icons.filter_list),
@@ -1314,6 +1337,20 @@ class _SummaryDashboardState extends State<SummaryDashboard>
             ),
           ],
           const Spacer(),
+          if (!_isTeamView) ...[
+            _buildHeaderActionBtn(Icons.add_task, 'Add PJP', () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => AddNewPJPScreen(
+                          employeeId: employeeId,
+                          businessId: businessId,
+                          currentDate: DateTime.now(),
+                        )),
+              );
+            }),
+            const SizedBox(width: 8),
+          ],
           if (desktop && _isTeamView) ...[
             _buildDesktopFilterButton(),
             const SizedBox(width: 12),
@@ -1440,6 +1477,23 @@ class _SummaryDashboardState extends State<SummaryDashboard>
             color: isActive ? activeText : inactiveText,
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildHeaderActionBtn(
+      IconData icon, String label, VoidCallback onTap) {
+    return ElevatedButton.icon(
+      onPressed: onTap,
+      icon: Icon(icon, size: 14, color: Colors.white),
+      label: Text(label,
+          style: GoogleFonts.inter(
+              fontSize: 12, fontWeight: FontWeight.w600, color: Colors.white)),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: _accent,
+        elevation: 0,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
     );
   }
@@ -2660,6 +2714,24 @@ class _PjpInfoCard extends StatelessWidget {
                     ],
                   ),
                 ),
+                if (pjp.isSelfPJP.trim() == '1') ...[
+                  IconButton(
+                    icon: const Icon(Icons.add_location_alt_outlined,
+                        color: _accent, size: 20),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => AddCVFScreen(mPjpModel: pjp),
+                        ),
+                      );
+                    },
+                    tooltip: 'Add CVF',
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                  ),
+                  const SizedBox(width: 8),
+                ],
                 // Status badge
                 Container(
                   padding:
@@ -2837,17 +2909,24 @@ class _VisitTile extends StatelessWidget {
   static const Color _green = Color(0xFF4CAF90);
   static const Color _orange = Color(0xFFFF8A65);
   static const Color _divider = Color(0xFFE8EDF2);
+  static const Color _blue = Color(0xFF2196F3);
 
   Color _statusColor(String s) {
     final lower = s.trim().toLowerCase();
-    if (lower.contains('check in')) return _green;
+    if (lower.contains('check in')) return _blue;
     if (lower.contains('check out')) return _orange;
-    if (lower.contains('complete')) return const Color(0xFF26C6DA);
+    if (lower.contains('completed')) return _green;
     return _textSecondary;
   }
 
   @override
   Widget build(BuildContext context) {
+    final bool isCompleted = visit.Status.trim().toLowerCase() == 'completed';
+    final bool hasCheckIn =
+        visit.DateTimeIn.isNotEmpty && visit.DateTimeIn != 'NA';
+    final bool hasCheckOut =
+        visit.DateTimeOut.isNotEmpty && visit.DateTimeOut != 'NA';
+
     return InkWell(
       onTap: () async {
         var hiveBox = await Utility.openBox();
@@ -2867,18 +2946,36 @@ class _VisitTile extends StatelessWidget {
         );
       },
       child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: const Color(0xFFF8F9FC),
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: _divider),
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: _divider.withValues(alpha: 0.8)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.03),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Planned Section
             Row(
               children: [
+                Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: _blue.withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.event_note_rounded,
+                      size: 14, color: _blue),
+                ),
+                const SizedBox(width: 10),
                 if (visit.franchiseeName.trim().isNotEmpty &&
                     visit.franchiseeName.trim() != 'NA')
                   Expanded(
@@ -2911,47 +3008,108 @@ class _VisitTile extends StatelessWidget {
                   ),
               ],
             ),
-            if (visit.franchiseeCode.isNotEmpty &&
-                visit.franchiseeCode != 'NA') ...[
-              const SizedBox(height: 2),
-              Text(
-                'Code: ${visit.franchiseeCode}',
-                style: GoogleFonts.inter(fontSize: 11, color: _textSecondary),
-              ),
-            ],
-            if (visit.ActivityTitle.isNotEmpty &&
-                visit.ActivityTitle != 'NA') ...[
-              const SizedBox(height: 2),
-              Text(
-                visit.ActivityTitle,
-                style: GoogleFonts.inter(fontSize: 11, color: _textSecondary),
-              ),
-            ],
-            if (visit.visitDate.trim().isNotEmpty &&
-                visit.visitDate.trim() != 'NA') ...[
-              const SizedBox(height: 4),
-              Row(
+
+            Padding(
+              padding: const EdgeInsets.only(left: 36, top: 2),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Icon(Icons.access_time_rounded,
-                      size: 12, color: Color(0xFF6B7280)),
-                  const SizedBox(width: 4),
-                  Text(
-                    '${visit.visitDate}  ${visit.visitTime}',
-                    style:
-                        GoogleFonts.inter(fontSize: 11, color: _textSecondary),
+                  if (visit.franchiseeCode.isNotEmpty &&
+                      visit.franchiseeCode != 'NA')
+                    Text(
+                      'Code: ${visit.franchiseeCode}',
+                      style: GoogleFonts.inter(
+                          fontSize: 11,
+                          color: _textSecondary,
+                          fontWeight: FontWeight.w500),
+                    ),
+                  if (visit.ActivityTitle.isNotEmpty &&
+                      visit.ActivityTitle != 'NA')
+                    Text(
+                      visit.ActivityTitle,
+                      style: GoogleFonts.inter(
+                          fontSize: 11, color: _textSecondary),
+                    ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      const Icon(Icons.access_time_rounded,
+                          size: 11, color: _textSecondary),
+                      const SizedBox(width: 4),
+                      Text(
+                        'Planned: ${visit.visitDate} at ${visit.visitTime}',
+                        style: GoogleFonts.inter(
+                            fontSize: 11,
+                            color: _textSecondary,
+                            fontWeight: FontWeight.w500),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+
+            if (isCompleted || hasCheckIn || hasCheckOut) ...[
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 8),
+                child: Divider(height: 1, color: _divider),
+              ),
+              // Actual Journey Section (Timeline)
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Column(
+                    children: [
+                      _buildStepIndicator(
+                          hasCheckIn, isCompleted ? _green : _blue),
+                      Container(width: 2, height: 30, color: _divider),
+                      _buildStepIndicator(hasCheckOut,
+                          hasCheckOut ? _orange : Colors.grey[300]!),
+                    ],
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Check-In
+                        _buildActualPoint(
+                          title: 'Check-in',
+                          time: visit.DateTimeIn,
+                          address: visit.AddressIn.isNotEmpty &&
+                                  visit.AddressIn != 'NA'
+                              ? visit.AddressIn
+                              : visit.CheckInAddress,
+                          color: hasCheckIn ? _blue : _textSecondary,
+                        ),
+                        const SizedBox(height: 12),
+                        // Check-Out
+                        _buildActualPoint(
+                          title: 'Check-out',
+                          time: visit.DateTimeOut,
+                          address: visit.AddressOut.isNotEmpty &&
+                                  visit.AddressOut != 'NA'
+                              ? visit.AddressOut
+                              : visit.CheckOutAddress,
+                          color: hasCheckOut ? _orange : _textSecondary,
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
             ],
-            if (visit.Address.trim().isNotEmpty &&
+
+            if (!isCompleted &&
+                visit.Address.trim().isNotEmpty &&
                 visit.Address.trim() != 'NA') ...[
-              const SizedBox(height: 4),
+              const SizedBox(height: 10),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Icon(Icons.location_on_rounded,
                       size: 12, color: Color(0xFF26C6DA)),
-                  const SizedBox(width: 4),
+                  const SizedBox(width: 6),
                   Expanded(
                     child: Text(
                       visit.Address,
@@ -2967,6 +3125,73 @@ class _VisitTile extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildStepIndicator(bool active, Color color) {
+    return Container(
+      width: 10,
+      height: 10,
+      decoration: BoxDecoration(
+        color: active ? color : Colors.white,
+        shape: BoxShape.circle,
+        border: Border.all(color: active ? color : Colors.grey[300]!, width: 2),
+      ),
+    );
+  }
+
+  Widget _buildActualPoint(
+      {required String title,
+      required String time,
+      required String address,
+      required Color color}) {
+    final bool hasData = time.isNotEmpty && time != 'NA';
+    String formattedTime = '';
+    if (hasData) {
+      try {
+        formattedTime = DateFormat('HH:mm').format(DateTime.parse(time));
+      } catch (e) {
+        formattedTime = time;
+      }
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Text(
+              title,
+              style: GoogleFonts.inter(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  color: hasData ? color : _textSecondary),
+            ),
+            if (hasData) ...[
+              const SizedBox(width: 6),
+              Text(
+                formattedTime,
+                style: GoogleFonts.inter(
+                    fontSize: 11, fontWeight: FontWeight.w500, color: color),
+              ),
+            ],
+          ],
+        ),
+        if (hasData && address.isNotEmpty && address != 'NA')
+          Text(
+            address,
+            style: GoogleFonts.inter(fontSize: 10, color: _textSecondary),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          )
+        else if (!hasData)
+          Text(
+            'Waiting...',
+            style: GoogleFonts.inter(
+                fontSize: 10,
+                color: _textSecondary.withValues(alpha: 0.5),
+                fontStyle: FontStyle.italic),
+          ),
+      ],
     );
   }
 }

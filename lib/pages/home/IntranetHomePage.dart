@@ -493,7 +493,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
     if (kDebugMode) {
       // Force disable Crashlytics collection while doing every day development.
       // Temporarily toggle this to true if you want to test crash reporting in your app.
-      await FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(false);
+      // await FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(false);
     } else {
       // Handle Crashlytics enabled status when not in Debug,
       FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(true);
