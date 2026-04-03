@@ -123,6 +123,8 @@ class APIService {
       var body = jsonEncode({
         'userName': requestModel.userName,
         'password': requestModel.password,
+        'token': requestModel.token,
+        'source': requestModel.source,
         'AppType': kIsWeb
             ? 'Web'
             : Platform.isAndroid
@@ -160,6 +162,36 @@ class APIService {
       }
     } catch (e) {
       e.toString();
+    }
+  }
+
+  Future<dynamic> magicLogin(String token) async {
+    try {
+      var body = jsonEncode({
+        'token': token,
+        'AppType': kIsWeb
+            ? 'Web'
+            : Platform.isAndroid
+                ? 'Android'
+                : Platform.isIOS
+                    ? 'IOS'
+                    : 'unknown'
+      });
+      debugPrint('URL ${url + LocalStrings.GET_MAGIC_LOGIN}');
+      final response = await http.post(
+        Uri.parse(url + LocalStrings.GET_MAGIC_LOGIN),
+        headers: commonHeaders,
+        body: body,
+      );
+      print('MagicLogin Response ${response.body}');
+      if (response.statusCode == 200 || response.statusCode == 400) {
+        return LoginResponseModel.fromJson(json.decode(response.body));
+      } else {
+        return null;
+      }
+    } catch (e) {
+      debugPrint('MagicLogin Error: ${e.toString()}');
+      return null;
     }
   }
 

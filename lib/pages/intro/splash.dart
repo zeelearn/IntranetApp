@@ -9,6 +9,8 @@ import '../helper/LocalConstant.dart';
 import '../helper/utils.dart';
 import '../home/IntranetHomePage.dart';
 import 'intro.dart';
+import 'dart:html' as html;
+import '../auth/magic_link_handler.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({this.receivedAction, Key? key}) : super(key: key);
@@ -33,6 +35,15 @@ class _SplashScreenState extends State<SplashScreen> {
   void navigate() async {
     debugPrint("-------init---=-=-=-=-=-=-");
     var box = await Utility.openBox();
+
+    if (kIsWeb) {
+      final uriStr = html.window.location.href;
+      final uri = Uri.parse(uriStr);
+      if (uri.queryParameters.containsKey('token')) {
+        MagicLinkHandler.handle(uri, context);
+        return; // skip normal session check
+      }
+    }
 
     String displayName = '';
     String userName = '';

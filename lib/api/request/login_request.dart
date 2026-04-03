@@ -1,16 +1,17 @@
 class LoginRequestModel {
-  String userName;
-  String password;
+  String? userName;
+  String? password;
+  String? token;
+  String? source;
 
-  LoginRequestModel(
-      {required this.userName,
-        required this.password,
-      });
+  LoginRequestModel({this.userName, this.password, this.token,this.source});
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> map = {
-      'userName': userName.trim(),
-      'password': password.trim(),
+      'userName': userName,
+      'password': password,
+      'token': token,
+      'source': source,
     };
 
     return map;
