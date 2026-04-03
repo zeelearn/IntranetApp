@@ -57,6 +57,8 @@ import 'api/response/cvf/update_status_response.dart';
 import 'pages/pjp/cvf/getVisitplannerCvfcubit/cubit/getvisitplannercvf_cubit.dart';
 import 'pages/utils/util.dart';
 import 'package:pdfrx/pdfrx.dart';
+import 'package:app_links/app_links.dart';
+import 'pages/auth/magic_link_handler.dart';
 
 part 'main.g.dart';
 
@@ -792,6 +794,34 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   // This widget is the root of your application.
+  @override
+  void initState() {
+    super.initState();
+    _initDeepLinks();
+  }
+
+  void _initDeepLinks() {
+    final appLinks = AppLinks();
+
+    // App was closed — opened by clicking the link
+    appLinks.getInitialLink().then((uri) {
+      if (uri != null) {
+        Future.delayed(Duration(milliseconds: 500), () {
+          if (MyApp.navigatorKey.currentContext != null) {
+            MagicLinkHandler.handle(uri, MyApp.navigatorKey.currentContext!);
+          }
+        });
+      }
+    });
+
+    // App was already running — link clicked
+    appLinks.uriLinkStream.listen((uri) {
+      if (MyApp.navigatorKey.currentContext != null) {
+        MagicLinkHandler.handle(uri, MyApp.navigatorKey.currentContext!);
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
