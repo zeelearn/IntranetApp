@@ -84,7 +84,7 @@ class IntranetServiceHandler {
     onResponse.onStart();
     print('PJP Report Request is - ${request.getJson().toString()}');
     APIService apiService = APIService();
-    apiService.getPJPReport(request).then((value) {
+    apiService.getPJPMYTEAMReport(request).then((value) {
       print('PJP Report is - ${value.toString()}');
       if (value != null) {
         if (value == null || value.responseData == null) {

@@ -992,6 +992,32 @@ class APIService {
     }
   }
 
+  Future<dynamic> getPJPMYTEAMReport(PJPReportRequest requestModel) async {
+    try {
+      //debugPrint('in getPJP list ');
+      debugPrint(
+          Uri.parse(url + LocalStrings.GET_PJP_MYTEAM_REPORT).toString());
+      final response = await http.post(
+          Uri.parse(url + LocalStrings.GET_PJP_MYTEAM_REPORT),
+          headers: commonHeaders,
+          body: requestModel.getJson());
+      print(response.body);
+      print(response.statusCode);
+      if (response.statusCode == 200 || response.statusCode == 400) {
+        String data = response.body.replaceAll('null', '"NA"');
+        print(data);
+        return PjpListResponse.fromJson(
+          json.decode(data),
+        );
+      } else {
+        return null;
+      }
+    } catch (e) {
+      debugPrint(e.toString());
+      e.toString();
+    }
+  }
+
   Future<dynamic> getEmployeeListPJP(EmployeeListRequest requestModel) async {
     try {
       debugPrint(Uri.parse(url + LocalStrings.GET_PJP_EMPLOYEELIST).toString());

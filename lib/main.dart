@@ -848,14 +848,6 @@ class _MyAppState extends State<MyApp> {
           ),
         )),
         fontFamily: 'Roboto',
-        /*colorScheme: ColorScheme.fromSeed(
-          seedColor: kPrimaryLightColor,
-          background: LightColors.kLightGray1,
-          brightness: Brightness.light,
-        ),
-        fontFamily: 'Roboto',
-        primaryColorDark: kPrimaryLightColor,
-        primaryColor: kPrimaryLightColor,*/
         appBarTheme: const AppBarTheme(
           // <-- SEE HERE
           color: kPrimaryLightColor,
@@ -911,18 +903,6 @@ class _MyAppState extends State<MyApp> {
           buttonColor: kPrimaryLightColor,
           textTheme: ButtonTextTheme.primary,
         ),
-        /*colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.white,
-          background: LightColors.kLightGray1,
-          primaryContainer: Colors.white,
-          secondary: Colors.white,
-          secondaryContainer: Colors.white,
-          primary: Colors.white,
-          brightness: Brightness.light,
-          onSurface: Colors.black87, // text color
-          surface: Colors.white
-
-        ),*/
       ),
       home: /*  SummaryDashboard() */ SplashScreen(
         receivedAction: widget.receivedAction,

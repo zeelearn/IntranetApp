@@ -84,11 +84,14 @@ class _SummaryDashboardState extends State<SummaryDashboard>
   // API Data state
   bool _isLoading = true;
   List<PJPInfo> _rawPjpData = [];
+  List<MYTEAM> _myTeamData = [];
   bool _isTeamView = true;
   List<PJPInfo> _pjpData = [];
   List<PJPInfo> _filteredPjpData = [];
   Set<String> _allTeamMembers = {};
   Set<String> _selectedTeamMembers = {};
+  Set<String> _allZones = {};
+  Set<String> _selectedZones = {};
   final List<_Event> _events = [];
 
   // Search state
@@ -100,6 +103,7 @@ class _SummaryDashboardState extends State<SummaryDashboard>
 
   // KPI state
   int _totalEmployees = 0;
+  int _totalTeamSize = 0;
   int _totalVisits = 0;
   int _pendingApprovals = 0; // This might need another API
   int _approvedPJP = 0;
@@ -187,6 +191,7 @@ class _SummaryDashboardState extends State<SummaryDashboard>
       if (mounted) {
         setState(() {
           _rawPjpData = value.responseData;
+          _myTeamData = value.myTeamData;
           _updateViewMode();
           _isLoading = false;
         });
@@ -205,7 +210,27 @@ class _SummaryDashboardState extends State<SummaryDashboard>
 
     // Populate all team members and select all by default
     _allTeamMembers = _pjpData.map((pjp) => pjp.displayName).toSet();
+    if (_isTeamView) {
+      _allTeamMembers.addAll(
+        _myTeamData
+            .map((t) => t.displayName?.trim() ?? '')
+            .where((name) => name.isNotEmpty),
+      );
+    }
     _selectedTeamMembers = Set.from(_allTeamMembers);
+
+    // Populate all zones and select all by default
+    _allZones = _pjpData
+        .map((pjp) =>
+            (pjp.zone?.trim() ?? 'N/A').isEmpty ? 'N/A' : pjp.zone!.trim())
+        .toSet();
+    if (_isTeamView) {
+      _allZones.addAll(
+        _myTeamData.map(
+            (t) => (t.zone?.trim() ?? 'N/A').isEmpty ? 'N/A' : t.zone!.trim()),
+      );
+    }
+    _selectedZones = Set.from(_allZones);
 
     // Assign colors once
     _assignUserColors();
@@ -237,11 +262,16 @@ class _SummaryDashboardState extends State<SummaryDashboard>
   void _processFilteredData() {
     _filteredPjpData = _pjpData.where((pjp) {
       final bool matchesTeam = _selectedTeamMembers.contains(pjp.displayName);
+      final String zoneKey =
+          (pjp.zone?.trim() ?? 'N/A').isEmpty ? 'N/A' : pjp.zone!.trim();
+      final bool matchesZone = _selectedZones.contains(zoneKey);
+
       final bool matchesSearch = _searchQuery.isEmpty ||
           pjp.displayName.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-          pjp.PJP_Id.toString().contains(_searchQuery) || pjp.remarks.toString().contains(_searchQuery);
+          pjp.PJP_Id.toString().contains(_searchQuery) ||
+          pjp.remarks.toString().contains(_searchQuery);
 
-      return matchesTeam && matchesSearch;
+      return matchesTeam && matchesZone && matchesSearch;
     }).toList();
 
     int totalVisits = 0;
@@ -291,6 +321,7 @@ class _SummaryDashboardState extends State<SummaryDashboard>
     _rejectedPJP = rejectedPjps;
     _totalPJP = _filteredPjpData.length;
     _totalEmployees = teamMembersInFilteredData.length;
+    _totalTeamSize = _selectedTeamMembers.length;
     _events.clear();
 
     // ── Calculate Layout Slots (Lanes) ──────────────────────────────────────
@@ -385,7 +416,8 @@ class _SummaryDashboardState extends State<SummaryDashboard>
       foregroundColor: Colors.white,
       elevation: 0,
       titleSpacing: _isMobileSearchActive ? 0 : 16,
-      title: _isMobileSearchActive ? RawAutocomplete<PJPInfo>(
+      title: _isMobileSearchActive
+          ? RawAutocomplete<PJPInfo>(
               textEditingController: _searchController,
               focusNode: _mobileSearchFocusNode,
               optionsBuilder: (TextEditingValue textEditingValue) {
@@ -444,8 +476,8 @@ class _SummaryDashboardState extends State<SummaryDashboard>
                   ),
                 );
               },
-              fieldViewBuilder: (context, textEditingController,
-                  focusNode, onFieldSubmitted) {
+              fieldViewBuilder: (context, textEditingController, focusNode,
+                  onFieldSubmitted) {
                 return Container(
                   height: 40,
                   margin: const EdgeInsets.only(right: 8),
@@ -460,10 +492,11 @@ class _SummaryDashboardState extends State<SummaryDashboard>
                     textAlignVertical: TextAlignVertical.center,
                     style: GoogleFonts.inter(color: Colors.white, fontSize: 14),
                     cursorColor: _accent,
-                    decoration: InputDecoration(fillColor: Colors.white54.withOpacity(0.15),
+                    decoration: InputDecoration(
+                      fillColor: Colors.white54.withOpacity(0.15),
                       hintText: 'Search...',
-                      hintStyle:
-                          GoogleFonts.inter(color: Colors.white54, fontSize: 14),
+                      hintStyle: GoogleFonts.inter(
+                          color: Colors.white54, fontSize: 14),
                       border: InputBorder.none,
                       prefixIcon: const Icon(Icons.search,
                           color: Colors.white54, size: 20),
@@ -812,6 +845,7 @@ class _SummaryDashboardState extends State<SummaryDashboard>
         return StatefulBuilder(
           builder: (context, setSheetState) {
             final sortedMembers = _allTeamMembers.toList()..sort();
+            final sortedZones = _allZones.toList()..sort();
             return Container(
               height: MediaQuery.of(context).size.height * 0.7,
               padding: const EdgeInsets.all(16),
@@ -879,6 +913,58 @@ class _SummaryDashboardState extends State<SummaryDashboard>
                                 _selectedTeamMembers.remove(employeeName);
                               }
                             });
+                            setState(() {
+                              _processFilteredData();
+                            });
+                          },
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Filter Zones',
+                    style: GoogleFonts.inter(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700),
+                  ),
+                  const Divider(color: Color(0xFF2E2E42)),
+                  CheckboxListTile(
+                    title: Text('Select All Zones',
+                        style: GoogleFonts.inter(color: Colors.white)),
+                    value: _selectedZones.length == _allZones.length &&
+                        _allZones.isNotEmpty,
+                    activeColor: _accent,
+                    checkColor: Colors.black,
+                    onChanged: (val) {
+                      setSheetState(() {
+                        if (val == true) {
+                          _selectedZones = Set.from(_allZones);
+                        } else {
+                          _selectedZones.clear();
+                        }
+                      });
+                      setState(() {
+                        _processFilteredData();
+                      });
+                    },
+                  ),
+                  Expanded(
+                    child: ListView.builder(
+                      itemCount: sortedZones.length,
+                      itemBuilder: (context, index) {
+                        final zone = sortedZones[index];
+                        return CheckboxListTile(
+                          title: Text(zone,
+                              style: GoogleFonts.inter(color: Colors.white)),
+                          value: _selectedZones.contains(zone),
+                          activeColor: _accent,
+                          checkColor: Colors.black,
+                          onChanged: (val) {
+                            setSheetState(() => val == true
+                                ? _selectedZones.add(zone)
+                                : _selectedZones.remove(zone));
                             setState(() {
                               _processFilteredData();
                             });
@@ -1151,8 +1237,8 @@ class _SummaryDashboardState extends State<SummaryDashboard>
                     child: Material(
                       elevation: 4.0,
                       child: ConstrainedBox(
-                        constraints: const BoxConstraints(
-                            maxHeight: 200, maxWidth: 350),
+                        constraints:
+                            const BoxConstraints(maxHeight: 200, maxWidth: 350),
                         child: ListView.builder(
                           padding: EdgeInsets.zero,
                           shrinkWrap: true,
@@ -1177,8 +1263,8 @@ class _SummaryDashboardState extends State<SummaryDashboard>
                     ),
                   );
                 },
-                fieldViewBuilder: (context, textEditingController,
-                    focusNode, onFieldSubmitted) {
+                fieldViewBuilder: (context, textEditingController, focusNode,
+                    onFieldSubmitted) {
                   return SizedBox(
                     height: 34,
                     child: TextField(
@@ -1488,7 +1574,71 @@ class _SummaryDashboardState extends State<SummaryDashboard>
                     },
                   ),
                 ),
-                // Note: You can add the Zone filter section here in the future
+                const SizedBox(height: 16),
+                Text('Zones',
+                    style: GoogleFonts.inter(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: _textPrimary)),
+                const SizedBox(height: 12),
+                Expanded(
+                  child: StatefulBuilder(
+                    builder: (context, setDialogState) {
+                      final sortedZones = _allZones.toList()..sort();
+                      return ListView(
+                        children: [
+                          CheckboxListTile(
+                            title: Text('Select All Zones',
+                                style: GoogleFonts.inter(
+                                    fontSize: 13, color: _textPrimary)),
+                            value: _selectedZones.length == _allZones.length &&
+                                _allZones.isNotEmpty,
+                            onChanged: (val) {
+                              setDialogState(() {
+                                if (val == true) {
+                                  _selectedZones = Set.from(_allZones);
+                                } else {
+                                  _selectedZones.clear();
+                                }
+                              });
+                              setState(() {
+                                _processFilteredData();
+                              });
+                            },
+                            contentPadding: EdgeInsets.zero,
+                            activeColor: _accent,
+                            dense: true,
+                            controlAffinity: ListTileControlAffinity.leading,
+                          ),
+                          ...sortedZones.map((zone) {
+                            return CheckboxListTile(
+                              title: Text(zone,
+                                  style: GoogleFonts.inter(
+                                      fontSize: 13, color: _textPrimary)),
+                              value: _selectedZones.contains(zone),
+                              onChanged: (val) {
+                                setDialogState(() {
+                                  if (val == true) {
+                                    _selectedZones.add(zone);
+                                  } else {
+                                    _selectedZones.remove(zone);
+                                  }
+                                });
+                                setState(() {
+                                  _processFilteredData();
+                                });
+                              },
+                              contentPadding: EdgeInsets.zero,
+                              activeColor: _accent,
+                              dense: true,
+                              controlAffinity: ListTileControlAffinity.leading,
+                            );
+                          }),
+                        ],
+                      );
+                    },
+                  ),
+                ),
               ],
             ),
           ),
@@ -1553,8 +1703,16 @@ class _SummaryDashboardState extends State<SummaryDashboard>
 
     final cards = [
       if (_isTeamView)
-        _KPICard('Employees', _totalEmployees.toString(),
-            Icons.people_alt_rounded, _accent, '', true),
+        _KPICard(
+          'Employees',
+          '$_totalEmployees / $_totalTeamSize',
+          Icons.people_alt_rounded,
+          _accent,
+          _totalTeamSize > 0
+              ? '${((_totalEmployees / _totalTeamSize) * 100).toStringAsFixed(0)}% with PJP'
+              : '',
+          true,
+        ),
       _KPICard('Total PJP', _totalPJP.toString(), Icons.assignment_rounded,
           Colors.blueAccent, '', true),
       _KPICard('CVF', _totalVisits.toString(), Icons.check_circle_rounded,
@@ -2543,13 +2701,15 @@ class _PjpInfoCard extends StatelessWidget {
                 _infoRow(
                     Icons.calendar_today_rounded,
                     'From Date',
-                    DateFormat('dd-MM-yyyy').format(Utility.convertDate(pjp.fromDate)),
+                    DateFormat('dd-MM-yyyy')
+                        .format(Utility.convertDate(pjp.fromDate)),
                     _accent),
                 _dividerLine(),
                 _infoRow(
                     Icons.event_rounded,
                     'To Date',
-                    DateFormat('dd-MM-yyyy').format(Utility.convertDate(pjp.toDate)),
+                    DateFormat('dd-MM-yyyy')
+                        .format(Utility.convertDate(pjp.toDate)),
                     _accent),
                 // _dividerLine(),
                 /* _infoRow(
