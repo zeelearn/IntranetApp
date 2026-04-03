@@ -123,6 +123,8 @@ class APIService {
       var body = jsonEncode({
         'userName': requestModel.userName,
         'password': requestModel.password,
+        'token': requestModel.token,
+        'source': requestModel.source,
         'AppType': kIsWeb
             ? 'Web'
             : Platform.isAndroid

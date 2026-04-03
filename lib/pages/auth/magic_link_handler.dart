@@ -10,22 +10,28 @@ import '../helper/utils.dart';
 import '../home/IntranetHomePage.dart';
 
 class MagicLinkHandler {
+  static String? _lastHandledToken;
+
   static Future<void> handle(Uri uri, BuildContext context) async {
     final token = uri.queryParameters['t'];
+    final source = uri.queryParameters['s'];
 
     if (token == null || token.isEmpty) {
       return; // Not a magic link
     }
 
+    if (token == _lastHandledToken) {
+      return; // Prevent duplicate execution
+    }
+    _lastHandledToken = token;
+
     debugPrint('Magic link detected with token: $token');
     Utility.showLoaderDialog(context);
 
     try {
-      List<String> credentials = token.split(':');
-      final value = await APIService().login(LoginRequestModel(
-        userName: decode(credentials[0]),
-        password: decode(credentials[1]),
-      ));
+     
+      final value = await APIService()
+          .login(LoginRequestModel(token: token, source: source));
       // final value = await APIService().magicLogin(token);
 
       if (value != null &&
