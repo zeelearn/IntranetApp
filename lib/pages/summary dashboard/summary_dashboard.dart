@@ -9,6 +9,7 @@ import 'package:Intranet/pages/outdoor/apply_outdoor.dart';
 import 'package:Intranet/pages/pjp/add_new_pjp.dart';
 import 'package:Intranet/pages/pjp/cvf/add_cvf.dart';
 import 'package:Intranet/pages/pjp/cvf/cvf_questions.dart';
+import 'package:Intranet/pages/pjp/models/PjpModel.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:hive/hive.dart';
@@ -63,6 +64,9 @@ class _SummaryDashboardState extends State<SummaryDashboard>
     implements onResponse {
   int employeeId = 0;
   String employeeCode = '';
+  String employeeName = '';
+  String managerName = '';
+  String zone = '';
   int businessId = 0;
 
   // ── colors ───────────────────────────────────────────────────────────────
@@ -162,6 +166,11 @@ class _SummaryDashboardState extends State<SummaryDashboard>
       employeeId =
           int.parse(hiveBox.get(LocalConstant.KEY_EMPLOYEE_ID) as String);
       employeeCode = hiveBox.get(LocalConstant.KEY_EMPLOYEE_CODE) as String;
+      managerName = hiveBox.get(LocalConstant.KEY_MANAGER_NAME) as String;
+      employeeName = hiveBox.get(LocalConstant.KEY_FIRST_NAME) +
+          ' ' +
+          hiveBox.get(LocalConstant.KEY_LAST_NAME);
+      zone = hiveBox.get(LocalConstant.KEY_ZONE) as String? ?? 'N/A';
       businessId = hiveBox.get(LocalConstant.KEY_BUSINESS_ID);
 
       final now = DateTime.now();
@@ -574,8 +583,8 @@ class _SummaryDashboardState extends State<SummaryDashboard>
             IconButton(
               icon: const Icon(Icons.add_task),
               tooltip: 'Add PJP',
-              onPressed: () {
-                Navigator.push(
+              onPressed: () async {
+                final result = await Navigator.push(
                   context,
                   MaterialPageRoute(
                       builder: (context) => AddNewPJPScreen(
@@ -584,6 +593,22 @@ class _SummaryDashboardState extends State<SummaryDashboard>
                             currentDate: DateTime.now(),
                           )),
                 );
+                print('Add PJP result: $result');
+                if (result != null && result is PJPModel) {
+                  setState(() {
+                    PJPInfo pjpInfo = PJPInfo(
+                        PJP_Id: result.pjpId.toString(),
+                        displayName: managerName,
+                        fromDate: result.fromDate.toString(),
+                        toDate: result.toDate.toString(),
+                        remarks: result.remark,
+                        isSelfPJP: '1',
+                        Status: 'Check In',
+                        ApprovalStatus: 'Pending');
+                    _rawPjpData.add(pjpInfo);
+                    _updateViewMode();
+                  });
+                }
               },
             ),
           ],
@@ -728,20 +753,25 @@ class _SummaryDashboardState extends State<SummaryDashboard>
         eventLoader: _getEventsForDay,
         calendarFormat: CalendarFormat.month,
         availableCalendarFormats: const {CalendarFormat.month: 'Month'},
-        onDaySelected: (selected, focused) {
+        onDaySelected: (selected, focused) async {
           setState(() {
             _selectedDay = selected;
             _focusedDay = focused;
           });
           final events = _getEventsForDay(selected);
-          if (events.isNotEmpty) {
-            Navigator.push(
+          if (events.isNotEmpty && mounted) {
+            final result = await Navigator.push(
               context,
               MaterialPageRoute(
                 builder: (context) =>
                     _DayEventsScreen(day: selected, events: events),
               ),
             );
+            if (result == true) {
+              setState(() {
+                _processFilteredData();
+              });
+            }
           }
         },
         onPageChanged: (focused) => setState(() => _focusedDay = focused),
@@ -1338,8 +1368,8 @@ class _SummaryDashboardState extends State<SummaryDashboard>
           ],
           const Spacer(),
           if (!_isTeamView) ...[
-            _buildHeaderActionBtn(Icons.add_task, 'Add PJP', () {
-              Navigator.push(
+            _buildHeaderActionBtn(Icons.add_task, 'Add PJP', () async {
+              final result = await Navigator.push(
                 context,
                 MaterialPageRoute(
                     builder: (context) => AddNewPJPScreen(
@@ -1348,6 +1378,24 @@ class _SummaryDashboardState extends State<SummaryDashboard>
                           currentDate: DateTime.now(),
                         )),
               );
+              print('Add PJP result: $result');
+              if (result != null && result is PJPModel) {
+                setState(() {
+                  PJPInfo pjpInfo = PJPInfo(
+                      PJP_Id: result.pjpId.toString(),
+                      displayName: employeeName,
+                      fromDate: result.fromDate.toString(),
+                      toDate: result.toDate.toString(),
+                      remarks: result.remark,
+                      isSelfPJP: '1',
+                      Status: 'Check In',
+                      zone: zone,
+                      managerName: managerName,
+                      ApprovalStatus: 'Pending');
+                  _rawPjpData.add(pjpInfo);
+                  _updateViewMode();
+                });
+              }
             }),
             const SizedBox(width: 8),
           ],
@@ -1934,20 +1982,25 @@ class _SummaryDashboardState extends State<SummaryDashboard>
             CalendarFormat.month: 'Month',
             CalendarFormat.week: 'Week',
           },
-          onDaySelected: (selected, focused) {
+          onDaySelected: (selected, focused) async {
             setState(() {
               _selectedDay = selected;
               _focusedDay = focused;
             });
             final events = _getEventsForDay(selected);
-            if (events.isNotEmpty) {
-              Navigator.push(
+            if (events.isNotEmpty && mounted) {
+              final result = await Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (context) =>
                       _DayEventsScreen(day: selected, events: events),
                 ),
               );
+              if (result == true) {
+                setState(() {
+                  _processFilteredData();
+                });
+              }
             }
           },
           onPageChanged: (focused) => setState(() => _focusedDay = focused),
@@ -2224,13 +2277,18 @@ class _SummaryDashboardState extends State<SummaryDashboard>
           });
           final events = _getEventsForDay(selected);
           if (events.isNotEmpty && mounted) {
-            await Navigator.push(
+            final result = await Navigator.push(
               context,
               MaterialPageRoute(
                 builder: (context) =>
                     _DayEventsScreen(day: selected, events: events),
               ),
             );
+            if (result == true) {
+              setState(() {
+                _processFilteredData();
+              });
+            }
           }
         },
         onPageChanged: (focused) => setState(() => _focusedDay = focused),
@@ -2616,6 +2674,7 @@ class _DayEventsScreen extends StatelessWidget {
                   return _PjpInfoCard(
                     pjp: pjp,
                     color: events[index].color,
+                    onUpdated: () => Navigator.pop(context, true),
                   );
                 },
               ),
@@ -2628,8 +2687,9 @@ class _DayEventsScreen extends StatelessWidget {
 class _PjpInfoCard extends StatelessWidget {
   final PJPInfo pjp;
   final Color color;
+  final VoidCallback? onUpdated;
 
-  const _PjpInfoCard({required this.pjp, required this.color});
+  const _PjpInfoCard({required this.pjp, required this.color, this.onUpdated});
 
   static const Color _textPrimary = Color(0xFF1A1D2E);
   static const Color _textSecondary = Color(0xFF6B7280);
@@ -2714,17 +2774,21 @@ class _PjpInfoCard extends StatelessWidget {
                     ],
                   ),
                 ),
-                if (pjp.isSelfPJP.trim() == '1') ...[
+                if (pjp.isSelfPJP.trim() == '1' &&
+                    pjp.ApprovalStatus.toLowerCase() == 'approved') ...[
                   IconButton(
                     icon: const Icon(Icons.add_location_alt_outlined,
                         color: _accent, size: 20),
-                    onPressed: () {
-                      Navigator.push(
+                    onPressed: () async {
+                      final result = await Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder: (context) => AddCVFScreen(mPjpModel: pjp),
                         ),
                       );
+                      if (result == true && onUpdated != null) {
+                        onUpdated!();
+                      }
                     },
                     tooltip: 'Add CVF',
                     padding: EdgeInsets.zero,
@@ -3030,6 +3094,11 @@ class _VisitTile extends StatelessWidget {
                       style: GoogleFonts.inter(
                           fontSize: 11, color: _textSecondary),
                     ),
+                  const SizedBox(height: 4),
+                  if (visit.Status == 'NA')
+                    Text(visit.purpose?.first.categoryName ?? '',
+                        style: GoogleFonts.inter(
+                            fontSize: 11, color: _textSecondary)),
                   const SizedBox(height: 4),
                   Row(
                     children: [

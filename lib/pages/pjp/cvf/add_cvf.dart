@@ -7,6 +7,7 @@ import 'package:Intranet/pages/pjp/cvf/getVisitplannerCvfcubit/cubit/getvisitpla
 import 'package:Intranet/pages/utils/toastmsg.dart';
 import 'package:device_calendar/device_calendar.dart';
 import 'package:dropdown_search/dropdown_search.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -831,17 +832,25 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
   addNewCVF() async {
     if (!await LocationHelper.isLocationPermission(context)) {
       print('in if location status');
-      LocationData deviceLocation = await LocationHelper.getLocation(context);
+      LocationData? deviceLocation = await LocationHelper.getLocation(context);
     } else if (await validate()) {
       if (!await Utility.isInternet()) {
         Utility.noInternetConnection(context);
       } else {
-        Utility.showLoaderDialog(context);
         print('categoty');
-        LocationData deviceLocation = await LocationHelper.getLocation(context);
+        Utility.showLoaderDialog(context);
+        LocationData? deviceLocation =
+            await LocationHelper.getLocation(context);
+        if (deviceLocation == null) {
+          Navigator.of(context).pop();
+          // Utility.showMessages(
+          //     context, 'Unable to fetch location, Please try again');
+          return;
+        }
         print('location $deviceLocation');
         latitude = deviceLocation.latitude!;
         longitude = deviceLocation.longitude!;
+
         /*if (await Permission.location.request().isGranted) {
           Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.medium);
           latitude=position.latitude;
@@ -854,6 +863,7 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
             DocXml: xml,
             UserId: employeeId);
         debugPrint(request.toJson().toString());
+
         APIService apiService = APIService();
         apiService.saveCVF(request).then((value) async {
           print(value);
@@ -864,7 +874,49 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
             } else if (value is NewCVFResponse) {
               NewCVFResponse response = value;
               debugPrint(response.toString());
-              //mPjpModel.pjpId=response.responseData;
+
+              // Construct the detailed visit object locally to update the UI without an API call
+              final newVisit = GetDetailedPJP(
+                PJPCVF_Id: response.responseData.toString(),
+                visitDate: Utility.convertShortDate(cvfDate),
+                visitTime: "${vistitDateTime?.hour}:${vistitDateTime?.minute}",
+                franchiseeName: _CenterName,
+                franchiseeCode: getCenterCode(_CenterName),
+                ActivityTitle: _activityNameController.text,
+                Address: location == 'Search Location'
+                    ? getFrichanseeAddress()
+                    : location,
+                Status: 'Planned',
+                approvalStatus: 'Pending',
+                AddressIn: 'NA',
+                AddressOut: 'NA',
+                LatitudeIn: 0.0,
+                LongitudeIn: 0.0,
+                LatitudeOut: 0.0,
+                LongitudeOut: 0.0,
+                isActive: true,
+                isCheckIn: false,
+                isCheckOut: false,
+                isCompleted: false,
+                isNotify: false,
+                isSync: false,
+                CheckInAddress: 'NA',
+                CheckOutAddress: 'NA',
+                DateTimeIn: 'NA',
+                DateTimeOut: 'NA',
+                Latitude: latitude,
+                Longitude: longitude,
+                purpose: _selectedItems.map((name) {
+                  final cat =
+                      mCategoryList.firstWhere((c) => c.categoryName == name);
+                  return Purpose(
+                      categoryId: cat.categoryId.toString(),
+                      categoryName: cat.categoryName);
+                }).toList(),
+              );
+              widget.mPjpModel.getDetailedPJP ??= [];
+              widget.mPjpModel.getDetailedPJP!.add(newVisit);
+
               try {
                 //fetchQuestions(response.responseData);
                 var eventToCreate = Event(calendarId,
@@ -892,7 +944,8 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
                   }
                 }
               } catch (e) {}
-              Navigator.of(context).pop();
+              Navigator.of(context).pop(
+                  true); // Return true to signal SummaryDashboard to refresh
               //Utility.showMessage(context, 'CVF Saved in server');
               setState(() {});
               //debugPrint('category list ${response.responseData.length}');

@@ -48,6 +48,8 @@ class LocalConstant {
   static const String KEY_BUSINESS_NAME = "bname";
   static const String KEY_BUSINESS_USERID = "buserid";
   static const String KEY_SYNC_INTERVAL = "syncinterval";
+  static const String KEY_MANAGER_NAME = "manager_name";
+  static const String KEY_PASSWORD_EXPIRED = "password_expired";
 
   static const String KEY_CVF_QUESTIONS = "_cvfques";
   static const String KEY_MY_ATTENDANCE = "attend";
@@ -111,8 +113,10 @@ class LocalConstant {
   static const int INPROGRESS_PROJECT = 2;
   static const int COMPLETED_PROJECT = 4;
 
-  static const String CVF_ALREADY_SUBMITTED = "This CVF has already been submitted and cannot be updated at this time.";
-  static const String FILE_DOWNLOAD_REQUEST = "Your file download has begun. Please check your notification drawer for the progress and additional details.";
+  static const String CVF_ALREADY_SUBMITTED =
+      "This CVF has already been submitted and cannot be updated at this time.";
+  static const String FILE_DOWNLOAD_REQUEST =
+      "Your file download has begun. Please check your notification drawer for the progress and additional details.";
 
   //CVF Already submitted and not able to update
 }

@@ -105,7 +105,7 @@ class IntranetServiceHandler {
       String status, onResponse onResponse) async {
     double latitude = 0.0;
     double longitude = 0.0;
-    LocationData location = await LocationHelper.getLocation(null);
+    LocationData? location = await LocationHelper.getLocation(null);
     if (location != null) {
       latitude = location.latitude!;
       longitude = location.longitude!;

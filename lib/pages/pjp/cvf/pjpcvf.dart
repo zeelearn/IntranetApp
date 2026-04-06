@@ -1095,7 +1095,7 @@ class _MyCVFListScreen extends State<CVFListScreen>
   saveDataOffline(GetDetailedPJP cvfView) async {
     double latitude = 0.0;
     double longitude = 0.0;
-    LocationData location = await LocationHelper.getLocation(context);
+    LocationData? location = await LocationHelper.getLocation(context);
     if (location != null) {
       latitude = location.latitude!;
       longitude = location.longitude!;

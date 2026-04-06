@@ -352,65 +352,66 @@ class _LoginPage extends State<LoginPage> {
       APIService apiService = APIService();
       apiService.login(loginRequestModel).then((value) async {
         debugPrint(value.toString());
-        if (value != null) {
-          setState(() {
-            isApiCallProcess = false;
-          });
-          if (value == null || value.responseData == null) {
-            Utility.showMessage(context, 'Invalid UserName/Password');
-          } else if (value is LoginResponseInvalid) {
-            LoginResponseInvalid responseInvalid = value;
-            Utility.showMessage(context, responseInvalid.responseData);
-          } else {
-            List<EmployeeDetails> infoList = value.responseData.employeeDetails;
-            if (infoList.isEmpty) {
-              Utility.showMessage(context, 'Invalid UserName/Password');
-            } else {
-              EmployeeDetails info = value.responseData.employeeDetails[0];
-              await Hive.openBox(LocalConstant.KidzeeDB);
-              var hive = Hive.box(LocalConstant.KidzeeDB);
-              // // Save an integer value to 'counter' key.
-              hive.put(LocalConstant.KEY_EMPLOYEE_ID,
-                  info.employeeId.toInt().toString());
-              hive.put(LocalConstant.KEY_EMPLOYEE_CODE, info.employeeCode);
-              hive.put(LocalConstant.KEY_FIRST_NAME, info.employeeFirstName);
-              hive.put(LocalConstant.KEY_LAST_NAME, info.employeeLastName);
-              hive.put(LocalConstant.KEY_DOJ, info.employeeDateOfJoining);
-              hive.put(LocalConstant.KEY_EMP_SUPERIOR_ID,
-                  info.employeeSuperiorId.toInt().toString());
-              hive.put(
-                  LocalConstant.KEY_DEPARTMENT, info.employeeDepartmentName);
-              hive.put(LocalConstant.KEY_DESIGNATION, info.employeeDesignation);
-              hive.put(LocalConstant.KEY_EMAIL, info.employeeEmailId);
-              hive.put(LocalConstant.KEY_CONTACT, info.employeeContactNumber);
-              hive.put(LocalConstant.KEY_IS_ACTIVE, info.isActive);
-              hive.put(LocalConstant.KEY_ISCEO, info.isCEO);
-              hive.put(LocalConstant.KEY_IS_BUSINESS_HEAD, info.isBusinessHead);
-              hive.put(LocalConstant.KEY_USER_NAME, info.userName);
-              hive.put(LocalConstant.KEY_USER_PASSWORD, info.userPassword);
-              hive.put(LocalConstant.KEY_DOB, info.employeeDateOfBirth);
-              hive.put(LocalConstant.KEY_GRADE, info.employeeGrade);
-              hive.put(LocalConstant.KEY_DATE_OF_MARRAGE,
-                  info.employeeDateOfMarriage);
-              hive.put(LocalConstant.KEY_LOCATION, info.employeeLocation);
-              hive.put(LocalConstant.KEY_GENDER, info.gender);
-
-              FirebaseAnalyticsUtils.sendEvent(info.userName);
-              hive.put(LocalConstant.KEY_LOGIN_RESPONSE, jsonEncode(value));
-              debugPrint('========Login Form ====== ${jsonEncode(value)}');
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => IntranetHomePage(
-                        userId: info.employeeId.toInt().toString())),
-              );
-            }
-          }
+        // if (value != null) {
+        setState(() {
+          isApiCallProcess = false;
+        });
+        if (value == null || value.responseData == null) {
+          Utility.showMessage(context, 'Invalid UserName/Password');
+        } else if (value is LoginResponseInvalid) {
+          LoginResponseInvalid responseInvalid = value;
+          Utility.showMessage(context, responseInvalid.responseData);
         } else {
-          Navigator.pop(context);
-          Utility.showMessage(context, "Invalid User Name and Password");
-          debugPrint("null value");
+          List<EmployeeDetails> infoList = value.responseData.employeeDetails;
+          if (infoList.isEmpty) {
+            Utility.showMessage(context, 'Invalid UserName/Password');
+          } else {
+            EmployeeDetails info = value.responseData.employeeDetails[0];
+            await Hive.openBox(LocalConstant.KidzeeDB);
+            var hive = Hive.box(LocalConstant.KidzeeDB);
+            // // Save an integer value to 'counter' key.
+            hive.put(LocalConstant.KEY_EMPLOYEE_ID,
+                info.employeeId.toInt().toString());
+            hive.put(LocalConstant.KEY_EMPLOYEE_CODE, info.employeeCode);
+            hive.put(LocalConstant.KEY_FIRST_NAME, info.employeeFirstName);
+            hive.put(LocalConstant.KEY_LAST_NAME, info.employeeLastName);
+            hive.put(LocalConstant.KEY_DOJ, info.employeeDateOfJoining);
+            hive.put(LocalConstant.KEY_EMP_SUPERIOR_ID,
+                info.employeeSuperiorId.toInt().toString());
+            hive.put(LocalConstant.KEY_DEPARTMENT, info.employeeDepartmentName);
+            hive.put(LocalConstant.KEY_DESIGNATION, info.employeeDesignation);
+            hive.put(LocalConstant.KEY_EMAIL, info.employeeEmailId);
+            hive.put(LocalConstant.KEY_CONTACT, info.employeeContactNumber);
+            hive.put(LocalConstant.KEY_IS_ACTIVE, info.isActive);
+            hive.put(LocalConstant.KEY_ISCEO, info.isCEO);
+            hive.put(LocalConstant.KEY_IS_BUSINESS_HEAD, info.isBusinessHead);
+            hive.put(LocalConstant.KEY_USER_NAME, info.userName);
+            hive.put(LocalConstant.KEY_USER_PASSWORD, info.userPassword);
+            hive.put(LocalConstant.KEY_DOB, info.employeeDateOfBirth);
+            hive.put(LocalConstant.KEY_GRADE, info.employeeGrade);
+            hive.put(
+                LocalConstant.KEY_DATE_OF_MARRAGE, info.employeeDateOfMarriage);
+            hive.put(LocalConstant.KEY_LOCATION, info.employeeLocation);
+            hive.put(LocalConstant.KEY_GENDER, info.gender);
+            hive.put(LocalConstant.KEY_MANAGER_NAME, info.managerName);
+            hive.put(LocalConstant.KEY_PASSWORD_EXPIRED, info.passwordExpired);
+
+            FirebaseAnalyticsUtils.sendEvent(info.userName);
+            hive.put(LocalConstant.KEY_LOGIN_RESPONSE, jsonEncode(value));
+            debugPrint('========Login Form ====== ${jsonEncode(value)}');
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => IntranetHomePage(
+                      userId: info.employeeId.toInt().toString())),
+            );
+          }
         }
+        // } else {
+        //   Navigator.pop(context);
+        //   Utility.showMessage(context, "Invalid User Name and Password");
+        //   debugPrint("null value");
+        // }
       });
     } else {
       _userNameController.text = '';

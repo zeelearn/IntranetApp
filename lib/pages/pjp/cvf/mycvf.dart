@@ -759,7 +759,7 @@ class _MyCVFListScreen extends State<MyCVFListScreen>
       longitude= position.longitude;
     }*/
     print('saveDataOffline');
-    LocationData location = await LocationHelper.getLocation(context);
+    LocationData? location = await LocationHelper.getLocation(context);
     debugPrint('Status is ${cvfView.Status}');
     String address =
         ''; //await Utility.getAddress(location.latitude!, location.longitude!);
@@ -770,15 +770,15 @@ class _MyCVFListScreen extends State<MyCVFListScreen>
         Employee_id: employeeId,
         Latitude: cvfView.Status != 'FILL CVF'
             ? cvfView.Latitude
-            : location.latitude!,
+            : location?.latitude ?? 0.0,
         Longitude: cvfView.Status != 'FILL CVF'
             ? cvfView.Longitude
-            : location.longitude!,
+            : location?.longitude ?? 0.0,
         Address: address,
         CheckOutLatitude:
-            cvfView.Status == 'FILL CVF' ? location.latitude! : 0.0,
+            cvfView.Status == 'FILL CVF' ? location?.latitude ?? 0.0 : 0.0,
         CheckOutLongitude:
-            cvfView.Status == 'FILL CVF' ? location.longitude! : 0.0,
+            cvfView.Status == 'FILL CVF' ? location?.longitude ?? 0.0 : 0.0,
         CheckOutAddress: cvfView.Status == 'FILL CVF' ? address : '');
     debugPrint('Data saved locally....');
     debugPrint(request.toJson().toString());

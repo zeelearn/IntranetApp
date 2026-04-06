@@ -67,32 +67,6 @@ class PjpListResponse {
   }
 }
 
-class KESLogbookModel {
-  String? responseMessage;
-  int? statusCode;
-  ResponseData? responseData;
-
-  KESLogbookModel({this.responseMessage, this.statusCode, this.responseData});
-
-  KESLogbookModel.fromJson(Map<String, dynamic> json) {
-    responseMessage = json['responseMessage'];
-    statusCode = json['statusCode'];
-    responseData = json['responseData'] != null
-        ? new ResponseData.fromJson(json['responseData'])
-        : null;
-  }
-
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['responseMessage'] = this.responseMessage;
-    data['statusCode'] = this.statusCode;
-    if (this.responseData != null) {
-      data['responseData'] = this.responseData!.toJson();
-    }
-    return data;
-  }
-}
-
 class ResponseData {
   List<PJP>? pJP;
   List<MYTEAM>? mYTEAM;
@@ -337,16 +311,24 @@ class GetDetailedPJP implements Comparable<GetDetailedPJP> {
   GetDetailedPJP.fromJson(Map<String, dynamic> json) {
     try {
       PJPCVF_Id = json['PJPCVF_Id'] ?? '0';
-      visitDate = json['Visit_Date'] ?? 'NA';
-      visitTime = json['Visit_Time'] ?? 'NA';
+      visitDate = json['Visit_Date'] == "1900-01-01T00:00:00"
+          ? 'NA'
+          : json['Visit_Date'] ?? 'NA';
+      visitTime = json['Visit_Time'] == "1900-01-01T00:00:00"
+          ? 'NA'
+          : json['Visit_Time'] ?? 'NA';
       Status = json['Status'] ?? ' Check In';
       franchiseeCode = json['Franchisee_Code'] ?? 'NA';
       franchiseeName = json['Franchisee_Name'] ?? 'NA';
       Address = json['Address'] ?? 'NA';
       CheckOutAddress = json['CheckOutAddress'] ?? 'NA';
       CheckInAddress = json['CheckinAddress'] ?? 'NA';
-      DateTimeOut = json['DateTimeOut'] ?? 'NA';
-      DateTimeIn = json['DateTimeIn'] ?? 'NA';
+      DateTimeOut = json['DateTimeOut'] == "1900-01-01T00:00:00"
+          ? 'NA'
+          : json['DateTimeOut'] ?? 'NA';
+      DateTimeIn = json['DateTimeIn'] == "1900-01-01T00:00:00"
+          ? 'NA'
+          : json['DateTimeIn'] ?? 'NA';
       Latitude = double.parse(json['Latitude']?.toString() ?? "0.0");
       Longitude = double.parse(json['Longitude']?.toString() ?? "0.0");
       LatitudeIn = double.parse(json['LatitudeIn']?.toString() ?? "0.0");

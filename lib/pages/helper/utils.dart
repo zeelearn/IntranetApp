@@ -43,7 +43,7 @@ class Utility {
   static int ACTION_IMAGE_UPLOAD_RESPONSE_OK = 100015;
   static int ACTION_IMAGE_UPLOAD_RESPONSE_ERROR = 100016;
 
-  static void openPermisisonSettings(BuildContext context) {
+  static Future<bool?> openPermisisonSettings(BuildContext context) async {
     AlertDialog alertBox = AlertDialog(
       title: const Text('Permission Required'),
       content: const Text(
@@ -52,7 +52,7 @@ class Utility {
         // usually buttons at the bottom of the dialog
         ElevatedButton(
           onPressed: () {
-            Navigator.of(context).pop();
+            Navigator.of(context).pop(false);
           },
           // style: ButtonStyle(elevation: MaterialStateProperty(12.0 )),
           style: ElevatedButton.styleFrom(
@@ -62,8 +62,9 @@ class Utility {
         ),
         ElevatedButton(
           onPressed: () async {
-            Navigator.of(context).pop();
-            await Utility.openSetting();
+            bool isAllowed = await Utility.openSetting();
+
+            Navigator.of(context).pop(isAllowed);
           },
           // style: ButtonStyle(elevation: MaterialStateProperty(12.0 )),
           style: ElevatedButton.styleFrom(
@@ -73,7 +74,7 @@ class Utility {
         ),
       ],
     );
-    showDialog(
+    showDialog<bool?>(
       context: context,
       builder: (BuildContext context) {
         return alertBox;
@@ -278,9 +279,9 @@ class Utility {
     );
   }
 
-  static openSetting() async {
+  static Future<bool> openSetting() async {
     print('open setting');
-    await openAppSettings();
+    return await openAppSettings();
   }
 
   static Future<bool> isOfflineEligble(String value) async {
@@ -605,7 +606,8 @@ class Utility {
   }
 
   static void showMessageSingleButton(
-      BuildContext context, String message, onClickListener listener) {
+      BuildContext context, String message, onClickListener listener,
+      {dynamic object}) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -619,7 +621,7 @@ class Utility {
             ElevatedButton(
               onPressed: () {
                 Navigator.of(context).pop();
-                listener.onClick(ACTION_OK, '');
+                listener.onClick(ACTION_OK, object);
               },
               // style: ButtonStyle(elevation: MaterialStateProperty(12.0 )),
               style: ElevatedButton.styleFrom(
@@ -1240,7 +1242,7 @@ class Utility {
     }
 
     if (placemark.subLocality != null) {
-      address += '${placemark.subLocality}, ';
+      address += '${placemark.subLocality ?? ''}, ';
     }
     if (placemark.locality != null) {
       address += '${placemark.locality}, ';

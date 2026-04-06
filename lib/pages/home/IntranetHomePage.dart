@@ -132,6 +132,10 @@ class _IntranetHomePageState extends State<IntranetHomePage>
   String appVersion = '';
   List<BusinessApplications> businessApplications = [];
 
+  final TextEditingController _newPasswordController = TextEditingController();
+  final TextEditingController _confirmPasswordController =
+      TextEditingController();
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   updateCurrentBusiness(int bid, String name, int uid) async {
     hiveBox = await Utility.openBox();
     await Hive.openBox(LocalConstant.KidzeeDB);
@@ -711,8 +715,14 @@ class _IntranetHomePageState extends State<IntranetHomePage>
     });
     getProfileImage();
     //decodeJsonValue();
+    int passwordExpired = hiveBox.get(LocalConstant.KEY_PASSWORD_EXPIRED) ?? 0;
+    if (passwordExpired == 1) {
+      Future.delayed(Duration.zero, () => showPasswordExpiredDialog());
+    }
     setState(() {});
   }
+
+  // Placeholder for showing password expired dialog
 
   getProfileImage() async {
     try {
@@ -819,6 +829,103 @@ class _IntranetHomePageState extends State<IntranetHomePage>
       }
     });
     return null;
+  }
+
+  void showPasswordExpiredDialog() {
+    // This dialog will inform the user that their password has expired
+    // and then immediately show the update password dialog.
+    showDialog(
+      context: context,
+      barrierDismissible: false, // User must acknowledge
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: const Text('Password Expired'),
+          content: const Text(
+              'Your password has expired. Please update it to continue.'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop(); // Close this dialog
+                _showUpdatePasswordDialog(); // Show the password update dialog
+              },
+              child: const Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showUpdatePasswordDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false, // User must update password
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: const Text('Update Password'),
+          content: Form(
+            key: _formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextFormField(
+                  controller: _newPasswordController,
+                  obscureText: true,
+                  decoration: const InputDecoration(
+                    labelText: 'New Password',
+                    border: OutlineInputBorder(),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter a new password';
+                    }
+                    if (value.length < 6) {
+                      return 'Password must be at least 6 characters long';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _confirmPasswordController,
+                  obscureText: true,
+                  decoration: const InputDecoration(
+                    labelText: 'Confirm New Password',
+                    border: OutlineInputBorder(),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please confirm your new password';
+                    }
+                    if (value != _newPasswordController.text) {
+                      return 'Passwords do not match';
+                    }
+                    return null;
+                  },
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                if (_formKey.currentState?.validate() ?? false) {
+                  // TODO: Implement actual password update logic here
+                  // For now, just close the dialog and show a mock success message
+                  Navigator.of(dialogContext).pop();
+                  Utility.showMessage(
+                      context, 'Password updated successfully (mock)');
+                  // Clear controllers after submission
+                  _newPasswordController.clear();
+                  _confirmPasswordController.clear();
+                }
+              },
+              child: const Text('Submit'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   getCurrentEvents(DateTime date, List<PJPModel> pjpListModels) {
