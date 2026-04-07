@@ -56,6 +56,8 @@ class LocalStrings {
   static const String GET_FRANCHISEE_LAST_VISIT =
       '/api/PJP/GetFranchiseeLastVisit';
 
+  static const String API_CHANGE_PASSWORD = '/api/Account/ChangePassword';
+
   /*CVF*/
   static const String GET_CVF_CATEGORY = '/api/PJP/GetPJPCategory';
   static const String GET_CVF_CENTER_LIST = '/api/PJP/CenterSelect';

@@ -20,6 +20,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_nominatim/flutter_nominatim.dart';
 
 import '../intro/intro.dart';
 import '../utils/theme/colors/light_colors.dart';
@@ -1225,45 +1226,48 @@ class Utility {
     );
   }
 
-  static getAddress(double latitude, double longitude) async {
-    List<Placemark> placemarks =
-        await placemarkFromCoordinates(latitude, longitude);
-    if (placemarks.isEmpty) {
-      return 'Unknown address';
-    }
+  static Future<String?> getAddress(double latitude, double longitude) async {
+    // if (kIsWeb) {
+    final nominatim = Nominatim.instance;
 
-    Placemark placemark = placemarks.first;
-    String address = '';
-    print(placemark.toString());
-    if (placemark.street != null) {
-      address += '${placemark.street}  , ';
-    } else if (placemark.thoroughfare != null) {
-      address += '${placemark.thoroughfare}, ';
-    }
+    // Get address from coordinates
+    Place address = await nominatim.getAddressFromLatLng(latitude, longitude);
+    print(
+        'Address web is - ${address.placeId}  ${address.displayName} - ${address.addressDetails}');
 
-    if (placemark.subLocality != null) {
-      address += '${placemark.subLocality ?? ''}, ';
-    }
-    if (placemark.locality != null) {
-      address += '${placemark.locality}, ';
-    }
-    if (placemark.administrativeArea != null) {
-      address += '${placemark.administrativeArea}, ';
-    }
-    if (placemark.country != null) {
-      address += '${placemark.country}';
-    }
-    if (placemark.postalCode != null) {
-      address += ', ${placemark.postalCode}';
-    }
-    return address;
-  }
+    return address.displayName;
+    // } else {
+    //   List<Placemark> placemarks =
+    //       await placemarkFromCoordinates(latitude, longitude);
+    //   if (placemarks.isEmpty) {
+    //     return 'Unknown address';
+    //   }
 
-  static getAddress1(double latitude, double longitude) async {
-    final LocatitonGeocoder geocoder =
-        LocatitonGeocoder(LocalStrings.kGoogleApiKey);
-    final address = await geocoder
-        .findAddressesFromCoordinates(Coordinates(latitude, longitude));
-    return address.first.addressLine;
+    //   Placemark placemark = placemarks.first;
+    //   String address = '';
+    //   print(placemark.toString());
+    //   if (placemark.street != null) {
+    //     address += '${placemark.street ?? ''}  , ';
+    //   } else if (placemark.thoroughfare != null) {
+    //     address += '${placemark.thoroughfare ?? ''}, ';
+    //   }
+
+    //   if (placemark.subLocality != null) {
+    //     address += '${placemark.subLocality ?? ''}, ';
+    //   }
+    //   if (placemark.locality != null) {
+    //     address += '${placemark.locality ?? ''}, ';
+    //   }
+    //   if (placemark.administrativeArea != null) {
+    //     address += '${placemark.administrativeArea ?? ''}, ';
+    //   }
+    //   if (placemark.country != null) {
+    //     address += '${placemark.country ?? ''}';
+    //   }
+    //   if (placemark.postalCode != null) {
+    //     address += ', ${placemark.postalCode ?? ''}';
+    //   }
+    //   return address;
+    // }
   }
 }

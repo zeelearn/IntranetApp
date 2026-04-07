@@ -128,26 +128,32 @@ class PJPInfo {
 
   PJPInfo.fromJson(Map<String, dynamic> json) {
     try {
-      PJP_Id = json['PJP_Id'];
+      PJP_Id = (json['PJP_Id'] ?? json['pJPId'] ?? '').toString();
       displayName = json['DisplayName'] ?? 'NA';
       managerName = json['ManagerName'] ?? '';
-      fromDate = json['FromDate'] ?? '';
-      toDate = json['ToDate'] ?? '';
-      Status = json['Status'] ?? 'Check In';
-      ApprovalStatus = json['ApprovalStatus'] ?? '';
+      fromDate = json['FromDate'] ?? json['fromDate'] ?? '';
+      toDate = json['ToDate'] ?? json['toDate'] ?? '';
+      Status = json['Status'] ?? json['status'] ?? 'Check In';
+      ApprovalStatus = json['ApprovalStatus'] ??
+          json['approvalStatus'] ??
+          json['Approval_Status'] ??
+          '';
       zone = json['Zone'];
       remarks = json['Remarks'] == null || json['Remarks'] == 'null'
           ? ' '
           : json['Remarks'];
       isSelfPJP = json['isSelfPJP'] ?? ' 0';
       getDetailedPJP = <GetDetailedPJP>[];
-      if (json.containsKey('GetDetailedPJP')) {
-        if (json['GetDetailedPJP'] is List) {
-          json['GetDetailedPJP'].forEach((v) {
-            getDetailedPJP!.add(GetDetailedPJP.fromJson(v));
-          });
-        } else {
-          getDetailedPJP!.add(GetDetailedPJP.fromJson(json['GetDetailedPJP']));
+      final detailedData = json['GetDetailedPJP'] ?? json['getDetailedPJP'];
+      if (detailedData != null && detailedData != 'NA') {
+        if (detailedData is List) {
+          for (var v in detailedData) {
+            if (v != null && v is Map<String, dynamic>) {
+              getDetailedPJP!.add(GetDetailedPJP.fromJson(v));
+            }
+          }
+        } else if (detailedData is Map<String, dynamic>) {
+          getDetailedPJP!.add(GetDetailedPJP.fromJson(detailedData));
         }
       }
     } catch (e) {}
@@ -310,56 +316,72 @@ class GetDetailedPJP implements Comparable<GetDetailedPJP> {
 
   GetDetailedPJP.fromJson(Map<String, dynamic> json) {
     try {
-      PJPCVF_Id = json['PJPCVF_Id'] ?? '0';
-      visitDate = json['Visit_Date'] == "1900-01-01T00:00:00"
-          ? 'NA'
-          : json['Visit_Date'] ?? 'NA';
-      visitTime = json['Visit_Time'] == "1900-01-01T00:00:00"
-          ? 'NA'
-          : json['Visit_Time'] ?? 'NA';
-      Status = json['Status'] ?? ' Check In';
-      franchiseeCode = json['Franchisee_Code'] ?? 'NA';
-      franchiseeName = json['Franchisee_Name'] ?? 'NA';
-      Address = json['Address'] ?? 'NA';
-      CheckOutAddress = json['CheckOutAddress'] ?? 'NA';
-      CheckInAddress = json['CheckinAddress'] ?? 'NA';
-      DateTimeOut = json['DateTimeOut'] == "1900-01-01T00:00:00"
-          ? 'NA'
-          : json['DateTimeOut'] ?? 'NA';
-      DateTimeIn = json['DateTimeIn'] == "1900-01-01T00:00:00"
-          ? 'NA'
-          : json['DateTimeIn'] ?? 'NA';
-      Latitude = double.parse(json['Latitude']?.toString() ?? "0.0");
-      Longitude = double.parse(json['Longitude']?.toString() ?? "0.0");
-      LatitudeIn = double.parse(json['LatitudeIn']?.toString() ?? "0.0");
-      LongitudeIn = double.parse(json['LongitudeIn']?.toString() ?? "0.0");
-      AddressIn = json['AddressIn'] ?? 'NA';
-      LatitudeOut = double.parse(json['LatitudeOut']?.toString() ?? "0.0");
-      LongitudeOut = double.parse(json['LongitudeOut']?.toString() ?? "0.0");
-      AddressOut = json['AddressOut'] ?? 'NA';
-      ActivityTitle = json['ActivityTitle'] ?? 'NA';
-      approvalStatus = json.containsKey('Approval_Status')
-          ? json['Approval_Status']
-          : 'Pending';
+      PJPCVF_Id = (json['PJPCVF_Id'] ?? json['pJPCVF_Id'] ?? '0').toString();
+      visitDate =
+          (json['Visit_Date'] ?? json['visit_Date']) == "1900-01-01T00:00:00"
+              ? 'NA'
+              : (json['Visit_Date'] ?? json['visit_Date'] ?? 'NA').toString();
+      visitTime =
+          (json['Visit_Time'] ?? json['visit_Time']) == "1900-01-01T00:00:00"
+              ? 'NA'
+              : (json['Visit_Time'] ?? json['visit_Time'] ?? 'NA').toString();
+      Status = json['Status'] ?? (json['status'] ?? 'Check In');
+      franchiseeCode =
+          json['Franchisee_Code'] ?? json['franchisee_Code'] ?? 'NA';
+      franchiseeName =
+          json['Franchisee_Name'] ?? json['franchisee_Name'] ?? 'NA';
+      Address = json['Address'] ?? json['address'] ?? 'NA';
+      CheckOutAddress =
+          json['CheckOutAddress'] ?? json['checkOutAddress'] ?? 'NA';
+      CheckInAddress = json['CheckinAddress'] ?? json['checkinAddress'] ?? 'NA';
+      DateTimeOut =
+          (json['DateTimeOut'] ?? json['dateTimeOut']) == "1900-01-01T00:00:00"
+              ? 'NA'
+              : (json['DateTimeOut'] ?? json['dateTimeOut'] ?? 'NA').toString();
+      DateTimeIn =
+          (json['DateTimeIn'] ?? json['dateTimeIn']) == "1900-01-01T00:00:00"
+              ? 'NA'
+              : (json['DateTimeIn'] ?? json['dateTimeIn'] ?? 'NA').toString();
+      Latitude = double.tryParse(json['Latitude']?.toString() ?? "") ?? 0.0;
+      Longitude = double.tryParse(json['Longitude']?.toString() ?? "") ?? 0.0;
+      LatitudeIn = double.tryParse(json['LatitudeIn']?.toString() ?? "") ?? 0.0;
+      LongitudeIn =
+          double.tryParse(json['LongitudeIn']?.toString() ?? "") ?? 0.0;
+      AddressIn = json['AddressIn'] ?? json['addressIn'] ?? 'NA';
+      LatitudeOut =
+          double.tryParse(json['LatitudeOut']?.toString() ?? "") ?? 0.0;
+      LongitudeOut =
+          double.tryParse(json['LongitudeOut']?.toString() ?? "") ?? 0.0;
+      AddressOut = json['AddressOut'] ?? json['addressOut'] ?? 'NA';
+      ActivityTitle = json['ActivityTitle'] ?? json['activityTitle'] ?? 'NA';
+      approvalStatus = (json['Approval_Status'] ??
+              json['approval_Status'] ??
+              json['approvalStatus'] ??
+              'Pending')
+          .toString();
       purpose = <Purpose>[];
-      if (json.containsKey('Purpose')) {
-        if (json['Purpose'] is List) {
-          if (json['Purpose'] != null) {
-            json['Purpose'].forEach((v) {
-              bool isExists = false;
-              if (purpose != null)
-                for (int index = 0; index < purpose!.length; index++) {
-                  if (v['Category_id'] == purpose![index].categoryId) {
-                    isExists = true;
-                  }
+      final purposeData = json['Purpose'] ?? json['purpose'];
+      if (purposeData != null && purposeData != 'NA') {
+        if (purposeData is List) {
+          for (var v in purposeData) {
+            bool isExists = false;
+            if (purpose != null)
+              for (int index = 0; index < purpose!.length; index++) {
+                String vId = (v is Map
+                        ? (v['Category_id'] ?? v['category_id'] ?? 'NA')
+                        : 'NA')
+                    .toString();
+                if (vId == purpose![index].categoryId) {
+                  isExists = true;
+                  break;
                 }
-              if (!isExists) {
-                purpose!.add(Purpose.fromJson(v));
               }
-            });
+            if (!isExists) {
+              purpose!.add(Purpose.fromJson(v));
+            }
           }
-        } else {
-          purpose!.add(Purpose.fromJson(json['Purpose']));
+        } else if (purposeData is Map) {
+          purpose!.add(Purpose.fromJson(purposeData));
         }
       }
     } catch (e) {
@@ -406,9 +428,16 @@ class Purpose {
 
   Purpose({required this.categoryId, required this.categoryName});
 
-  Purpose.fromJson(Map<dynamic, dynamic> json) {
-    categoryId = json['Category_id'] ?? 'NA';
-    categoryName = json['Category_Name'] ?? 'NA';
+  Purpose.fromJson(dynamic json) {
+    if (json is Map) {
+      categoryId =
+          (json['Category_id'] ?? json['category_id'] ?? 'NA').toString();
+      categoryName =
+          (json['Category_Name'] ?? json['category_name'] ?? 'NA').toString();
+    } else {
+      categoryId = 'NA';
+      categoryName = 'NA';
+    }
   }
 
   Map<String, dynamic> toJson() {

@@ -81,6 +81,7 @@ import 'package:Intranet/api/response/pjp/pjplistresponse.dart';
 import 'package:Intranet/api/response/pjp/update_pjpstatus_response.dart';
 import 'package:Intranet/api/response/report/my_report.dart';
 import 'package:Intranet/api/response/uploadimage.dart';
+import 'package:Intranet/pages/home/change_password_request.dart';
 import 'package:Intranet/pages/model/getFranchiseeLastVisitModel.dart'
     as getFranchiseeLastVisitModelPlaceholder;
 import 'package:Intranet/pages/outdoor/model/createemplyeeplanrequestmodel.dart';
@@ -1597,6 +1598,29 @@ class APIService {
       //print(response.body);
       if (response.statusCode == 200) {
         return CommonResponse.fromJson(
+          json.decode(response.body) as Map<String, dynamic>,
+        );
+      } else {
+        print('SendCredentialResponse null');
+        return null;
+      }
+    } catch (e) {
+      print('SendCredentialResponse error e');
+      print(e.toString());
+      e.toString();
+    }
+  }
+
+  Future<dynamic> changePassword(ChangePasswordRequest requestModel) async {
+    try {
+      //print(getHeader(''));
+      final response = await http.post(
+          Uri.parse(url + LocalStrings.API_CHANGE_PASSWORD),
+          headers: getHeader(''),
+          body: jsonEncode(requestModel.toJson()));
+
+      if (response.statusCode == 200) {
+        return GeneralResponse.fromJson(
           json.decode(response.body) as Map<String, dynamic>,
         );
       } else {

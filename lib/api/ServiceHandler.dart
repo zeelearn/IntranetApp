@@ -6,6 +6,7 @@ import 'package:Intranet/api/response/bpms/get_comments_response.dart';
 import 'package:Intranet/api/response/bpms/insert_attachment_response.dart';
 import 'package:Intranet/api/response/bpms/update_task_response.dart';
 import 'package:Intranet/api/response/pjp/pjp_exceptional_list.dart';
+import 'package:Intranet/pages/home/change_password_request.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:Intranet/api/request/cvf/update_cvf_status_request.dart';
 import 'package:Intranet/api/request/pjp/get_pjp_list_request.dart';
@@ -105,6 +106,7 @@ class IntranetServiceHandler {
       String status, onResponse onResponse) async {
     double latitude = 0.0;
     double longitude = 0.0;
+    onResponse.onStart();
     LocationData? location = await LocationHelper.getLocation(null);
     if (location != null) {
       latitude = location.latitude!;
@@ -114,25 +116,9 @@ class IntranetServiceHandler {
       print('location data not found');
     }
 
-    /*if (await Permission.location.request().isGranted) {
-
-      Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.medium);
-      longitude = position.longitude;
-      latitude = position.latitude;
-    }else{
-      Map<Permission, PermissionStatus> statuses = await [
-        Permission.location,
-      ].request();
-      if (await Permission.location.isPermanentlyDenied) {
-        openAppSettings();
-        // The user opted to never again see the permission request dialog for this
-        // app. The only way to change the permission's status now is to let the
-        // user manually enable it in the system settings.
-      }
-    }*/
-    String address = await Utility.getAddress(latitude, longitude);
+    String? address = await Utility.getAddress(latitude, longitude);
     // Either the permission was already granted before or the user just granted it.
-    onResponse.onStart();
+
     UpdateCVFStatusRequest request = UpdateCVFStatusRequest(
         PJPCVF_id: cvfView.PJPCVF_Id,
         DateTime: date,
@@ -142,9 +128,12 @@ class IntranetServiceHandler {
         Longitude: cvfView.Status == 'FILL CVF' ? cvfView.Longitude : longitude,
         CheckOutLatitude: status == 'Completed' ? latitude : 0.0,
         CheckOutLongitude: status == 'Completed' ? longitude : 0.0,
-        CheckOutAddress: status.trim() == 'Check In' ? '' : address,
-        Address:
-            cvfView.Status.trim() == 'Check In' ? address : cvfView.Address);
+        CheckOutAddress: status.trim() == 'Check In' ? '' : (address ?? ''),
+        Address: (cvfView.Status.trim() == 'Check In' ||
+                cvfView.Status.trim() == 'NA')
+            ? (address ?? '')
+            : cvfView.Address);
+
     APIService apiService = APIService();
     apiService.updateCVFStatus(request).then((value) {
       debugPrint(value.toString());
@@ -153,7 +142,11 @@ class IntranetServiceHandler {
           onResponse.onError('Unable to update the status');
         } else if (value is UpdateCVFStatusResponse) {
           UpdateCVFStatusResponse response = value;
-          onResponse.onSuccess(response);
+          cvfView.CheckInAddress = address ?? '';
+          cvfView.LatitudeIn = latitude;
+          cvfView.LongitudeIn = longitude;
+          cvfView.Status = 'Fill CVF';
+          onResponse.onSuccess(cvfView);
         } else {
           onResponse.onError('Unable to update the status ');
         }
@@ -333,6 +326,23 @@ class IntranetServiceHandler {
       } else {
         response.onError(
             'Unable to Update the Task Details Please try again later');
+      }
+    });
+  }
+
+  static changePassword(ChangePasswordRequest request, onResponse response) {
+    response.onStart();
+    APIService apiService = APIService();
+    apiService.changePassword(request).then((value) {
+      if (value != null) {
+        if (value is GeneralResponse) {
+          response.onSuccess(value);
+        } else {
+          response.onError('Failed to update password');
+        }
+      } else {
+        response
+            .onError('Unable to Update the Password. Please try again later');
       }
     });
   }

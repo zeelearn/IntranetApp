@@ -9,6 +9,7 @@ import 'package:Intranet/firebase_options.dart';
 import 'package:Intranet/main.dart';
 import 'package:Intranet/pages/helper/LocalConstant.dart';
 import 'package:Intranet/pages/helper/utils.dart';
+import 'package:Intranet/pages/home/change_password_request.dart';
 import 'package:Intranet/pages/leave/leave_list.dart';
 import 'package:Intranet/pages/notification/UserNotification.dart';
 import 'package:Intranet/pages/outdoor/outdoor_list.dart';
@@ -36,6 +37,8 @@ import 'package:table_calendar/table_calendar.dart';
 
 import '../../api/APIService.dart';
 import '../../api/request/login_request.dart';
+import '../../api/ServiceHandler.dart';
+import '../iface/onResponse.dart';
 import '../attendance/attendance_list.dart';
 import '../attendance/attendance_marking.dart';
 import '../attendance/manager_screen.dart';
@@ -879,8 +882,8 @@ class _IntranetHomePageState extends State<IntranetHomePage>
                     if (value == null || value.isEmpty) {
                       return 'Please enter a new password';
                     }
-                    if (value.length < 6) {
-                      return 'Password must be at least 6 characters long';
+                    if (value.length < 8) {
+                      return 'Password must be at least 8 characters long';
                     }
                     return null;
                   },
@@ -910,14 +913,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
             TextButton(
               onPressed: () {
                 if (_formKey.currentState?.validate() ?? false) {
-                  // TODO: Implement actual password update logic here
-                  // For now, just close the dialog and show a mock success message
-                  Navigator.of(dialogContext).pop();
-                  Utility.showMessage(
-                      context, 'Password updated successfully (mock)');
-                  // Clear controllers after submission
-                  _newPasswordController.clear();
-                  _confirmPasswordController.clear();
+                  _performPasswordUpdate(dialogContext);
                 }
               },
               child: const Text('Submit'),
@@ -926,6 +922,28 @@ class _IntranetHomePageState extends State<IntranetHomePage>
         );
       },
     );
+  }
+
+  void _performPasswordUpdate(BuildContext dialogContext) {
+    String newPassword = _newPasswordController.text;
+    ChangePasswordRequest request = ChangePasswordRequest(
+      userName: employeeCode,
+      password: newPassword,
+    );
+
+    IntranetServiceHandler.changePassword(
+        request,
+        _ChangePasswordResponse(
+            context: context,
+            dialogContext: dialogContext,
+            onSuccessCallback: () {
+              _newPasswordController.clear();
+              _confirmPasswordController.clear();
+              // Update stored password if necessary
+              var hive = Hive.box(LocalConstant.KidzeeDB);
+              hive.put(LocalConstant.KEY_USER_PASSWORD, newPassword);
+              hive.put(LocalConstant.KEY_PASSWORD_EXPIRED, 0);
+            }));
   }
 
   getCurrentEvents(DateTime date, List<PJPModel> pjpListModels) {
@@ -1930,6 +1948,37 @@ class _IntranetHomePageState extends State<IntranetHomePage>
     } else if (action == ACTION_ADD_NEW_IMAGE) {
       uploadProfilePicture();
     }
+  }
+}
+
+class _ChangePasswordResponse implements onResponse {
+  final BuildContext context;
+  final BuildContext dialogContext;
+  final VoidCallback onSuccessCallback;
+
+  _ChangePasswordResponse({
+    required this.context,
+    required this.dialogContext,
+    required this.onSuccessCallback,
+  });
+
+  @override
+  void onStart() {
+    Utility.showLoaderDialog(context);
+  }
+
+  @override
+  void onSuccess(value) {
+    Navigator.of(context).pop(); // Dismiss loader
+    Navigator.of(dialogContext).pop(); // Dismiss password dialog
+    onSuccessCallback();
+    Utility.showMessage(context, 'Password updated successfully');
+  }
+
+  @override
+  void onError(value) {
+    Navigator.of(context).pop(); // Dismiss loader
+    Utility.showMessage(context, value.toString());
   }
 }
 

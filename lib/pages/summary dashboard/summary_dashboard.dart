@@ -14,6 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:hive/hive.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:saathi/core/utility/toastUtility.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -414,9 +415,9 @@ class _SummaryDashboardState extends State<SummaryDashboard>
             : Row(
                 children: [
                   if (_isDesktop(w) && _isSidebarVisible)
-                    SizedBox(width: 280, child: _buildSidebar(compact: false))
-                  else if (_isTablet(w) && _isSidebarVisible)
-                    SizedBox(width: 240, child: _buildSidebar(compact: true)),
+                    SizedBox(width: 280, child: _buildSidebar(compact: false)),
+                  // else if (_isTablet(w) && _isSidebarVisible)
+                  //   SizedBox(width: 240, child: _buildSidebar(compact: true)),
                   Expanded(child: _buildMainContent(w)),
                 ],
               ),
@@ -1142,7 +1143,7 @@ class _SummaryDashboardState extends State<SummaryDashboard>
     return Column(
       children: [
         // Top bar
-        _buildTopBar(desktop: desktop),
+        _buildTopBar(desktop: desktop, width: w),
         Expanded(
           child: SingleChildScrollView(
             padding: EdgeInsets.all(/* desktop ? 24 : */ 16),
@@ -1190,7 +1191,7 @@ class _SummaryDashboardState extends State<SummaryDashboard>
     );
   }
 
-  Widget _buildTopBar({required bool desktop}) {
+  Widget _buildTopBar({required bool desktop, required double width}) {
     return Container(
       color: _cardBg,
       padding:
@@ -1202,18 +1203,21 @@ class _SummaryDashboardState extends State<SummaryDashboard>
           }),
           const SizedBox(width: 8),
           // Toggle sidebar
-          InkWell(
-            onTap: () => setState(() => _isSidebarVisible = !_isSidebarVisible),
-            borderRadius: BorderRadius.circular(6),
-            child: Padding(
-              padding: const EdgeInsets.all(6),
-              child: Icon(
-                _isSidebarVisible ? Icons.menu_open : Icons.menu,
-                color: _textSecondary,
-                size: 20,
-              ),
-            ),
-          ),
+          _isTablet(width)
+              ? SizedBox.shrink()
+              : InkWell(
+                  onTap: () =>
+                      setState(() => _isSidebarVisible = !_isSidebarVisible),
+                  borderRadius: BorderRadius.circular(6),
+                  child: Padding(
+                    padding: const EdgeInsets.all(6),
+                    child: Icon(
+                      _isSidebarVisible ? Icons.menu_open : Icons.menu,
+                      color: _textSecondary,
+                      size: 20,
+                    ),
+                  ),
+                ),
 
           // Nav arrows
           const SizedBox(width: 8),
@@ -2620,20 +2624,36 @@ class _SummaryDashboardState extends State<SummaryDashboard>
 }
 
 // ── Day Events Detail Screen ───────────────────────────────────────────────────
-class _DayEventsScreen extends StatelessWidget {
+class _DayEventsScreen extends StatefulWidget {
   final DateTime day;
   final List<_Event> events;
 
   const _DayEventsScreen({required this.day, required this.events});
 
+  @override
+  State<_DayEventsScreen> createState() => _DayEventsScreenState();
+}
+
+class _DayEventsScreenState extends State<_DayEventsScreen> {
   static const Color _sidebar = kPrimaryLightColor;
   static const Color _mainBg = Color(0xFFF5F7FA);
   static const Color _textSecondary = Color(0xFF6B7280);
 
+  bool _isUpdated = false;
+
+  void _refresh() {
+    if (mounted) {
+      setState(() {
+        _isUpdated = true;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     // Extract PJPInfo objects (non-null) from events
-    final pjpList = events.map((e) => e.pjpInfo).whereType<PJPInfo>().toList();
+    final pjpList =
+        widget.events.map((e) => e.pjpInfo).whereType<PJPInfo>().toList();
 
     return Scaffold(
       backgroundColor: _mainBg,
@@ -2641,8 +2661,12 @@ class _DayEventsScreen extends StatelessWidget {
         backgroundColor: _sidebar,
         foregroundColor: Colors.white,
         elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context, _isUpdated),
+        ),
         title: Text(
-          DateFormat('EEEE, d MMMM yyyy').format(day),
+          DateFormat('EEEE, d MMMM yyyy').format(widget.day),
           style: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 16),
         ),
         bottom: PreferredSize(
@@ -2673,13 +2697,44 @@ class _DayEventsScreen extends StatelessWidget {
                   final pjp = pjpList[index];
                   return _PjpInfoCard(
                     pjp: pjp,
-                    color: events[index].color,
-                    onUpdated: () => Navigator.pop(context, true),
+                    color: widget.events[index].color,
+                    onUpdated: _refresh,
                   );
                 },
               ),
       ),
     );
+  }
+}
+
+class _OnCheckINCheckOutResponse implements onResponse {
+  final BuildContext context;
+  final String message;
+  final Function(dynamic) onSuccessCallback;
+
+  _OnCheckINCheckOutResponse({
+    required this.context,
+    required this.onSuccessCallback,
+    required this.message,
+  });
+
+  @override
+  void onStart() {
+    Utility.showLoaderDialog(context);
+  }
+
+  @override
+  void onSuccess(value) {
+    Navigator.of(context).pop(); // Dismiss loader
+
+    onSuccessCallback(value);
+    Utility.showMessage(context, message);
+  }
+
+  @override
+  void onError(value) {
+    Navigator.of(context).pop(); // Dismiss loader
+    Utility.showMessage(context, value.toString());
   }
 }
 
@@ -2775,7 +2830,7 @@ class _PjpInfoCard extends StatelessWidget {
                   ),
                 ),
                 if (pjp.isSelfPJP.trim() == '1' &&
-                    pjp.ApprovalStatus.toLowerCase() == 'approved') ...[
+                    pjp.ApprovalStatus != 'Rejected') ...[
                   IconButton(
                     icon: const Icon(Icons.add_location_alt_outlined,
                         color: _accent, size: 20),
@@ -2833,7 +2888,6 @@ class _PjpInfoCard extends StatelessWidget {
                       pjp.managerName ?? '', _accent),
                   _dividerLine(),
                 ],
-
                 _infoRow(
                     Icons.calendar_today_rounded,
                     'From Date',
@@ -2847,8 +2901,8 @@ class _PjpInfoCard extends StatelessWidget {
                     DateFormat('dd-MM-yyyy')
                         .format(Utility.convertDate(pjp.toDate)),
                     _accent),
-                // _dividerLine(),
-                /* _infoRow(
+                /* _dividerLine(),
+                  _infoRow(
                     Icons.info_outline_rounded, 'Status', pjp.Status, _orange), */
                 if (pjp.remarks.trim().isNotEmpty &&
                     pjp.remarks.trim() != 'NA') ...[
@@ -2917,6 +2971,16 @@ class _PjpInfoCard extends StatelessWidget {
             ...pjp.getDetailedPJP!.map((visit) => _VisitTile(
                   visit: visit,
                   isViewOnly: pjp.isSelfPJP.trim() != '1',
+                  onupdateResponse: _OnCheckINCheckOutResponse(
+                      context: context,
+                      message: visit.Status == 'NA'
+                          ? 'Checked in successfully'
+                          : 'CVF filled successfully',
+                      onSuccessCallback: (value) {
+                        if (value is GetDetailedPJP) {
+                          if (onUpdated != null) onUpdated!();
+                        }
+                      }),
                 )),
             const SizedBox(height: 8),
           ],
@@ -2965,8 +3029,12 @@ class _PjpInfoCard extends StatelessWidget {
 class _VisitTile extends StatelessWidget {
   final GetDetailedPJP visit;
   final bool isViewOnly;
+  final onResponse onupdateResponse;
 
-  const _VisitTile({required this.visit, required this.isViewOnly});
+  const _VisitTile(
+      {required this.visit,
+      required this.isViewOnly,
+      required this.onupdateResponse});
 
   static const Color _textPrimary = Color(0xFF1A1D2E);
   static const Color _textSecondary = Color(0xFF6B7280);
@@ -2983,6 +3051,26 @@ class _VisitTile extends StatelessWidget {
     return _textSecondary;
   }
 
+  String getNextStatus(String key) {
+    String value = 'Check In';
+
+    switch (key.trim()) {
+      case 'Check In':
+        value = 'FILL CVF';
+        break;
+      case 'NA':
+        value = 'FILL CVF';
+        break;
+      case 'FILL CVF':
+        value = 'Completed';
+        break;
+      case 'Completed':
+        value = 'Check Out';
+        break;
+    }
+    return value;
+  }
+
   @override
   Widget build(BuildContext context) {
     final bool isCompleted = visit.Status.trim().toLowerCase() == 'completed';
@@ -2993,21 +3081,36 @@ class _VisitTile extends StatelessWidget {
 
     return InkWell(
       onTap: () async {
+        if (visit.purpose?.isEmpty ?? true) {
+          ToastUtility.showError(msg: 'No purpose found for this visit');
+          return;
+        }
+
         var hiveBox = await Utility.openBox();
         int employeeId =
             int.parse(hiveBox.get(LocalConstant.KEY_EMPLOYEE_ID) as String);
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-              builder: (context) => QuestionListScreen(
-                    cvfView: visit,
-                    PJPCVF_Id: int.parse(visit.PJPCVF_Id),
-                    employeeId: employeeId,
-                    mCategory: visit.purpose?.first.categoryName ?? '',
-                    mCategoryId: visit.purpose?.first.categoryId ?? '',
-                    isViewOnly: isViewOnly,
-                  )),
-        );
+        if (visit.Status == 'NA' || visit.Status.toLowerCase() == 'check in') {
+          IntranetServiceHandler.updateCVFStatus(
+            employeeId,
+            visit,
+            Utility.getDateTime(),
+            getNextStatus(visit.Status),
+            onupdateResponse,
+          );
+        } else {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) => QuestionListScreen(
+                      cvfView: visit,
+                      PJPCVF_Id: int.parse(visit.PJPCVF_Id),
+                      employeeId: employeeId,
+                      mCategory: visit.purpose?.first.categoryName ?? '',
+                      mCategoryId: visit.purpose?.first.categoryId ?? '',
+                      isViewOnly: isViewOnly,
+                    )),
+          );
+        }
       },
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
@@ -3028,6 +3131,7 @@ class _VisitTile extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Planned Section
+
             Row(
               children: [
                 Container(
@@ -3040,7 +3144,7 @@ class _VisitTile extends StatelessWidget {
                       size: 14, color: _blue),
                 ),
                 const SizedBox(width: 10),
-                if (visit.franchiseeName.trim().isNotEmpty &&
+                /* if (visit.franchiseeName.trim().isNotEmpty &&
                     visit.franchiseeName.trim() != 'NA')
                   Expanded(
                     child: Text(
@@ -3051,9 +3155,11 @@ class _VisitTile extends StatelessWidget {
                         color: _textPrimary,
                       ),
                     ),
-                  ),
-                if (visit.Status.trim().isNotEmpty &&
-                    visit.Status.trim() != 'NA')
+                  ), */
+                if (visit.Status.trim()
+                        .isNotEmpty /* &&
+                    visit.Status.trim() != 'NA' */
+                    )
                   Container(
                     padding:
                         const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
@@ -3062,7 +3168,7 @@ class _VisitTile extends StatelessWidget {
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
-                      visit.Status,
+                      visit.Status.trim() == 'NA' ? 'Check In' : visit.Status,
                       style: GoogleFonts.inter(
                         fontSize: 10,
                         fontWeight: FontWeight.w600,
@@ -3088,18 +3194,20 @@ class _VisitTile extends StatelessWidget {
                           fontWeight: FontWeight.w500),
                     ),
                   if (visit.ActivityTitle.isNotEmpty &&
-                      visit.ActivityTitle != 'NA')
+                      visit.ActivityTitle != 'NA') ...[
                     Text(
                       visit.ActivityTitle,
                       style: GoogleFonts.inter(
                           fontSize: 11, color: _textSecondary),
                     ),
-                  const SizedBox(height: 4),
-                  if (visit.Status == 'NA')
-                    Text(visit.purpose?.first.categoryName ?? '',
+                    const SizedBox(height: 4),
+                  ],
+                  if (visit.purpose != null && visit.purpose!.isNotEmpty) ...[
+                    Text(visit.purpose!.map((p) => p.categoryName).join(', '),
                         style: GoogleFonts.inter(
                             fontSize: 11, color: _textSecondary)),
-                  const SizedBox(height: 4),
+                    const SizedBox(height: 4),
+                  ],
                   Row(
                     children: [
                       const Icon(Icons.access_time_rounded,

@@ -1,31 +1,32 @@
-import 'dart:html' as html;
 import 'package:flutter/material.dart';
 import 'package:location/location.dart';
 
 class LocationServiceImpl {
   static Future<LocationData?> getLocation(BuildContext? context) async {
     try {
-      final permission = await html.window.navigator.permissions
-          ?.query({'name': 'geolocation'});
+      final location = Location();
 
-      if (permission?.state == "denied") {
+      // Check if location service is enabled
+      bool serviceEnabled = await location.serviceEnabled();
+      if (!serviceEnabled) {
+        serviceEnabled = await location.requestService();
+        if (!serviceEnabled) return null;
+      }
+
+      // Check and request permissions using the cross-platform package
+      PermissionStatus permissionStatus = await location.hasPermission();
+      if (permissionStatus == PermissionStatus.denied) {
+        permissionStatus = await location.requestPermission();
+      }
+
+      if (permissionStatus != PermissionStatus.granted) {
         _showMessage(context);
         return null;
       }
 
-      html.Geoposition position =
-          await html.window.navigator.geolocation.getCurrentPosition();
-      return LocationData.fromMap({
-        'latitude': position.coords?.latitude,
-        'longitude': position.coords?.longitude,
-        'speed': position.coords?.speed,
-        'accuracy': position.coords?.accuracy,
-        'altitude': position.coords?.altitude,
-        'altitudeAccuracy': position.coords?.altitudeAccuracy,
-        'heading': position.coords?.heading,
-        'timestamp': position.timestamp,
-      });
+      return await location.getLocation();
     } catch (e) {
+      print('Error getting location: $e');
       _showMessage(context);
       return null;
     }

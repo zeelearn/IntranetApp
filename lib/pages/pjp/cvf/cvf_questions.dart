@@ -71,7 +71,6 @@ class _QuestionListScreenState extends State<QuestionListScreen>
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
@@ -206,7 +205,10 @@ class _QuestionListScreenState extends State<QuestionListScreen>
           );
           debugPrint('Data from the Preference ${cvfQuestionsModel}');
           mQuestionMaster.addAll(cvfQuestionsModel.responseData);
-          questionResponse = QuestionResponse(responseMessage: '', statusCode: 200, responseData: cvfQuestionsModel.responseData);
+          questionResponse = QuestionResponse(
+              responseMessage: '',
+              statusCode: 200,
+              responseData: cvfQuestionsModel.responseData);
           isLoading = false;
           setState(() {});
         } catch (e) {
@@ -240,16 +242,21 @@ class _QuestionListScreenState extends State<QuestionListScreen>
 
   loadData() async {
     DBHelper helper = DBHelper();
-    questionResponse = await helper.getQuestions(widget.PJPCVF_Id.toString(), widget.mCategory, widget.mCategoryId);
+    questionResponse = await helper.getQuestions(
+        widget.PJPCVF_Id.toString(), widget.mCategory, widget.mCategoryId);
 
     //print('offline ${questionResponse!.toJson()}');
 
     bool isInternet = await Utility.isInternet();
 
-    if (!isInternet && (questionResponse != null && questionResponse!.responseData.length > 0)) {
+    if (!isInternet &&
+        (questionResponse != null &&
+            questionResponse!.responseData.length > 0)) {
       isLoading = true;
       mQuestionMaster.clear();
-      for (int index = 0; index < questionResponse!.responseData.length;index++) {
+      for (int index = 0;
+          index < questionResponse!.responseData.length;
+          index++) {
         mQuestionMaster.add(questionResponse!.responseData[index]);
       }
       isLoading = false;
@@ -274,7 +281,8 @@ class _QuestionListScreenState extends State<QuestionListScreen>
 
             if (questionResponse != null &&
                 questionResponse!.responseData != null) {
-              saveCvfQuestionsPref(widget.mCategoryId, questionResponse!.toJson());
+              saveCvfQuestionsPref(
+                  widget.mCategoryId, questionResponse!.toJson());
               mQuestionMaster.addAll(questionResponse!.responseData);
               DBHelper dbHelper = DBHelper();
               dbHelper.insertCVFQuestions(
@@ -354,14 +362,15 @@ class _QuestionListScreenState extends State<QuestionListScreen>
     }
   }
 
-  String getAnswerId(List<Answers> answerList, String answerType, String answer) {
+  String getAnswerId(
+      List<Answers> answerList, String answerType, String answer) {
     String answerId = answer;
     if (answerType == 'YesNo') {
       //print('Answer YesNo...${answer}');
       for (int index = 0; index < answerList.length; index++) {
         if (answer == answerList[index].answerName) {
           answerId = answerList[index].answerId;
-      //    print('Answer AnswerId...${answerId}');
+          //    print('Answer AnswerId...${answerId}');
         }
       }
     } else {
@@ -379,21 +388,36 @@ class _QuestionListScreenState extends State<QuestionListScreen>
       for (int index = 0; index < answerList.length; index++) {
         if (answer == answerList[index].answerId) {
           rating = answerList[index].rating;
-        //  print('Answer AnswerId...${rating}');
+          //  print('Answer AnswerId...${rating}');
         }
       }
     }
     //print('Answer is ${rating}');
     return rating;
   }
-bool isOffline=false;
+
+  bool isOffline = false;
   isFileUpload() {
-    isOffline=false;
+    isOffline = false;
     for (int index = 0; index < mQuestionMaster.length; index++) {
-      for (int jIndex = 0;jIndex < mQuestionMaster[index].allquestion.length;jIndex++) {
-        if(mQuestionMaster[index].allquestion[jIndex].files.isNotEmpty && mQuestionMaster[index].allquestion[jIndex].files.contains('data/user')){
-          String name = widget.employeeId.toString() +'_c' +widget.PJPCVF_Id.toString() +'_q' +mQuestionMaster[index].allquestion[jIndex].Question_Id;
-          FirebaseStorageUtil().uploadFile(mQuestionMaster[index].allquestion[jIndex], mQuestionMaster[index].allquestion[jIndex].files, name, this);
+      for (int jIndex = 0;
+          jIndex < mQuestionMaster[index].allquestion.length;
+          jIndex++) {
+        if (mQuestionMaster[index].allquestion[jIndex].files.isNotEmpty &&
+            mQuestionMaster[index]
+                .allquestion[jIndex]
+                .files
+                .contains('data/user')) {
+          String name = widget.employeeId.toString() +
+              '_c' +
+              widget.PJPCVF_Id.toString() +
+              '_q' +
+              mQuestionMaster[index].allquestion[jIndex].Question_Id;
+          FirebaseStorageUtil().uploadFile(
+              mQuestionMaster[index].allquestion[jIndex],
+              mQuestionMaster[index].allquestion[jIndex].files,
+              name,
+              this);
           return true;
         }
       }
@@ -404,33 +428,36 @@ bool isOffline=false;
 
   saveAnswers(String cvfId) async {
     bool isInternet = await Utility.isInternet();
-    if(isFileUpload()){
+    if (isFileUpload()) {
       debugPrint('isFile upload');
-    }else if (isInternet) {
+    } else if (isInternet) {
       debugPrint('saving data');
       Utility.showLoaderDialog(context);
-      isOffline=false;
+      isOffline = false;
       String docXml = '<root>';
       for (int index = 0; index < mQuestionMaster.length; index++) {
         for (int jIndex = 0;
             jIndex < mQuestionMaster[index].allquestion.length;
             jIndex++) {
-          if (mQuestionMaster[index].allquestion[jIndex].endDate!='NA' || mQuestionMaster[index].allquestion[jIndex].startDate!='NA' || mQuestionMaster[index].allquestion[jIndex].Remarks.isNotEmpty || mQuestionMaster[index]
-                      .allquestion[jIndex]
-                      .answers[0]
-                      .answerType ==
-                  'YesNo' &&
-              (mQuestionMaster[index]
-                      .allquestion[jIndex]
-                      .userAnswers
-                      .isNotEmpty ||
-                  mQuestionMaster[index]
-                      .allquestion[jIndex]
-                      .files
-                      .isNotEmpty)) {
+          if (mQuestionMaster[index].allquestion[jIndex].endDate != 'NA' ||
+              mQuestionMaster[index].allquestion[jIndex].startDate != 'NA' ||
+              mQuestionMaster[index].allquestion[jIndex].Remarks.isNotEmpty ||
+              mQuestionMaster[index]
+                          .allquestion[jIndex]
+                          .answers[0]
+                          .answerType ==
+                      'YesNo' &&
+                  (mQuestionMaster[index]
+                          .allquestion[jIndex]
+                          .userAnswers
+                          .isNotEmpty ||
+                      mQuestionMaster[index]
+                          .allquestion[jIndex]
+                          .files
+                          .isNotEmpty)) {
             //print('===========IF YESNO ${mQuestionMaster[index].allquestion[jIndex].Question_Id} uid-${mQuestionMaster[index].allquestion[jIndex].userAnswers},${userAnswerMap[mQuestionMaster[index].allquestion[jIndex].Question_Id]}');
             docXml =
-                '${docXml}<tblPJPCVF_Answer><SubmissionDate>${Utility.convertShortDate(DateTime.now())}</SubmissionDate><Question_Id>${mQuestionMaster[index].allquestion[jIndex].Question_Id}</Question_Id><AnswerId>${getAnswerId(mQuestionMaster[index].allquestion[jIndex].answers, mQuestionMaster[index].allquestion[jIndex].answers[0].answerType, mQuestionMaster[index].allquestion[jIndex].userAnswers.isNotEmpty ? mQuestionMaster[index].allquestion[jIndex].userAnswers : userAnswerMap[mQuestionMaster[index].allquestion[jIndex].Question_Id].toString() )
+                '${docXml}<tblPJPCVF_Answer><SubmissionDate>${Utility.convertShortDate(DateTime.now())}</SubmissionDate><Question_Id>${mQuestionMaster[index].allquestion[jIndex].Question_Id}</Question_Id><AnswerId>${getAnswerId(mQuestionMaster[index].allquestion[jIndex].answers, mQuestionMaster[index].allquestion[jIndex].answers[0].answerType, mQuestionMaster[index].allquestion[jIndex].userAnswers.isNotEmpty ? mQuestionMaster[index].allquestion[jIndex].userAnswers : userAnswerMap[mQuestionMaster[index].allquestion[jIndex].Question_Id].toString())
                 /* mQuestionMaster[index].allquestion[jIndex].answers[0].answerType == 'YesNo' ?
                   mQuestionMaster[index].allquestion[jIndex].userAnswers : ''*/
                 }</AnswerId>'
@@ -456,9 +483,8 @@ bool isOffline=false;
                       .isNotEmpty)) {
             //print('===========ELSE YESNO  ${mQuestionMaster[index].allquestion[jIndex].userAnswers},${userAnswerMap[mQuestionMaster[index].allquestion[jIndex].Question_Id]},${getAnswerId(mQuestionMaster[index].allquestion[jIndex].answers, mQuestionMaster[index].allquestion[jIndex].answers[0].answerType, userAnswerMap[mQuestionMaster[index].allquestion[jIndex].Question_Id].toString().isNotEmpty  ? userAnswerMap[mQuestionMaster[index].allquestion[jIndex].Question_Id].toString() : mQuestionMaster[index].allquestion[jIndex].SelectedAnswer)}');
             docXml =
-                '${docXml}<tblPJPCVF_Answer><SubmissionDate>${Utility.convertShortDate(DateTime.now())}</SubmissionDate><Question_Id>${mQuestionMaster[index].allquestion[jIndex].Question_Id}</Question_Id><Files>${encodeFile(mQuestionMaster[index].allquestion[jIndex].files)}</Files><AnswerId>${getAnswerId(mQuestionMaster[index].allquestion[jIndex].answers, mQuestionMaster[index].allquestion[jIndex].answers[0].answerType, userAnswerMap[mQuestionMaster[index].allquestion[jIndex].Question_Id].toString().isNotEmpty  ? userAnswerMap[mQuestionMaster[index].allquestion[jIndex].Question_Id].toString() : userAnswerMap[mQuestionMaster[index].allquestion[jIndex].Question_Id].toString())
-                }</AnswerId>'
-                '<Remarks>${ mQuestionMaster[index].allquestion[jIndex].answers[0].answerType == 'YesNo' ? '' : userAnswerMap[mQuestionMaster[index].allquestion[jIndex].Question_Id].toString().isEmpty || userAnswerMap[mQuestionMaster[index].allquestion[jIndex].Question_Id].toString() == 'null' ? mQuestionMaster[index].allquestion[jIndex].Remarks : userAnswerMap[mQuestionMaster[index].allquestion[jIndex].Question_Id].toString()}</Remarks></tblPJPCVF_Answer>';
+                '${docXml}<tblPJPCVF_Answer><SubmissionDate>${Utility.convertShortDate(DateTime.now())}</SubmissionDate><Question_Id>${mQuestionMaster[index].allquestion[jIndex].Question_Id}</Question_Id><Files>${encodeFile(mQuestionMaster[index].allquestion[jIndex].files)}</Files><AnswerId>${getAnswerId(mQuestionMaster[index].allquestion[jIndex].answers, mQuestionMaster[index].allquestion[jIndex].answers[0].answerType, userAnswerMap[mQuestionMaster[index].allquestion[jIndex].Question_Id].toString().isNotEmpty ? userAnswerMap[mQuestionMaster[index].allquestion[jIndex].Question_Id].toString() : userAnswerMap[mQuestionMaster[index].allquestion[jIndex].Question_Id].toString())}</AnswerId>'
+                '<Remarks>${mQuestionMaster[index].allquestion[jIndex].answers[0].answerType == 'YesNo' ? '' : userAnswerMap[mQuestionMaster[index].allquestion[jIndex].Question_Id].toString().isEmpty || userAnswerMap[mQuestionMaster[index].allquestion[jIndex].Question_Id].toString() == 'null' ? mQuestionMaster[index].allquestion[jIndex].Remarks : userAnswerMap[mQuestionMaster[index].allquestion[jIndex].Question_Id].toString()}</Remarks></tblPJPCVF_Answer>';
           }
         }
       }
@@ -526,7 +552,7 @@ bool isOffline=false;
                   ),
                   IconButton(
                     icon: const Icon(Icons.done),
-                    tooltip: 'Filter',
+                    tooltip: 'Save Answers',
                     onPressed: () {
                       saveAnswers('');
                     },
@@ -880,9 +906,7 @@ bool isOffline=false;
           padding: EdgeInsets.all(5),
           child: Text(cvfView.Status,
               textAlign: TextAlign.center,
-              style: TextStyle(
-                  color: Colors.black,
-                  fontSize: 12)),
+              style: TextStyle(color: Colors.black, fontSize: 12)),
         ),
       ),
     );
@@ -949,13 +973,18 @@ bool isOffline=false;
   updateAnswers(Allquestion questions, String answers) {
     //mQuestionMaster[index].allquestion[jIndex].answers
     if (userAnswerMap.containsKey(questions.Question_Id.toString())) {
-      userAnswerMap.update(questions.Question_Id.toString(), (value) => answers);
+      userAnswerMap.update(
+          questions.Question_Id.toString(), (value) => answers);
     } else {
-      userAnswerMap.putIfAbsent(questions.Question_Id.toString(), () => answers);
+      userAnswerMap.putIfAbsent(
+          questions.Question_Id.toString(), () => answers);
     }
     for (int index = 0; index < mQuestionMaster.length; index++) {
-      for (int jIndex = 0;jIndex < mQuestionMaster[index].allquestion.length;jIndex++) {
-        if (mQuestionMaster[index].allquestion[jIndex].Question_Id ==questions.Question_Id) {
+      for (int jIndex = 0;
+          jIndex < mQuestionMaster[index].allquestion.length;
+          jIndex++) {
+        if (mQuestionMaster[index].allquestion[jIndex].Question_Id ==
+            questions.Question_Id) {
           mQuestionMaster[index].allquestion[jIndex].SelectedAnswer = answers;
           mQuestionMaster[index].allquestion[jIndex].userAnswers = answers;
           //debugPrint('Answer updated for ${questions.Question_Id} ${answers}');
@@ -1002,31 +1031,55 @@ bool isOffline=false;
         ));
   }
 
-  _getAnswerWidget(Allquestion questions){
+  _getAnswerWidget(Allquestion questions) {
     if (questions.answers[0].answerType == 'YesNo') {
       String path = getImagePath(questions);
       if (path.isNotEmpty) {
         questions.files = path;
         updateImage(questions, path);
       }
-      return Padding(padding: EdgeInsets.only(bottom: 15),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              Container(
-                margin: EdgeInsets.only(bottom: 10),
-                constraints: BoxConstraints.tightFor(width: MediaQuery.of(context).size.width * 0.7, height: questions.IsProgressive=='1' ? questions.answers.length * 50 : 160),
-                child: Column(
-                  children: _generateDynamicYesNo(questions),
+      return Padding(
+        padding: EdgeInsets.only(bottom: 15),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                Container(
+                  margin: EdgeInsets.only(bottom: 10),
+                  constraints: BoxConstraints.tightFor(
+                      width: MediaQuery.of(context).size.width * 0.7,
+                      height: questions.IsProgressive == '1'
+                          ? questions.answers.length * 50
+                          : 160),
+                  child: Column(
+                    children: _generateDynamicYesNo(questions),
+                  ),
                 ),
-              ),
 
-              GestureDetector(
-                onTap: () {
-                  print('in 1027');
-                  if (widget.isViewOnly) {
-                    if (questions.files.isNotEmpty) {
+                GestureDetector(
+                  onTap: () {
+                    print('in 1027');
+                    if (widget.isViewOnly) {
+                      if (questions.files.isNotEmpty) {
+                        if (questions.files.contains('.png') ||
+                            questions.files.contains('.jpg') ||
+                            questions.files.contains('.jpeg')) {
+                          Navigator.push(context,
+                              MaterialPageRoute(builder: (_) {
+                            return DetailScreen(
+                                imageUrl: getImageUrl(questions.files),
+                                question: questions,
+                                listener: this,
+                                isViewOnly: widget.isViewOnly);
+                          }));
+                        } else {
+                          openFile(questions);
+                        }
+                      }
+                    } else if (_Status == 'Completed') {
+                      Utility.showMessages(
+                          context, LocalConstant.CVF_ALREADY_SUBMITTED);
+                    } else if (questions.files.isNotEmpty) {
                       if (questions.files.contains('.png') ||
                           questions.files.contains('.jpg') ||
                           questions.files.contains('.jpeg')) {
@@ -1040,60 +1093,52 @@ bool isOffline=false;
                       } else {
                         openFile(questions);
                       }
-                    }
-                  } else if (_Status == 'Completed') {
-                    Utility.showMessages(context, LocalConstant.CVF_ALREADY_SUBMITTED);
-                  } else if (questions.files.isNotEmpty) {
-                    if (questions.files.contains('.png') ||
-                        questions.files.contains('.jpg') ||
-                        questions.files.contains('.jpeg')) {
-                      Navigator.push(context, MaterialPageRoute(builder: (_) {
-                        return DetailScreen(
-                            imageUrl: getImageUrl(questions.files),
-                            question: questions,
-                            listener: this,
-                            isViewOnly: widget.isViewOnly);
-                      }));
                     } else {
-                      openFile(questions);
+                      showImageOption(questions);
                     }
-                  } else {
-                    showImageOption(questions);
-                  }
-                },
-                child: Padding(
-                  padding: EdgeInsets.all(8.0),
-                  child: questions.files.isNotEmpty && questions.files != null
-                      ? isImage(questions.files) && questions.files.contains('data/user')
-                      ? Image.file(File(questions.files),height: 30,width: 30,) : isImage(questions.files)
-                      ? getIcon(questions.files)
-                      : getIcon(questions.files)
-                      : (getImagePath(questions)).isNotEmpty
-                      ? !isImage(questions.files)
-                      ? getIcon(questions.files)
-                      : Image.network(
-                      getImageUrl((getImagePath(questions))),
-                      // width: 300,
-                      height: 80,
-                      fit: BoxFit.fill)
-                      : questions.files.isEmpty
-                      ? Icon(
-                    Icons.photo,
-                    size: 20,
-                  )
-                      : Image.network(getImageUrl(questions.files),
-                      // width: 300,
-                      height: 80,
-                      fit: BoxFit.fill),
-                ),
-              )
-              // More rows
-            ],
-          ),
-          questions.IsProgressive=='1' ? getDateLatyout(questions) : Container()
-        ],
-      ),);
-    }else {
+                  },
+                  child: Padding(
+                    padding: EdgeInsets.all(8.0),
+                    child: questions.files.isNotEmpty && questions.files != null
+                        ? isImage(questions.files) &&
+                                questions.files.contains('data/user')
+                            ? Image.file(
+                                File(questions.files),
+                                height: 30,
+                                width: 30,
+                              )
+                            : isImage(questions.files)
+                                ? getIcon(questions.files)
+                                : getIcon(questions.files)
+                        : (getImagePath(questions)).isNotEmpty
+                            ? !isImage(questions.files)
+                                ? getIcon(questions.files)
+                                : Image.network(
+                                    getImageUrl((getImagePath(questions))),
+                                    // width: 300,
+                                    height: 80,
+                                    fit: BoxFit.fill)
+                            : questions.files.isEmpty
+                                ? Icon(
+                                    Icons.photo,
+                                    size: 20,
+                                  )
+                                : Image.network(getImageUrl(questions.files),
+                                    // width: 300,
+                                    height: 80,
+                                    fit: BoxFit.fill),
+                  ),
+                )
+                // More rows
+              ],
+            ),
+            questions.IsProgressive == '1'
+                ? getDateLatyout(questions)
+                : Container()
+          ],
+        ),
+      );
+    } else {
       return Column(
         children: getDescriptionWidget(questions),
       );
@@ -1105,9 +1150,14 @@ bool isOffline=false;
       color: LightColors.kLightGrayM,
       child: Row(
         children: [
-          Expanded(child: datePicker(context,questions.Question_Id,'Start',questions.startDate,questions.startDate)),
-          questions.startDate.isNotEmpty ?
-          Expanded(child: datePicker(context,questions.Question_Id,'End',questions.endDate,questions.startDate)) : Container()
+          Expanded(
+              child: datePicker(context, questions.Question_Id, 'Start',
+                  questions.startDate, questions.startDate)),
+          questions.startDate.isNotEmpty
+              ? Expanded(
+                  child: datePicker(context, questions.Question_Id, 'End',
+                      questions.endDate, questions.startDate))
+              : Container()
         ],
       ),
     );
@@ -1122,12 +1172,19 @@ bool isOffline=false;
       height: 35,
       child: Row(
         children: [
-          Expanded(child: InkWell(onTap:() => showRemarkDialog(questions),child: Text(maxLines: 2,
-              overflow: TextOverflow.ellipsis, questions.Remarks.isEmpty ? 'Remark' : questions.Remarks),))
+          Expanded(
+              child: InkWell(
+            onTap: () => showRemarkDialog(questions),
+            child: Text(
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                questions.Remarks.isEmpty ? 'Remark' : questions.Remarks),
+          ))
         ],
       ),
     );
   }
+
   _getAnswerWidget1(Allquestion questions) {
     if (questions.answers[0].answerType == 'YesNo') {
       String path = getImagePath(questions);
@@ -1139,9 +1196,11 @@ bool isOffline=false;
       return Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          Expanded(child: Row(
-            children: _generateDynamicYesNo(questions),
-          ),),
+          Expanded(
+            child: Row(
+              children: _generateDynamicYesNo(questions),
+            ),
+          ),
           /*Expanded(
             flex: 1,
             child: CheckboxListTile(
@@ -1241,10 +1300,16 @@ bool isOffline=false;
             child: Padding(
               padding: EdgeInsets.all(8.0),
               child: questions.files.isNotEmpty && questions.files != null
-                  ? isImage(questions.files) && questions.files.contains('data/user')
-                  ? Image.file(File(questions.files),height: 30,width: 30,) : isImage(questions.files)
-                      ? getIcon(questions.files)
-                      : getIcon(questions.files)
+                  ? isImage(questions.files) &&
+                          questions.files.contains('data/user')
+                      ? Image.file(
+                          File(questions.files),
+                          height: 30,
+                          width: 30,
+                        )
+                      : isImage(questions.files)
+                          ? getIcon(questions.files)
+                          : getIcon(questions.files)
                   : (getImagePath(questions)).isNotEmpty
                       ? !isImage(questions.files)
                           ? getIcon(questions.files)
@@ -1365,12 +1430,10 @@ bool isOffline=false;
                   openFile(questions);
                 }
               }
-            }
-            else if (_Status == 'Completed') {
+            } else if (_Status == 'Completed') {
               openFile(questions);
               //Utility.showMessages(context, 'CVF Already submitted and not able to update');
-            } 
-            else if (questions.files.isNotEmpty) {
+            } else if (questions.files.isNotEmpty) {
               if (questions.files.contains('.jpg') ||
                   questions.files.contains('png')) {
                 Navigator.push(context, MaterialPageRoute(builder: (_) {
@@ -1390,22 +1453,26 @@ bool isOffline=false;
           },
           child: Padding(
             padding: EdgeInsets.all(8.0),
-            child: isImage(questions.files) && questions.files.contains('data/user') ? Image.file(File(questions.files)) : questions.files.isNotEmpty
-                ? !isImage(questions.files)
-                    ?  getIcon(questions.files)
-                    : Image.network(getImageUrl(decodeFile(questions.files)),
-                        // width: 300,
-                        height: 80,
-                        fit: BoxFit.fill)
-                : questions.files.isEmpty
-                    ? Icon(
-                        Icons.photo,
-                        size: 20,
-                      )
-                    : Image.network(getImageUrl(questions.files),
-                        // width: 300,
-                        height: 80,
-                        fit: BoxFit.fill),
+            child: isImage(questions.files) &&
+                    questions.files.contains('data/user')
+                ? Image.file(File(questions.files))
+                : questions.files.isNotEmpty
+                    ? !isImage(questions.files)
+                        ? getIcon(questions.files)
+                        : Image.network(
+                            getImageUrl(decodeFile(questions.files)),
+                            // width: 300,
+                            height: 80,
+                            fit: BoxFit.fill)
+                    : questions.files.isEmpty
+                        ? Icon(
+                            Icons.photo,
+                            size: 20,
+                          )
+                        : Image.network(getImageUrl(questions.files),
+                            // width: 300,
+                            height: 80,
+                            fit: BoxFit.fill),
           ),
         ),
       ));
@@ -1474,7 +1541,8 @@ bool isOffline=false;
                             if (_textEditingController.text
                                 .toString()
                                 .isNotEmpty) {
-                              updateAnswers(question,_textEditingController.text.toString());
+                              updateAnswers(question,
+                                  _textEditingController.text.toString());
                               Navigator.of(context).pop();
                             }
                           },
@@ -1494,27 +1562,29 @@ bool isOffline=false;
     );
   }
 
-  _generateDynamicYesNo(Allquestion questions){
+  _generateDynamicYesNo(Allquestion questions) {
     //print('_generate yesno=====================');
     List<Widget> list = [];
-    for(int index=0;index<questions.answers.length;index++){
+    for (int index = 0; index < questions.answers.length; index++) {
       list.add(Expanded(
         child: CheckboxListTile(
-          
           value: (!userAnswerMap.containsKey(questions.Question_Id) &&
-              questions.SelectedAnswer == questions.answers[index].answerId) ||
-              (userAnswerMap.containsKey(questions.Question_Id) &&
-                  userAnswerMap[questions.Question_Id] == questions.answers[index].answerId)
+                      questions.SelectedAnswer ==
+                          questions.answers[index].answerId) ||
+                  (userAnswerMap.containsKey(questions.Question_Id) &&
+                      userAnswerMap[questions.Question_Id] ==
+                          questions.answers[index].answerId)
               ? true
               : false,
-          title:  Text(
+          title: Text(
             questions.answers[index].answerName,
             style: TextStyle(fontSize: 12),
           ),
           controlAffinity: ListTileControlAffinity.leading,
           onChanged: (checked) {
             if (widget.isViewOnly) {
-              Utility.showMessages(context, 'You have view-only access and are not permitted to make edits.');
+              Utility.showMessages(context,
+                  'You have view-only access and are not permitted to make edits.');
             } else if (_Status == 'Completed') {
               Utility.showMessages(
                   context, LocalConstant.CVF_ALREADY_SUBMITTED);
@@ -1529,16 +1599,18 @@ bool isOffline=false;
         ),
       ));
     }
-    
+
     list.add(getRemark(questions));
     return list;
   }
 
-  updateRemark(Allquestion questions,String remark) async{
-
+  updateRemark(Allquestion questions, String remark) async {
     for (int index = 0; index < mQuestionMaster.length; index++) {
-      for (int jIndex = 0;jIndex < mQuestionMaster[index].allquestion.length;jIndex++) {
-        if (mQuestionMaster[index].allquestion[jIndex].Question_Id ==questions.Question_Id) {
+      for (int jIndex = 0;
+          jIndex < mQuestionMaster[index].allquestion.length;
+          jIndex++) {
+        if (mQuestionMaster[index].allquestion[jIndex].Question_Id ==
+            questions.Question_Id) {
           mQuestionMaster[index].allquestion[jIndex].Remarks = remark;
           break;
         }
@@ -1549,26 +1621,23 @@ bool isOffline=false;
     //print(questionResponse!.toJson());
     saveCvfQuestionsPref(widget.mCategoryId, questionResponse!.toJson());
     DBHelper dbHelper = DBHelper();
-    await dbHelper.updateCVFQuestions(widget.PJPCVF_Id.toString(), widget.mCategory,json.encode(questionResponse!.toJson()),0);
+    await dbHelper.updateCVFQuestions(widget.PJPCVF_Id.toString(),
+        widget.mCategory, json.encode(questionResponse!.toJson()), 0);
   }
 
-  showRemarkDialog(Allquestion questions){
+  showRemarkDialog(Allquestion questions) {
     if (widget.isViewOnly) {
     } else if (widget.cvfView.Status == 'Completed') {
       Utility.showMessages(context, LocalConstant.CVF_ALREADY_SUBMITTED);
-    }else {
+    } else {
       TextEditingController _controlelr = TextEditingController();
       _controlelr.text = questions.Remarks;
       showModalBottomSheet(
           context: context,
           isScrollControlled: true,
-          builder: (context) =>
-              Padding(
+          builder: (context) => Padding(
                 padding: EdgeInsets.only(
-                    bottom: MediaQuery
-                        .of(context)
-                        .viewInsets
-                        .bottom),
+                    bottom: MediaQuery.of(context).viewInsets.bottom),
                 child: Container(
                   margin: EdgeInsets.all(10),
                   child: Column(
@@ -1578,12 +1647,14 @@ bool isOffline=false;
                       Row(
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
-                          TextButton(onPressed: () {
-                            updateRemark(questions, _controlelr.text
-                                .toString());
-                            //questions.Remarks=_controlelr.text.toString();
-                            Navigator.of(context).pop();
-                          }, child: Text('Submit'))
+                          TextButton(
+                              onPressed: () {
+                                updateRemark(
+                                    questions, _controlelr.text.toString());
+                                //questions.Remarks=_controlelr.text.toString();
+                                Navigator.of(context).pop();
+                              },
+                              child: Text('Submit'))
                         ],
                       ),
                       Padding(
@@ -1598,9 +1669,7 @@ bool isOffline=false;
                         controller: _controlelr,
                         maxLines: 3,
                         maxLength: 100,
-                        decoration: InputDecoration(
-                            hintText: 'Remark'
-                        ),
+                        decoration: InputDecoration(hintText: 'Remark'),
                         autofocus: true,
                       ),
                     ],
@@ -1609,64 +1678,73 @@ bool isOffline=false;
               ));
     }
   }
+
   var _dateController = TextEditingController();
-  Widget datePicker(BuildContext context,String Question_Id,String label,String text,String start) {
+  Widget datePicker(BuildContext context, String Question_Id, String label,
+      String text, String start) {
     return Container(
       margin: EdgeInsets.all(5),
       height: 35,
       child: InkWell(
-        onTap: (){
+        onTap: () {
           if (widget.isViewOnly) {
           } else if (widget.cvfView.Status == 'Completed') {
             Utility.showMessages(context, LocalConstant.CVF_ALREADY_SUBMITTED);
-          }else {
-            DateTime startDate = label == 'Start' ? DateTime(DateTime
-                .now()
-                .year, DateTime
-                .now()
-                .month - 1, DateTime
-                .now()
-                .day) : Utility.parseDateTime(start);
-            DateTime endDate = DateTime(DateTime
-                .now()
-                .year, DateTime
-                .now()
-                .month + 1, DateTime
-                .now()
-                .day);
+          } else {
+            DateTime startDate = label == 'Start'
+                ? DateTime(DateTime.now().year, DateTime.now().month - 1,
+                    DateTime.now().day)
+                : Utility.parseDateTime(start);
+            DateTime endDate = DateTime(DateTime.now().year,
+                DateTime.now().month + 1, DateTime.now().day);
             _showDatePicker(
                 context, Question_Id, label, text, startDate, endDate);
           }
         },
         child: Row(
           children: [
-            Icon(Icons.date_range,size: 14,),
-            SizedBox(width: 10,),
-            Text(text.isEmpty || text=='NA' ? 'Timeline ${label} Date' : Utility.parseSimpleDate(text),style: TextStyle(fontSize: text.isEmpty ? 10 :12, color: text.isEmpty ? Colors.grey : Colors.black87),),
+            Icon(
+              Icons.date_range,
+              size: 14,
+            ),
+            SizedBox(
+              width: 10,
+            ),
+            Text(
+              text.isEmpty || text == 'NA'
+                  ? 'Timeline ${label} Date'
+                  : Utility.parseSimpleDate(text),
+              style: TextStyle(
+                  fontSize: text.isEmpty ? 10 : 12,
+                  color: text.isEmpty ? Colors.grey : Colors.black87),
+            ),
           ],
         ),
       ),
     );
   }
 
-  updateDate(String questionId,String label,String date) async{
+  updateDate(String questionId, String label, String date) async {
     for (int index = 0; index < mQuestionMaster.length; index++) {
-      for (int jIndex = 0; jIndex <
-          mQuestionMaster[index].allquestion.length; jIndex++) {
-          if(mQuestionMaster[index].allquestion[jIndex].Question_Id==questionId){
-            if(label=='Start') {
-              mQuestionMaster[index].allquestion[jIndex].startDate = date;
-              if(mQuestionMaster[index].allquestion[jIndex].endDate.isNotEmpty) {
-                DateTime startDate = Utility.parseDateTime(date);
-                DateTime endDate = Utility.parseDateTime(mQuestionMaster[index].allquestion[jIndex].endDate);
-                if(startDate.isAfter(endDate)){
-                  mQuestionMaster[index].allquestion[jIndex].endDate ='';
-                }
+      for (int jIndex = 0;
+          jIndex < mQuestionMaster[index].allquestion.length;
+          jIndex++) {
+        if (mQuestionMaster[index].allquestion[jIndex].Question_Id ==
+            questionId) {
+          if (label == 'Start') {
+            mQuestionMaster[index].allquestion[jIndex].startDate = date;
+            if (mQuestionMaster[index].allquestion[jIndex].endDate.isNotEmpty) {
+              DateTime startDate = Utility.parseDateTime(date);
+              DateTime endDate = Utility.parseDateTime(
+                  mQuestionMaster[index].allquestion[jIndex].endDate);
+              if (startDate.isAfter(endDate)) {
+                mQuestionMaster[index].allquestion[jIndex].endDate = '';
               }
-            }else {
-              mQuestionMaster[index].allquestion[jIndex].endDate = date;
             }
+          } else {
+            mQuestionMaster[index].allquestion[jIndex].endDate = date;
           }
+        }
       }
     }
     //print(questionResponse);
@@ -1676,7 +1754,8 @@ bool isOffline=false;
     //print('save -- ${questionResponse!.toJson()}');
   }
 
-  _showDatePicker(BuildContext context,String questionId,String label,String text,DateTime start,DateTime lastDate) async {
+  _showDatePicker(BuildContext context, String questionId, String label,
+      String text, DateTime start, DateTime lastDate) async {
     DateTime? pickedDate = await showDatePicker(
         context: context,
         initialDate: start.isAfter(DateTime.now()) ? start : DateTime.now(),
@@ -1686,7 +1765,7 @@ bool isOffline=false;
 
     if (pickedDate != null) {
       setState(() {
-        updateDate(questionId,label,Utility.getDate(pickedDate));
+        updateDate(questionId, label, Utility.getDate(pickedDate));
       });
     } else {}
   }
@@ -1702,10 +1781,14 @@ bool isOffline=false;
                 children: _generateDynamicYesNo(question),
               ),
             ),
-            question.IsProgressive=='1' ? Container(color: Colors.lightBlue, child: Text('Date'),) : Container()
+            question.IsProgressive == '1'
+                ? Container(
+                    color: Colors.lightBlue,
+                    child: Text('Date'),
+                  )
+                : Container()
           ],
-        )
-          ,
+        ),
         const Expanded(
             child: Padding(
           padding: EdgeInsets.all(8.0),
@@ -1788,7 +1871,12 @@ bool isOffline=false;
                     .toString()
                 : '';
 
-        if(mQuestionMaster[index].allquestion[jIndex].IsProgressive=='1' && mQuestionMaster[index].allquestion[jIndex].SelectedAnswer.trim()!='1' &&  (mQuestionMaster[index].allquestion[jIndex].Remarks.isEmpty || mQuestionMaster[index].allquestion[jIndex].startDate=='NA' || mQuestionMaster[index].allquestion[jIndex].endDate=='NA')){
+        if (mQuestionMaster[index].allquestion[jIndex].IsProgressive == '1' &&
+            mQuestionMaster[index].allquestion[jIndex].SelectedAnswer.trim() !=
+                '1' &&
+            (mQuestionMaster[index].allquestion[jIndex].Remarks.isEmpty ||
+                mQuestionMaster[index].allquestion[jIndex].startDate == 'NA' ||
+                mQuestionMaster[index].allquestion[jIndex].endDate == 'NA')) {
           //print('${mQuestionMaster[index].allquestion[jIndex].Question_Id} ${mQuestionMaster[index].allquestion[jIndex].SelectedAnswer} ${mQuestionMaster[index].allquestion[jIndex].Remarks} ${mQuestionMaster[index].allquestion[jIndex].startDate} ${mQuestionMaster[index].allquestion[jIndex].endDate}');
           pendingQuestion = 'Please submit the below observation \n\n - ' +
               mQuestionMaster[index].allquestion[jIndex].categoryName +
@@ -1801,9 +1889,11 @@ bool isOffline=false;
           break;
           //break;
         }
-        
-        if (mQuestionMaster[index].allquestion[jIndex].isCompulsory == '1' && (userAnswer.isEmpty || userAnswer == 'null')) {
-          inCompleteQuestions = 'Please complete all Required answers, Questions in Category ${mQuestionMaster[index].allquestion[jIndex].categoryName} is pending';
+
+        if (mQuestionMaster[index].allquestion[jIndex].isCompulsory == '1' &&
+            (userAnswer.isEmpty || userAnswer == 'null')) {
+          inCompleteQuestions =
+              'Please complete all Required answers, Questions in Category ${mQuestionMaster[index].allquestion[jIndex].categoryName} is pending';
 
           if (pendingQuestion.isEmpty) {
             pendingQuestion = 'Please submit the below observation \n\n - ' +
@@ -1955,11 +2045,11 @@ bool isOffline=false;
     } else {
       String url = question.files;
       File file = File(url);
-       var filePath = file.path.split('?');
+      var filePath = file.path.split('?');
       var fileExt = filePath[0].split('/');
-       String fileName = fileExt[fileExt.length - 1].toString();
-       print('file name is ${fileName}');
-      Utility.downloadXFile(context,url, decodeUrl(fileName));
+      String fileName = fileExt[fileExt.length - 1].toString();
+      print('file name is ${fileName}');
+      Utility.downloadXFile(context, url, decodeUrl(fileName));
       // print('file download started...');
       // File file = File(decodeUrl(question.files));
       // var filePath = file.path.split('?');
@@ -2008,9 +2098,14 @@ bool isOffline=false;
       setState(() async {
         _imageFileList = pickedFileList;
         updateImage(player, player.files);
-        String name = widget.employeeId.toString() +'_c' +widget.PJPCVF_Id.toString() +'_q' +player.Question_Id;
+        String name = widget.employeeId.toString() +
+            '_c' +
+            widget.PJPCVF_Id.toString() +
+            '_q' +
+            player.Question_Id;
         if (await Utility.isInternet())
-          FirebaseStorageUtil().uploadFile(player, _imageFileList!.path, name, this);
+          FirebaseStorageUtil()
+              .uploadFile(player, _imageFileList!.path, name, this);
         else {
           updateImage(player, _imageFileList!.path);
         }
@@ -2030,9 +2125,10 @@ bool isOffline=false;
         debugPrint('File path ${fileExt[fileExt.length - 1]}');
         setState(() async {
           updateImage(player, player.files);
-          if (await Utility.isInternet()){
-            FirebaseStorageUtil().uploadAnyFile(player, file!.path, fileExt[fileExt.length - 1], this);
-          }else{
+          if (await Utility.isInternet()) {
+            FirebaseStorageUtil().uploadAnyFile(
+                player, file!.path, fileExt[fileExt.length - 1], this);
+          } else {
             debugPrint(file!.path);
             updateImage(player, file!.path);
           }
@@ -2048,15 +2144,14 @@ bool isOffline=false;
       for (int jIndex = 0;
           jIndex < mQuestionMaster[index].allquestion.length;
           jIndex++) {
-        if (mQuestionMaster[index].allquestion[jIndex].Question_Id == questions.Question_Id) {
+        if (mQuestionMaster[index].allquestion[jIndex].Question_Id ==
+            questions.Question_Id) {
           mQuestionMaster[index].allquestion[jIndex].files = path;
           updateImageOffline(questions, path);
         }
       }
     }
-    setState(() {
-
-    });
+    setState(() {});
   }
 
   @override
@@ -2076,13 +2171,12 @@ bool isOffline=false;
 
   @override
   void onUploadSuccess(value) {
-    if(!isOffline)
-      Navigator.of(context).pop();
+    if (!isOffline) Navigator.of(context).pop();
     if (value is Allquestion) {
       Allquestion question = value;
       updateImage(question, question.files);
       //if(isOffline){
-        //saveAnswers('');
+      //saveAnswers('');
       //}
     }
     setState(() {});
@@ -2098,7 +2192,8 @@ bool isOffline=false;
     Navigator.of(context).pop();
     if (value is UpdateCVFStatusResponse) {
       UpdateCVFStatusResponse response = value;
-      Utility.showMessageSingleButton(context, 'Thank you for submitting the CVF', this);
+      Utility.showMessageSingleButton(
+          context, 'Thank you for submitting the CVF', this);
     }
   }
 
@@ -2182,7 +2277,9 @@ class DetailScreen extends StatelessWidget {
       ),
       body: GestureDetector(
         child: PinchZoom(
-          child:  imageUrl.contains('data/user') ? Image.file(File(imageUrl)) : Image.network(imageUrl),
+          child: imageUrl.contains('data/user')
+              ? Image.file(File(imageUrl))
+              : Image.network(imageUrl),
           //resetDuration: const Duration(milliseconds: 100),
           maxScale: 2.5,
           onZoomStart: () {

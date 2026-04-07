@@ -886,8 +886,8 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
                 Address: location == 'Search Location'
                     ? getFrichanseeAddress()
                     : location,
-                Status: 'Planned',
-                approvalStatus: 'Pending',
+                Status: 'Check In',
+                approvalStatus: widget.mPjpModel.ApprovalStatus,
                 AddressIn: 'NA',
                 AddressOut: 'NA',
                 LatitudeIn: 0.0,
