@@ -104,6 +104,8 @@ class IntranetServiceHandler {
 
   static updateCVFStatus(int employeeId, GetDetailedPJP cvfView, String date,
       String status, onResponse onResponse) async {
+    print(
+        'Updating CVF status for Employee ID: $employeeId, CVF ID: ${cvfView.PJPCVF_Id}, New Status: $status - visit status - ${cvfView.Status}');
     double latitude = 0.0;
     double longitude = 0.0;
     onResponse.onStart();
@@ -128,7 +130,7 @@ class IntranetServiceHandler {
         Longitude: cvfView.Status == 'FILL CVF' ? cvfView.Longitude : longitude,
         CheckOutLatitude: status == 'Completed' ? latitude : 0.0,
         CheckOutLongitude: status == 'Completed' ? longitude : 0.0,
-        CheckOutAddress: status.trim() == 'Check In' ? '' : (address ?? ''),
+        CheckOutAddress: status == 'Completed' ? (address ?? '') : '',
         Address: (cvfView.Status.trim() == 'Check In' ||
                 cvfView.Status.trim() == 'NA')
             ? (address ?? '')
@@ -141,11 +143,22 @@ class IntranetServiceHandler {
         if (value == null || value.responseData == null) {
           onResponse.onError('Unable to update the status');
         } else if (value is UpdateCVFStatusResponse) {
-          UpdateCVFStatusResponse response = value;
-          cvfView.CheckInAddress = address ?? '';
-          cvfView.LatitudeIn = latitude;
-          cvfView.LongitudeIn = longitude;
-          cvfView.Status = 'Fill CVF';
+          // UpdateCVFStatusResponse response = value;
+          if (status == 'Completed') {
+            cvfView.DateTimeOut = date;
+            cvfView.CheckOutAddress = address ?? '';
+            cvfView.LatitudeOut = latitude;
+            cvfView.LongitudeOut = longitude;
+            cvfView.Status = 'Completed';
+            cvfView.approvalStatus = 'Completed';
+          } else if (cvfView.Status.trim() == 'Check In' ||
+              cvfView.Status.trim() == 'NA') {
+            cvfView.DateTimeIn = date;
+            cvfView.CheckInAddress = address ?? '';
+            cvfView.LatitudeIn = latitude;
+            cvfView.LongitudeIn = longitude;
+            cvfView.Status = 'FILL CVF';
+          }
           onResponse.onSuccess(cvfView);
         } else {
           onResponse.onError('Unable to update the status ');

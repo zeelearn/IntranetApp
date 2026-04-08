@@ -166,36 +166,6 @@ class APIService {
     }
   }
 
-  Future<dynamic> magicLogin(String token) async {
-    try {
-      var body = jsonEncode({
-        'token': token,
-        'AppType': kIsWeb
-            ? 'Web'
-            : Platform.isAndroid
-                ? 'Android'
-                : Platform.isIOS
-                    ? 'IOS'
-                    : 'unknown'
-      });
-      debugPrint('URL ${url + LocalStrings.GET_MAGIC_LOGIN}');
-      final response = await http.post(
-        Uri.parse(url + LocalStrings.GET_MAGIC_LOGIN),
-        headers: commonHeaders,
-        body: body,
-      );
-      print('MagicLogin Response ${response.body}');
-      if (response.statusCode == 200 || response.statusCode == 400) {
-        return LoginResponseModel.fromJson(json.decode(response.body));
-      } else {
-        return null;
-      }
-    } catch (e) {
-      debugPrint('MagicLogin Error: ${e.toString()}');
-      return null;
-    }
-  }
-
   Future<Either<String, List<GetPlanData>>> getEmployeeVisitDetails(
       int employeeID, int businessId) async {
     try {

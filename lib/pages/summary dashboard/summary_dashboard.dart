@@ -1,15 +1,18 @@
 import 'package:Intranet/api/ServiceHandler.dart';
 import 'package:Intranet/api/request/pjp/get_pjp_report_request.dart';
+import 'package:Intranet/api/request/pjp/update_pjpstatuslist_request.dart';
 import 'package:Intranet/api/response/pjp/pjplistresponse.dart';
 import 'package:Intranet/pages/helper/LocalConstant.dart';
 import 'package:Intranet/pages/helper/constants.dart';
 import 'package:Intranet/pages/helper/utils.dart';
+import 'package:Intranet/pages/iface/onClick.dart';
 import 'package:Intranet/pages/iface/onResponse.dart';
 import 'package:Intranet/pages/outdoor/apply_outdoor.dart';
 import 'package:Intranet/pages/pjp/add_new_pjp.dart';
 import 'package:Intranet/pages/pjp/cvf/add_cvf.dart';
 import 'package:Intranet/pages/pjp/cvf/cvf_questions.dart';
 import 'package:Intranet/pages/pjp/models/PjpModel.dart';
+import 'package:Intranet/pages/utils/theme/colors/light_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:hive/hive.dart';
@@ -764,8 +767,12 @@ class _SummaryDashboardState extends State<SummaryDashboard>
             final result = await Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) =>
-                    _DayEventsScreen(day: selected, events: events),
+                builder: (context) => _DayEventsScreen(
+                  day: selected,
+                  events: events,
+                  empCode: employeeCode,
+                  empName: employeeName,
+                ),
               ),
             );
             if (result == true) {
@@ -1036,26 +1043,6 @@ class _SummaryDashboardState extends State<SummaryDashboard>
     );
   }
 
-  Widget _buildWeatherRow(DateTime now) {
-    return Row(
-      children: [
-        Text(
-          'TODAY  ${DateFormat('M/d/yy').format(now)}',
-          style: GoogleFonts.inter(
-              color: Colors.white60,
-              fontSize: 10,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 0.5),
-        ),
-        const Spacer(),
-        Text('36°/33°',
-            style: GoogleFonts.inter(color: Colors.white60, fontSize: 10)),
-        const SizedBox(width: 4),
-        const Icon(Icons.cloud_outlined, color: Colors.white38, size: 14),
-      ],
-    );
-  }
-
   Widget _buildSidebarDaySection({
     required String label,
     required List<_Event> events,
@@ -1096,8 +1083,12 @@ class _SummaryDashboardState extends State<SummaryDashboard>
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) =>
-                  _DayEventsScreen(day: day, events: _getEventsForDay(day)),
+              builder: (context) => _DayEventsScreen(
+                day: day,
+                events: _getEventsForDay(day),
+                empCode: employeeCode,
+                empName: employeeName,
+              ),
             ),
           );
         },
@@ -1996,8 +1987,12 @@ class _SummaryDashboardState extends State<SummaryDashboard>
               final result = await Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) =>
-                      _DayEventsScreen(day: selected, events: events),
+                  builder: (context) => _DayEventsScreen(
+                    day: selected,
+                    events: events,
+                    empCode: employeeCode,
+                    empName: employeeName,
+                  ),
                 ),
               );
               if (result == true) {
@@ -2284,8 +2279,12 @@ class _SummaryDashboardState extends State<SummaryDashboard>
             final result = await Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) =>
-                    _DayEventsScreen(day: selected, events: events),
+                builder: (context) => _DayEventsScreen(
+                  day: selected,
+                  events: events,
+                  empCode: employeeCode,
+                  empName: employeeName,
+                ),
               ),
             );
             if (result == true) {
@@ -2373,8 +2372,12 @@ class _SummaryDashboardState extends State<SummaryDashboard>
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) =>
-                  _DayEventsScreen(day: day, events: _getEventsForDay(day)),
+              builder: (context) => _DayEventsScreen(
+                day: day,
+                events: _getEventsForDay(day),
+                empCode: employeeCode,
+                empName: employeeName,
+              ),
             ),
           );
         },
@@ -2627,8 +2630,14 @@ class _SummaryDashboardState extends State<SummaryDashboard>
 class _DayEventsScreen extends StatefulWidget {
   final DateTime day;
   final List<_Event> events;
+  final String empName;
+  final String empCode;
 
-  const _DayEventsScreen({required this.day, required this.events});
+  const _DayEventsScreen(
+      {required this.day,
+      required this.events,
+      required this.empName,
+      required this.empCode});
 
   @override
   State<_DayEventsScreen> createState() => _DayEventsScreenState();
@@ -2699,11 +2708,40 @@ class _DayEventsScreenState extends State<_DayEventsScreen> {
                     pjp: pjp,
                     color: widget.events[index].color,
                     onUpdated: _refresh,
+                    empCode: widget.empCode,
+                    empName: widget.empName,
                   );
                 },
               ),
       ),
     );
+  }
+}
+
+class _OnManagerApprovedRejectResponse implements onResponse {
+  final BuildContext context;
+  final Function(dynamic) onSuccessCallback;
+
+  _OnManagerApprovedRejectResponse({
+    required this.context,
+    required this.onSuccessCallback,
+  });
+
+  @override
+  void onStart() {
+    Utility.showLoaderDialog(context);
+  }
+
+  @override
+  void onSuccess(value) {
+    onSuccessCallback(value);
+    Navigator.of(context).pop();
+  }
+
+  @override
+  void onError(value) {
+    Navigator.of(context).pop(); // Dismiss loader
+    Utility.showMessage(context, value.toString());
   }
 }
 
@@ -2725,8 +2763,7 @@ class _OnCheckINCheckOutResponse implements onResponse {
 
   @override
   void onSuccess(value) {
-    Navigator.of(context).pop(); // Dismiss loader
-
+    Navigator.of(context).pop();
     onSuccessCallback(value);
     Utility.showMessage(context, message);
   }
@@ -2743,8 +2780,15 @@ class _PjpInfoCard extends StatelessWidget {
   final PJPInfo pjp;
   final Color color;
   final VoidCallback? onUpdated;
+  final String empCode;
+  final String empName;
 
-  const _PjpInfoCard({required this.pjp, required this.color, this.onUpdated});
+  const _PjpInfoCard(
+      {required this.pjp,
+      required this.color,
+      this.onUpdated,
+      required this.empCode,
+      required this.empName});
 
   static const Color _textPrimary = Color(0xFF1A1D2E);
   static const Color _textSecondary = Color(0xFF6B7280);
@@ -2759,6 +2803,30 @@ class _PjpInfoCard extends StatelessWidget {
     if (s.contains('pending')) return _orange;
     if (s.contains('reject')) return const Color(0xFFEF5350);
     return _textSecondary;
+  }
+
+  void approvePjpList(int isApprove, String pjpid, BuildContext context) {
+    StringBuffer DocXML = new StringBuffer("<root>");
+    DocXML.write(
+        "<subroot><PJP_id>${pjpid}</PJP_id><Is_Approved>${isApprove}</Is_Approved></subroot>");
+    DocXML.write("</root>");
+    UpdatePJPStatusListRequest request = UpdatePJPStatusListRequest(
+        DocXML: DocXML.toString(), Workflow_user: empCode);
+    IntranetServiceHandler.updatePJPStatusList(
+        request,
+        _OnManagerApprovedRejectResponse(
+          context: context,
+          onSuccessCallback: (p0) {
+            pjp.ApprovalStatus = isApprove == 1 ? 'Approved' : 'Rejected';
+            onUpdated?.call();
+            Navigator.of(context).pop(); // Dismiss confirmation dialog
+            Utility.showMessage(
+                context,
+                isApprove == 1
+                    ? 'PJP Approved successfully'
+                    : 'PJP Rejected successfully');
+          },
+        ));
   }
 
   @override
@@ -2852,27 +2920,65 @@ class _PjpInfoCard extends StatelessWidget {
                   const SizedBox(width: 8),
                 ],
                 // Status badge
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: _statusColor(pjp.ApprovalStatus)
-                        .withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
+                if (pjp.ApprovalStatus == 'Pending' &&
+                    empName == pjp.managerName) ...[
+                  Row(
+                    children: [
+                      ElevatedButton(
+                        onPressed: () {
+                          Utility.onConfirmationBoxNew(
+                            context,
+                            'REJECT',
+                            'Cancel',
+                            'Reject PJP',
+                            'Are you sure to reject the PJP',
+                            Utility.ACTION_REJECT,
+                            () {},
+                            () => approvePjpList(0, pjp.PJP_Id, context),
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                            elevation: 12.0,
+                            textStyle:
+                                const TextStyle(color: LightColors.kRed)),
+                        child: const Text('Reject'),
+                      ),
+                      SizedBox(width: 8),
+                      ElevatedButton(
+                        onPressed: () {
+                          approvePjpList(1, pjp.PJP_Id, context);
+                        },
+                        // style: ButtonStyle(elevation: MaterialStateProperty(12.0 )),
+                        style: ElevatedButton.styleFrom(
+                            elevation: 12.0,
+                            textStyle: const TextStyle(
+                                color: LightColors.kLightGreen)),
+                        child: const Text('Approve'),
+                      ),
+                    ],
+                  )
+                ] else
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
                       color: _statusColor(pjp.ApprovalStatus)
-                          .withValues(alpha: 0.4),
+                          .withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: _statusColor(pjp.ApprovalStatus)
+                            .withValues(alpha: 0.4),
+                      ),
+                    ),
+                    child: Text(
+                      pjp.ApprovalStatus,
+                      style: GoogleFonts.inter(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: _statusColor(pjp.ApprovalStatus),
+                      ),
                     ),
                   ),
-                  child: Text(
-                    pjp.ApprovalStatus,
-                    style: GoogleFonts.inter(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      color: _statusColor(pjp.ApprovalStatus),
-                    ),
-                  ),
-                ),
               ],
             ),
           ),
@@ -2970,16 +3076,19 @@ class _PjpInfoCard extends StatelessWidget {
             // Visit tiles
             ...pjp.getDetailedPJP!.map((visit) => _VisitTile(
                   visit: visit,
+                  pjpApprovalStatus: pjp.ApprovalStatus,
                   isViewOnly: pjp.isSelfPJP.trim() != '1',
+                  onCVFUpdateSuccess: (p0) {
+                    if (onUpdated != null) onUpdated!();
+                  },
                   onupdateResponse: _OnCheckINCheckOutResponse(
                       context: context,
-                      message: visit.Status == 'NA'
+                      message: visit.Status == 'NA' ||
+                              visit.Status.toLowerCase() == 'check in'
                           ? 'Checked in successfully'
                           : 'CVF filled successfully',
                       onSuccessCallback: (value) {
-                        if (value is GetDetailedPJP) {
-                          if (onUpdated != null) onUpdated!();
-                        }
+                        if (onUpdated != null) onUpdated!();
                       }),
                 )),
             const SizedBox(height: 8),
@@ -3025,16 +3134,37 @@ class _PjpInfoCard extends StatelessWidget {
       const Divider(height: 1, color: Color(0xFFF0F0F5), thickness: 1);
 }
 
+class _CheckInClickListener implements onClickListener {
+  final BuildContext context;
+  final Function(GetDetailedPJP) updateCVF;
+  _CheckInClickListener(this.context, this.updateCVF);
+  @override
+  void onClick(int action, value) {
+    if (value is GetDetailedPJP) {
+      Navigator.of(context).pop();
+      GetDetailedPJP cvfView = value;
+      if (action == Utility.ACTION_OK) {
+        updateCVF(cvfView);
+      } else if (action == Utility.ACTION_CCNCEL) {}
+    } else {
+      debugPrint('click functions not implemented......');
+    }
+  }
+}
+
 // ── Visit Tile (inside PJP card) ──────────────────────────────────────────────
 class _VisitTile extends StatelessWidget {
   final GetDetailedPJP visit;
   final bool isViewOnly;
   final onResponse onupdateResponse;
-
+  final Function(GetDetailedPJP) onCVFUpdateSuccess;
+  final String pjpApprovalStatus;
   const _VisitTile(
       {required this.visit,
       required this.isViewOnly,
-      required this.onupdateResponse});
+      required this.onupdateResponse,
+      required this.onCVFUpdateSuccess,
+      required this.pjpApprovalStatus});
 
   static const Color _textPrimary = Color(0xFF1A1D2E);
   static const Color _textSecondary = Color(0xFF6B7280);
@@ -3081,8 +3211,22 @@ class _VisitTile extends StatelessWidget {
 
     return InkWell(
       onTap: () async {
+        if (isViewOnly) {
+          ToastUtility.showError(msg: 'You cannot access this visit');
+          return;
+        }
+        print(
+            'Visit ${visit.PJPCVF_Id} tapped. Current status: ${visit.Status}');
+
         if (visit.purpose?.isEmpty ?? true) {
           ToastUtility.showError(msg: 'No purpose found for this visit');
+          return;
+        } else if (pjpApprovalStatus != 'Approved') {
+          ToastUtility.showError(
+              msg: 'PJP not yet approve, Please connect with your manager');
+          return;
+        } else if (pjpApprovalStatus == 'Rejected') {
+          ToastUtility.showError(msg: 'This PJP is rejected by your manager');
           return;
         }
 
@@ -3090,13 +3234,22 @@ class _VisitTile extends StatelessWidget {
         int employeeId =
             int.parse(hiveBox.get(LocalConstant.KEY_EMPLOYEE_ID) as String);
         if (visit.Status == 'NA' || visit.Status.toLowerCase() == 'check in') {
-          IntranetServiceHandler.updateCVFStatus(
-            employeeId,
-            visit,
-            Utility.getDateTime(),
-            getNextStatus(visit.Status),
-            onupdateResponse,
-          );
+          Utility.onConfirmationBox(
+              context,
+              'Check In',
+              'Cancel',
+              'PJP Status Update?',
+              'Would you like to Check In?',
+              visit,
+              _CheckInClickListener(context, (updatedCVF) {
+                IntranetServiceHandler.updateCVFStatus(
+                  employeeId,
+                  visit,
+                  Utility.getDateTime(),
+                  getNextStatus(visit.Status),
+                  onupdateResponse,
+                );
+              }));
         } else {
           Navigator.push(
             context,
@@ -3108,6 +3261,7 @@ class _VisitTile extends StatelessWidget {
                       mCategory: visit.purpose?.first.categoryName ?? '',
                       mCategoryId: visit.purpose?.first.categoryId ?? '',
                       isViewOnly: isViewOnly,
+                      onUpdateCVFStatus: (p0) => onCVFUpdateSuccess(p0),
                     )),
           );
         }

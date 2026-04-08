@@ -39,6 +39,7 @@ class QuestionListScreen extends StatefulWidget {
   int PJPCVF_Id = 0;
   int employeeId;
   bool isViewOnly;
+  Function(GetDetailedPJP)? onUpdateCVFStatus;
 
   QuestionListScreen(
       {Key? key,
@@ -47,7 +48,8 @@ class QuestionListScreen extends StatefulWidget {
       required this.cvfView,
       required this.mCategory,
       required this.mCategoryId,
-      required this.isViewOnly})
+      required this.isViewOnly,
+      this.onUpdateCVFStatus})
       : super(key: key);
 
   @override
@@ -2190,8 +2192,11 @@ class _QuestionListScreenState extends State<QuestionListScreen>
   @override
   void onSuccess(value) {
     Navigator.of(context).pop();
-    if (value is UpdateCVFStatusResponse) {
-      UpdateCVFStatusResponse response = value;
+    if (value is GetDetailedPJP /* UpdateCVFStatusResponse */) {
+      // UpdateCVFStatusResponse response = value;
+      if (widget.onUpdateCVFStatus != null) {
+        widget.onUpdateCVFStatus!(value);
+      }
       Utility.showMessageSingleButton(
           context, 'Thank you for submitting the CVF', this);
     }
@@ -2204,8 +2209,12 @@ class _QuestionListScreenState extends State<QuestionListScreen>
       showImageOption(value);
     } else if (action == ACTION_DELETE_IMAGE) {
     } else if (action == Utility.ACTION_OK) {
-      Navigator.of(context).pop();
-      Navigator.of(context).pop();
+      if (widget.onUpdateCVFStatus != null) {
+        Navigator.of(context).pop();
+      } else {
+        Navigator.of(context).pop();
+        Navigator.of(context).pop();
+      }
     }
   }
 }

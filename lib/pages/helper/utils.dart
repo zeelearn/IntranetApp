@@ -1028,6 +1028,55 @@ class Utility {
     );
   }
 
+  static onConfirmationBoxNew(
+    BuildContext context,
+    String actionOk,
+    String actionCancel,
+    String title,
+    String message,
+    dynamic action,
+    VoidCallback onReject,
+    VoidCallback onApprove,
+  ) {
+    Dialogs.materialDialog(
+      color: Colors.white,
+      msg: message,
+      title: title,
+      lottieBuilder: Lottie.asset(
+        'assets/json/75382-question.json',
+        fit: BoxFit.contain,
+      ),
+      dialogWidth: kIsWeb ? 0.2 : null,
+      context: context,
+      actions: [
+        IconsButton(
+          onPressed: () {
+            Navigator.pop(context);
+            onApprove();
+          },
+          text: actionOk,
+          iconData: Icons.check,
+          color: Colors.blue,
+          textStyle: const TextStyle(color: Colors.white),
+          iconColor: Colors.white,
+        ),
+        IconsButton(
+          onPressed: () {
+            Future.delayed(const Duration(milliseconds: 50)).then((_) {
+              Navigator.pop(context);
+              onReject();
+            });
+          },
+          iconData: Icons.cancel,
+          text: actionCancel,
+          color: Colors.blue,
+          textStyle: const TextStyle(color: Colors.white),
+          iconColor: Colors.white,
+        ),
+      ],
+    );
+  }
+
   static onApproveConfirmationBox(BuildContext context, String title,
       String message, onClickListener response) {
     Dialogs.materialDialog(

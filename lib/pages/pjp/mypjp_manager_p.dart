@@ -248,20 +248,18 @@ class _MyPjpListState extends State<MyPjpManPListScreen>
   }
 
   void _approveRejectAll() {
-    // flutter defined function
     showDialog(
       context: context,
       builder: (BuildContext context) {
         // return object of type Dialog
         return AlertDialog(
-          title: new Text("PJP Approval"),
-          content: new Text('Are you sure to approve the PJP request'),
+          title: Text("PJP Approval"),
+          content: Text('Are you sure to approve the PJP request'),
           actions: <Widget>[
             // usually buttons at the bottom of the dialog
             ElevatedButton(
               onPressed: () {
                 Navigator.of(context).pop();
-                //approvePjpList(0);
                 Utility.onConfirmationBox(
                     context,
                     'REJECT',
