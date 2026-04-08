@@ -2921,7 +2921,7 @@ class _PjpInfoCard extends StatelessWidget {
                 ],
                 // Status badge
                 if (pjp.ApprovalStatus == 'Pending' &&
-                    empName == pjp.managerName) ...[
+                    empName.trim() == pjp.managerName) ...[
                   Row(
                     children: [
                       ElevatedButton(
@@ -3376,6 +3376,28 @@ class _VisitTile extends StatelessWidget {
                       ),
                     ],
                   ),
+                  if (!isCompleted &&
+                      visit.Address.trim().isNotEmpty &&
+                      visit.Address.trim() != 'NA') ...[
+                    const SizedBox(height: 4),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Icon(Icons.location_on_rounded,
+                            size: 12, color: Color(0xFF26C6DA)),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            visit.Address,
+                            style: GoogleFonts.inter(
+                                fontSize: 11, color: _textSecondary),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -3405,7 +3427,7 @@ class _VisitTile extends StatelessWidget {
                       children: [
                         // Check-In
                         _buildActualPoint(
-                          title: 'Check-in',
+                          title: 'Check-In',
                           time: visit.DateTimeIn,
                           address: visit.AddressIn.isNotEmpty &&
                                   visit.AddressIn != 'NA'
@@ -3416,7 +3438,7 @@ class _VisitTile extends StatelessWidget {
                         const SizedBox(height: 12),
                         // Check-Out
                         _buildActualPoint(
-                          title: 'Check-out',
+                          title: 'Check-Out',
                           time: visit.DateTimeOut,
                           address: visit.AddressOut.isNotEmpty &&
                                   visit.AddressOut != 'NA'
@@ -3425,29 +3447,6 @@ class _VisitTile extends StatelessWidget {
                           color: hasCheckOut ? _orange : _textSecondary,
                         ),
                       ],
-                    ),
-                  ),
-                ],
-              ),
-            ],
-
-            if (!isCompleted &&
-                visit.Address.trim().isNotEmpty &&
-                visit.Address.trim() != 'NA') ...[
-              const SizedBox(height: 10),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Icon(Icons.location_on_rounded,
-                      size: 12, color: Color(0xFF26C6DA)),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: Text(
-                      visit.Address,
-                      style: GoogleFonts.inter(
-                          fontSize: 11, color: _textSecondary),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ],

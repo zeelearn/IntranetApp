@@ -58,224 +58,236 @@ class HomePageMenu extends StatelessWidget {
     return Scaffold(
       backgroundColor: LightColors.kLightYellow,
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              int crossAxisCount;
+        child: Stack(
+          children: [
+            Image.asset(
+              width: double.infinity,
+              height: double.infinity,
+              'assets/images/db_bg.png',
+              fit: BoxFit.fitWidth,
+            ),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  int crossAxisCount;
 
-              double childAspectRatio;
+                  double childAspectRatio;
 
-              if (constraints.maxWidth > 1200) {
-                crossAxisCount = 6;
+                  if (constraints.maxWidth > 1200) {
+                    crossAxisCount = 6;
 
-                childAspectRatio = 1;
-              } else if (constraints.maxWidth > 800) {
-                crossAxisCount = 4;
+                    childAspectRatio = 1;
+                  } else if (constraints.maxWidth > 800) {
+                    crossAxisCount = 4;
 
-                childAspectRatio = 1.1;
-              } else if (constraints.maxWidth > 600) {
-                crossAxisCount = 3;
+                    childAspectRatio = 1.1;
+                  } else if (constraints.maxWidth > 600) {
+                    crossAxisCount = 3;
 
-                childAspectRatio = 1;
-              } else {
-                crossAxisCount = 2;
+                    childAspectRatio = 1;
+                  } else {
+                    crossAxisCount = 2;
 
-                childAspectRatio = 1;
-              }
+                    childAspectRatio = 1;
+                  }
 
-              return GridView.count(
-                crossAxisCount: crossAxisCount,
-                crossAxisSpacing: 16,
-                mainAxisSpacing: 16,
-                childAspectRatio: childAspectRatio,
-                children: [
-                  _buildMenuCard(
-                    title: 'My PJP',
-                    icon: Icons.electric_car,
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => MyPjpListScreen(
-                            mFilterSelection: FilterSelection(
-                              filters: [],
-                              type: FILTERStatus.MYSELF,
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                  _buildMenuCard(
-                    title: 'My CVF',
-                    icon: Icons.calendar_today,
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => MyCVFListScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                  _buildMenuCard(
-                    title: 'My Report',
-                    icon: Icons.multiline_chart,
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => MyReportsScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                  if (!isBpms)
-                    _buildMenuCard(
-                      title: 'PJP-CVF Approval (Exp)',
-                      icon: Icons.approval,
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => PJPManagerExceptionalScreen(),
-                          ),
-                        );
-                      },
-                    )
-                  else
-                    _buildMenuCard(
-                      title: 'BPMS',
-                      icon: Icons.business,
-                      onTap: () async {
-                        var box = await Utility.openBox();
-                        try {
-                          int franchiseeId =
-                              box.get(LocalConstant.KEY_FRANCHISEE_ID) as int;
+                  return GridView.count(
+                    crossAxisCount: crossAxisCount,
+                    crossAxisSpacing: 16,
+                    mainAxisSpacing: 16,
+                    childAspectRatio: childAspectRatio,
+                    children: [
+                      _buildMenuCard(
+                        title: 'My PJP',
+                        icon: Icons.electric_car,
+                        onTap: () {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => BPMSDashboard(
-                                  userId: franchiseeId.toString()),
+                              builder: (context) => MyPjpListScreen(
+                                mFilterSelection: FilterSelection(
+                                  filters: [],
+                                  type: FILTERStatus.MYSELF,
+                                ),
+                              ),
                             ),
                           );
-                        } catch (e) {
-                          Utility.showMessage(context,
-                              'BPMS is not applicable for the current user');
-                        }
-                      },
-                    ),
-                  _buildMenuCard(
-                    title: 'ZllSaathi',
-                    icon: Icons.ac_unit,
-                    onTap: () {
-                      openSaarthi(context);
-                    },
-                  ),
-                  _buildMenuCard(
-                    title: 'Expense',
-                    icon: Icons.account_balance_wallet,
-                    onTap: () {
-                      openExpense(context);
-                    },
-                  ),
-                  _buildMenuCard(
-                    title: 'Contracts',
-                    icon: Icons.legend_toggle_sharp,
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => AllLegalStatusPage(
-                            email: name,
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                  if (notiflowAccessList.any((element) => element == empID))
-                    _buildMenuCard(
-                      title: 'Notiflow',
-                      icon: Icons.notifications,
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => MyWebsiteView(
-                              title: 'ZLLSaathi',
-                              url:
-                                  'https://notiflow-51883.web.app/?u_name=${empID}&password=12345&color=0277BD',
+                        },
+                      ),
+                      _buildMenuCard(
+                        title: 'My CVF',
+                        icon: Icons.calendar_today,
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => MyCVFListScreen(),
                             ),
-                          ),
-                        );
-                      },
-                    ),
-                  /*  _buildMenuCard(
-                    title: 'My Dashboard',
-                    icon: Icons.dashboard,
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const DashboardPage(),
+                          );
+                        },
+                      ),
+                      _buildMenuCard(
+                        title: 'My Report',
+                        icon: Icons.multiline_chart,
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => MyReportsScreen(),
+                            ),
+                          );
+                        },
+                      ),
+                      if (!isBpms)
+                        _buildMenuCard(
+                          title: 'PJP-CVF Approval (Exp)',
+                          icon: Icons.approval,
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    PJPManagerExceptionalScreen(),
+                              ),
+                            );
+                          },
+                        )
+                      else
+                        _buildMenuCard(
+                          title: 'BPMS',
+                          icon: Icons.business,
+                          onTap: () async {
+                            var box = await Utility.openBox();
+                            try {
+                              int franchiseeId = box
+                                  .get(LocalConstant.KEY_FRANCHISEE_ID) as int;
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => BPMSDashboard(
+                                      userId: franchiseeId.toString()),
+                                ),
+                              );
+                            } catch (e) {
+                              Utility.showMessage(context,
+                                  'BPMS is not applicable for the current user');
+                            }
+                          },
                         ),
-                      );
-                    },
-                  ), */
-                  if (isBpms)
-                    _buildMenuCard(
-                      title: 'PJP-CVF Approval (Exp)',
-                      icon: Icons.approval,
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => PJPManagerExceptionalScreen(),
-                          ),
-                        );
-                      },
-                    ),
-                  /*   _buildMenuCard(
-                    title: 'My Planning',
-                    icon: Icons.calendar_view_day,
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => MyOutdoorPlanner(),
+                      _buildMenuCard(
+                        title: 'ZllSaathi',
+                        icon: Icons.ac_unit,
+                        onTap: () {
+                          openSaarthi(context);
+                        },
+                      ),
+                      _buildMenuCard(
+                        title: 'Expense',
+                        icon: Icons.account_balance_wallet,
+                        onTap: () {
+                          openExpense(context);
+                        },
+                      ),
+                      _buildMenuCard(
+                        title: 'Contracts',
+                        icon: Icons.legend_toggle_sharp,
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => AllLegalStatusPage(
+                                email: name,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                      if (notiflowAccessList.any((element) => element == empID))
+                        _buildMenuCard(
+                          title: 'Notiflow',
+                          icon: Icons.notifications,
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => MyWebsiteView(
+                                  title: 'ZLLSaathi',
+                                  url:
+                                      'https://notiflow-51883.web.app/?u_name=${empID}&password=12345&color=0277BD',
+                                ),
+                              ),
+                            );
+                          },
                         ),
-                      );
-                    },
-                  ),
-                  _buildMenuCard(
-                    title: 'My Dashboard MAN',
-                    icon: Icons.dashboard_customize,
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => DashboardScreen(),
+                      /*  _buildMenuCard(
+                        title: 'My Dashboard',
+                        icon: Icons.dashboard,
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const DashboardPage(),
+                            ),
+                          );
+                        },
+                      ), */
+                      if (isBpms)
+                        _buildMenuCard(
+                          title: 'PJP-CVF Approval (Exp)',
+                          icon: Icons.approval,
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    PJPManagerExceptionalScreen(),
+                              ),
+                            );
+                          },
                         ),
-                      );
-                    },
-                  ), */
-                  _buildMenuCard(
-                    title: 'PJP Dashboard',
-                    icon: Icons.group,
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => SummaryDashboard(),
-                        ),
-                      );
-                    },
-                  ),
-                ],
-              );
-            },
-          ),
+                      /*   _buildMenuCard(
+                        title: 'My Planning',
+                        icon: Icons.calendar_view_day,
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => MyOutdoorPlanner(),
+                            ),
+                          );
+                        },
+                      ),
+                      _buildMenuCard(
+                        title: 'My Dashboard MAN',
+                        icon: Icons.dashboard_customize,
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => DashboardScreen(),
+                            ),
+                          );
+                        },
+                      ), */
+                      _buildMenuCard(
+                        title: 'PJP Dashboard',
+                        icon: Icons.group,
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => SummaryDashboard(),
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  );
+                },
+              ),
+            ),
+          ],
         ),
       ),
     );
