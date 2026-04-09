@@ -5,11 +5,13 @@ class PJPReportRequest {
   final String employeeCode;
   final String fromDate;
   final String toDate;
+  final String businessId;
 
   PJPReportRequest(
       {required this.employeeCode,
       required this.fromDate,
-      required this.toDate});
+      required this.toDate,
+      required this.businessId});
 
   getJson() {
     String appType = 'unknown';
@@ -23,6 +25,7 @@ class PJPReportRequest {
 
     return jsonEncode({
       'EmployeeCode': employeeCode,
+      'BusinessId': businessId,
       'FromDate': null /* fromDate */,
       'ToDate': null /* toDate */,
       'AppType': appType
@@ -33,7 +36,8 @@ class PJPReportRequest {
     Map<String, dynamic> map = {
       'EmployeeCode': "$employeeCode",
       'FromDate': fromDate,
-      'ToDate': toDate
+      'ToDate': toDate,
+      'BusinessId': businessId
     };
     return map;
   }

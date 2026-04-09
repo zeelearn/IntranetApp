@@ -23,40 +23,6 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
 
-// This is a placeholder for the request model. Ideally, this should be in its own file
-// e.g., 'lib/api/request/pjp/get_pjp_report_request.dart'
-/* class PJPReportRequest {
-  final int Employee_id;
-  final int Business_id;
-  final String From_Date;
-  final String To_Date;
-
-  PJPReportRequest({
-    required this.Employee_id,
-    required this.Business_id,
-    required this.From_Date,
-    required this.To_Date,
-  });
-
-  String getJson() {
-    return jsonEncode({
-      'Employee_id': Employee_id,
-      'Business_id': Business_id,
-      'From_Date': From_Date,
-      'To_Date': To_Date,
-    });
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'Employee_id': Employee_id,
-      'Business_id': Business_id,
-      'From_Date': From_Date,
-      'To_Date': To_Date,
-    };
-  }
-} */
-
 class SummaryDashboard extends StatefulWidget {
   const SummaryDashboard({super.key});
 
@@ -183,7 +149,7 @@ class _SummaryDashboardState extends State<SummaryDashboard>
 
       PJPReportRequest request = PJPReportRequest(
         employeeCode: employeeCode,
-        // Business_id: businessId,
+        businessId: businessId.toString(),
         fromDate: DateFormat('yyyy-MM-dd').format(firstDayOfMonth),
         toDate: DateFormat('yyyy-MM-dd').format(lastDayOfMonth),
       );
