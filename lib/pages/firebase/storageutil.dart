@@ -5,6 +5,7 @@ import 'dart:typed_data';
 import 'package:Intranet/firebase_options.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_storage/firebase_storage.dart'; // For File Upload To Firestore
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart'; // For Image Picker
 import 'package:path/path.dart' as Path;
@@ -15,22 +16,24 @@ import '../iface/onUploadResponse.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 
 class FirebaseStorageUtil {
+  // Helper to get the storage reference.
+  // Ensure Firebase.initializeApp() is called in your main() function.
+  Reference get _storageRef => FirebaseStorage.instance.ref();
+
   uploadFile(Allquestion player, String filePath, String fileName,
       onUploadResponse response) async {
-    File file = File(filePath);
     response.onStart();
     String imagePath = "images/cvf/${fileName}.jpg";
 // Create the file metadata
     final metadata = SettableMetadata(contentType: "image/jpeg");
 
-// Create a reference to the Firebase Storage bucket
-    final storageRef = FirebaseStorage.instance.ref();
-
-    // Create a reference to "mountains.jpg"
-    final imageUploadRef = storageRef.child(imagePath);
+    // Create a reference to the file path
+    final imageUploadRef = _storageRef.child(imagePath);
 
 // Upload file and metadata to the path 'images/mountains.jpg'
-    final uploadTask = imageUploadRef.putFile(file, metadata);
+    UploadTask uploadTask = kIsWeb
+        ? imageUploadRef.putData(await XFile(filePath).readAsBytes(), metadata)
+        : imageUploadRef.putFile(File(filePath), metadata);
 
 // Listen for state changes, errors, and completion of the upload.
     uploadTask.snapshotEvents.listen((TaskSnapshot taskSnapshot) async {
@@ -102,21 +105,21 @@ class FirebaseStorageUtil {
   }
 
   uploadAnyFile(Allquestion player, String filePath, String fileName,
-      onUploadResponse response) async {
-    File file = File(filePath);
+      onUploadResponse response,
+      {Uint8List? fileBytes}) async {
     response.onStart();
     String imagePath = "files/cvf/${fileName}";
 // Create the file metadata
     final metadata = SettableMetadata(contentType: getContentType(fileName));
 
-// Create a reference to the Firebase Storage bucket
-    final storageRef = FirebaseStorage.instance.ref();
-
-    // Create a reference to "mountains.jpg"
-    final imageUploadRef = storageRef.child(imagePath);
+    // Create a reference to the file path
+    final imageUploadRef = _storageRef.child(imagePath);
 
 // Upload file and metadata to the path 'images/mountains.jpg'
-    final uploadTask = imageUploadRef.putFile(file, metadata);
+    UploadTask uploadTask = kIsWeb
+        ? imageUploadRef.putData(
+            fileBytes ?? await XFile(filePath).readAsBytes(), metadata)
+        : imageUploadRef.putFile(File(filePath), metadata);
 
 // Listen for state changes, errors, and completion of the upload.
     uploadTask.snapshotEvents.listen((TaskSnapshot taskSnapshot) async {
@@ -154,13 +157,8 @@ class FirebaseStorageUtil {
   }
 
   getProfileImage(String employeeId, onUploadResponse response) async {
-    final storageRef = FirebaseStorage.instanceFor(
-            app: await Firebase.initializeApp(
-                name: 'intranet',
-                options: DefaultFirebaseOptions.currentPlatform))
-        .ref();
     String imagePath = "images/avtar/${employeeId}.jpg";
-    final imageUploadRef = storageRef.child(imagePath);
+    final imageUploadRef = _storageRef.child(imagePath);
     imageUploadRef
         .getData(10000000)
         .then((data) => response.onUploadSuccess(data))
@@ -169,20 +167,18 @@ class FirebaseStorageUtil {
 
   uploadAvtar(
       String filePath, String employeeId, onUploadResponse response) async {
-    File file = File(filePath);
     response.onStart();
     String imagePath = "images/avtar/${employeeId}.jpg";
 // Create the file metadata
     final metadata = SettableMetadata(contentType: "image/jpeg");
 
-// Create a reference to the Firebase Storage bucket
-    final storageRef = FirebaseStorage.instance.ref();
-
-    // Create a reference to "mountains.jpg"
-    final imageUploadRef = storageRef.child(imagePath);
+    // Create a reference to the file path
+    final imageUploadRef = _storageRef.child(imagePath);
 
 // Upload file and metadata to the path 'images/mountains.jpg'
-    final uploadTask = imageUploadRef.putFile(file, metadata);
+    UploadTask uploadTask = kIsWeb
+        ? imageUploadRef.putData(await XFile(filePath).readAsBytes(), metadata)
+        : imageUploadRef.putFile(File(filePath), metadata);
 
 // Listen for state changes, errors, and completion of the upload.
     uploadTask.snapshotEvents.listen((TaskSnapshot taskSnapshot) async {

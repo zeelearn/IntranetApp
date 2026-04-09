@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
@@ -2097,21 +2098,20 @@ class _QuestionListScreenState extends State<QuestionListScreen>
       final XFile? pickedFileList = await _picker.pickImage(
           source: source, maxHeight: 800, imageQuality: 100);
       debugPrint('File upload gallery');
-      setState(() async {
-        _imageFileList = pickedFileList;
-        updateImage(player, player.files);
-        String name = widget.employeeId.toString() +
-            '_c' +
-            widget.PJPCVF_Id.toString() +
-            '_q' +
-            player.Question_Id;
-        if (await Utility.isInternet())
-          FirebaseStorageUtil()
-              .uploadFile(player, _imageFileList!.path, name, this);
-        else {
-          updateImage(player, _imageFileList!.path);
-        }
-      });
+      _imageFileList = pickedFileList;
+      updateImage(player, player.files);
+      String name = widget.employeeId.toString() +
+          '_c' +
+          widget.PJPCVF_Id.toString() +
+          '_q' +
+          player.Question_Id;
+      if (await Utility.isInternet())
+        FirebaseStorageUtil()
+            .uploadFile(player, _imageFileList!.path, name, this);
+      else {
+        updateImage(player, _imageFileList!.path);
+      }
+      setState(() {});
     } catch (e) {
       debugPrint(e.toString());
     }
@@ -2122,10 +2122,18 @@ class _QuestionListScreenState extends State<QuestionListScreen>
       FilePickerResult? result = await FilePicker.platform.pickFiles();
 
       if (result != null) {
-        File file = File(result.files.single.path!);
-        var fileExt = file.path.split('/');
-        debugPrint('File path ${fileExt[fileExt.length - 1]}');
-        setState(() async {
+        if (kIsWeb) {
+          PlatformFile file = result.files.first;
+          debugPrint('File path ${file.name}');
+
+          updateImage(player, player.files);
+
+          FirebaseStorageUtil().uploadAnyFile(player, '', file.name, this,
+              fileBytes: file.bytes!);
+        } else {
+          File file = File(result.files.single.path!);
+          var fileExt = file.path.split('/');
+          debugPrint('File path ${fileExt[fileExt.length - 1]}');
           updateImage(player, player.files);
           if (await Utility.isInternet()) {
             FirebaseStorageUtil().uploadAnyFile(
@@ -2134,7 +2142,8 @@ class _QuestionListScreenState extends State<QuestionListScreen>
             debugPrint(file!.path);
             updateImage(player, file!.path);
           }
-        });
+        }
+        setState(() {});
       }
     } catch (e) {
       debugPrint(e.toString());

@@ -70,6 +70,7 @@ class _LoginPage extends State<LoginPage> {
       String version = packageInfo.version;
       String buildNumber = packageInfo.buildNumber;
       appVersion = version;
+      setState(() {});
     });
   }
 
@@ -161,7 +162,7 @@ class _LoginPage extends State<LoginPage> {
                         const SizedBox(height: 30),
                       ],
                       Text(
-                        "Welcome Back",
+                        "Welcome",
                         style: GoogleFonts.inter(
                           fontSize: 32,
                           fontWeight: FontWeight.w800,
@@ -485,6 +486,7 @@ class _LoginPage extends State<LoginPage> {
       //loginRequestModel.User_Password = 'Niharika#123';
       APIService apiService = APIService();
       apiService.login(loginRequestModel).then((value) async {
+        Navigator.pop(context);
         debugPrint(value.toString());
         // if (value != null) {
         setState(() {
