@@ -50,6 +50,7 @@ class LocalConstant {
   static const String KEY_SYNC_INTERVAL = "syncinterval";
   static const String KEY_MANAGER_NAME = "manager_name";
   static const String KEY_PASSWORD_EXPIRED = "password_expired";
+  static const String KEY_EMP_TYPE = "employee_type";
 
   static const String KEY_CVF_QUESTIONS = "_cvfques";
   static const String KEY_MY_ATTENDANCE = "attend";

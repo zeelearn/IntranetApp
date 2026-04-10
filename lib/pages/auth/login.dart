@@ -531,6 +531,7 @@ class _LoginPage extends State<LoginPage> {
             hive.put(LocalConstant.KEY_GENDER, info.gender);
             hive.put(LocalConstant.KEY_MANAGER_NAME, info.managerName);
             hive.put(LocalConstant.KEY_PASSWORD_EXPIRED, info.passwordExpired);
+            hive.put(LocalConstant.KEY_EMP_TYPE, info.employeeRoleName);
 
             FirebaseAnalyticsUtils.sendEvent(info.userName);
             hive.put(LocalConstant.KEY_LOGIN_RESPONSE, jsonEncode(value));

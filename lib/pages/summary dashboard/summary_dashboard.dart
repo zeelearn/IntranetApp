@@ -66,9 +66,10 @@ class _SummaryDashboardState extends State<SummaryDashboard>
   bool _isLoading = true;
   List<PJPInfo> _rawPjpData = [];
   List<MYTEAM> _myTeamData = [];
-  bool _isTeamView = true;
+  bool _isTeamView = false;
   List<PJPInfo> _pjpData = [];
   List<PJPInfo> _filteredPjpData = [];
+  String _employeeRoleType = '';
   Set<String> _allTeamMembers = {};
   Set<String> _selectedTeamMembers = {};
   Set<String> _allZones = {};
@@ -119,6 +120,7 @@ class _SummaryDashboardState extends State<SummaryDashboard>
   @override
   void initState() {
     super.initState();
+
     _fetchDashboardData();
   }
 
@@ -140,8 +142,13 @@ class _SummaryDashboardState extends State<SummaryDashboard>
       employeeName = hiveBox.get(LocalConstant.KEY_FIRST_NAME) +
           ' ' +
           hiveBox.get(LocalConstant.KEY_LAST_NAME);
+      _employeeRoleType = hiveBox.get(LocalConstant.KEY_EMP_TYPE);
       zone = hiveBox.get(LocalConstant.KEY_ZONE) as String? ?? 'N/A';
       businessId = hiveBox.get(LocalConstant.KEY_BUSINESS_ID);
+      String? emprole_type = hiveBox.get(LocalConstant.KEY_EMP_TYPE);
+      if (emprole_type?.toLowerCase() == 'emp') {
+        _isTeamView = false;
+      }
 
       final now = DateTime.now();
       final firstDayOfMonth = DateTime(now.year, now.month, 1);
@@ -517,12 +524,16 @@ class _SummaryDashboardState extends State<SummaryDashboard>
       bottom: _isMobileSearchActive
           ? null
           : PreferredSize(
-              preferredSize: const Size.fromHeight(50),
+              preferredSize: _employeeRoleType.toLowerCase() == 'emp'
+                  ? Size.zero
+                  : const Size.fromHeight(50),
               child: Padding(
                 padding: const EdgeInsets.only(left: 16, right: 16, bottom: 10),
                 child: Align(
                   alignment: Alignment.centerLeft,
-                  child: _buildViewSwitcher(isDark: true),
+                  child: _employeeRoleType.toLowerCase() == 'emp'
+                      ? const SizedBox.shrink()
+                      : _buildViewSwitcher(isDark: true),
                 ),
               ),
             ),
@@ -1367,7 +1378,9 @@ class _SummaryDashboardState extends State<SummaryDashboard>
           // Format switcher (desktop only)
           if (desktop) _buildFormatSwitcher(),
           const SizedBox(width: 12),
-          _buildViewSwitcher(),
+          if (_employeeRoleType.toLowerCase() != 'emp') ...[
+            _buildViewSwitcher(),
+          ],
 
           /* const SizedBox(width: 12),
           // Notifications
