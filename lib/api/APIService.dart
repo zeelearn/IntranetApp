@@ -1926,8 +1926,7 @@ class APIService {
 
   Future<ZohoRequestModel> getRecipientList(String email) async {
     try {
-      final uri =
-          Uri.parse('https://commonapi.zeelearn.com/api/bp/getagreementstatus');
+      final uri = Uri.parse('${bpms_url}api/bp/getagreementstatus');
       var body = jsonEncode({
         "user_email": email,
         "status": null,
