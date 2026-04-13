@@ -56,17 +56,17 @@ class HomePageMenu extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: LightColors.kLightYellow,
-      body: SafeArea(
-        child: Stack(
-          children: [
-            Image.asset(
-              width: double.infinity,
-              height: double.infinity,
+      backgroundColor: Colors.white,
+      body: Stack(
+        children: [
+          SizedBox.expand(
+            child: Image.asset(
               'assets/images/db_bg.png',
-              fit: BoxFit.fitWidth,
+              fit: BoxFit.fill,
             ),
-            Padding(
+          ),
+          SafeArea(
+            child: Padding(
               padding: const EdgeInsets.all(8.0),
               child: LayoutBuilder(
                 builder: (context, constraints) {
@@ -287,8 +287,8 @@ class HomePageMenu extends StatelessWidget {
                 },
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
