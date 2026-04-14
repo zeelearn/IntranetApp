@@ -23,6 +23,7 @@ import 'package:device_info_plus/device_info_plus.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -32,6 +33,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:in_app_update/in_app_update.dart';
 import 'package:intl/intl.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:saathi/zllsaathi.dart';
 import 'package:table_calendar/table_calendar.dart';
 
@@ -139,6 +141,8 @@ class _IntranetHomePageState extends State<IntranetHomePage>
   final TextEditingController _confirmPasswordController =
       TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  bool _obscureNewPassword = true;
+  bool _obscureConfirmPassword = true;
   updateCurrentBusiness(int bid, String name, int uid) async {
     hiveBox = await Utility.openBox();
     await Hive.openBox(LocalConstant.KidzeeDB);
@@ -715,12 +719,14 @@ class _IntranetHomePageState extends State<IntranetHomePage>
       String version = packageInfo.version;
       String buildNumber = packageInfo.buildNumber;
       appVersion = version;
+      if (!mounted) return;
+      setState(() {});
     });
     getProfileImage();
     //decodeJsonValue();
     int passwordExpired = hiveBox.get(LocalConstant.KEY_PASSWORD_EXPIRED) ?? 0;
     if (passwordExpired == 1) {
-      Future.delayed(Duration.zero, () => showPasswordExpiredDialog());
+      Future.delayed(Duration.zero, () => _showUpdatePasswordDialog());
     }
     setState(() {});
   }
@@ -834,91 +840,224 @@ class _IntranetHomePageState extends State<IntranetHomePage>
     return null;
   }
 
-  void showPasswordExpiredDialog() {
-    // This dialog will inform the user that their password has expired
-    // and then immediately show the update password dialog.
-    showDialog(
-      context: context,
-      barrierDismissible: false, // User must acknowledge
-      builder: (BuildContext dialogContext) {
-        return AlertDialog(
-          title: const Text('Password Expired'),
-          content: const Text(
-              'Your password has expired. Please update it to continue.'),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(dialogContext).pop(); // Close this dialog
-                _showUpdatePasswordDialog(); // Show the password update dialog
-              },
-              child: const Text('OK'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
   void _showUpdatePasswordDialog() {
     showDialog(
       context: context,
-      barrierDismissible: false, // User must update password
+      barrierDismissible: false,
       builder: (BuildContext dialogContext) {
-        return AlertDialog(
-          title: const Text('Update Password'),
-          content: Form(
-            key: _formKey,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextFormField(
-                  controller: _newPasswordController,
-                  obscureText: true,
-                  decoration: const InputDecoration(
-                    labelText: 'New Password',
-                    border: OutlineInputBorder(),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter a new password';
-                    }
-                    if (value.length < 8) {
-                      return 'Password must be at least 8 characters long';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _confirmPasswordController,
-                  obscureText: true,
-                  decoration: const InputDecoration(
-                    labelText: 'Confirm New Password',
-                    border: OutlineInputBorder(),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please confirm your new password';
-                    }
-                    if (value != _newPasswordController.text) {
-                      return 'Passwords do not match';
-                    }
-                    return null;
-                  },
-                ),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                if (_formKey.currentState?.validate() ?? false) {
-                  _performPasswordUpdate(dialogContext);
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            return PopScope(
+              canPop:
+                  !kReleaseMode, // Allow pop in debug mode for testing, disable in release mode
+              onPopInvokedWithResult: (didPop, result) {
+                if (!didPop) {
+                  Fluttertoast.showToast(
+                    msg: "Please update your password to continue.",
+                    toastLength: Toast.LENGTH_SHORT,
+                    gravity: ToastGravity.BOTTOM,
+                    backgroundColor: Colors.black87,
+                    textColor: Colors.white,
+                    fontSize: 14.0,
+                  );
                 }
               },
-              child: const Text('Submit'),
-            ),
-          ],
+              child: Dialog(
+                insetPadding: EdgeInsets.all(20),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20)),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 440),
+                  child: SingleChildScrollView(
+                    child: Padding(
+                      padding: const EdgeInsets.all(32),
+                      child: Form(
+                        key: _formKey,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: Colors.orange.withOpacity(0.1),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(Icons.lock_reset_rounded,
+                                  color: Colors.orange, size: 40),
+                            ),
+                            const SizedBox(height: 24),
+                            Text(
+                              'Password Expired',
+                              style: GoogleFonts.inter(
+                                fontSize: 22,
+                                fontWeight: FontWeight.w700,
+                                color: const Color(0xFF1A1D2E),
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              'Your password has expired. For security reasons, please set a new password to continue accessing the application.',
+                              textAlign: TextAlign.center,
+                              style: GoogleFonts.inter(
+                                fontSize: 14,
+                                color: const Color(0xFF6B7280),
+                                height: 1.5,
+                              ),
+                            ),
+                            const SizedBox(height: 32),
+                            TextFormField(
+                              controller: _newPasswordController,
+                              obscureText: _obscureNewPassword,
+                              textInputAction: TextInputAction.next,
+                              keyboardType: TextInputType.text,
+                              style: GoogleFonts.inter(fontSize: 15),
+                              decoration: InputDecoration(
+                                labelText: 'New Password',
+                                labelStyle: GoogleFonts.inter(
+                                    color: const Color(0xFF6B7280),
+                                    fontSize: 15),
+                                prefixIcon: const Icon(
+                                    Icons.lock_outline_rounded,
+                                    size: 20),
+                                suffixIcon: IconButton(
+                                  icon: Icon(
+                                    _obscureNewPassword
+                                        ? Icons.visibility_off
+                                        : Icons.visibility,
+                                    size: 20,
+                                  ),
+                                  onPressed: () {
+                                    setStateDialog(() {
+                                      _obscureNewPassword =
+                                          !_obscureNewPassword;
+                                    });
+                                  },
+                                ),
+                                border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12)),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: const BorderSide(
+                                      color: Color(0xFFE8EDF2)),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: const BorderSide(
+                                      color: kPrimaryLightColor, width: 2),
+                                ),
+                                errorStyle: GoogleFonts.inter(
+                                    color: Colors.black87, fontSize: 12),
+                                errorMaxLines: 2,
+                                contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 16, vertical: 16),
+                              ),
+                              onFieldSubmitted: (value) =>
+                                  FocusScope.of(context).nextFocus(),
+                              validator: (value) {
+                                if (value == null || value.isEmpty)
+                                  return 'Please enter a new password';
+                                if (value.length < 8)
+                                  return 'Password must be at least 8 characters';
+                                return null;
+                              },
+                            ),
+                            const SizedBox(height: 20),
+                            TextFormField(
+                              controller: _confirmPasswordController,
+                              obscureText: _obscureConfirmPassword,
+                              textInputAction: TextInputAction.done,
+                              keyboardType: TextInputType.text,
+                              style: GoogleFonts.inter(fontSize: 15),
+                              decoration: InputDecoration(
+                                labelText: 'Confirm New Password',
+                                labelStyle: GoogleFonts.inter(
+                                    color: const Color(0xFF6B7280),
+                                    fontSize: 15),
+                                prefixIcon: const Icon(Icons.lock_reset_rounded,
+                                    size: 20),
+                                suffixIcon: IconButton(
+                                  icon: Icon(
+                                    _obscureConfirmPassword
+                                        ? Icons.visibility_off
+                                        : Icons.visibility,
+                                    size: 20,
+                                  ),
+                                  onPressed: () {
+                                    setStateDialog(() {
+                                      _obscureConfirmPassword =
+                                          !_obscureConfirmPassword;
+                                    });
+                                  },
+                                ),
+                                border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12)),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: const BorderSide(
+                                      color: Color(0xFFE8EDF2)),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: const BorderSide(
+                                      color: kPrimaryLightColor, width: 2),
+                                ),
+                                errorStyle: GoogleFonts.inter(
+                                    color: Colors.black87, fontSize: 12),
+                                errorMaxLines: 2,
+                                contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 16, vertical: 16),
+                              ),
+                              validator: (value) {
+                                if (value == null || value.isEmpty)
+                                  return 'Please confirm your password';
+                                if (value != _newPasswordController.text)
+                                  return 'Passwords do not match';
+                                return null;
+                              },
+                              onFieldSubmitted: (value) {
+                                if (_formKey.currentState?.validate() ??
+                                    false) {
+                                  _performPasswordUpdate(dialogContext);
+                                }
+                              },
+                            ),
+                            const SizedBox(height: 32),
+                            SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton(
+                                onPressed: () {
+                                  if (_formKey.currentState?.validate() ??
+                                      false) {
+                                    _performPasswordUpdate(dialogContext);
+                                  }
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: kPrimaryLightColor,
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 16),
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12)),
+                                  elevation: 0,
+                                ),
+                                child: Text(
+                                  'Update and Continue',
+                                  style: GoogleFonts.inter(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            );
+          },
         );
       },
     );
@@ -1122,10 +1261,10 @@ class _IntranetHomePageState extends State<IntranetHomePage>
     FirebaseAnalyticsUtils().enableAnytics();
     FirebaseAnalyticsUtils().sendAnalyticsEvent('HomeScreen');
     //analytics.logAppOpen();
-    return WillPopScope(
-      onWillPop: () async {
-        onBackClickListener();
-        return false;
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop) onBackClickListener();
       },
       child: Scaffold(
         key: _scaffoldKey,

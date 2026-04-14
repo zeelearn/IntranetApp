@@ -117,6 +117,14 @@ class _SummaryDashboardState extends State<SummaryDashboard>
     return _userColors[userName]!;
   }
 
+  Color _getStatusColor(String status) {
+    final s = status.trim().toLowerCase();
+    if (s.contains('approved')) return _green;
+    if (s.contains('pending')) return _orange;
+    if (s.contains('reject')) return _red;
+    return _textSecondary;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -278,7 +286,7 @@ class _SummaryDashboardState extends State<SummaryDashboard>
 
     for (var pjpInfo in _filteredPjpData) {
       final userName = pjpInfo.displayName;
-      final baseColor = _getColorForUser(userName);
+      final baseColor = _getStatusColor(pjpInfo.ApprovalStatus);
 
       newEvents.add(_Event(
         title: '${pjpInfo.displayName}',
@@ -3277,18 +3285,6 @@ class _VisitTile extends StatelessWidget {
                       size: 14, color: _blue),
                 ),
                 const SizedBox(width: 10),
-                /* if (visit.franchiseeName.trim().isNotEmpty &&
-                    visit.franchiseeName.trim() != 'NA')
-                  Expanded(
-                    child: Text(
-                      visit.franchiseeName,
-                      style: GoogleFonts.inter(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: _textPrimary,
-                      ),
-                    ),
-                  ), */
                 if (visit.Status.trim()
                         .isNotEmpty /* &&
                     visit.Status.trim() != 'NA' */
@@ -3311,7 +3307,19 @@ class _VisitTile extends StatelessWidget {
                   ),
               ],
             ),
-
+            if (visit.franchiseeName.trim().isNotEmpty &&
+                visit.franchiseeName.trim() != 'NA')
+              Padding(
+                padding: const EdgeInsets.only(left: 36, top: 2),
+                child: Text(
+                  visit.franchiseeName,
+                  style: GoogleFonts.inter(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: _textPrimary,
+                  ),
+                ),
+              ),
             Padding(
               padding: const EdgeInsets.only(left: 36, top: 2),
               child: Column(

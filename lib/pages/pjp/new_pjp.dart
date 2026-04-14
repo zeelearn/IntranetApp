@@ -78,6 +78,9 @@ class _PjpState extends State<NewPJP> {
       String version = packageInfo.version;
       String buildNumber = packageInfo.buildNumber;
       appVersion = version;
+      if (mounted) {
+        setState(() {});
+      }
     });
   }
 

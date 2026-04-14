@@ -27,8 +27,7 @@ class ApplyLeaveScreen extends StatefulWidget {
   String avaliableForEncash = '-';
   String totalLeaveBalance = '-';
   int employeeId = 0;
-  String gender="";
-
+  String gender = "";
 
   ApplyLeaveScreen(
       {Key? key,
@@ -46,7 +45,8 @@ class ApplyLeaveScreen extends StatefulWidget {
   _ApplyLeaveScreen createState() => _ApplyLeaveScreen();
 }
 
-class _ApplyLeaveScreen extends State<ApplyLeaveScreen> implements onClickListener{
+class _ApplyLeaveScreen extends State<ApplyLeaveScreen>
+    implements onClickListener {
   List<LeaveRequisitionInfo> leaveRequisitionList = [];
   TextEditingController _startDateController = TextEditingController();
   TextEditingController _endDateController = TextEditingController();
@@ -57,7 +57,7 @@ class _ApplyLeaveScreen extends State<ApplyLeaveScreen> implements onClickListen
   bool isHappinessLeave = false;
   bool isCompoff = false;
   bool isCompoffEligible = false;
-  String appVersion='';
+  String appVersion = '';
   @override
   void initState() {
     // TODO: implement initState
@@ -72,8 +72,8 @@ class _ApplyLeaveScreen extends State<ApplyLeaveScreen> implements onClickListen
         int.parse(hiveBox.get(LocalConstant.KEY_EMPLOYEE_ID) as String);
     widget.gender = hiveBox.get(LocalConstant.KEY_GENDER) as String;
     String grade = hiveBox.get(LocalConstant.KEY_GRADE) as String;
-    if(grade.isNotEmpty && grade.contains('M1')){
-      isCompoffEligible=true;
+    if (grade.isNotEmpty && grade.contains('M1')) {
+      isCompoffEligible = true;
     }
     PackageInfo.fromPlatform().then((PackageInfo packageInfo) {
       String appName = packageInfo.appName;
@@ -81,10 +81,11 @@ class _ApplyLeaveScreen extends State<ApplyLeaveScreen> implements onClickListen
       String version = packageInfo.version;
       String buildNumber = packageInfo.buildNumber;
       appVersion = version;
+      if (mounted) {
+        setState(() {});
+      }
     });
-    setState(() {
-
-    });
+    setState(() {});
   }
 
   @override
@@ -101,9 +102,10 @@ class _ApplyLeaveScreen extends State<ApplyLeaveScreen> implements onClickListen
       }
       return Colors.black;
     }
-int _HappinessLeave=1;
-int _CompOff=2;
-int _groupValue=0;
+
+    int _HappinessLeave = 1;
+    int _CompOff = 2;
+    int _groupValue = 0;
     selectHappinessLeave(int timeSelected) {
       setState(() {
         _HappinessLeave = timeSelected;
@@ -111,6 +113,7 @@ int _groupValue=0;
         _CompOff = 0;
       });
     }
+
     selectCompoff(int timeSelected) {
       setState(() {
         _CompOff = timeSelected;
@@ -118,144 +121,154 @@ int _groupValue=0;
         _HappinessLeave = 0;
       });
     }
+
     return Scaffold(
-        resizeToAvoidBottomInset: false,
-        extendBodyBehindAppBar: true,
-        backgroundColor: Colors.white,
-        appBar: AppBar(
-          title: Text(
-            'Leave Application',
-
-          ),
-            leading: new IconButton(
-              icon: new Icon(Icons.arrow_back_ios),
-              onPressed: () => Navigator.of(context).pop(),
-            ),
-            backgroundColor: kPrimaryLightColor, //You can make this transparent
-            elevation: 0.0,
-
+      resizeToAvoidBottomInset: false,
+      extendBodyBehindAppBar: true,
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        title: Text(
+          'Leave Application',
         ),
-        body: SafeArea(
-          child:  Column(
-            children: [
-              Container(
-                color: LightColors.kLightBlue,
-                padding: EdgeInsets.only(left: 10, right: 10),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'Leave Balance',
-                      style:
-                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                    ),
-
-                  ],
-                ),
+        leading: new IconButton(
+          icon: new Icon(Icons.arrow_back_ios),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        backgroundColor: kPrimaryLightColor, //You can make this transparent
+        elevation: 0.0,
+      ),
+      body: SafeArea(
+        child: Column(
+          children: [
+            Container(
+              color: LightColors.kLightBlue,
+              padding: EdgeInsets.only(left: 10, right: 10),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'Leave Balance',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                ],
               ),
-              getLeaveBalance(),
-              SizedBox(
-                height: size.height * 0.01,
-              ),
-              MyWidget().richText(12, 'Apply Leave Request'),
-              SingleChildScrollView(
-                child: Column(
-                  children: [
-                    SizedBox(
-                      height: size.height * 0.01,
-                    ),
-                    Container(
-                      padding: EdgeInsets.only(left: 20, right: 20),
-                      child: Column(
-                        children: [
-                          MyWidget().getDateTime(context, 'Start Date',
-                              _startDateController, minDate, maxDate),
-                          SizedBox(
-                            height: size.height * 0.03,
-                          ),
-                          !isHappinessLeave ? MyWidget().getDateTime(context, 'End Date',
-                              _endDateController, minDate, maxDate) : SizedBox(height: 0,),
-                          SizedBox(
-                            height: size.height * 0.03,
-                          ),
-                          MyWidget().normalTextAreaField(
-                              context, 'Purpose', _purposeController),
-                          SizedBox(
-                            height: size.height * 0.01,
-                          ),
-                          widget.gender =='Female' ?
-                          Row(
-                            mainAxisSize: MainAxisSize.max,
-                            children: [
-                              Material(
-                                child: Checkbox(
-                                  value: isMaternaty,
-                                  onChanged: (bool? value) {
-                                    setState(() {
-                                      isMaternaty = value!;
-                                    });
-                                  },
-                                ),
+            ),
+            getLeaveBalance(),
+            SizedBox(
+              height: size.height * 0.01,
+            ),
+            MyWidget().richText(12, 'Apply Leave Request'),
+            SingleChildScrollView(
+              child: Column(
+                children: [
+                  SizedBox(
+                    height: size.height * 0.01,
+                  ),
+                  Container(
+                    padding: EdgeInsets.only(left: 20, right: 20),
+                    child: Column(
+                      children: [
+                        MyWidget().getDateTime(context, 'Start Date',
+                            _startDateController, minDate, maxDate),
+                        SizedBox(
+                          height: size.height * 0.03,
+                        ),
+                        !isHappinessLeave
+                            ? MyWidget().getDateTime(context, 'End Date',
+                                _endDateController, minDate, maxDate)
+                            : SizedBox(
+                                height: 0,
                               ),
-                              Text(
-                                'IsMaternityLeave',
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
+                        SizedBox(
+                          height: size.height * 0.03,
+                        ),
+                        MyWidget().normalTextAreaField(
+                            context, 'Purpose', _purposeController),
+                        SizedBox(
+                          height: size.height * 0.01,
+                        ),
+                        widget.gender == 'Female'
+                            ? Row(
+                                mainAxisSize: MainAxisSize.max,
+                                children: [
+                                  Material(
+                                    child: Checkbox(
+                                      value: isMaternaty,
+                                      onChanged: (bool? value) {
+                                        setState(() {
+                                          isMaternaty = value!;
+                                        });
+                                      },
+                                    ),
+                                  ),
+                                  Text(
+                                    'IsMaternityLeave',
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                  )
+                                ],
                               )
-                            ],
-                          ) : SizedBox(height: 0,),
-                          Row(
-                            mainAxisSize: MainAxisSize.max,
-                            children: [
-                              Material(
-                                child: Checkbox(
-                                  checkColor: Colors.white,
-                                  fillColor: MaterialStateProperty.resolveWith(getColor),
-                                  value: isHappinessLeave,
-                                  onChanged: (bool? value) {
-                                    setState(() {
-                                      isCompoff = false;
-                                      isHappinessLeave = value!;
-                                    });
-                                  },
-                                ),
+                            : SizedBox(
+                                height: 0,
                               ),
-                              Text(
-                                'Happiness Leave',
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                              )
-                            ],
-                          ),
-                          isCompoffEligible ?
-                          Row(
-                            mainAxisSize: MainAxisSize.max,
-                            children: [
-                              Material(
-                                child: Checkbox(
-                                  checkColor: Colors.white,
-                                  fillColor: MaterialStateProperty.resolveWith(getColor),
-                                  value: isCompoff,
-                                  onChanged: (bool? value) {
-                                    setState(() {
-                                      isHappinessLeave = false;
-                                      isCompoff = value!;
-                                    });
-                                  },
-                                ),
+                        Row(
+                          mainAxisSize: MainAxisSize.max,
+                          children: [
+                            Material(
+                              child: Checkbox(
+                                checkColor: Colors.white,
+                                fillColor:
+                                    MaterialStateProperty.resolveWith(getColor),
+                                value: isHappinessLeave,
+                                onChanged: (bool? value) {
+                                  setState(() {
+                                    isCompoff = false;
+                                    isHappinessLeave = value!;
+                                  });
+                                },
                               ),
-                              Text(
-                                'Comp Off',
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
+                            ),
+                            Text(
+                              'Happiness Leave',
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            )
+                          ],
+                        ),
+                        isCompoffEligible
+                            ? Row(
+                                mainAxisSize: MainAxisSize.max,
+                                children: [
+                                  Material(
+                                    child: Checkbox(
+                                      checkColor: Colors.white,
+                                      fillColor:
+                                          MaterialStateProperty.resolveWith(
+                                              getColor),
+                                      value: isCompoff,
+                                      onChanged: (bool? value) {
+                                        setState(() {
+                                          isHappinessLeave = false;
+                                          isCompoff = value!;
+                                        });
+                                      },
+                                    ),
+                                  ),
+                                  Text(
+                                    'Comp Off',
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                  )
+                                ],
                               )
-                            ],
-                          ) : SizedBox(height: 0,),
-                          GestureDetector(
-                            onTap: () {
-                              validate();
-                            },
-                            child: Container(
+                            : SizedBox(
+                                height: 0,
+                              ),
+                        GestureDetector(
+                          onTap: () {
+                            validate();
+                          },
+                          child: Container(
                               alignment: Alignment.center,
                               height: size.height / 14,
                               decoration: BoxDecoration(
@@ -270,27 +283,30 @@ int _groupValue=0;
                                 ],
                               ),
                               child: Text(
-                                'Submit',style: LightColors.textHeaderStyle13Selected,)
-                            ),
-                          ),
-                  ],
-                ),
-              )
-                  ],
-                ),
+                                'Submit',
+                                style: LightColors.textHeaderStyle13Selected,
+                              )),
+                        ),
+                      ],
+                    ),
+                  )
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
+      ),
       bottomNavigationBar: Utility.footer(appVersion),
     );
   }
 
-  validate() async{
+  validate() async {
     bool isInternet = await Utility.isInternet();
-    if(!isInternet) {
+    if (!isInternet) {
       Utility.noInternetConnection(context);
-    }else if (isHappinessLeave ?  _startDateController.text == '' :  _startDateController.text == '' || _endDateController.text == '') {
+    } else if (isHappinessLeave
+        ? _startDateController.text == ''
+        : _startDateController.text == '' || _endDateController.text == '') {
       Utility.showMessage(context, 'Please Select the Date Range');
     } else if (_purposeController.text == '') {
       Utility.showMessage(context, 'Please Enter the purpose of leave');
@@ -304,6 +320,7 @@ int _groupValue=0;
       }
     }
   }
+
   DateTime parseDateTime(String value) {
     DateTime dt = DateTime.now();
     //2022-07-18T00:00:00
@@ -326,13 +343,21 @@ int _groupValue=0;
         Remarks: _purposeController.text,
         Requisition_Date: DateFormat('yyyy-MM-dd').format(DateTime.now()),
         RequisitionTypeCode: isCompoff ? 'LV4' : 'LV1',
-        Start_Date: DateFormat('yyyy-MM-dd').format(parseDateTime(_startDateController.text)),
-        End_Date: DateFormat('yyyy-MM-dd').format(parseDateTime(isHappinessLeave ? _startDateController.text : _endDateController.text)),
+        Start_Date: DateFormat('yyyy-MM-dd')
+            .format(parseDateTime(_startDateController.text)),
+        End_Date: DateFormat('yyyy-MM-dd').format(parseDateTime(isHappinessLeave
+            ? _startDateController.text
+            : _endDateController.text)),
         NosDays: 0,
         IsMaternityLeave: isMaternaty,
         noofChildren: "0",
-        AppType :Platform.isAndroid ? 'Android' : Platform.isIOS ? 'IOS' : 'unknown',
-        WorkLocation: "",IsHappinessLeave: isHappinessLeave);
+        AppType: Platform.isAndroid
+            ? 'Android'
+            : Platform.isIOS
+                ? 'IOS'
+                : 'unknown',
+        WorkLocation: "",
+        IsHappinessLeave: isHappinessLeave);
     debugPrint(request.toJson().toString());
     APIService apiService = APIService();
     apiService.applyLeave(request).then((value) {
@@ -342,8 +367,8 @@ int _groupValue=0;
           Utility.showMessage(context, 'Unable to Apply Leave Request');
         } else if (value is ApplyLeaveResponse) {
           ApplyLeaveResponse response = value;
-          Utility.showMessageSingleButton(context, response.responseMessage,this);
-
+          Utility.showMessageSingleButton(
+              context, response.responseMessage, this);
         }
       } else {
         Navigator.pop(context);

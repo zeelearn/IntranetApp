@@ -568,7 +568,7 @@ class _QuestionListScreenState extends State<QuestionListScreen>
             getView(widget.cvfView),
             Container(
               margin:
-                  const EdgeInsets.only(top: 100, left: 0, right: 0, bottom: 0),
+                  const EdgeInsets.only(top: 150, left: 0, right: 0, bottom: 0),
               /*child: getWidget(),*/
               child: SingleChildScrollView(
                 child: getWidget(),
@@ -794,27 +794,35 @@ class _QuestionListScreenState extends State<QuestionListScreen>
             mainAxisSize: MainAxisSize.max,
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Padding(
-                padding: EdgeInsetsDirectional.fromSTEB(0, 4, 0, 0),
-                child: Text(
-                  'Fran Code : ${cvfView.franchiseeCode}',
-                  style: TextStyle(
-                    fontFamily: 'Lexend Deca',
-                    color: Color(0xFF4B39EF),
-                    fontSize: 10,
-                    fontWeight: FontWeight.w600,
+              Expanded(
+                child: Padding(
+                  padding: EdgeInsetsDirectional.fromSTEB(0, 4, 0, 0),
+                  child: Text(
+                    'Fran Code : ${cvfView.franchiseeCode}',
+                    style: TextStyle(
+                      fontFamily: 'Lexend Deca',
+                      color: Color(0xFF4B39EF),
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
                   ),
                 ),
               ),
-              Padding(
-                padding: EdgeInsetsDirectional.fromSTEB(0, 4, 0, 0),
-                child: Text(
-                  'Ref Id :  C-${cvfView.PJPCVF_Id}',
-                  style: TextStyle(
-                    fontFamily: 'Lexend Deca',
-                    color: Color(0xFF4B39EF),
-                    fontSize: 10,
-                    fontWeight: FontWeight.w600,
+              Expanded(
+                child: Padding(
+                  padding: EdgeInsetsDirectional.fromSTEB(0, 4, 0, 0),
+                  child: Text(
+                    'Ref Id :  C-${cvfView.PJPCVF_Id}',
+                    style: TextStyle(
+                      fontFamily: 'Lexend Deca',
+                      color: Color(0xFF4B39EF),
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
                   ),
                 ),
               ),
@@ -822,14 +830,17 @@ class _QuestionListScreenState extends State<QuestionListScreen>
           ),
         ),
         Row(
+          // This row contains the main franchisee/address text and the "Mark Completed" button
           children: [
             Expanded(
               flex: 3,
               child: Padding(
                 padding: EdgeInsetsDirectional.fromSTEB(5, 4, 12, 4),
                 child: Column(
-                  mainAxisSize: MainAxisSize.max,
-                  mainAxisAlignment: MainAxisAlignment.start,
+                  mainAxisSize:
+                      MainAxisSize.max, // Ensure column takes max height
+                  mainAxisAlignment:
+                      MainAxisAlignment.start, // Align content to the top
                   children: [
                     Align(
                       alignment: Alignment.centerLeft,
@@ -845,6 +856,8 @@ class _QuestionListScreenState extends State<QuestionListScreen>
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
                           ),
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 3, // Limit to 3 lines, adjust as needed
                         ),
                       ),
                     ),

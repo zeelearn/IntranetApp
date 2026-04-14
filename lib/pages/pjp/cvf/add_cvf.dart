@@ -173,6 +173,9 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
       String version = packageInfo.version;
       String buildNumber = packageInfo.buildNumber;
       appVersion = version;
+      if (mounted) {
+        setState(() {});
+      }
     });
   }
 

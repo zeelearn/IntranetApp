@@ -70,7 +70,9 @@ class _LoginPage extends State<LoginPage> {
       String version = packageInfo.version;
       String buildNumber = packageInfo.buildNumber;
       appVersion = version;
-      setState(() {});
+      if (mounted) {
+        setState(() {});
+      }
     });
   }
 

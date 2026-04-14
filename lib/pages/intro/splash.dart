@@ -9,7 +9,7 @@ import '../helper/LocalConstant.dart';
 import '../helper/utils.dart';
 import '../home/IntranetHomePage.dart';
 import 'intro.dart';
-import 'dart:html' as html;
+import '../helper/web_helper.dart';
 import '../auth/magic_link_handler.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -37,7 +37,7 @@ class _SplashScreenState extends State<SplashScreen> {
     var box = await Utility.openBox();
 
     if (kIsWeb) {
-      final uriStr = html.window.location.href;
+      final uriStr = getBrowserUrl();
       final uri = Uri.parse(uriStr);
       if (uri.queryParameters.containsKey('token')) {
         MagicLinkHandler.handle(uri, context);
