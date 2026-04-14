@@ -284,7 +284,7 @@ class _LoginPage extends State<LoginPage> {
               } else {
                 Navigator.of(context).push(MaterialPageRoute(
                     builder: (BuildContext context) => MyWebsiteView(
-                          url: 'https://kidzee.com/PrivacyPolicy',
+                          url: 'https://www.kidzee.com/privacy-policy',
                           title: 'Privacy Policy',
                         )));
               }
@@ -321,7 +321,7 @@ class _LoginPage extends State<LoginPage> {
   }
 
   _launchURL() async {
-    const url = 'https://www.kidzee.com/Home/PrivacyPolicy';
+    const url = 'https://www.kidzee.com/privacy-policy';
     if (await canLaunch(url)) {
       await launch(url);
     } else {

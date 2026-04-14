@@ -206,8 +206,7 @@ class _AllLegalStatusPageState extends State<AllLegalStatusPage> {
                                       });
                                     },
                                     decoration: InputDecoration(
-                                      hintText:
-                                          'Search by Agreement Name',
+                                      hintText: 'Search by Agreement Name',
                                       hintStyle: const TextStyle(
                                           color: Colors.grey, fontSize: 14),
                                       prefixIcon: const Icon(Icons.search,
@@ -351,7 +350,11 @@ class _AllLegalStatusPageState extends State<AllLegalStatusPage> {
           padding: const EdgeInsets.only(left: 16, right: 16, top: 16),
           gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
             maxCrossAxisExtent: 550,
-            childAspectRatio: constraints.maxWidth > 1100 ? 3.1 : constraints.maxWidth > 950 ? 2.7: 2.7,
+            childAspectRatio: constraints.maxWidth > 1100
+                ? 3.1
+                : constraints.maxWidth > 950
+                    ? 2.7
+                    : 2.7,
             crossAxisSpacing: 16,
             mainAxisSpacing: 16,
           ),
@@ -398,7 +401,9 @@ class AgreementCard extends StatelessWidget {
 
   void _copyToClipboard(BuildContext context, String text, String label) {
     Clipboard.setData(ClipboardData(text: text)).then((_) {
-      ToastUtility.showSuccess(msg: "$label copied to clipboard");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Request Name copied to clipboard')),
+      );
     });
   }
 

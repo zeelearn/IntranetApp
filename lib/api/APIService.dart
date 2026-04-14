@@ -1946,12 +1946,11 @@ class APIService {
         return ZohoRequestModel.setError(
             responseBody['message'] ?? 'Unknown error');
       } else {
-        return ZohoRequestModel.setError(
-            'Failed to load data: ${response.statusCode}');
+        return ZohoRequestModel.setError('Something went wrong.');
       }
     } catch (e) {
       debugPrint('Exception in getRecipientList - ${e.toString()}');
-      return ZohoRequestModel.setError('Something went wrong: $e');
+      return ZohoRequestModel.setError('Something went wrong.');
     }
   }
 

@@ -2783,13 +2783,49 @@ class _PjpInfoCard extends StatelessWidget {
   static const Color _accent = Color(0xFF26C6DA);
   static const Color _green = Color(0xFF4CAF90);
   static const Color _orange = Color(0xFFFF8A65);
+  static const Color _red = Color(0xFFEF5350);
 
   Color _statusColor(String status) {
     final s = status.trim().toLowerCase();
     if (s.contains('approved')) return _green;
     if (s.contains('pending')) return _orange;
-    if (s.contains('reject')) return const Color(0xFFEF5350);
+    if (s.contains('reject')) return _red;
     return _textSecondary;
+  }
+
+  Widget _actionButton(BuildContext context, String label, Color color,
+      {bool isOutlined = false}) {
+    return SizedBox(
+      height: 32,
+      child: ElevatedButton(
+        onPressed: () {
+          if (label == 'REJECT') {
+            Utility.onConfirmationBoxNew(
+              context,
+              'REJECT',
+              'Cancel',
+              'Reject PJP',
+              'Are you sure to reject the PJP',
+              Utility.ACTION_REJECT,
+              () {},
+              () => approvePjpList(0, pjp.PJP_Id, context),
+            );
+          } else {
+            approvePjpList(1, pjp.PJP_Id, context);
+          }
+        },
+        style: ElevatedButton.styleFrom(
+          backgroundColor: isOutlined ? Colors.white : color,
+          foregroundColor: isOutlined ? color : Colors.white,
+          side: isOutlined ? BorderSide(color: color, width: 1) : null,
+          elevation: 0,
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          textStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+        ),
+        child: Text(label),
+      ),
+    );
   }
 
   void approvePjpList(int isApprove, String pjpid, BuildContext context) {
@@ -2818,12 +2854,14 @@ class _PjpInfoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bool isMobile = MediaQuery.of(context).size.width < 600;
     final hasLocations =
         pjp.getDetailedPJP != null && pjp.getDetailedPJP!.isNotEmpty;
     final validLocations = pjp.getDetailedPJP
             ?.where((d) => d.Latitude != 0 || d.Longitude != 0)
             .toList() ??
         [];
+    final statusColor = _statusColor(pjp.ApprovalStatus);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -2844,126 +2882,88 @@ class _PjpInfoCard extends StatelessWidget {
           // ── Header strip ──────────────────────────────────────────────────
           Container(
             decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.12),
+              color: statusColor.withValues(alpha: 0.12),
               borderRadius:
                   const BorderRadius.vertical(top: Radius.circular(14)),
             ),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            child: Row(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  width: 42,
-                  height: 42,
-                  decoration: BoxDecoration(
-                    color: color.withValues(alpha: 0.18),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(Icons.person_rounded, color: color, size: 22),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        pjp.displayName,
-                        style: GoogleFonts.inter(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
-                          color: _textPrimary,
-                        ),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Container(
+                      width: 42,
+                      height: 42,
+                      decoration: BoxDecoration(
+                        color: statusColor.withValues(alpha: 0.18),
+                        shape: BoxShape.circle,
                       ),
-                      const SizedBox(height: 2),
-                      Text(
-                        'PJP ID: ${pjp.PJP_Id}',
-                        style: GoogleFonts.inter(
-                          fontSize: 11,
-                          color: _textSecondary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                if (pjp.isSelfPJP.trim() == '1' &&
-                    pjp.ApprovalStatus != 'Rejected') ...[
-                  IconButton(
-                    icon: const Icon(Icons.add_location_alt_outlined,
-                        color: _accent, size: 20),
-                    onPressed: () async {
-                      final result = await Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => AddCVFScreen(mPjpModel: pjp),
-                        ),
-                      );
-                      if (result == true && onUpdated != null) {
-                        onUpdated!();
-                      }
-                    },
-                    tooltip: 'Add CVF',
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                  ),
-                  const SizedBox(width: 8),
-                ],
-                // Status badge
-                if (pjp.ApprovalStatus == 'Pending' &&
-                    empName.trim() == pjp.managerName) ...[
-                  Row(
-                    children: [
-                      ElevatedButton(
-                        onPressed: () {
-                          Utility.onConfirmationBoxNew(
-                            context,
-                            'REJECT',
-                            'Cancel',
-                            'Reject PJP',
-                            'Are you sure to reject the PJP',
-                            Utility.ACTION_REJECT,
-                            () {},
-                            () => approvePjpList(0, pjp.PJP_Id, context),
-                          );
-                        },
-                        style: ElevatedButton.styleFrom(
-                            elevation: 12.0,
-                            textStyle:
-                                const TextStyle(color: LightColors.kRed)),
-                        child: const Text('Reject'),
-                      ),
-                      SizedBox(width: 8),
-                      ElevatedButton(
-                        onPressed: () {
-                          approvePjpList(1, pjp.PJP_Id, context);
-                        },
-                        // style: ButtonStyle(elevation: MaterialStateProperty(12.0 )),
-                        style: ElevatedButton.styleFrom(
-                            elevation: 12.0,
-                            textStyle: const TextStyle(
-                                color: LightColors.kLightGreen)),
-                        child: const Text('Approve'),
-                      ),
-                    ],
-                  )
-                ] else
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: _statusColor(pjp.ApprovalStatus)
-                          .withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: _statusColor(pjp.ApprovalStatus)
-                            .withValues(alpha: 0.4),
+                      child: Icon(Icons.person_rounded,
+                          color: statusColor, size: 22),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            pjp.displayName,
+                            style: GoogleFonts.inter(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w700,
+                              color: _textPrimary,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            'PJP ID: ${pjp.PJP_Id}',
+                            style: GoogleFonts.inter(
+                              fontSize: 11,
+                              color: _textSecondary,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    child: Text(
-                      pjp.ApprovalStatus,
-                      style: GoogleFonts.inter(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: _statusColor(pjp.ApprovalStatus),
+                    if (pjp.isSelfPJP.trim() == '1' &&
+                        pjp.ApprovalStatus != 'Rejected')
+                      Padding(
+                        padding: const EdgeInsets.only(right: 4),
+                        child: IconButton(
+                          icon: const Icon(Icons.add_location_alt_outlined,
+                              color: _accent, size: 20),
+                          onPressed: () async {
+                            final result = await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) =>
+                                      AddCVFScreen(mPjpModel: pjp)),
+                            );
+                            if (result == true && onUpdated != null) {
+                              onUpdated!();
+                            }
+                          },
+                          tooltip: 'Add CVF',
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                        ),
                       ),
+                    if (!isMobile ||
+                        (pjp.ApprovalStatus != 'Pending' ||
+                            empName.trim() != pjp.managerName))
+                      _buildStatusOrActions(context),
+                  ],
+                ),
+                if (isMobile &&
+                    pjp.ApprovalStatus == 'Pending' &&
+                    empName.trim() == pjp.managerName)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 12),
+                    child: Align(
+                      alignment: Alignment.centerRight,
+                      child: _buildStatusOrActions(context),
                     ),
                   ),
               ],
@@ -3083,6 +3083,39 @@ class _PjpInfoCard extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  Widget _buildStatusOrActions(BuildContext context) {
+    if (pjp.ApprovalStatus == 'Pending' && empName.trim() == pjp.managerName) {
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _actionButton(context, 'REJECT', const Color(0xFFEF5350),
+              isOutlined: true),
+          const SizedBox(width: 8),
+          _actionButton(context, 'APPROVE', _green),
+        ],
+      );
+    } else {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        decoration: BoxDecoration(
+          color: _statusColor(pjp.ApprovalStatus).withValues(alpha: 0.12),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: _statusColor(pjp.ApprovalStatus).withValues(alpha: 0.4),
+          ),
+        ),
+        child: Text(
+          pjp.ApprovalStatus,
+          style: GoogleFonts.inter(
+            fontSize: 11,
+            fontWeight: FontWeight.w600,
+            color: _statusColor(pjp.ApprovalStatus),
+          ),
+        ),
+      );
+    }
   }
 
   Widget _infoRow(IconData icon, String label, String value, Color iconColor) {
