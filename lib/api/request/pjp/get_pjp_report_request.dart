@@ -26,8 +26,8 @@ class PJPReportRequest {
     return jsonEncode({
       'EmployeeCode': employeeCode,
       'BusinessId': businessId,
-      'FromDate': null /* fromDate */,
-      'ToDate': null /* toDate */,
+      'FromDate': /* null */ fromDate,
+      'ToDate': /*  null */ toDate,
       'AppType': appType
     });
   }

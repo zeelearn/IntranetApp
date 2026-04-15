@@ -1924,7 +1924,7 @@ class APIService {
     return null;
   }
 
-  Future<ZohoRequestModel> getRecipientList(String email) async {
+  /*  Future<ZohoRequestModel> getRecipientList(String email) async {
     try {
       final uri = Uri.parse('${bpms_url}api/bp/getagreementstatus');
       var body = jsonEncode({
@@ -1952,9 +1952,9 @@ class APIService {
       debugPrint('Exception in getRecipientList - ${e.toString()}');
       return ZohoRequestModel.setError('Something went wrong.');
     }
-  }
+  } */
 
-  /*  Future<ZohoRequestModel> getRecipientList(String email) async {
+  Future<ZohoRequestModel> getRecipientList(String email) async {
     try {
       final List<Requests> allRequests = [];
       int startIndex = 1;
@@ -2040,7 +2040,7 @@ class APIService {
       debugPrint('Exception in getRecipientList - ${e.toString()}');
       return ZohoRequestModel.setError('Something went wrong.');
     }
-  } */
+  }
 
   /*  Future<ZohoRequestModel> getRecipientList(String email) async {
     try {

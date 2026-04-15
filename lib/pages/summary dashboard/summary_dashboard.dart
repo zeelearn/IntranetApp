@@ -55,8 +55,8 @@ class _SummaryDashboardState extends State<SummaryDashboard>
   // ── state ─────────────────────────────────────────────────────────────────
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
-  final DateTime _lastDay =
-      DateTime.utc(DateTime.now().year, DateTime.now().month + 4, 0);
+  DateTime _firstDay = DateTime.utc(DateTime.now().year - 3, 1, 1);
+  DateTime _lastDay = DateTime.utc(DateTime.now().year + 2, 12, 31);
 
   bool _isSidebarVisible = true;
   CalendarFormat _calendarFormat = CalendarFormat.month;
@@ -84,6 +84,9 @@ class _SummaryDashboardState extends State<SummaryDashboard>
   bool _isMobileSearchActive = false;
 
   // KPI state
+  String _selectedFY = '';
+  List<String> _financialYears = [];
+
   int _totalEmployees = 0;
   int _totalTeamSize = 0;
   int _totalVisits = 0;
@@ -128,8 +131,44 @@ class _SummaryDashboardState extends State<SummaryDashboard>
   @override
   void initState() {
     super.initState();
-
+    _generateFinancialYears();
     _fetchDashboardData();
+  }
+
+  String _getFYFromDate(DateTime date) {
+    int startYear = date.month >= 4 ? date.year : date.year - 1;
+    return '$startYear-${(startYear + 1).toString().substring(2)}';
+  }
+
+  void _onFocusedDayChanged(DateTime focused) {
+    String newFY = _getFYFromDate(focused);
+    if (newFY != _selectedFY && _financialYears.contains(newFY)) {
+      setState(() {
+        _selectedFY = newFY;
+        _isLoading = true;
+      });
+      _fetchDashboardData(fy: newFY);
+    }
+    setState(() => _focusedDay = focused);
+  }
+
+  void _generateFinancialYears() {
+    final now = DateTime.now();
+    int startYear = now.month >= 4 ? now.year : now.year - 1;
+
+    _financialYears = [];
+    // Generate Previous 2 years, current year, and next year
+    for (int i = -2; i <= 0; i++) {
+      int year = startYear + i;
+      _financialYears.add('$year-${(year + 1).toString().substring(2)}');
+    }
+    _financialYears
+        .sort((a, b) => b.compareTo(a)); // So that current FY appears first
+    _selectedFY = '$startYear-${(startYear + 1).toString().substring(2)}';
+
+    // Adjust calendar boundaries to cover all available financial years
+    _firstDay = DateTime.utc(startYear - 2, 4, 1);
+    _lastDay = DateTime.utc(startYear + 2, 3, 31);
   }
 
   @override
@@ -140,7 +179,7 @@ class _SummaryDashboardState extends State<SummaryDashboard>
     super.dispose();
   }
 
-  Future<void> _fetchDashboardData() async {
+  Future<void> _fetchDashboardData({String? fy}) async {
     try {
       var hiveBox = await Utility.openBox();
       employeeId =
@@ -158,15 +197,16 @@ class _SummaryDashboardState extends State<SummaryDashboard>
         _isTeamView = false;
       }
 
-      final now = DateTime.now();
-      final firstDayOfMonth = DateTime(now.year, now.month, 1);
-      final lastDayOfMonth = DateTime(now.year, now.month + 1, 0);
+      final targetFY = fy ?? _selectedFY;
+      int startYear = int.parse(targetFY.split('-')[0]);
+      final fyStart = DateTime(startYear, 4, 1);
+      final fyEnd = DateTime(startYear + 1, 3, 31);
 
       PJPReportRequest request = PJPReportRequest(
         employeeCode: employeeCode,
         businessId: businessId.toString(),
-        fromDate: DateFormat('yyyy-MM-dd').format(firstDayOfMonth),
-        toDate: DateFormat('yyyy-MM-dd').format(lastDayOfMonth),
+        fromDate: DateFormat('yyyy-MM-dd').format(fyStart),
+        toDate: DateFormat('yyyy-MM-dd').format(fyEnd),
       );
 
       IntranetServiceHandler.loadPjpReport(request, this);
@@ -393,6 +433,7 @@ class _SummaryDashboardState extends State<SummaryDashboard>
       appBar: _isMobile(w) ? _buildMobileAppBar() : null,
       // drawer:
       //     _isMobile(w) ? Drawer(child: _buildSidebar(compact: false)) : null,
+      floatingActionButton: _isMobile(w) ? _buildMobileFYFilter() : null,
       body: SafeArea(
         child: _isMobile(w)
             ? _buildMobileBody()
@@ -406,6 +447,64 @@ class _SummaryDashboardState extends State<SummaryDashboard>
                 ],
               ),
       ),
+    );
+  }
+
+  Widget _buildMobileFYFilter() {
+    return FloatingActionButton.small(
+      onPressed: () {
+        showModalBottomSheet(
+          context: context,
+          builder: (context) {
+            return Container(
+              padding: const EdgeInsets.symmetric(vertical: 20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: Text('Select Financial Year',
+                        style: GoogleFonts.inter(
+                            fontWeight: FontWeight.bold, fontSize: 16)),
+                  ),
+                  ..._financialYears.map((fy) => ListTile(
+                        title: Text('FY $fy',
+                            textAlign: TextAlign.center,
+                            style: GoogleFonts.inter(
+                                color:
+                                    _selectedFY == fy ? _accent : _textPrimary,
+                                fontWeight: _selectedFY == fy
+                                    ? FontWeight.bold
+                                    : FontWeight.normal)),
+                        onTap: () {
+                          if (_selectedFY != fy) {
+                            setState(() {
+                              _selectedFY = fy;
+                              _isLoading = true;
+                            });
+                            _fetchDashboardData(fy: fy);
+                            // Update focus to start of selected FY if not current month
+                            int startYear = int.parse(fy.split('-')[0]);
+                            DateTime fyStart = DateTime(startYear, 4, 1);
+                            DateTime now = DateTime.now();
+                            if (now.isAfter(fyStart) &&
+                                now.isBefore(DateTime(startYear + 1, 3, 31))) {
+                              _focusedDay = now;
+                            } else {
+                              _focusedDay = fyStart;
+                            }
+                          }
+                          Navigator.pop(context);
+                        },
+                      )),
+                ],
+              ),
+            );
+          },
+        );
+      },
+      backgroundColor: _sidebar,
+      child: const Icon(Icons.calendar_today, color: Colors.white, size: 18),
     );
   }
 
@@ -734,7 +833,7 @@ class _SummaryDashboardState extends State<SummaryDashboard>
     return Theme(
       data: ThemeData.dark(),
       child: TableCalendar<_Event>(
-        firstDay: DateTime.utc(2020, 1, 1),
+        firstDay: _firstDay,
         lastDay: _lastDay,
         focusedDay: _focusedDay,
         selectedDayPredicate: (day) =>
@@ -767,7 +866,7 @@ class _SummaryDashboardState extends State<SummaryDashboard>
             }
           }
         },
-        onPageChanged: (focused) => setState(() => _focusedDay = focused),
+        onPageChanged: _onFocusedDayChanged,
         headerStyle: HeaderStyle(
           titleCentered: false,
           formatButtonVisible: false,
@@ -1198,7 +1297,7 @@ class _SummaryDashboardState extends State<SummaryDashboard>
           // Nav arrows
           const SizedBox(width: 8),
           _topBarNavBtn(Icons.chevron_left, () {
-            setState(() => _focusedDay =
+            _onFocusedDayChanged(
                 DateTime(_focusedDay.year, _focusedDay.month - 1));
           }),
           _topBarNavBtn(Icons.chevron_right, () {
@@ -1206,13 +1305,13 @@ class _SummaryDashboardState extends State<SummaryDashboard>
                 _lastDay.year == _focusedDay.year) {
               return;
             }
-            setState(() => _focusedDay =
+            _onFocusedDayChanged(
                 DateTime(_focusedDay.year, _focusedDay.month + 1));
           }),
           const SizedBox(width: 8),
           // Today button
           OutlinedButton(
-            onPressed: () => setState(() => _focusedDay = DateTime.now()),
+            onPressed: () => _onFocusedDayChanged(DateTime.now()),
             style: OutlinedButton.styleFrom(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               minimumSize: Size.zero,
@@ -1233,6 +1332,8 @@ class _SummaryDashboardState extends State<SummaryDashboard>
                   fontWeight: FontWeight.w700,
                   fontSize: desktop ? 18 : 14,
                   color: _textPrimary)),
+          const SizedBox(width: 16),
+          if (desktop) _buildFYDropdown(),
           // Search
           if (desktop) ...[
             SizedBox(width: 16),
@@ -1432,6 +1533,44 @@ class _SummaryDashboardState extends State<SummaryDashboard>
             ),
           ), */
         ],
+      ),
+    );
+  }
+
+  Widget _buildFYDropdown() {
+    return Container(
+      height: 32,
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      decoration: BoxDecoration(
+        border: Border.all(color: _divider),
+        borderRadius: BorderRadius.circular(6),
+        color: Colors.white,
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: _selectedFY,
+          items: _financialYears.map((fy) {
+            return DropdownMenuItem(
+              value: fy,
+              child: Text('FY $fy',
+                  style: GoogleFonts.inter(fontSize: 12, color: _textPrimary)),
+            );
+          }).toList(),
+          onChanged: (val) {
+            if (val != null && val != _selectedFY) {
+              setState(() {
+                _selectedFY = val;
+                _isLoading = true;
+              });
+              _fetchDashboardData(fy: val);
+              int startYear = int.parse(val.split('-')[0]);
+              DateTime fyStart = DateTime(startYear, 4, 1);
+              setState(() {
+                _focusedDay = fyStart;
+              });
+            }
+          },
+        ),
       ),
     );
   }
@@ -1953,7 +2092,7 @@ class _SummaryDashboardState extends State<SummaryDashboard>
       child: ClipRRect(
         borderRadius: BorderRadius.circular(12),
         child: TableCalendar<_Event>(
-          firstDay: DateTime.utc(2020, 1, 1),
+          firstDay: _firstDay,
           lastDay: _lastDay,
           focusedDay: _focusedDay,
           selectedDayPredicate: (day) =>
@@ -1989,7 +2128,7 @@ class _SummaryDashboardState extends State<SummaryDashboard>
               }
             }
           },
-          onPageChanged: (focused) => setState(() => _focusedDay = focused),
+          onPageChanged: _onFocusedDayChanged,
           onFormatChanged: (format) {
             setState(() {
               _calendarFormat = format;
@@ -2248,7 +2387,7 @@ class _SummaryDashboardState extends State<SummaryDashboard>
       ),
       child: TableCalendar<_Event>(
         availableGestures: AvailableGestures.horizontalSwipe,
-        firstDay: DateTime.utc(2020, 1, 1),
+        firstDay: _firstDay,
         lastDay: _lastDay,
         focusedDay: _focusedDay,
         selectedDayPredicate: (day) =>
@@ -2281,7 +2420,7 @@ class _SummaryDashboardState extends State<SummaryDashboard>
             }
           }
         },
-        onPageChanged: (focused) => setState(() => _focusedDay = focused),
+        onPageChanged: _onFocusedDayChanged,
         headerStyle: HeaderStyle(
           titleCentered: true,
           formatButtonVisible: false,
