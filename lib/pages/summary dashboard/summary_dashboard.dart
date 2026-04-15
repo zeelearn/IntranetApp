@@ -142,7 +142,9 @@ class _SummaryDashboardState extends State<SummaryDashboard>
 
   void _onFocusedDayChanged(DateTime focused) {
     String newFY = _getFYFromDate(focused);
-    if (newFY != _selectedFY && _financialYears.contains(newFY)) {
+    if (_selectedFY != 'All' &&
+        newFY != _selectedFY &&
+        _financialYears.contains(newFY)) {
       setState(() {
         _selectedFY = newFY;
         _isLoading = true;
@@ -164,6 +166,7 @@ class _SummaryDashboardState extends State<SummaryDashboard>
     }
     _financialYears
         .sort((a, b) => b.compareTo(a)); // So that current FY appears first
+    _financialYears.insert(0, 'All');
     _selectedFY = '$startYear-${(startYear + 1).toString().substring(2)}';
 
     // Adjust calendar boundaries to cover all available financial years
@@ -198,15 +201,21 @@ class _SummaryDashboardState extends State<SummaryDashboard>
       }
 
       final targetFY = fy ?? _selectedFY;
-      int startYear = int.parse(targetFY.split('-')[0]);
-      final fyStart = DateTime(startYear, 4, 1);
-      final fyEnd = DateTime(startYear + 1, 3, 31);
+      String? fromDate;
+      String? toDate;
+      if (targetFY != 'All') {
+        int startYear = int.parse(targetFY.split('-')[0]);
+        final fyStart = DateTime(startYear, 4, 1);
+        final fyEnd = DateTime(startYear + 1, 3, 31);
+        fromDate = DateFormat('yyyy-MM-dd').format(fyStart);
+        toDate = DateFormat('yyyy-MM-dd').format(fyEnd);
+      }
 
       PJPReportRequest request = PJPReportRequest(
         employeeCode: employeeCode,
         businessId: businessId.toString(),
-        fromDate: DateFormat('yyyy-MM-dd').format(fyStart),
-        toDate: DateFormat('yyyy-MM-dd').format(fyEnd),
+        fromDate: fromDate,
+        toDate: toDate,
       );
 
       IntranetServiceHandler.loadPjpReport(request, this);
@@ -1326,124 +1335,130 @@ class _SummaryDashboardState extends State<SummaryDashboard>
                     color: _textPrimary,
                     fontWeight: FontWeight.w500)),
           ),
-          const SizedBox(width: 16),
-          Text(DateFormat('MMMM yyyy').format(_focusedDay),
-              style: GoogleFonts.inter(
-                  fontWeight: FontWeight.w700,
-                  fontSize: desktop ? 18 : 14,
-                  color: _textPrimary)),
-          const SizedBox(width: 16),
+          const SizedBox(width: 12),
+          Flexible(
+            child: Text(DateFormat('MMMM yyyy').format(_focusedDay),
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.inter(
+                    fontWeight: FontWeight.w700,
+                    fontSize: desktop ? 18 : 14,
+                    color: _textPrimary)),
+          ),
+          const SizedBox(width: 12),
           if (desktop) _buildFYDropdown(),
           // Search
           if (desktop) ...[
-            SizedBox(width: 16),
-            SizedBox(
-              width: 220,
-              child: RawAutocomplete<PJPInfo>(
-                textEditingController: _searchController,
-                focusNode: _searchFocusNode,
-                optionsBuilder: (TextEditingValue textEditingValue) {
-                  if (textEditingValue.text.isEmpty) {
-                    return const Iterable<PJPInfo>.empty();
-                  }
-                  return _pjpData.where((pjp) {
-                    final query = textEditingValue.text.toLowerCase();
-                    return pjp.displayName.toLowerCase().contains(query) ||
-                        pjp.PJP_Id.toString().contains(query) ||
-                        pjp.remarks.toLowerCase().contains(query);
-                  });
-                },
-                onSelected: (PJPInfo selection) {
-                  setState(() {
-                    _searchController.text = selection.PJP_Id.toString();
-                    _searchQuery = _searchController.text;
-                    _focusedDay = Utility.convertDate(selection.fromDate);
-                    _selectedDay = Utility.convertDate(selection.fromDate);
-                    _processFilteredData();
-                    _searchFocusNode.unfocus();
-                  });
-                },
-                displayStringForOption: (PJPInfo option) =>
-                    '${option.displayName} - PJP ID: ${option.PJP_Id}',
-                optionsViewBuilder: (context, onSelected, options) {
-                  return Align(
-                    alignment: Alignment.topLeft,
-                    child: Material(
-                      elevation: 4.0,
-                      child: ConstrainedBox(
-                        constraints:
-                            const BoxConstraints(maxHeight: 200, maxWidth: 350),
-                        child: ListView.builder(
-                          padding: EdgeInsets.zero,
-                          shrinkWrap: true,
-                          itemCount: options.length,
-                          itemBuilder: (BuildContext context, int index) {
-                            final PJPInfo option = options.elementAt(index);
-                            return InkWell(
-                              onTap: () => onSelected(option),
-                              child: ListTile(
-                                title: Text(
-                                    '${option.displayName} - PJP: ${option.PJP_Id}'),
-                                subtitle: Text(
-                                  option.remarks,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
+            const SizedBox(width: 12),
+            Flexible(
+              flex: 2,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 220),
+                child: RawAutocomplete<PJPInfo>(
+                  textEditingController: _searchController,
+                  focusNode: _searchFocusNode,
+                  optionsBuilder: (TextEditingValue textEditingValue) {
+                    if (textEditingValue.text.isEmpty) {
+                      return const Iterable<PJPInfo>.empty();
+                    }
+                    return _pjpData.where((pjp) {
+                      final query = textEditingValue.text.toLowerCase();
+                      return pjp.displayName.toLowerCase().contains(query) ||
+                          pjp.PJP_Id.toString().contains(query) ||
+                          pjp.remarks.toLowerCase().contains(query);
+                    });
+                  },
+                  onSelected: (PJPInfo selection) {
+                    setState(() {
+                      _searchController.text = selection.PJP_Id.toString();
+                      _searchQuery = _searchController.text;
+                      _focusedDay = Utility.convertDate(selection.fromDate);
+                      _selectedDay = Utility.convertDate(selection.fromDate);
+                      _processFilteredData();
+                      _searchFocusNode.unfocus();
+                    });
+                  },
+                  displayStringForOption: (PJPInfo option) =>
+                      '${option.displayName} - PJP ID: ${option.PJP_Id}',
+                  optionsViewBuilder: (context, onSelected, options) {
+                    return Align(
+                      alignment: Alignment.topLeft,
+                      child: Material(
+                        elevation: 4.0,
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(
+                              maxHeight: 200, maxWidth: 350),
+                          child: ListView.builder(
+                            padding: EdgeInsets.zero,
+                            shrinkWrap: true,
+                            itemCount: options.length,
+                            itemBuilder: (BuildContext context, int index) {
+                              final PJPInfo option = options.elementAt(index);
+                              return InkWell(
+                                onTap: () => onSelected(option),
+                                child: ListTile(
+                                  title: Text(
+                                      '${option.displayName} - PJP: ${option.PJP_Id}'),
+                                  subtitle: Text(
+                                    option.remarks,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
                                 ),
-                              ),
-                            );
-                          },
+                              );
+                            },
+                          ),
                         ),
                       ),
-                    ),
-                  );
-                },
-                fieldViewBuilder: (context, textEditingController, focusNode,
-                    onFieldSubmitted) {
-                  return SizedBox(
-                    height: 34,
-                    child: TextField(
-                      controller: textEditingController,
-                      focusNode: focusNode,
-                      onChanged: (value) {
-                        setState(() {
-                          _searchQuery = value;
-                          _processFilteredData();
-                        });
-                      },
-                      decoration: InputDecoration(
-                        hintText: 'Search PJP...',
-                        hintStyle: GoogleFonts.inter(
-                            fontSize: 12, color: _textSecondary),
-                        prefixIcon: const Icon(Icons.search,
-                            size: 16, color: _textSecondary),
-                        filled: true,
-                        fillColor: _mainBg,
-                        contentPadding: EdgeInsets.zero,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: const BorderSide(color: _divider),
+                    );
+                  },
+                  fieldViewBuilder: (context, textEditingController, focusNode,
+                      onFieldSubmitted) {
+                    return SizedBox(
+                      height: 34,
+                      child: TextField(
+                        controller: textEditingController,
+                        focusNode: focusNode,
+                        onChanged: (value) {
+                          setState(() {
+                            _searchQuery = value;
+                            _processFilteredData();
+                          });
+                        },
+                        decoration: InputDecoration(
+                          hintText: 'Search PJP...',
+                          hintStyle: GoogleFonts.inter(
+                              fontSize: 12, color: _textSecondary),
+                          prefixIcon: const Icon(Icons.search,
+                              size: 16, color: _textSecondary),
+                          filled: true,
+                          fillColor: _mainBg,
+                          contentPadding: EdgeInsets.zero,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: const BorderSide(color: _divider),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: const BorderSide(color: _divider),
+                          ),
+                          suffixIcon: _searchController.text.isNotEmpty
+                              ? IconButton(
+                                  icon: const Icon(Icons.clear,
+                                      size: 16, color: _textSecondary),
+                                  onPressed: () {
+                                    _searchController.clear();
+                                    setState(() {
+                                      _searchQuery = '';
+                                      _processFilteredData();
+                                    });
+                                  },
+                                )
+                              : null,
                         ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: const BorderSide(color: _divider),
-                        ),
-                        suffixIcon: _searchController.text.isNotEmpty
-                            ? IconButton(
-                                icon: const Icon(Icons.clear,
-                                    size: 16, color: _textSecondary),
-                                onPressed: () {
-                                  _searchController.clear();
-                                  setState(() {
-                                    _searchQuery = '';
-                                    _processFilteredData();
-                                  });
-                                },
-                              )
-                            : null,
                       ),
-                    ),
-                  );
-                },
+                    );
+                  },
+                ),
               ),
             ),
           ],
@@ -1563,11 +1578,13 @@ class _SummaryDashboardState extends State<SummaryDashboard>
                 _isLoading = true;
               });
               _fetchDashboardData(fy: val);
-              int startYear = int.parse(val.split('-')[0]);
-              DateTime fyStart = DateTime(startYear, 4, 1);
-              setState(() {
-                _focusedDay = fyStart;
-              });
+              if (val != 'All') {
+                int startYear = int.parse(val.split('-')[0]);
+                DateTime fyStart = DateTime(startYear, 4, 1);
+                setState(() {
+                  _focusedDay = fyStart;
+                });
+              }
             }
           },
         ),

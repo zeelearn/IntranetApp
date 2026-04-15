@@ -3,14 +3,14 @@ import 'package:flutter/foundation.dart';
 
 class PJPReportRequest {
   final String employeeCode;
-  final String fromDate;
-  final String toDate;
+  final String? fromDate;
+  final String? toDate;
   final String businessId;
 
   PJPReportRequest(
       {required this.employeeCode,
-      required this.fromDate,
-      required this.toDate,
+      this.fromDate,
+      this.toDate,
       required this.businessId});
 
   getJson() {
