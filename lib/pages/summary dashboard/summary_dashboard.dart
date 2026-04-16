@@ -22,6 +22,7 @@ import 'package:table_calendar/table_calendar.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
+import 'package:dropdown_search/dropdown_search.dart';
 
 class SummaryDashboard extends StatefulWidget {
   const SummaryDashboard({super.key});
@@ -74,6 +75,7 @@ class _SummaryDashboardState extends State<SummaryDashboard>
   Set<String> _selectedTeamMembers = {};
   Set<String> _allZones = {};
   Set<String> _selectedZones = {};
+  bool _isMonthlyKPI = false;
   final List<_Event> _events = [];
 
   // Search state
@@ -85,6 +87,7 @@ class _SummaryDashboardState extends State<SummaryDashboard>
 
   // KPI state
   String _selectedFY = '';
+  List<String> _selectedFYs = [];
   List<String> _financialYears = [];
 
   int _totalEmployees = 0;
@@ -135,23 +138,19 @@ class _SummaryDashboardState extends State<SummaryDashboard>
     _fetchDashboardData();
   }
 
+  // Get FY string for a single date
   String _getFYFromDate(DateTime date) {
     int startYear = date.month >= 4 ? date.year : date.year - 1;
     return '$startYear-${(startYear + 1).toString().substring(2)}';
   }
 
   void _onFocusedDayChanged(DateTime focused) {
-    String newFY = _getFYFromDate(focused);
-    if (_selectedFY != 'All' &&
-        newFY != _selectedFY &&
-        _financialYears.contains(newFY)) {
-      setState(() {
-        _selectedFY = newFY;
-        _isLoading = true;
-      });
-      _fetchDashboardData(fy: newFY);
-    }
-    setState(() => _focusedDay = focused);
+    setState(() {
+      _focusedDay = focused;
+      if (_isMonthlyKPI) {
+        _processFilteredData();
+      }
+    });
   }
 
   void _generateFinancialYears() {
@@ -168,6 +167,7 @@ class _SummaryDashboardState extends State<SummaryDashboard>
         .sort((a, b) => b.compareTo(a)); // So that current FY appears first
     _financialYears.insert(0, 'All');
     _selectedFY = '$startYear-${(startYear + 1).toString().substring(2)}';
+    _selectedFYs = [_selectedFY];
 
     // Adjust calendar boundaries to cover all available financial years
     _firstDay = DateTime.utc(startYear - 2, 4, 1);
@@ -182,7 +182,7 @@ class _SummaryDashboardState extends State<SummaryDashboard>
     super.dispose();
   }
 
-  Future<void> _fetchDashboardData({String? fy}) async {
+  Future<void> _fetchDashboardData() async {
     try {
       var hiveBox = await Utility.openBox();
       employeeId =
@@ -200,15 +200,27 @@ class _SummaryDashboardState extends State<SummaryDashboard>
         _isTeamView = false;
       }
 
-      final targetFY = fy ?? _selectedFY;
       String? fromDate;
       String? toDate;
-      if (targetFY != 'All') {
-        int startYear = int.parse(targetFY.split('-')[0]);
-        final fyStart = DateTime(startYear, 4, 1);
-        final fyEnd = DateTime(startYear + 1, 3, 31);
-        fromDate = DateFormat('yyyy-MM-dd').format(fyStart);
-        toDate = DateFormat('yyyy-MM-dd').format(fyEnd);
+
+      if (!_selectedFYs.contains('All') && _selectedFYs.isNotEmpty) {
+        DateTime? minStart;
+        DateTime? maxEnd;
+        for (var fy in _selectedFYs) {
+          try {
+            int startYear = int.parse(fy.split('-')[0]);
+            final fyStart = DateTime(startYear, 4, 1);
+            final fyEnd = DateTime(startYear + 1, 3, 31);
+            if (minStart == null || fyStart.isBefore(minStart))
+              minStart = fyStart;
+            if (maxEnd == null || fyEnd.isAfter(maxEnd)) maxEnd = fyEnd;
+          } catch (e) {
+            debugPrint('Error parsing FY: $fy');
+          }
+        }
+        if (minStart != null)
+          fromDate = DateFormat('yyyy-MM-dd').format(minStart);
+        if (maxEnd != null) toDate = DateFormat('yyyy-MM-dd').format(maxEnd);
       }
 
       PJPReportRequest request = PJPReportRequest(
@@ -328,6 +340,8 @@ class _SummaryDashboardState extends State<SummaryDashboard>
     int approvedPjps = 0;
     int rejectedPjps = 0;
     List<_Event> newEvents = [];
+    int totalPjpForSummary = 0;
+    Set<String> membersInSummary = {};
 
     Set<String> teamMembersInFilteredData = {};
 
@@ -336,6 +350,19 @@ class _SummaryDashboardState extends State<SummaryDashboard>
     for (var pjpInfo in _filteredPjpData) {
       final userName = pjpInfo.displayName;
       final baseColor = _getStatusColor(pjpInfo.ApprovalStatus);
+
+      bool includeInSummary = true;
+      if (_isMonthlyKPI) {
+        DateTime pjpStart = Utility.convertDate(pjpInfo.fromDate);
+        DateTime pjpEnd = Utility.convertDate(pjpInfo.toDate);
+        DateTime monthStart = DateTime(_focusedDay.year, _focusedDay.month, 1);
+        DateTime monthEnd =
+            DateTime(_focusedDay.year, _focusedDay.month + 1, 0, 23, 59, 59);
+
+        includeInSummary = (pjpStart.isBefore(monthEnd) ||
+                pjpStart.isAtSameMomentAs(monthEnd)) &&
+            (pjpEnd.isAfter(monthStart) || pjpEnd.isAtSameMomentAs(monthStart));
+      }
 
       newEvents.add(_Event(
         title: '${pjpInfo.displayName}',
@@ -348,18 +375,23 @@ class _SummaryDashboardState extends State<SummaryDashboard>
       ));
       teamMembersInFilteredData.add(pjpInfo.displayName);
 
-      if (pjpInfo.getDetailedPJP != null) {
-        totalVisits += pjpInfo.getDetailedPJP!.length;
-      }
+      if (includeInSummary) {
+        totalPjpForSummary++;
+        membersInSummary.add(pjpInfo.displayName);
 
-      if (pjpInfo.ApprovalStatus.trim().toLowerCase() == 'pending') {
-        pendingApprovals++;
-      }
-      if (pjpInfo.ApprovalStatus.trim().toLowerCase() == 'approved') {
-        approvedPjps++;
-      }
-      if (pjpInfo.ApprovalStatus.trim().toLowerCase().contains('reject')) {
-        rejectedPjps++;
+        if (pjpInfo.getDetailedPJP != null) {
+          totalVisits += pjpInfo.getDetailedPJP!.length;
+        }
+
+        if (pjpInfo.ApprovalStatus.trim().toLowerCase() == 'pending') {
+          pendingApprovals++;
+        }
+        if (pjpInfo.ApprovalStatus.trim().toLowerCase() == 'approved') {
+          approvedPjps++;
+        }
+        if (pjpInfo.ApprovalStatus.trim().toLowerCase().contains('reject')) {
+          rejectedPjps++;
+        }
       }
     }
 
@@ -368,8 +400,8 @@ class _SummaryDashboardState extends State<SummaryDashboard>
     _pendingApprovals = pendingApprovals;
     _approvedPJP = approvedPjps;
     _rejectedPJP = rejectedPjps;
-    _totalPJP = _filteredPjpData.length;
-    _totalEmployees = teamMembersInFilteredData.length;
+    _totalPJP = totalPjpForSummary;
+    _totalEmployees = membersInSummary.length;
     _totalTeamSize = _selectedTeamMembers.length;
     _events.clear();
 
@@ -428,6 +460,98 @@ class _SummaryDashboardState extends State<SummaryDashboard>
   bool _isMobile(double w) => w < 600;
 
   // ── build ─────────────────────────────────────────────────────────────────
+  void _showFilterDialog() {
+    List<String> tempFYs = List.from(_selectedFYs);
+    Set<String> tempZones = Set.from(_selectedZones);
+    Set<String> tempMembers = Set.from(_selectedTeamMembers);
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            bool showTeamFilters =
+                _employeeRoleType.toLowerCase() != 'emp' && _isTeamView;
+            return AlertDialog(
+              title: Text('Dashboard Filters',
+                  style: GoogleFonts.inter(fontWeight: FontWeight.bold)),
+              content: SizedBox(
+                width: 500,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      DropdownSearch<String>.multiSelection(
+                        items: _financialYears,
+                        selectedItems: tempFYs,
+                        dropdownDecoratorProps: const DropDownDecoratorProps(
+                          dropdownSearchDecoration: InputDecoration(
+                            labelText: "Academic Year",
+                            border: OutlineInputBorder(),
+                          ),
+                        ),
+                        onChanged: (items) =>
+                            setDialogState(() => tempFYs = items),
+                      ),
+                      if (showTeamFilters) ...[
+                        const SizedBox(height: 16),
+                        DropdownSearch<String>.multiSelection(
+                          items: _allZones.toList()..sort(),
+                          selectedItems: tempZones.toList(),
+                          dropdownDecoratorProps: const DropDownDecoratorProps(
+                            dropdownSearchDecoration: InputDecoration(
+                              labelText: "Zone",
+                              border: OutlineInputBorder(),
+                            ),
+                          ),
+                          onChanged: (items) =>
+                              setDialogState(() => tempZones = Set.from(items)),
+                        ),
+                        const SizedBox(height: 16),
+                        DropdownSearch<String>.multiSelection(
+                          items: _allTeamMembers.toList()..sort(),
+                          selectedItems: tempMembers.toList(),
+                          dropdownDecoratorProps: const DropDownDecoratorProps(
+                            dropdownSearchDecoration: InputDecoration(
+                              labelText: "Team Member",
+                              border: OutlineInputBorder(),
+                            ),
+                          ),
+                          onChanged: (items) => setDialogState(
+                              () => tempMembers = Set.from(items)),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+              actions: [
+                TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('Cancel')),
+                ElevatedButton(
+                  onPressed: () {
+                    bool fyChanged = tempFYs.length != _selectedFYs.length ||
+                        !tempFYs.every((item) => _selectedFYs.contains(item)) ||
+                        !_selectedFYs.every((item) => tempFYs.contains(item));
+                    setState(() {
+                      _selectedFYs = tempFYs;
+                      _selectedZones = tempZones;
+                      _selectedTeamMembers = tempMembers;
+                    });
+                    fyChanged ? _fetchDashboardData() : _processFilteredData();
+                    Navigator.pop(context);
+                  },
+                  child: const Text('Apply'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final w = MediaQuery.of(context).size.width;
@@ -442,7 +566,6 @@ class _SummaryDashboardState extends State<SummaryDashboard>
       appBar: _isMobile(w) ? _buildMobileAppBar() : null,
       // drawer:
       //     _isMobile(w) ? Drawer(child: _buildSidebar(compact: false)) : null,
-      floatingActionButton: _isMobile(w) ? _buildMobileFYFilter() : null,
       body: SafeArea(
         child: _isMobile(w)
             ? _buildMobileBody()
@@ -456,64 +579,6 @@ class _SummaryDashboardState extends State<SummaryDashboard>
                 ],
               ),
       ),
-    );
-  }
-
-  Widget _buildMobileFYFilter() {
-    return FloatingActionButton.small(
-      onPressed: () {
-        showModalBottomSheet(
-          context: context,
-          builder: (context) {
-            return Container(
-              padding: const EdgeInsets.symmetric(vertical: 20),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 10),
-                    child: Text('Select Financial Year',
-                        style: GoogleFonts.inter(
-                            fontWeight: FontWeight.bold, fontSize: 16)),
-                  ),
-                  ..._financialYears.map((fy) => ListTile(
-                        title: Text('FY $fy',
-                            textAlign: TextAlign.center,
-                            style: GoogleFonts.inter(
-                                color:
-                                    _selectedFY == fy ? _accent : _textPrimary,
-                                fontWeight: _selectedFY == fy
-                                    ? FontWeight.bold
-                                    : FontWeight.normal)),
-                        onTap: () {
-                          if (_selectedFY != fy) {
-                            setState(() {
-                              _selectedFY = fy;
-                              _isLoading = true;
-                            });
-                            _fetchDashboardData(fy: fy);
-                            // Update focus to start of selected FY if not current month
-                            int startYear = int.parse(fy.split('-')[0]);
-                            DateTime fyStart = DateTime(startYear, 4, 1);
-                            DateTime now = DateTime.now();
-                            if (now.isAfter(fyStart) &&
-                                now.isBefore(DateTime(startYear + 1, 3, 31))) {
-                              _focusedDay = now;
-                            } else {
-                              _focusedDay = fyStart;
-                            }
-                          }
-                          Navigator.pop(context);
-                        },
-                      )),
-                ],
-              ),
-            );
-          },
-        );
-      },
-      backgroundColor: _sidebar,
-      child: const Icon(Icons.calendar_today, color: Colors.white, size: 18),
     );
   }
 
@@ -676,6 +741,10 @@ class _SummaryDashboardState extends State<SummaryDashboard>
               });
             },
           ),
+          IconButton(
+            icon: const Icon(Icons.filter_alt_outlined),
+            onPressed: _showFilterDialog,
+          ),
           if (!_isTeamView) ...[
             IconButton(
               icon: const Icon(Icons.add_task),
@@ -709,11 +778,6 @@ class _SummaryDashboardState extends State<SummaryDashboard>
               },
             ),
           ],
-          if (_isTeamView)
-            IconButton(
-              icon: const Icon(Icons.filter_list),
-              onPressed: _showMobileFilter,
-            ),
         ]
       ],
     );
@@ -987,155 +1051,6 @@ class _SummaryDashboardState extends State<SummaryDashboard>
     );
   }
 
-  void _showMobileFilter() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: const Color(0xFF1E1E2E),
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setSheetState) {
-            final sortedMembers = _allTeamMembers.toList()..sort();
-            final sortedZones = _allZones.toList()..sort();
-            return Container(
-              height: MediaQuery.of(context).size.height * 0.7,
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Filter Team Members',
-                        style: GoogleFonts.inter(
-                            color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.close, color: Colors.white60),
-                        onPressed: () => Navigator.pop(context),
-                      ),
-                    ],
-                  ),
-                  const Divider(color: Color(0xFF2E2E42)),
-                  CheckboxListTile(
-                    title: Text('Select All',
-                        style: GoogleFonts.inter(color: Colors.white)),
-                    value:
-                        _selectedTeamMembers.length == _allTeamMembers.length &&
-                            _allTeamMembers.isNotEmpty,
-                    activeColor: _accent,
-                    checkColor: Colors.black,
-                    onChanged: (val) {
-                      setSheetState(() {
-                        if (val == true) {
-                          _selectedTeamMembers = Set.from(_allTeamMembers);
-                        } else {
-                          _selectedTeamMembers.clear();
-                        }
-                      });
-                      setState(() {
-                        _processFilteredData();
-                      });
-                    },
-                  ),
-                  const Divider(height: 1, color: Color(0xFF2E2E42)),
-                  Expanded(
-                    child: ListView.builder(
-                      itemCount: sortedMembers.length,
-                      itemBuilder: (context, index) {
-                        final employeeName = sortedMembers[index];
-                        return CheckboxListTile(
-                          title: Text(employeeName,
-                              style: GoogleFonts.inter(color: Colors.white)),
-                          value: _selectedTeamMembers.contains(employeeName),
-                          activeColor: _accent,
-                          checkColor: Colors.black,
-                          secondary: Icon(Icons.circle,
-                              color: _userColors[employeeName] ?? Colors.grey,
-                              size: 12),
-                          onChanged: (val) {
-                            setSheetState(() {
-                              if (val == true) {
-                                _selectedTeamMembers.add(employeeName);
-                              } else {
-                                _selectedTeamMembers.remove(employeeName);
-                              }
-                            });
-                            setState(() {
-                              _processFilteredData();
-                            });
-                          },
-                        );
-                      },
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Filter Zones',
-                    style: GoogleFonts.inter(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.w700),
-                  ),
-                  const Divider(color: Color(0xFF2E2E42)),
-                  CheckboxListTile(
-                    title: Text('Select All Zones',
-                        style: GoogleFonts.inter(color: Colors.white)),
-                    value: _selectedZones.length == _allZones.length &&
-                        _allZones.isNotEmpty,
-                    activeColor: _accent,
-                    checkColor: Colors.black,
-                    onChanged: (val) {
-                      setSheetState(() {
-                        if (val == true) {
-                          _selectedZones = Set.from(_allZones);
-                        } else {
-                          _selectedZones.clear();
-                        }
-                      });
-                      setState(() {
-                        _processFilteredData();
-                      });
-                    },
-                  ),
-                  Expanded(
-                    child: ListView.builder(
-                      itemCount: sortedZones.length,
-                      itemBuilder: (context, index) {
-                        final zone = sortedZones[index];
-                        return CheckboxListTile(
-                          title: Text(zone,
-                              style: GoogleFonts.inter(color: Colors.white)),
-                          value: _selectedZones.contains(zone),
-                          activeColor: _accent,
-                          checkColor: Colors.black,
-                          onChanged: (val) {
-                            setSheetState(() => val == true
-                                ? _selectedZones.add(zone)
-                                : _selectedZones.remove(zone));
-                            setState(() {
-                              _processFilteredData();
-                            });
-                          },
-                        );
-                      },
-                    ),
-                  ),
-                ],
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
-
   Widget _buildSidebarDaySection({
     required String label,
     required List<_Event> events,
@@ -1335,17 +1250,19 @@ class _SummaryDashboardState extends State<SummaryDashboard>
                     color: _textPrimary,
                     fontWeight: FontWeight.w500)),
           ),
-          const SizedBox(width: 12),
-          Flexible(
-            child: Text(DateFormat('MMMM yyyy').format(_focusedDay),
-                overflow: TextOverflow.ellipsis,
-                style: GoogleFonts.inter(
-                    fontWeight: FontWeight.w700,
-                    fontSize: desktop ? 18 : 14,
-                    color: _textPrimary)),
+          const SizedBox(width: 5),
+          Expanded(
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Text(DateFormat('MMMM yyyy').format(_focusedDay),
+                  style: GoogleFonts.inter(
+                      fontWeight: FontWeight.w700,
+                      fontSize: /* desktop ? 18 : */ 14,
+                      color: _textPrimary)),
+            ),
           ),
-          const SizedBox(width: 12),
-          if (desktop) _buildFYDropdown(),
+          const SizedBox(width: 5),
           // Search
           if (desktop) ...[
             const SizedBox(width: 12),
@@ -1495,10 +1412,9 @@ class _SummaryDashboardState extends State<SummaryDashboard>
             }),
             const SizedBox(width: 8),
           ],
-          if (desktop && _isTeamView) ...[
-            _buildDesktopFilterButton(),
-            const SizedBox(width: 12),
-          ],
+          _buildHeaderActionBtn(
+              Icons.filter_alt_outlined, 'Filter', _showFilterDialog),
+          const SizedBox(width: 8),
           // Format switcher (desktop only)
           if (desktop) _buildFormatSwitcher(),
           const SizedBox(width: 12),
@@ -1548,46 +1464,6 @@ class _SummaryDashboardState extends State<SummaryDashboard>
             ),
           ), */
         ],
-      ),
-    );
-  }
-
-  Widget _buildFYDropdown() {
-    return Container(
-      height: 32,
-      padding: const EdgeInsets.symmetric(horizontal: 8),
-      decoration: BoxDecoration(
-        border: Border.all(color: _divider),
-        borderRadius: BorderRadius.circular(6),
-        color: Colors.white,
-      ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<String>(
-          value: _selectedFY,
-          items: _financialYears.map((fy) {
-            return DropdownMenuItem(
-              value: fy,
-              child: Text('FY $fy',
-                  style: GoogleFonts.inter(fontSize: 12, color: _textPrimary)),
-            );
-          }).toList(),
-          onChanged: (val) {
-            if (val != null && val != _selectedFY) {
-              setState(() {
-                _selectedFY = val;
-                _isLoading = true;
-              });
-              _fetchDashboardData(fy: val);
-              if (val != 'All') {
-                int startYear = int.parse(val.split('-')[0]);
-                DateTime fyStart = DateTime(startYear, 4, 1);
-                setState(() {
-                  _focusedDay = fyStart;
-                });
-              }
-            }
-          },
-        ),
       ),
     );
   }
@@ -1684,209 +1560,6 @@ class _SummaryDashboardState extends State<SummaryDashboard>
     );
   }
 
-  Widget _buildDesktopFilterButton() {
-    return InkWell(
-      onTap: _showDesktopFilterDialog,
-      borderRadius: BorderRadius.circular(6),
-      child: Container(
-        height: 32,
-        padding: const EdgeInsets.symmetric(horizontal: 12),
-        decoration: BoxDecoration(
-          border: Border.all(color: _divider),
-          borderRadius: BorderRadius.circular(6),
-          color: Colors.white,
-        ),
-        child: Row(
-          children: [
-            const Icon(Icons.filter_list_rounded,
-                size: 16, color: _textSecondary),
-            const SizedBox(width: 8),
-            Text('Filters',
-                style: GoogleFonts.inter(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                    color: _textPrimary)),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _showDesktopFilterDialog() {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return Dialog(
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          child: Container(
-            width: 400,
-            constraints: BoxConstraints(
-                maxHeight: MediaQuery.of(context).size.height * 0.8),
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text('Filters',
-                        style: GoogleFonts.inter(
-                            fontSize: 18, fontWeight: FontWeight.w700)),
-                    IconButton(
-                      onPressed: () => Navigator.pop(context),
-                      icon: const Icon(Icons.close, size: 20),
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                const Divider(height: 1, color: _divider),
-                const SizedBox(height: 16),
-                Text('Team Members',
-                    style: GoogleFonts.inter(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: _textPrimary)),
-                const SizedBox(height: 12),
-                Expanded(
-                  child: StatefulBuilder(
-                    builder: (context, setDialogState) {
-                      final sortedMembers = _allTeamMembers.toList()..sort();
-                      return ListView(
-                        children: [
-                          CheckboxListTile(
-                            title: Text('Select All',
-                                style: GoogleFonts.inter(
-                                    fontSize: 13, color: _textPrimary)),
-                            value: _selectedTeamMembers.length ==
-                                    _allTeamMembers.length &&
-                                _allTeamMembers.isNotEmpty,
-                            onChanged: (val) {
-                              setDialogState(() {
-                                if (val == true) {
-                                  _selectedTeamMembers =
-                                      Set.from(_allTeamMembers);
-                                } else {
-                                  _selectedTeamMembers.clear();
-                                }
-                              });
-                              setState(() {
-                                _processFilteredData();
-                              });
-                            },
-                            contentPadding: EdgeInsets.zero,
-                            activeColor: _accent,
-                            dense: true,
-                            controlAffinity: ListTileControlAffinity.leading,
-                          ),
-                          ...sortedMembers.map((member) {
-                            return CheckboxListTile(
-                              title: Text(member,
-                                  style: GoogleFonts.inter(
-                                      fontSize: 13, color: _textPrimary)),
-                              value: _selectedTeamMembers.contains(member),
-                              onChanged: (val) {
-                                setDialogState(() {
-                                  if (val == true) {
-                                    _selectedTeamMembers.add(member);
-                                  } else {
-                                    _selectedTeamMembers.remove(member);
-                                  }
-                                });
-                                setState(() {
-                                  _processFilteredData();
-                                });
-                              },
-                              secondary: Icon(Icons.circle,
-                                  color: _userColors[member] ?? Colors.grey,
-                                  size: 10),
-                              contentPadding: EdgeInsets.zero,
-                              activeColor: _accent,
-                              dense: true,
-                              controlAffinity: ListTileControlAffinity.leading,
-                            );
-                          }),
-                        ],
-                      );
-                    },
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Text('Zones',
-                    style: GoogleFonts.inter(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: _textPrimary)),
-                const SizedBox(height: 12),
-                Expanded(
-                  child: StatefulBuilder(
-                    builder: (context, setDialogState) {
-                      final sortedZones = _allZones.toList()..sort();
-                      return ListView(
-                        children: [
-                          CheckboxListTile(
-                            title: Text('Select All Zones',
-                                style: GoogleFonts.inter(
-                                    fontSize: 13, color: _textPrimary)),
-                            value: _selectedZones.length == _allZones.length &&
-                                _allZones.isNotEmpty,
-                            onChanged: (val) {
-                              setDialogState(() {
-                                if (val == true) {
-                                  _selectedZones = Set.from(_allZones);
-                                } else {
-                                  _selectedZones.clear();
-                                }
-                              });
-                              setState(() {
-                                _processFilteredData();
-                              });
-                            },
-                            contentPadding: EdgeInsets.zero,
-                            activeColor: _accent,
-                            dense: true,
-                            controlAffinity: ListTileControlAffinity.leading,
-                          ),
-                          ...sortedZones.map((zone) {
-                            return CheckboxListTile(
-                              title: Text(zone,
-                                  style: GoogleFonts.inter(
-                                      fontSize: 13, color: _textPrimary)),
-                              value: _selectedZones.contains(zone),
-                              onChanged: (val) {
-                                setDialogState(() {
-                                  if (val == true) {
-                                    _selectedZones.add(zone);
-                                  } else {
-                                    _selectedZones.remove(zone);
-                                  }
-                                });
-                                setState(() {
-                                  _processFilteredData();
-                                });
-                              },
-                              contentPadding: EdgeInsets.zero,
-                              activeColor: _accent,
-                              dense: true,
-                              controlAffinity: ListTileControlAffinity.leading,
-                            );
-                          }),
-                        ],
-                      );
-                    },
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
   Widget _buildFormatSwitcher() {
     final formats = ['Week', 'Month'];
     return Container(
@@ -1931,14 +1604,14 @@ class _SummaryDashboardState extends State<SummaryDashboard>
   Widget _buildKPIRow({required bool isMobile}) {
     String presentBadge = '';
     // Note: 'On Leave' data is not available from this API. Using a placeholder.
-    String onLeaveBadge = _filteredPjpData.isNotEmpty
-        ? '${((_pendingApprovals / _filteredPjpData.length) * 100).toStringAsFixed(1)}% of PJPs'
+    String onLeaveBadge = _totalPJP > 0
+        ? '${((_pendingApprovals / _totalPJP) * 100).toStringAsFixed(1)}% of PJPs'
         : '0% of PJPs';
-    String approvedBadge = _filteredPjpData.isNotEmpty
-        ? '${((_approvedPJP / _filteredPjpData.length) * 100).toStringAsFixed(1)}% of PJPs'
+    String approvedBadge = _totalPJP > 0
+        ? '${((_approvedPJP / _totalPJP) * 100).toStringAsFixed(1)}% of PJPs'
         : '0% of PJPs';
-    String rejectedBadge = _filteredPjpData.isNotEmpty
-        ? '${((_rejectedPJP / _filteredPjpData.length) * 100).toStringAsFixed(1)}% of PJPs'
+    String rejectedBadge = _totalPJP > 0
+        ? '${((_rejectedPJP / _totalPJP) * 100).toStringAsFixed(1)}% of PJPs'
         : '0% of PJPs';
 
     final cards = [
@@ -1965,34 +1638,81 @@ class _SummaryDashboardState extends State<SummaryDashboard>
           _red, rejectedBadge, false),
     ];
 
-    return isMobile
-        ? GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              crossAxisSpacing: 6,
-              mainAxisSpacing: 6,
-              childAspectRatio: 4 / 3.3,
-            ),
-            itemCount: cards.length,
-            itemBuilder: (_, i) => _buildKPICardWidget(cards[i]),
-          )
-        : LayoutBuilder(
-            builder: (ctx, constraints) {
-              return Row(
-                children: cards
-                    .map((c) => Expanded(
-                          child: Padding(
-                            padding: EdgeInsets.only(
-                                right: c != cards.last ? 16 : 0),
-                            child: _buildKPICardWidget(c),
-                          ),
-                        ))
-                    .toList(),
-              );
-            },
-          );
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                _isMonthlyKPI
+                    ? 'Monthly Summary (${DateFormat('MMM yyyy').format(_focusedDay)})'
+                    : 'Overall Summary',
+                style: GoogleFonts.inter(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: _textPrimary),
+              ),
+              Row(
+                children: [
+                  Text(
+                    'Show Monthly',
+                    style: GoogleFonts.inter(
+                        fontSize: 12,
+                        color: _textSecondary,
+                        fontWeight: FontWeight.w500),
+                  ),
+                  const SizedBox(width: 4),
+                  SizedBox(
+                    height: 24,
+                    child: Switch(
+                      value: _isMonthlyKPI,
+                      onChanged: (val) {
+                        setState(() {
+                          _isMonthlyKPI = val;
+                          _processFilteredData();
+                        });
+                      },
+                      activeColor: _accent,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        isMobile
+            ? GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 6,
+                  mainAxisSpacing: 6,
+                  childAspectRatio: 4 / 3.3,
+                ),
+                itemCount: cards.length,
+                itemBuilder: (_, i) => _buildKPICardWidget(cards[i]),
+              )
+            : LayoutBuilder(
+                builder: (ctx, constraints) {
+                  return Row(
+                    children: cards
+                        .map((c) => Expanded(
+                              child: Padding(
+                                padding: EdgeInsets.only(
+                                    right: c != cards.last ? 16 : 0),
+                                child: _buildKPICardWidget(c),
+                              ),
+                            ))
+                        .toList(),
+                  );
+                },
+              ),
+      ],
+    );
   }
 
   Widget _buildKPICardWidget(_KPICard card) {
