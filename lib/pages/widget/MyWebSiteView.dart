@@ -51,7 +51,7 @@ class MyWebsiteViewState extends State<MyWebsiteView> {
   void initState() {
     super.initState();
 
-    print('web url ${widget.title}');
+    /* print('web url ${widget.title}');
     late final PlatformWebViewControllerCreationParams params;
     if (WebViewPlatform.instance is WebKitWebViewPlatform) {
       params = WebKitWebViewControllerCreationParams(
@@ -130,7 +130,7 @@ class MyWebsiteViewState extends State<MyWebsiteView> {
     }
     // #enddocregion platform_features
 
-    _controller = controller;
+    _controller = controller; */
 
     // pullToRefreshController = kIsWeb ||
     //         ![TargetPlatform.iOS, TargetPlatform.android]
@@ -188,7 +188,9 @@ class MyWebsiteViewState extends State<MyWebsiteView> {
         if (didPop) {
           return;
         }
-        if (webViewController != null && await webViewController!.canGoBack()) {
+        if (!kIsWeb &&
+            webViewController != null &&
+            await webViewController!.canGoBack()) {
           await webViewController!.goBack();
         } else {
           Navigator.pop(context);
@@ -236,17 +238,23 @@ class MyWebsiteViewState extends State<MyWebsiteView> {
             pullToRefreshController: pullToRefreshController,
             onWebViewCreated: (controller) {
               webViewController = controller;
-
-              webViewController?.addJavaScriptHandler(
-                handlerName: 'closeWebView',
-                callback: (args) {
-                  // Handle closing the WebView
-                  Navigator.of(context).pop();
-                  return null;
-                },
-              );
+              if (!kIsWeb) {
+                webViewController?.addJavaScriptHandler(
+                  handlerName: 'closeWebView',
+                  callback: (args) {
+                    // Handle closing the WebView
+                    Navigator.of(context).pop();
+                    return null;
+                  },
+                );
+              }
             },
             onLoadStart: (controller, url) {
+              // Workaround for Web: Check URL for a close signal (e.g., #close or ?close)
+              if (url != null && url.toString().contains('closeWebView')) {
+                Navigator.of(context).pop();
+                return;
+              }
               setState(() {
                 this.url = url.toString();
                 urlController.text = this.url;
@@ -297,7 +305,7 @@ class MyWebsiteViewState extends State<MyWebsiteView> {
               }
               setState(() {
                 this.progress = progress / 100;
-                urlController.text = url;
+                urlController.text = this.url;
               });
             },
             onUpdateVisitedHistory: (controller, url, androidIsReload) {
@@ -306,9 +314,20 @@ class MyWebsiteViewState extends State<MyWebsiteView> {
                 urlController.text = this.url;
               });
             },
+            onTitleChanged: (controller, title) {
+              // Standardize title-based communication for better reliability on Web
+              if (title != null && title.contains('closeWebView')) {
+                Navigator.of(context).pop();
+              }
+            },
             onConsoleMessage: (controller, consoleMessage) {
+              // Permissive matching for console logs
+              if (consoleMessage.message.contains('closeWebView')) {
+                Navigator.of(context).pop();
+              }
+              // Manually forward to IDE console for debugging on Web
               if (kDebugMode) {
-                print(consoleMessage);
+                debugPrint('WebView Console: ${consoleMessage.message}');
               }
             },
             onDownloadStartRequest: (controller, downloadStartRequest) async {
