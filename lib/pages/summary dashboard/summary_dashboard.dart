@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:Intranet/api/ServiceHandler.dart';
 import 'package:Intranet/api/request/pjp/get_pjp_report_request.dart';
 import 'package:Intranet/api/request/pjp/update_pjpstatuslist_request.dart';
@@ -23,6 +25,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:dropdown_search/dropdown_search.dart';
+import 'package:pointer_interceptor/pointer_interceptor.dart';
 
 class SummaryDashboard extends StatefulWidget {
   const SummaryDashboard({super.key});
@@ -77,6 +80,7 @@ class _SummaryDashboardState extends State<SummaryDashboard>
   Set<String> _selectedZones = {};
   bool _isMonthlyKPI = false;
   final List<_Event> _events = [];
+  final Map<DateTime, List<_Event>> _eventsByDay = {};
 
   // Search state
   final TextEditingController _searchController = TextEditingController();
@@ -147,10 +151,14 @@ class _SummaryDashboardState extends State<SummaryDashboard>
   void _onFocusedDayChanged(DateTime focused) {
     setState(() {
       _focusedDay = focused;
-      if (_isMonthlyKPI) {
-        _processFilteredData();
-      }
     });
+    if (_isMonthlyKPI) {
+      setState(() => _isLoading = true);
+      Future.microtask(() {
+        _processFilteredData();
+        if (mounted) setState(() => _isLoading = false);
+      });
+    }
   }
 
   void _generateFinancialYears() {
@@ -253,14 +261,16 @@ class _SummaryDashboardState extends State<SummaryDashboard>
         setState(() {
           _rawPjpData = value.responseData;
           _myTeamData = value.myTeamData;
-          _updateViewMode();
-          _isLoading = false;
         });
+        _updateViewMode();
       }
     }
   }
 
-  void _updateViewMode() {
+  Future<void> _updateViewMode() async {
+    if (mounted) {
+      setState(() => _isLoading = true);
+    }
     if (_isTeamView) {
       _pjpData =
           _rawPjpData.where((pjp) => pjp.isSelfPJP.trim() != '1').toList();
@@ -296,7 +306,10 @@ class _SummaryDashboardState extends State<SummaryDashboard>
     // Assign colors once
     _assignUserColors();
 
-    _processFilteredData();
+    await Future.microtask(() => _processFilteredData());
+    if (mounted) {
+      setState(() => _isLoading = false);
+    }
   }
 
   @override
@@ -343,25 +356,24 @@ class _SummaryDashboardState extends State<SummaryDashboard>
     int totalPjpForSummary = 0;
     Set<String> membersInSummary = {};
 
-    Set<String> teamMembersInFilteredData = {};
-
     _userEventCount.clear();
 
+    DateTime monthStart = DateTime(_focusedDay.year, _focusedDay.month, 1);
+    DateTime monthEnd =
+        DateTime(_focusedDay.year, _focusedDay.month + 1, 0, 23, 59, 59);
+
     for (var pjpInfo in _filteredPjpData) {
-      final userName = pjpInfo.displayName;
       final baseColor = _getStatusColor(pjpInfo.ApprovalStatus);
+
+      // Pre-parse dates to avoid repeated expensive calls in filters
+      final start = Utility.convertDate(pjpInfo.fromDate);
+      final end = Utility.convertDate(pjpInfo.toDate);
 
       bool includeInSummary = true;
       if (_isMonthlyKPI) {
-        DateTime pjpStart = Utility.convertDate(pjpInfo.fromDate);
-        DateTime pjpEnd = Utility.convertDate(pjpInfo.toDate);
-        DateTime monthStart = DateTime(_focusedDay.year, _focusedDay.month, 1);
-        DateTime monthEnd =
-            DateTime(_focusedDay.year, _focusedDay.month + 1, 0, 23, 59, 59);
-
-        includeInSummary = (pjpStart.isBefore(monthEnd) ||
-                pjpStart.isAtSameMomentAs(monthEnd)) &&
-            (pjpEnd.isAfter(monthStart) || pjpEnd.isAtSameMomentAs(monthStart));
+        includeInSummary =
+            (start.isBefore(monthEnd) || start.isAtSameMomentAs(monthEnd)) &&
+                (end.isAfter(monthStart) || end.isAtSameMomentAs(monthStart));
       }
 
       newEvents.add(_Event(
@@ -369,11 +381,10 @@ class _SummaryDashboardState extends State<SummaryDashboard>
         time: pjpInfo.Status,
         color: baseColor,
         icon: Icons.location_on,
-        start: Utility.convertDate(pjpInfo.fromDate),
-        end: Utility.convertDate(pjpInfo.toDate),
+        start: start,
+        end: end,
         pjpInfo: pjpInfo,
       ));
-      teamMembersInFilteredData.add(pjpInfo.displayName);
 
       if (includeInSummary) {
         totalPjpForSummary++;
@@ -420,8 +431,12 @@ class _SummaryDashboardState extends State<SummaryDashboard>
     for (var event in newEvents) {
       int lane = -1;
       // Find the first lane where this event fits (starts after lane ends)
+      DateTime eventStartDay =
+          DateTime(event.start.year, event.start.month, event.start.day);
       for (int i = 0; i < laneEndDates.length; i++) {
-        if (event.start.isAfter(laneEndDates[i])) {
+        DateTime laneEndDay = DateTime(
+            laneEndDates[i].year, laneEndDates[i].month, laneEndDates[i].day);
+        if (eventStartDay.isAfter(laneEndDay)) {
           lane = i;
           laneEndDates[i] = event.end;
           break;
@@ -438,17 +453,26 @@ class _SummaryDashboardState extends State<SummaryDashboard>
     }
 
     _events.addAll(slottedEvents);
+
+    // Pre-calculate event map for O(1) lookups during calendar builds
+    _eventsByDay.clear();
+    for (var event in _events) {
+      DateTime current =
+          DateTime(event.start.year, event.start.month, event.start.day);
+      DateTime endDay =
+          DateTime(event.end.year, event.end.month, event.end.day);
+
+      while (current.isBefore(endDay) || current.isAtSameMomentAs(endDay)) {
+        _eventsByDay.putIfAbsent(current, () => []).add(event);
+        current = current.add(const Duration(days: 1));
+      }
+    }
   }
 
   // ── helpers ───────────────────────────────────────────────────────────────
   List<_Event> _getEventsForDay(DateTime day) {
-    return _events.where((event) {
-      final d = DateTime(day.year, day.month, day.day);
-      final s = DateTime(event.start.year, event.start.month, event.start.day);
-      final e = DateTime(event.end.year, event.end.month, event.end.day);
-      return (d.isAtSameMomentAs(s) || d.isAfter(s)) &&
-          (d.isAtSameMomentAs(e) || d.isBefore(e));
-    }).toList();
+    final normalizedDay = DateTime(day.year, day.month, day.day);
+    return _eventsByDay[normalizedDay] ?? [];
   }
 
   bool _isSameDay(DateTime a, DateTime b) =>
@@ -472,6 +496,33 @@ class _SummaryDashboardState extends State<SummaryDashboard>
           builder: (context, setDialogState) {
             bool showTeamFilters =
                 _employeeRoleType.toLowerCase() != 'emp' && _isTeamView;
+
+            // Filter team members based on selected zones in the dialog
+            List<String> filteredMembers = [];
+            if (showTeamFilters) {
+              Set<String> memberSet = {};
+              for (var pjp in _pjpData) {
+                final String zoneKey = (pjp.zone?.trim() ?? 'N/A').isEmpty
+                    ? 'N/A'
+                    : pjp.zone!.trim();
+                if (tempZones.contains(zoneKey)) {
+                  memberSet.add(pjp.displayName);
+                }
+              }
+              if (_isTeamView) {
+                for (var t in _myTeamData) {
+                  final String zoneKey = (t.zone?.trim() ?? 'N/A').isEmpty
+                      ? 'N/A'
+                      : t.zone!.trim();
+                  if (tempZones.contains(zoneKey)) {
+                    final name = t.displayName?.trim() ?? '';
+                    if (name.isNotEmpty) memberSet.add(name);
+                  }
+                }
+              }
+              filteredMembers = memberSet.toList()..sort();
+            }
+
             return AlertDialog(
               title: Text('Dashboard Filters',
                   style: GoogleFonts.inter(fontWeight: FontWeight.bold)),
@@ -509,8 +560,10 @@ class _SummaryDashboardState extends State<SummaryDashboard>
                         ),
                         const SizedBox(height: 16),
                         DropdownSearch<String>.multiSelection(
-                          items: _allTeamMembers.toList()..sort(),
-                          selectedItems: tempMembers.toList(),
+                          items: filteredMembers,
+                          selectedItems: tempMembers
+                              .where((m) => filteredMembers.contains(m))
+                              .toList(),
                           dropdownDecoratorProps: const DropDownDecoratorProps(
                             dropdownSearchDecoration: InputDecoration(
                               labelText: "Team Member",
@@ -537,7 +590,10 @@ class _SummaryDashboardState extends State<SummaryDashboard>
                     setState(() {
                       _selectedFYs = tempFYs;
                       _selectedZones = tempZones;
-                      _selectedTeamMembers = tempMembers;
+                      // Ensure final selection only contains members from filtered list
+                      _selectedTeamMembers = tempMembers
+                          .where((m) => filteredMembers.contains(m))
+                          .toSet();
                     });
                     fyChanged ? _fetchDashboardData() : _processFilteredData();
                     Navigator.pop(context);
@@ -1507,12 +1563,10 @@ class _SummaryDashboardState extends State<SummaryDashboard>
   Widget _switcherBtn(String label, bool isActive, Color activeBg,
       Color activeText, Color inactiveText) {
     return InkWell(
-      onTap: () {
+      onTap: () async {
         if ((label == 'My Team') != _isTeamView) {
-          setState(() {
-            _isTeamView = label == 'My Team';
-            _updateViewMode();
-          });
+          _isTeamView = label == 'My Team';
+          await _updateViewMode();
         }
       },
       borderRadius: BorderRadius.circular(6),
@@ -3067,6 +3121,7 @@ class _VisitTile extends StatelessWidget {
   static const Color _green = Color(0xFF4CAF90);
   static const Color _orange = Color(0xFFFF8A65);
   static const Color _divider = Color(0xFFE8EDF2);
+  static const Color _red = Color(0xFFEF5350);
   static const Color _blue = Color(0xFF2196F3);
 
   Color _statusColor(String s) {
@@ -3330,6 +3385,10 @@ class _VisitTile extends StatelessWidget {
                               ? visit.AddressIn
                               : visit.CheckInAddress,
                           color: hasCheckIn ? _blue : _textSecondary,
+                          actualLat: visit.LatitudeIn,
+                          actualLng: visit.LongitudeIn,
+                          expectedLat: visit.Latitude,
+                          expectedLng: visit.Longitude,
                         ),
                         const SizedBox(height: 12),
                         // Check-Out
@@ -3341,6 +3400,10 @@ class _VisitTile extends StatelessWidget {
                               ? visit.AddressOut
                               : visit.CheckOutAddress,
                           color: hasCheckOut ? _orange : _textSecondary,
+                          actualLat: visit.LatitudeOut,
+                          actualLng: visit.LongitudeOut,
+                          expectedLat: visit.Latitude,
+                          expectedLng: visit.Longitude,
                         ),
                       ],
                     ),
@@ -3366,12 +3429,42 @@ class _VisitTile extends StatelessWidget {
     );
   }
 
+  double _calculateDistance(
+      double lat1, double lon1, double lat2, double lon2) {
+    const p = 0.017453292519943295; // math.pi / 180
+    final a = 0.5 -
+        math.cos((lat2 - lat1) * p) / 2 +
+        math.cos(lat1 * p) *
+            math.cos(lat2 * p) *
+            (1 - math.cos((lon2 - lon1) * p)) /
+            2;
+    return 12742 * math.asin(math.sqrt(a)) * 1000; // Returns in meters
+  }
+
   Widget _buildActualPoint(
       {required String title,
       required String time,
       required String address,
-      required Color color}) {
+      required Color color,
+      double actualLat = 0,
+      double actualLng = 0,
+      double expectedLat = 0,
+      double expectedLng = 0}) {
     final bool hasData = time.isNotEmpty && time != 'NA';
+    final bool hasActualCoords = actualLat != 0 && actualLng != 0;
+    final bool hasExpectedCoords = expectedLat != 0 && expectedLng != 0;
+
+    String distanceStr = '';
+    if (hasData && hasActualCoords && hasExpectedCoords) {
+      double distance =
+          _calculateDistance(expectedLat, expectedLng, actualLat, actualLng);
+      if (distance < 1000) {
+        distanceStr = '${distance.toStringAsFixed(0)}m diff';
+      } else {
+        distanceStr = '${(distance / 1000).toStringAsFixed(1)}km diff';
+      }
+    }
+
     String formattedTime = '';
     if (hasData) {
       try {
@@ -3398,6 +3491,14 @@ class _VisitTile extends StatelessWidget {
                 formattedTime,
                 style: GoogleFonts.inter(
                     fontSize: 11, fontWeight: FontWeight.w500, color: color),
+              ),
+            ],
+            if (distanceStr.isNotEmpty) ...[
+              const SizedBox(width: 6),
+              Text(
+                '($distanceStr)',
+                style: GoogleFonts.inter(
+                    fontSize: 10, fontWeight: FontWeight.w600, color: _red),
               ),
             ],
           ],
@@ -3440,6 +3541,7 @@ class _MapScreenState extends State<_MapScreen> {
 
   GoogleMapController? _mapController;
   final Set<Marker> _markers = {};
+  final Set<Polyline> _polylines = {};
 
   @override
   void initState() {
@@ -3450,15 +3552,121 @@ class _MapScreenState extends State<_MapScreen> {
   void _buildMarkers() {
     for (int i = 0; i < widget.visits.length; i++) {
       final visit = widget.visits[i];
-      if (visit.Latitude == 0 && visit.Longitude == 0) continue;
-      _markers.add(
-        Marker(
-          markerId: MarkerId('visit_${visit.PJPCVF_Id}_$i'),
-          position: LatLng(visit.Latitude, visit.Longitude),
-          infoWindow: InfoWindow.noText,
-          onTap: () => _showVisitDetails(visit),
-        ),
-      );
+      final LatLng planned = LatLng(visit.Latitude, visit.Longitude);
+      final bool hasPlanned = visit.Latitude != 0 && visit.Longitude != 0;
+
+      // Determine a descriptive name instead of "NA"
+      final String displayName =
+          visit.franchiseeName.trim() != 'NA' && visit.franchiseeName.isNotEmpty
+              ? visit.franchiseeName
+              : (visit.ActivityTitle.trim() != 'NA' &&
+                      visit.ActivityTitle.isNotEmpty
+                  ? visit.ActivityTitle
+                  : (visit.franchiseeCode.trim() != 'NA' &&
+                          visit.franchiseeCode.isNotEmpty
+                      ? visit.franchiseeCode
+                      : 'Visit ${visit.PJPCVF_Id}'));
+
+      String scheduledInfo = '';
+      if (visit.visitDate != 'NA' && visit.visitDate.isNotEmpty) {
+        scheduledInfo = 'Scheduled: ${visit.visitDate}';
+        if (visit.visitTime != 'NA' && visit.visitTime.isNotEmpty) {
+          scheduledInfo += ' at ${visit.visitTime}';
+        }
+      }
+
+      // 1. Planned Location
+      if (hasPlanned) {
+        _markers.add(
+          Marker(
+            markerId: MarkerId('planned_${visit.PJPCVF_Id}_$i'),
+            position: planned,
+            icon:
+                BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueCyan),
+            infoWindow: InfoWindow(
+              title: 'Planned: $displayName',
+              snippet: scheduledInfo.isNotEmpty ? scheduledInfo : null,
+            ),
+            onTap: () => _showVisitDetails(visit),
+          ),
+        );
+      }
+
+      // 2. Actual Check-In
+      if (visit.LatitudeIn != 0 && visit.LongitudeIn != 0) {
+        final LatLng actualIn = LatLng(visit.LatitudeIn, visit.LongitudeIn);
+        String timeIn = '';
+        if (visit.DateTimeIn.isNotEmpty && visit.DateTimeIn != 'NA') {
+          try {
+            timeIn =
+                DateFormat('HH:mm').format(DateTime.parse(visit.DateTimeIn));
+          } catch (e) {
+            timeIn = visit.DateTimeIn;
+          }
+        }
+
+        _markers.add(
+          Marker(
+            markerId: MarkerId('checkin_${visit.PJPCVF_Id}_$i'),
+            position: actualIn,
+            icon: BitmapDescriptor.defaultMarkerWithHue(
+                BitmapDescriptor.hueGreen),
+            infoWindow: InfoWindow(
+              title: 'Actual Check-In: $displayName',
+              snippet: timeIn.isNotEmpty ? 'Check-in at $timeIn' : null,
+            ),
+            onTap: () => _showVisitDetails(visit),
+          ),
+        );
+
+        if (hasPlanned) {
+          _polylines.add(Polyline(
+            polylineId: PolylineId('line_in_${visit.PJPCVF_Id}_$i'),
+            points: [planned, actualIn],
+            color: Colors.green.withOpacity(0.4),
+            width: 2,
+            patterns: [PatternItem.dash(10), PatternItem.gap(5)],
+          ));
+        }
+      }
+
+      // 3. Actual Check-Out
+      if (visit.LatitudeOut != 0 && visit.LongitudeOut != 0) {
+        final LatLng actualOut = LatLng(visit.LatitudeOut, visit.LongitudeOut);
+        String timeOut = '';
+        if (visit.DateTimeOut.isNotEmpty && visit.DateTimeOut != 'NA') {
+          try {
+            timeOut =
+                DateFormat('HH:mm').format(DateTime.parse(visit.DateTimeOut));
+          } catch (e) {
+            timeOut = visit.DateTimeOut;
+          }
+        }
+
+        _markers.add(
+          Marker(
+            markerId: MarkerId('checkout_${visit.PJPCVF_Id}_$i'),
+            position: actualOut,
+            icon: BitmapDescriptor.defaultMarkerWithHue(
+                BitmapDescriptor.hueOrange),
+            infoWindow: InfoWindow(
+              title: 'Actual Check-Out: $displayName',
+              snippet: timeOut.isNotEmpty ? 'Check-out at $timeOut' : null,
+            ),
+            onTap: () => _showVisitDetails(visit),
+          ),
+        );
+
+        if (hasPlanned) {
+          _polylines.add(Polyline(
+            polylineId: PolylineId('line_out_${visit.PJPCVF_Id}_$i'),
+            points: [planned, actualOut],
+            color: Colors.orange.withOpacity(0.4),
+            width: 2,
+            patterns: [PatternItem.dash(10), PatternItem.gap(5)],
+          ));
+        }
+      }
     }
   }
 
@@ -3475,7 +3683,8 @@ class _MapScreenState extends State<_MapScreen> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => _VisitDetailSheet(visit: visit),
+      builder: (_) =>
+          PointerInterceptor(child: _VisitDetailSheet(visit: visit)),
     );
   }
 
@@ -3504,12 +3713,16 @@ class _MapScreenState extends State<_MapScreen> {
                 zoom: 12,
               ),
               markers: _markers,
+              polylines: _polylines,
               onMapCreated: (controller) {
                 _mapController = controller;
                 // Fit all markers
-                if (widget.visits.length > 1) {
-                  Future.delayed(const Duration(milliseconds: 300), () {
-                    _fitBounds();
+                if (widget.visits.isNotEmpty) {
+                  // Increased delay for Web reliability and added mounted check
+                  Future.delayed(const Duration(milliseconds: 500), () {
+                    if (mounted && _mapController != null) {
+                      _fitBounds();
+                    }
                   });
                 }
               },
@@ -3568,32 +3781,37 @@ class _MapScreenState extends State<_MapScreen> {
 
   void _fitBounds() {
     if (_mapController == null) return;
-    double minLat = widget.visits.first.Latitude;
-    double maxLat = widget.visits.first.Latitude;
-    double minLng = widget.visits.first.Longitude;
-    double maxLng = widget.visits.first.Longitude;
+    double? minLat, maxLat, minLng, maxLng;
 
-    for (final v in widget.visits) {
-      if (v.Latitude < minLat) minLat = v.Latitude;
-      if (v.Latitude > maxLat) maxLat = v.Latitude;
-      if (v.Longitude < minLng) minLng = v.Longitude;
-      if (v.Longitude > maxLng) maxLng = v.Longitude;
+    void update(double lat, double lng) {
+      if (lat == 0 || lng == 0) return;
+      if (minLat == null || lat < minLat!) minLat = lat;
+      if (maxLat == null || lat > maxLat!) maxLat = lat;
+      if (minLng == null || lng < minLng!) minLng = lng;
+      if (maxLng == null || lng > maxLng!) maxLng = lng;
     }
 
-    _mapController!.animateCamera(
-      CameraUpdate.newLatLngBounds(
-        LatLngBounds(
-          southwest: LatLng(minLat - 0.01, minLng - 0.01),
-          northeast: LatLng(maxLat + 0.01, maxLng + 0.01),
+    for (final v in widget.visits) {
+      update(v.Latitude, v.Longitude);
+      update(v.LatitudeIn, v.LongitudeIn);
+      update(v.LatitudeOut, v.LongitudeOut);
+    }
+
+    if (minLat != null && maxLat != null && minLng != null && maxLng != null) {
+      _mapController!.animateCamera(
+        CameraUpdate.newLatLngBounds(
+          LatLngBounds(
+            southwest: LatLng(minLat!, minLng!),
+            northeast: LatLng(maxLat!, maxLng!),
+          ),
+          60,
         ),
-        60,
-      ),
-    );
+      );
+    }
   }
 
   @override
   void dispose() {
-    _mapController?.dispose();
     super.dispose();
   }
 }
@@ -3610,6 +3828,7 @@ class _VisitDetailSheet extends StatelessWidget {
   static const Color _green = Color(0xFF4CAF90);
   static const Color _orange = Color(0xFFFF8A65);
   static const Color _divider = Color(0xFFE8EDF2);
+  static const Color _red = Color(0xFFEF5350);
 
   Color _statusColor(String s) {
     final lower = s.trim().toLowerCase();
@@ -3650,16 +3869,20 @@ class _VisitDetailSheet extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        if (visit.franchiseeName.isNotEmpty &&
-                            visit.franchiseeName != 'NA')
-                          Text(
-                            visit.franchiseeName,
-                            style: GoogleFonts.inter(
-                              fontSize: 17,
-                              fontWeight: FontWeight.w700,
-                              color: _textPrimary,
-                            ),
+                        Text(
+                          visit.franchiseeName.trim() != 'NA' &&
+                                  visit.franchiseeName.isNotEmpty
+                              ? visit.franchiseeName
+                              : (visit.ActivityTitle.trim() != 'NA' &&
+                                      visit.ActivityTitle.isNotEmpty
+                                  ? visit.ActivityTitle
+                                  : 'Visit ${visit.PJPCVF_Id}'),
+                          style: GoogleFonts.inter(
+                            fontSize: 17,
+                            fontWeight: FontWeight.w700,
+                            color: _textPrimary,
                           ),
+                        ),
                         if (visit.franchiseeCode.isNotEmpty &&
                             visit.franchiseeCode != 'NA')
                           Text(
@@ -3703,6 +3926,7 @@ class _VisitDetailSheet extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
               child: Column(
                 children: [
+                  _detailRow(Icons.tag_rounded, 'CVF ID', visit.PJPCVF_Id),
                   if (visit.ActivityTitle != 'NA' &&
                       visit.ActivityTitle.isNotEmpty)
                     _detailRow(Icons.work_outline_rounded, 'Activity',
@@ -3723,6 +3947,34 @@ class _VisitDetailSheet extends StatelessWidget {
                       visit.DateTimeOut.trim() != 'NA')
                     _detailRow(Icons.logout_rounded, 'Check-out Time',
                         visit.DateTimeOut),
+                  if (visit.CheckOutAddress.trim().isNotEmpty &&
+                      visit.CheckOutAddress.trim() != 'NA')
+                    if (visit.DateTimeIn.trim().isNotEmpty &&
+                        visit.DateTimeIn.trim() != 'NA') ...[
+                      _detailRow(Icons.login_rounded, 'Check-in Time',
+                          visit.DateTimeIn),
+                      if (visit.LatitudeIn != 0 && visit.LongitudeIn != 0)
+                        _detailRow(
+                          Icons.gps_fixed_rounded,
+                          'Check-in Coords',
+                          '${visit.LatitudeIn.toStringAsFixed(5)}, ${visit.LongitudeIn.toStringAsFixed(5)}${_getDistanceLabel(visit.Latitude, visit.Longitude, visit.LatitudeIn, visit.LongitudeIn)}',
+                        ),
+                    ],
+                  if (visit.CheckInAddress.trim().isNotEmpty &&
+                      visit.CheckInAddress.trim() != 'NA')
+                    _detailRow(Icons.location_on_rounded, 'Check-in Address',
+                        visit.CheckInAddress),
+                  if (visit.DateTimeOut.trim().isNotEmpty &&
+                      visit.DateTimeOut.trim() != 'NA') ...[
+                    _detailRow(Icons.logout_rounded, 'Check-out Time',
+                        visit.DateTimeOut),
+                    if (visit.LatitudeOut != 0 && visit.LongitudeOut != 0)
+                      _detailRow(
+                        Icons.gps_fixed_rounded,
+                        'Check-out Coords',
+                        '${visit.LatitudeOut.toStringAsFixed(5)}, ${visit.LongitudeOut.toStringAsFixed(5)}${_getDistanceLabel(visit.Latitude, visit.Longitude, visit.LatitudeOut, visit.LongitudeOut)}',
+                      ),
+                  ],
                   if (visit.CheckOutAddress.trim().isNotEmpty &&
                       visit.CheckOutAddress.trim() != 'NA')
                     _detailRow(Icons.location_off_rounded, 'Check-out Address',
@@ -3751,6 +4003,28 @@ class _VisitDetailSheet extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  double _calculateDistance(
+      double lat1, double lon1, double lat2, double lon2) {
+    const p = 0.017453292519943295;
+    final a = 0.5 -
+        math.cos((lat2 - lat1) * p) / 2 +
+        math.cos(lat1 * p) *
+            math.cos(lat2 * p) *
+            (1 - math.cos((lon2 - lon1) * p)) /
+            2;
+    return 12742 * math.asin(math.sqrt(a)) * 1000;
+  }
+
+  String _getDistanceLabel(double eLat, double eLng, double aLat, double aLng) {
+    if (eLat == 0 || eLng == 0 || aLat == 0 || aLng == 0) return '';
+    double distance = _calculateDistance(eLat, eLng, aLat, aLng);
+    if (distance < 1000) {
+      return ' (${distance.toStringAsFixed(0)}m diff)';
+    } else {
+      return ' (${(distance / 1000).toStringAsFixed(1)}km diff)';
+    }
   }
 
   Widget _detailRow(IconData icon, String label, String value) {

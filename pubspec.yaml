@@ -169,7 +169,7 @@ dependency_overrides:
   webview_flutter_android: ^4.3.4
   google_api_headers: ^4.2.3
   flutter_date_range_picker: ^0.2.1
-  pointer_interceptor: ^0.10.0
+  pointer_interceptor: ^0.10.1+2
   firebase_core: 4.0.0
   firebase_messaging: ^16.0.0
   firebase_analytics: ^12.0.0
