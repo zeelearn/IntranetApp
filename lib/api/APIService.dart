@@ -94,6 +94,7 @@ import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:hive/hive.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
+import 'package:saathi/models/getStaticDashboardModel.dart';
 
 import '../pages/helper/LocalConstant.dart';
 import '../pages/helper/LocalStrings.dart';
@@ -117,6 +118,8 @@ Map<String, String> commonHeaders = {
 class APIService {
   String url = /* kIsWeb ? "" : */ LocalStrings.developmentBaseUrl;
   String bpms_url = LocalStrings.bpms;
+  final String saathi_url =
+      'https://kubapi.zeelearn.com/V1/saathi/api/ticketManagement/GetStatisticsDashboard';
 
   Future<dynamic> login(LoginRequestModel requestModel) async {
     try {
@@ -192,6 +195,52 @@ class APIService {
     } catch (e) {
       debugPrint('Exception in getVisitdetailsapi - $e');
 
+      return Left(e.toString());
+    }
+  }
+
+  Future<Either<String, GetStaticDashboardModel>> getStaticDashboard({
+    required String userId,
+    required String businessId,
+    required String deptId,
+    required String parentCategoryId,
+    required String categoryId,
+    required String year,
+    required String month,
+    required String day,
+  }) async {
+    try {
+      final response = await http.post(Uri.parse(saathi_url),
+          headers: {
+            "content-type": "application/json",
+            'User-Agent': 'unknown',
+            'platform': 'Unknown'
+          },
+          body: jsonEncode({
+            "user_id": userId,
+            "business_id": businessId,
+            "department_id": deptId,
+            "parent_category_id": parentCategoryId,
+            "category_id": categoryId,
+            "year": year,
+            "month": month,
+            "day": day,
+          }));
+
+      debugPrint(
+          'response from $saathi_url api is - ${response.body} and status is - ${response.statusCode}');
+      if (response.statusCode != 200) {
+        return Left(response.body.toString());
+      } else {
+        if (jsonDecode(response.body)['data'] != null) {
+          return Right(
+              GetStaticDashboardModel.fromJson(jsonDecode(response.body)));
+        } else {
+          return const Left('No Data found');
+        }
+      }
+    } catch (e) {
+      debugPrint('error from $saathi_url api is - ${e.toString()}');
       return Left(e.toString());
     }
   }
