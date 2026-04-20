@@ -2914,14 +2914,14 @@ class _PjpInfoCard extends StatelessWidget {
                 _infoRow(
                     Icons.calendar_today_rounded,
                     'From Date',
-                    DateFormat('dd-MM-yyyy')
+                    DateFormat('EEEE, d MMMM yyyy')
                         .format(Utility.convertDate(pjp.fromDate)),
                     _accent),
                 _dividerLine(),
                 _infoRow(
                     Icons.event_rounded,
                     'To Date',
-                    DateFormat('dd-MM-yyyy')
+                    DateFormat('EEEE, d MMMM yyyy')
                         .format(Utility.convertDate(pjp.toDate)),
                     _accent),
                 /* _dividerLine(),
@@ -3319,7 +3319,7 @@ class _VisitTile extends StatelessWidget {
                           size: 11, color: _textSecondary),
                       const SizedBox(width: 4),
                       Text(
-                        'Planned: ${visit.visitDate} at ${visit.visitTime}',
+                        'Planned: ${DateFormat('EEEE, d MMMM yyyy').format(DateFormat('yyyy-MM-dd').parse(visit.visitDate))} at ${visit.visitTime}',
                         style: GoogleFonts.inter(
                             fontSize: 11,
                             color: _textSecondary,
