@@ -7,7 +7,8 @@ class LocalStrings {
   static var stepThreeTitle = "Center Visit Form";
   static var stepThreeContent = "";
 
-  static const String bpms = "https://commonapi.zeelearn.com/";
+  static const String bpms = "https://kubapi.zeelearn.com/V1/commonapi";
+  static const String bpms_no_http = "kubapi.zeelearn.com";
   static const String productionBaseUrl = "https://app.ekidzee.com";
   static const String developmentBaseUrl = "https://intranetapi.zeelearn.com";
   static const kGoogleApiKey = "AIzaSyD-x4HqYO1O0kwDpkxIc128nM4f1bZ3oDM";

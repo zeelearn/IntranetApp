@@ -24,9 +24,6 @@ class PJPReportRequest {
       appType = 'IOS';
     }
 
-    print(
-      'Encoded data is - ${employeeCode} - ${businessId} - ${fromDate} - ${toDate} - ${appType}  ',
-    );
     return jsonEncode({
       'EmployeeCode': employeeCode,
       'BusinessId': businessId,

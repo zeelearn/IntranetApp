@@ -479,7 +479,6 @@ class _HomePageMenuState extends State<HomePageMenu> {
     var empCode = int.tryParse(
             hiveBox.get(LocalConstant.KEY_EMPLOYEE_CODE)?.toString() ?? '0') ??
         0;
-    debugPrint('Employee code is - $empCode');
     // expenseMainPlaceholder.main(isExternal: true, eCode: empCode.toString());
     await HiveDatabase.clear();
     Navigator.push(
@@ -497,7 +496,6 @@ class _HomePageMenuState extends State<HomePageMenu> {
     await Hive.openBox(LocalConstant.KidzeeDB);
     String username =
         hiveBox.get(LocalConstant.KEY_USER_NAME) ?? widget.mUserName;
-    print('Username: $username');
     //main();
     ZllSaathi(context, username, widget.profileAvtar);
     // Navigator.push(

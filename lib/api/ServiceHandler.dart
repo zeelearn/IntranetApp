@@ -33,10 +33,8 @@ class IntranetServiceHandler {
     onResponse.onStart();
     PJPListRequest request = PJPListRequest(
         Employee_id: employeeId, PJP_id: pjpId, Business_id: bid);
-    debugPrint(request.toJson().toString());
     APIService apiService = APIService();
     apiService.getPJPList(request).then((value) {
-      debugPrint(value.toString());
       if (value != null) {
         if (value == null || value.responseData == null) {
           onResponse.onError('PJP List not avaliable ');
@@ -59,10 +57,8 @@ class IntranetServiceHandler {
     onResponse.onStart();
     PJPExceptionalRequest request =
         PJPExceptionalRequest(Manager_Emp_id: employeeId);
-    debugPrint(request.toJson().toString());
     APIService apiService = APIService();
     apiService.getPJPExceptionalList(request).then((value) {
-      debugPrint(value.toString());
       if (value != null) {
         if (value == null || value.responseData == null) {
           onResponse.onError('PJP List not avaliable 1');
@@ -83,10 +79,8 @@ class IntranetServiceHandler {
 
   static loadPjpReport(PJPReportRequest request, onResponse onResponse) {
     onResponse.onStart();
-    print('PJP Report Request is - ${request.getJson().toString()}');
     APIService apiService = APIService();
     apiService.getPJPMYTEAMReport(request).then((value) {
-      print('PJP Report is - ${value.toString()}');
       if (value != null) {
         if (value == null || value.responseData == null) {
           onResponse.onError('PJP List not avaliable ');
@@ -104,8 +98,6 @@ class IntranetServiceHandler {
 
   static updateCVFStatus(int employeeId, GetDetailedPJP cvfView, String date,
       String status, onResponse onResponse) async {
-    print(
-        'Updating CVF status for Employee ID: $employeeId, CVF ID: ${cvfView.PJPCVF_Id}, New Status: $status - visit status - ${cvfView.Status}');
     double latitude = 0.0;
     double longitude = 0.0;
     onResponse.onStart();
@@ -113,9 +105,6 @@ class IntranetServiceHandler {
     if (location != null) {
       latitude = location.latitude!;
       longitude = location.longitude!;
-      print('Location is ${latitude} ${longitude}');
-    } else {
-      print('location data not found');
     }
 
     String? address = await Utility.getAddress(latitude, longitude);
@@ -138,7 +127,6 @@ class IntranetServiceHandler {
 
     APIService apiService = APIService();
     apiService.updateCVFStatus(request).then((value) {
-      debugPrint(value.toString());
       if (value != null) {
         if (value == null || value.responseData == null) {
           onResponse.onError('Unable to update the status');
@@ -173,7 +161,6 @@ class IntranetServiceHandler {
       UpdateCVFStatusRequest request, onResponse onResponse) async {
     APIService apiService = APIService();
     apiService.updateCVFStatus(request).then((value) {
-      debugPrint(value.toString());
       if (value != null) {
         if (value == null || value.responseData == null) {
           onResponse.onError('Unable to update the status');
@@ -193,7 +180,6 @@ class IntranetServiceHandler {
     onResponse.onStart();
     APIService apiService = APIService();
     apiService.getMyReports(request).then((value) {
-      debugPrint(value.toString());
       if (value != null) {
         if (value == null || value.responseData == null) {
           onResponse.onError('Unable to get Reports');
@@ -214,7 +200,6 @@ class IntranetServiceHandler {
     onResponse.onStart();
     APIService apiService = APIService();
     apiService.updatePjpStatusList(request).then((value) {
-      debugPrint(value.toString());
       if (value != null) {
         if (value == null || value.responseData == null) {
           onResponse.onError('Unable to get Reports');
@@ -235,7 +220,6 @@ class IntranetServiceHandler {
     onResponse.onStart();
     APIService apiService = APIService();
     apiService.updatePjpStatusExceptionalList(request).then((value) {
-      debugPrint(value.toString());
       if (value != null) {
         if (value == null || value.responseData == null) {
           onResponse.onError('Unable to get Reports');
@@ -256,7 +240,6 @@ class IntranetServiceHandler {
     onResponse.onStart();
     APIService apiService = APIService();
     apiService.updatePjpStatus(request).then((value) {
-      debugPrint(value.toString());
       if (value != null) {
         if (value == null || value.responseData == null) {
           onResponse.onError('Unable to get Reports');
@@ -279,22 +262,17 @@ class IntranetServiceHandler {
     if (isLoadingRequired) {
       response.onStart();
     }
-    print(requestModel.status);
     apiService.updateTaskDetails(requestModel).then((value) {
       if (value != null) {
-        print(value);
         UpdateBpmsTaskResponse responseModel;
         if (value != null) {
           responseModel = value;
-          print('update bpms ${responseModel.toJson()}');
           response.onSuccess(responseModel);
         } else {
-          print('Unable to update Task');
           response.onError(
               'Unable to update the Task Details Please try again later');
         }
       } else {
-        print('Unable to update Task else');
         response.onError(
             'Unable to Update the Task Details Please try again later');
       }

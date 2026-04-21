@@ -232,9 +232,7 @@ class _SummaryDashboardState extends State<SummaryDashboard>
             if (minStart == null || fyStart.isBefore(minStart))
               minStart = fyStart;
             if (maxEnd == null || fyEnd.isAfter(maxEnd)) maxEnd = fyEnd;
-          } catch (e) {
-            debugPrint('Error parsing FY: $fy');
-          }
+          } catch (e) {}
         }
         if (minStart != null)
           fromDate = DateFormat('yyyy-MM-dd').format(minStart);
@@ -265,7 +263,6 @@ class _SummaryDashboardState extends State<SummaryDashboard>
 
   @override
   void onSuccess(value) {
-    print('Response from api is - ${value.toJson()}');
     if (value is PjpListResponse) {
       if (mounted) {
         setState(() {
@@ -324,7 +321,6 @@ class _SummaryDashboardState extends State<SummaryDashboard>
 
   @override
   void onError(value) {
-    print('Error loading dashboard data: $value');
     if (mounted) {
       setState(() {
         _isLoading = false;
@@ -1457,7 +1453,6 @@ class _SummaryDashboardState extends State<SummaryDashboard>
                           currentDate: DateTime.now(),
                         )),
               );
-              print('Add PJP result: $result');
               if (result != null && result is PJPModel) {
                 setState(() {
                   PJPInfo pjpInfo = PJPInfo(
@@ -3176,8 +3171,6 @@ class _VisitTile extends StatelessWidget {
           ToastUtility.showError(msg: 'You cannot access this visit');
           return;
         }
-        print(
-            'Visit ${visit.PJPCVF_Id} tapped. Current status: ${visit.Status}');
 
         if (visit.purpose?.isEmpty ?? true) {
           ToastUtility.showError(msg: 'No purpose found for this visit');
