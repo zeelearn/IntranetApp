@@ -1004,11 +1004,12 @@ class APIService {
           Uri.parse(url + LocalStrings.GET_PJP_MYTEAM_REPORT),
           headers: commonHeaders,
           body: requestModel.getJson());
-      print(response.body);
-      print(response.statusCode);
+      log('Response from Api is -  -${response.statusCode} ${response.body}',
+          level: 3);
+
       if (response.statusCode == 200 || response.statusCode == 400) {
         String data = response.body.replaceAll('null', '"NA"');
-        print(data);
+        // print(data);
         return PjpListResponse.fromJson(
           json.decode(data),
         );
@@ -1924,7 +1925,7 @@ class APIService {
     return null;
   }
 
-  /*  Future<ZohoRequestModel> getRecipientList(String email) async {
+  Future<ZohoRequestModel> getRecipientList(String email) async {
     try {
       final uri = Uri.parse('${bpms_url}api/bp/getagreementstatus');
       var body = jsonEncode({
@@ -1952,9 +1953,9 @@ class APIService {
       debugPrint('Exception in getRecipientList - ${e.toString()}');
       return ZohoRequestModel.setError('Something went wrong.');
     }
-  } */
+  }
 
-  Future<ZohoRequestModel> getRecipientList(String email) async {
+  /*  Future<ZohoRequestModel> getRecipientList(String email) async {
     try {
       final List<Requests> allRequests = [];
       int startIndex = 1;
@@ -2040,7 +2041,7 @@ class APIService {
       debugPrint('Exception in getRecipientList - ${e.toString()}');
       return ZohoRequestModel.setError('Something went wrong.');
     }
-  }
+  } */
 
   /*  Future<ZohoRequestModel> getRecipientList(String email) async {
     try {

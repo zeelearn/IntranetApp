@@ -193,17 +193,27 @@ class _SummaryDashboardState extends State<SummaryDashboard>
   Future<void> _fetchDashboardData() async {
     try {
       var hiveBox = await Utility.openBox();
-      employeeId =
-          int.parse(hiveBox.get(LocalConstant.KEY_EMPLOYEE_ID) as String);
-      employeeCode = hiveBox.get(LocalConstant.KEY_EMPLOYEE_CODE) as String;
-      managerName = hiveBox.get(LocalConstant.KEY_MANAGER_NAME) as String;
-      employeeName = hiveBox.get(LocalConstant.KEY_FIRST_NAME) +
-          ' ' +
-          hiveBox.get(LocalConstant.KEY_LAST_NAME);
-      _employeeRoleType = hiveBox.get(LocalConstant.KEY_EMP_TYPE);
-      zone = hiveBox.get(LocalConstant.KEY_ZONE) as String? ?? 'N/A';
-      businessId = hiveBox.get(LocalConstant.KEY_BUSINESS_ID);
-      String? emprole_type = hiveBox.get(LocalConstant.KEY_EMP_TYPE);
+      employeeId = int.tryParse(
+              hiveBox.get(LocalConstant.KEY_EMPLOYEE_ID)?.toString() ?? '0') ??
+          0;
+      employeeCode =
+          hiveBox.get(LocalConstant.KEY_EMPLOYEE_CODE)?.toString() ?? '';
+      managerName =
+          hiveBox.get(LocalConstant.KEY_MANAGER_NAME)?.toString() ?? 'N/A';
+
+      String firstName =
+          hiveBox.get(LocalConstant.KEY_FIRST_NAME)?.toString() ?? '';
+      String lastName =
+          hiveBox.get(LocalConstant.KEY_LAST_NAME)?.toString() ?? '';
+      employeeName = '$firstName $lastName'.trim();
+      if (employeeName.isEmpty) employeeName = 'User';
+
+      _employeeRoleType =
+          hiveBox.get(LocalConstant.KEY_EMP_TYPE)?.toString() ?? '';
+      zone = hiveBox.get(LocalConstant.KEY_ZONE)?.toString() ?? 'N/A';
+      businessId = hiveBox.get(LocalConstant.KEY_BUSINESS_ID) ?? 0;
+
+      String? emprole_type = _employeeRoleType;
       if (emprole_type?.toLowerCase() == 'emp') {
         _isTeamView = false;
       }
