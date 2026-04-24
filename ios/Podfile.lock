@@ -1208,7 +1208,7 @@ PODS:
   - BoringSSL-GRPC/Interface (0.0.37)
   - camera_avfoundation (0.0.1):
     - Flutter
-  - cloud_firestore (6.1.3):
+  - cloud_firestore (6.2.0):
     - Firebase/Firestore (= 12.0.0)
     - firebase_core
     - Flutter
@@ -1268,16 +1268,16 @@ PODS:
   - Firebase/Storage (12.0.0):
     - Firebase/CoreOnly
     - FirebaseStorage (~> 12.0.0)
-  - firebase_analytics (12.1.3):
+  - firebase_analytics (12.2.0):
     - firebase_core
     - FirebaseAnalytics (= 12.0.0)
     - Flutter
-  - firebase_app_check (0.4.1-5):
+  - firebase_app_check (0.4.2):
     - Firebase/CoreOnly (~> 12.0.0)
     - firebase_core
     - FirebaseAppCheck (~> 12.0.0)
     - Flutter
-  - firebase_auth (6.2.0):
+  - firebase_auth (6.3.0):
     - Firebase/Auth (= 12.0.0)
     - firebase_core
     - Flutter
@@ -1292,7 +1292,7 @@ PODS:
     - Firebase/Database (= 12.0.0)
     - firebase_core
     - Flutter
-  - firebase_messaging (16.1.2):
+  - firebase_messaging (16.1.3):
     - Firebase/Messaging (= 12.0.0)
     - firebase_core
     - Flutter
@@ -1597,7 +1597,7 @@ PODS:
     - gRPC-Core/Privacy (= 1.69.0)
   - gRPC-Core/Interface (1.69.0)
   - gRPC-Core/Privacy (1.69.0)
-  - GTMSessionFetcher/Core (5.0.0)
+  - GTMSessionFetcher/Core (5.2.0)
   - image_picker_ios (0.0.1):
     - Flutter
   - IosAwnCore (0.10.0)
@@ -1629,9 +1629,6 @@ PODS:
   - OrderedSet (6.0.3)
   - package_info_plus (0.4.5):
     - Flutter
-  - path_provider_foundation (0.0.1):
-    - Flutter
-    - FlutterMacOS
   - pdfium_flutter (0.1.5):
     - Flutter
     - FlutterMacOS
@@ -1643,10 +1640,10 @@ PODS:
   - PromisesSwift (2.4.0):
     - PromisesObjC (= 2.4.0)
   - RecaptchaInterop (101.0.0)
-  - SDWebImage (5.21.2):
-    - SDWebImage/Core (= 5.21.2)
-  - SDWebImage/Core (5.21.2)
-  - SDWebImageWebPCoder (0.14.6):
+  - SDWebImage (5.21.7):
+    - SDWebImage/Core (= 5.21.7)
+  - SDWebImage/Core (5.21.7)
+  - SDWebImageWebPCoder (0.15.0):
     - libwebp (~> 1.0)
     - SDWebImage/Core (~> 5.17)
   - share_plus (0.0.1):
@@ -1701,7 +1698,6 @@ DEPENDENCIES:
   - location (from `.symlinks/plugins/location/ios`)
   - open_file_ios (from `.symlinks/plugins/open_file_ios/ios`)
   - package_info_plus (from `.symlinks/plugins/package_info_plus/ios`)
-  - path_provider_foundation (from `.symlinks/plugins/path_provider_foundation/darwin`)
   - pdfium_flutter (from `.symlinks/plugins/pdfium_flutter/darwin`)
   - permission_handler_apple (from `.symlinks/plugins/permission_handler_apple/ios`)
   - pointer_interceptor_ios (from `.symlinks/plugins/pointer_interceptor_ios/ios`)
@@ -1824,8 +1820,6 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/open_file_ios/ios"
   package_info_plus:
     :path: ".symlinks/plugins/package_info_plus/ios"
-  path_provider_foundation:
-    :path: ".symlinks/plugins/path_provider_foundation/darwin"
   pdfium_flutter:
     :path: ".symlinks/plugins/pdfium_flutter/darwin"
   permission_handler_apple:
@@ -1855,19 +1849,19 @@ SPEC CHECKSUMS:
   awesome_notifications: 0f432b28098d193920b11a44cfa9d2d9313a3888
   BoringSSL-GRPC: dded2a44897e45f28f08ae87a55ee4bcd19bc508
   camera_avfoundation: 5675ca25298b6f81fa0a325188e7df62cc217741
-  cloud_firestore: 7f9a138920f24a80db93c4106b403873516ca348
+  cloud_firestore: 73192355c5bb820b88915465f0a9ce14c0ea89ae
   device_info_plus: 71ffc6ab7634ade6267c7a93088ed7e4f74e5896
   DKImagePickerController: 946cec48c7873164274ecc4624d19e3da4c1ef3c
   DKPhotoGallery: b3834fecb755ee09a593d7c9e389d8b5d6deed60
   file_picker: a0560bc09d61de87f12d246fc47d2119e6ef37be
   Firebase: 800d487043c0557d9faed71477a38d9aafb08a41
-  firebase_analytics: 5f66c289871a24054540f7c08fed25e19e82678d
-  firebase_app_check: 1fa68b31ec11570fa1af9bd8624dd7b79ebb9c4f
-  firebase_auth: 93e99092c31e5578283b4250bcbaaeef30ccf7d4
+  firebase_analytics: c6edd2137a8a47ee17f5afdb29b00afe3b9d0772
+  firebase_app_check: 60c20c6df3c4b2a3acdedf97fb6f24e72c478efd
+  firebase_auth: d3d3ec1eed838c5ae208ee0e5474dc039d0ac673
   firebase_core: 633e1851ffe1b9ab875f6467a4f574c79cef02e4
   firebase_crashlytics: 6c71ba085dacbb1ad85961b25ade1dad3c370f74
   firebase_database: 8e963fb42c9f992e68c2d1c5ea39875309dc47de
-  firebase_messaging: 61814c817fe95b1de7c26ba01de111cc3de6e525
+  firebase_messaging: d4e39d7035d50d409168ab40cb8ef0d1f97aca5e
   firebase_storage: b494850b54ea8cb506f01e90288e16240eb2694c
   FirebaseAnalytics: 6d790cd1b159b4eb61a99948df0934ce505a34f7
   FirebaseAppCheck: b91ab9185b0192dabe7efe83d4b66de33f0d83b0
@@ -1899,7 +1893,7 @@ SPEC CHECKSUMS:
   geocoding_ios: 33776c9ebb98d037b5e025bb0e7537f6dd19646e
   geolocator_apple: ab36aa0e8b7d7a2d7639b3b4e48308394e8cef5e
   Google-Maps-iOS-Utils: bed22fa703c919259b3901449434d60d994fae20
-  google_maps_flutter_ios: 0cf046caf50b00d95071f79e8031fcd5ef902beb
+  google_maps_flutter_ios: 17552876e72723da1d41accc22f03b5f7afbde69
   GoogleAdsOnDeviceConversion: 2be6297a4f048459e0ae17fad9bfd2844e10cf64
   GoogleAppMeasurement: 8f6ab04ad6ae493b53fcf56bd26323fb2f1384f3
   GoogleDataTransport: aae35b7ea0c09004c3797d53c8c41f66f219d6a7
@@ -1907,7 +1901,7 @@ SPEC CHECKSUMS:
   GoogleUtilities: 00c88b9a86066ef77f0da2fab05f65d7768ed8e1
   "gRPC-C++": cc207623316fb041a7a3e774c252cf68a058b9e8
   gRPC-Core: 860978b7db482de8b4f5e10677216309b5ff6330
-  GTMSessionFetcher: 02d6e866e90bc236f48a703a041dfe43e6221a29
+  GTMSessionFetcher: 904bdd2a82c635bcd6f44edf94cc8775c5d1d6e6
   image_picker_ios: e0ece4aa2a75771a7de3fa735d26d90817041326
   IosAwnCore: 653786a911089012092ce831f2945cd339855a89
   leveldb-library: cc8b8f8e013647a295ad3f8cd2ddf49a6f19be19
@@ -1918,15 +1912,14 @@ SPEC CHECKSUMS:
   open_file_ios: 46184d802ee7959203f6392abcfa0dd49fdb5be0
   OrderedSet: e539b66b644ff081c73a262d24ad552a69be3a94
   package_info_plus: 566e1b7a2f3900e4b0020914ad3fc051dcc95596
-  path_provider_foundation: bb55f6dbba17d0dccd6737fe6f7f34fbd0376880
   pdfium_flutter: 512bc19dbbd80b4287d04869aa19ad729289079d
   permission_handler_apple: 4ed2196e43d0651e8ff7ca3483a069d469701f2d
   pointer_interceptor_ios: da06a662d5bfd329602b45b2ab41bc0fb5fdb0f0
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
   PromisesSwift: 9d77319bbe72ebf6d872900551f7eeba9bce2851
   RecaptchaInterop: 11e0b637842dfb48308d242afc3f448062325aba
-  SDWebImage: 9f177d83116802728e122410fb25ad88f5c7608a
-  SDWebImageWebPCoder: e38c0a70396191361d60c092933e22c20d5b1380
+  SDWebImage: e9fc87c1aab89a8ab1bbd74eba378c6f53be8abf
+  SDWebImageWebPCoder: 0e06e365080397465cc73a7a9b472d8a3bd0f377
   share_plus: 50da8cb520a8f0f65671c6c6a99b3617ed10a58a
   shared_preferences_foundation: 7036424c3d8ec98dfe75ff1667cb0cd531ec82bb
   sqflite_darwin: 20b2a3a3b70e43edae938624ce550a3cbf66a3d0
