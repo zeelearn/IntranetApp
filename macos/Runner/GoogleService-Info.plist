@@ -9,11 +9,11 @@
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>com.zeelearn.intranet.RunnerTests</string>
+	<string>com.zeelearn.intranet</string>
 	<key>PROJECT_ID</key>
 	<string>intranetweb-68536</string>
 	<key>STORAGE_BUCKET</key>
-	<string>intranetweb-68536.appspot.com</string>
+	<string>intranetweb-68536.firebasestorage.app</string>
 	<key>IS_ADS_ENABLED</key>
 	<false></false>
 	<key>IS_ANALYTICS_ENABLED</key>
@@ -25,6 +25,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:92536473318:ios:e4807a6ab826e745179d27</string>
+	<string>1:92536473318:ios:6562f21c7144c517179d27</string>
 </dict>
 </plist>

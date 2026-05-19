@@ -70,8 +70,16 @@
         <meta-data
     android:name="com.google.firebase.messaging.default_notification_color"
     android:resource="@color/colorPrimary" />
-        <meta-data android:name="com.google.firebase.messaging.default_notification_icon" android:resource="@drawable/app_launcher" />
-        <meta-data android:name="com.google.firebase.messaging.default_notification_channel_id" android:value="Intranet" />
+<!--        <meta-data android:name="com.google.firebase.messaging.default_notification_icon" android:resource="@drawable/app_launcher" />-->
+<!--        <meta-data android:name="com.google.firebase.messaging.default_notification_channel_id" android:value="Intranet" />-->
+
+       <!-- <meta-data android:name="firebase_messaging_auto_init_enabled" android:value="false" />-->
+        <meta-data android:name="firebase_analytics_collection_enabled" android:value="false" />
+        <meta-data android:name="com.zeelearn.mlzsv1.notification_color"
+            android:resource="@android:color/transparent" />
+
+
+
         <service android:name="id.flutter.flutter_background_service.BackgroundService" android:foregroundServiceType="dataSync" tools:replace="android:foregroundServiceType">
             <intent-filter>
                 <action android:name="com.zeelearn.intranet.action.START_DATA_SYNC_SERVICE" />

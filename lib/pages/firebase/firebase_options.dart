@@ -5,26 +5,34 @@ import 'package:flutter/foundation.dart'
 class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform {
     if (kIsWeb) {
+      print('web detected...');
       return web;
     }
+    print('defaultTargetPlatform $defaultTargetPlatform');
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
+        print('Android detected $android');
         return android;
       case TargetPlatform.iOS:
+        print('IOS detected $ios');
         return ios;
       case TargetPlatform.macOS:
+        print('macos detected $macos');
         return macos;
       case TargetPlatform.windows:
+        print('window detected');
         throw UnsupportedError(
           'DefaultFirebaseOptions have not been configured for windows - '
               'you can reconfigure this by running the FlutterFire CLI again.',
         );
       case TargetPlatform.linux:
+        print('linus detected');
         throw UnsupportedError(
           'DefaultFirebaseOptions have not been configured for linux - '
               'you can reconfigure this by running the FlutterFire CLI again.',
         );
       default:
+        print('default detected');
         throw UnsupportedError(
           'DefaultFirebaseOptions are not supported for this platform.',
         );
@@ -47,8 +55,8 @@ class DefaultFirebaseOptions {
     appId: '1:411998223312:android:176ef77cd8fca5e4dd97d5',
     messagingSenderId: '411998223312',
     projectId: 'intranet-9fda2',
-    databaseURL: 'https://react-native-firebase-testing.firebaseio.com',
-    storageBucket: 'gs://intranet-9fda2.appspot.com',
+    databaseURL: 'https://intranet-9fda2-default-rtdb.firebaseio.com',
+    storageBucket: 'intranet-9fda2.appspot.com',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
@@ -56,8 +64,8 @@ class DefaultFirebaseOptions {
     appId: '1:411998223312:ios:0dabf3a3a966fb4cdd97d5',
     messagingSenderId: '411998223312',
     projectId: 'intranet-9fda2',
-    databaseURL: 'https://react-native-firebase-testing.firebaseio.com',
-    storageBucket: 'intranet-9fda2',
+    databaseURL: 'https://intranet-9fda2-default-rtdb.firebaseio.com',
+    storageBucket: 'intranet-9fda2.appspot.com',
     androidClientId:
     '448618578101-a9p7bj5jlakabp22fo3cbkj7nsmag24e.apps.googleusercontent.com',
     iosClientId:

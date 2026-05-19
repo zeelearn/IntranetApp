@@ -124,6 +124,8 @@ part 'main.g.dart';
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
   print(
       'A new onMessageOpenedApp event was published! main 125 ${message.data.toString()}');
   NotificationService().parseNotification(message);
@@ -254,7 +256,14 @@ final localhostServer =
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  // Set the background messaging handler early on, as a named top-level function
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+
+
   _openBox();
+  await PermissionUtil.requestPermission();
 
   if (!kIsWeb) {
     await FlutterDownloader.initialize(
@@ -273,15 +282,11 @@ Future<void> main() async {
     await localhostServer.start();
   }
 
-  if (!kIsWeb && Platform.isAndroid) {
-    await Firebase.initializeApp(
-        options: DefaultFirebaseOptions.currentPlatform);
-  } else {
-    await Firebase.initializeApp();
-  }
 
-  NotificationController.startListeningNotificationEvents();
 
+  //NotificationController.startListeningNotificationEvents();
+   //Firebase.initializeApp( options: DefaultFirebaseOptions.currentPlatform);
+  await Firebase.initializeApp(demoProjectId: "intranet",name: "intranet", options: DefaultFirebaseOptions.currentPlatform);
   if (!kIsWeb) {
     await NotificationController.initializeLocalNotifications();
     await NotificationController.initializeIsolateReceivePort();
@@ -321,7 +326,7 @@ Future<void> main() async {
     await FirebaseMessaging.instance.setAutoInitEnabled(true);
   }
   //_requestPermission();
-  await PermissionUtil.requestPermission();
+
 
   await Hive.initFlutter();
   await Hive.openBox(LocalConstant.communicationKey); // settings
@@ -501,7 +506,7 @@ Future<void> leaveService(int action) async {
 
 @pragma('vm:entry-point')
 Future<bool> onIosBackground(ServiceInstance service) async {
-  WidgetsFlutterBinding.ensureInitialized();
+
   DartPluginRegistrant.ensureInitialized();
 
   return true;
@@ -511,7 +516,7 @@ Future<bool> onIosBackground(ServiceInstance service) async {
 void onStart(ServiceInstance service) async {
   // Only available for flutter 3.0.0 and later
   debugPrint('onStart Service');
-  DartPluginRegistrant.ensureInitialized();
+  //DartPluginRegistrant.ensureInitialized();
   mService = service;
   // For flutter prior to version 3.0.0
   final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
@@ -814,7 +819,7 @@ class MyApp extends StatelessWidget {
           overlayColor: WidgetStateProperty.all(Colors.black),
           side: const BorderSide(color: Color(0xff585858)),
         ),
-        tabBarTheme: const TabBarTheme(
+        tabBarTheme: const TabBarThemeData(
           labelColor: Colors.pink,
           labelStyle: TextStyle(color: Colors.pink), // color for text
           indicator: UnderlineTabIndicator(
@@ -858,7 +863,7 @@ class MyApp extends StatelessWidget {
           onSurface: Colors.black87,
           outline: LightColors.kLightGrayM,
         ),
-        dialogTheme: const DialogTheme(
+        dialogTheme: const DialogThemeData(
           backgroundColor: Colors.white,
           titleTextStyle: TextStyle(
               fontWeight: FontWeight.w500, fontSize: 16, color: Colors.black54),

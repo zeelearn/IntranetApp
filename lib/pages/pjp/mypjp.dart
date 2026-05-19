@@ -440,7 +440,7 @@ class _MyPjpListState extends State<MyPjpListScreen>
                                   builder: (context) => Dialog(
                                         child: AddAdvanceRequisitionPage(
                                           e_id: employeeCode,
-                                          pjpId: pjpInfo.PJP_Id,
+                                          //pjpId: pjpInfo.PJP_Id,
                                         ),
                                       ));
                             },

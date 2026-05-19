@@ -27,10 +27,7 @@ class DefaultFirebaseOptions {
       case TargetPlatform.macOS:
         return macos;
       case TargetPlatform.windows:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for windows - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return windows;
       case TargetPlatform.linux:
         throw UnsupportedError(
           'DefaultFirebaseOptions have not been configured for linux - '
@@ -49,7 +46,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '92536473318',
     projectId: 'intranetweb-68536',
     authDomain: 'intranetweb-68536.firebaseapp.com',
-    storageBucket: 'intranetweb-68536.appspot.com',
+    storageBucket: 'intranetweb-68536.firebasestorage.app',
     measurementId: 'G-0934VN0XTW',
   );
 
@@ -58,7 +55,7 @@ class DefaultFirebaseOptions {
     appId: '1:92536473318:android:b224e4319ee42b8b179d27',
     messagingSenderId: '92536473318',
     projectId: 'intranetweb-68536',
-    storageBucket: 'intranetweb-68536.appspot.com',
+    storageBucket: 'intranetweb-68536.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
@@ -66,16 +63,27 @@ class DefaultFirebaseOptions {
     appId: '1:92536473318:ios:6562f21c7144c517179d27',
     messagingSenderId: '92536473318',
     projectId: 'intranetweb-68536',
-    storageBucket: 'intranetweb-68536.appspot.com',
+    storageBucket: 'intranetweb-68536.firebasestorage.app',
     iosBundleId: 'com.zeelearn.intranet',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
     apiKey: 'AIzaSyDOGGVh-K5cZkhlpi8s4YJskevop6HMP30',
-    appId: '1:92536473318:ios:e4807a6ab826e745179d27',
+    appId: '1:92536473318:ios:6562f21c7144c517179d27',
     messagingSenderId: '92536473318',
     projectId: 'intranetweb-68536',
-    storageBucket: 'intranetweb-68536.appspot.com',
-    iosBundleId: 'com.zeelearn.intranet.RunnerTests',
+    storageBucket: 'intranetweb-68536.firebasestorage.app',
+    iosBundleId: 'com.zeelearn.intranet',
   );
+
+  static const FirebaseOptions windows = FirebaseOptions(
+    apiKey: 'AIzaSyC0lKUd2IY6kw_VkpxaiMr5Q7BJfnXO4yE',
+    appId: '1:92536473318:web:426d7219add3f873179d27',
+    messagingSenderId: '92536473318',
+    projectId: 'intranetweb-68536',
+    authDomain: 'intranetweb-68536.firebaseapp.com',
+    storageBucket: 'intranetweb-68536.firebasestorage.app',
+    measurementId: 'G-R8XYK0L0VL',
+  );
+
 }

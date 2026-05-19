@@ -2,7 +2,10 @@ plugins {
     id "com.android.application"
     id "kotlin-android"
     id "dev.flutter.flutter-gradle-plugin"
+    id 'com.google.gms.google-services'
+    id 'com.google.firebase.crashlytics'
 }
+
 
 def localProperties = new Properties()
 def localPropertiesFile = rootProject.file('local.properties')
@@ -24,8 +27,8 @@ if (flutterVersionName == null) {
 
 android {
     namespace = "com.zeelearn.intranet"
-    compileSdkVersion 34
-    ndkVersion flutter.ndkVersion
+    compileSdkVersion 36
+    ndkVersion "28.2.13676358"
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
@@ -46,7 +49,7 @@ android {
         applicationId "com.zeelearn.intranet"
         // You can update the following values to match your application needs.
         // For more information, see: https://docs.flutter.dev/deployment/android#reviewing-the-build-configuration.
-        minSdkVersion 23
+        minSdkVersion flutter.minSdkVersion
         targetSdkVersion 34
         versionCode 40
         versionName '1.6.9'
@@ -56,6 +59,8 @@ android {
             // Filter for architectures supported by Flutter.
             abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86_64'
         }
+
+
 
     }
 
@@ -83,11 +88,14 @@ flutter {
 
 dependencies {
     implementation 'com.google.firebase:firebase-analytics'
-    implementation platform('com.google.firebase:firebase-bom:30.4.1')
+    implementation("com.google.firebase:firebase-messaging")
+    implementation platform('com.google.firebase:firebase-bom:33.9.0')
     implementation("androidx.multidex:multidex:2.0.1")
     //implementation "org.jetbrains.kotlin:kotlin-stdlib:1.8.0"
     //implementation "androidx.appcompat:appcompat:1.7.0"
-    implementation "androidx.core:core-ktx:1.6.0"
-    
-    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.0.4'
+    implementation "androidx.core:core-ktx:1.17.0"
+
+
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.4'
+
 }
