@@ -7,6 +7,8 @@ import 'package:Intranet/pages/pjp/models/PJPCenterDetails.dart';
 import 'package:path/path.dart' as path;
 import 'package:sqflite/sqflite.dart' as sql;
 import 'package:sqflite/sqflite.dart';
+import 'package:flutter/foundation.dart';
+import 'package:sqflite_common_ffi_web/sqflite_ffi_web.dart';
 
 import '../../api/request/leave/leave_approve_request.dart';
 import '../../api/response/cvf/QuestionResponse.dart';
@@ -17,7 +19,6 @@ import '../pjp/models/PjpModel.dart';
 import 'DBConstant.dart';
 import 'DatabaseHelper.dart';
 import 'LocalConstant.dart';
-
 
 /*
  * Created by AbedElaziz Shehadeh on 1st March, 2020
@@ -52,7 +53,8 @@ class DBHelper {
       'webViewLink TEXT, '
       'date TEXT)';
 
-  static String CREATE_TABLE_CHECKIN = 'CREATE TABLE IF NOT EXISTS  ${LocalConstant.TABLE_CHECKIN}'
+  static String CREATE_TABLE_CHECKIN =
+      'CREATE TABLE IF NOT EXISTS  ${LocalConstant.TABLE_CHECKIN}'
       '(${DBConstant.ID} INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, '
       '${DBConstant.CVF_ID} TEXT, '
       '${DBConstant.STATE} TEXT, '
@@ -60,7 +62,8 @@ class DBHelper {
       '${DBConstant.IS_SYNC} int, '
       'date TEXT)';
 
-  static String CREATE_TABLE_PJP_MASTER = 'CREATE TABLE IF NOT EXISTS  ${LocalConstant.TABLE_PJP_INFO}'
+  static String CREATE_TABLE_PJP_MASTER =
+      'CREATE TABLE IF NOT EXISTS  ${LocalConstant.TABLE_PJP_INFO}'
       '(${DBConstant.ID} INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, '
       '${DBConstant.DATE} TEXT, '
       '${DBConstant.FROM_DATE} TEXT, '
@@ -77,9 +80,8 @@ class DBHelper {
       '${DBConstant.MODIFIED_DATE} TEXT, '
       '${DBConstant.CREATED_DATE} TEXT)';
 
-
-
-  static String CREATE_TABLE_PJP_CENTER_DETAILS = 'CREATE TABLE IF NOT EXISTS  ${LocalConstant.TABLE_PJP_CENTERS_DETAILS}'
+  static String CREATE_TABLE_PJP_CENTER_DETAILS =
+      'CREATE TABLE IF NOT EXISTS  ${LocalConstant.TABLE_PJP_CENTERS_DETAILS}'
       '(${DBConstant.ID} INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, '
       '${DBConstant.PJP_ID} INT, '
       '${DBConstant.CENTRE_CODE} TEXT, '
@@ -94,7 +96,8 @@ class DBHelper {
       '${DBConstant.MODIFIED_DATE} TEXT, '
       '${DBConstant.CREATED_DATE} TEXT)';
 
-  static String CREATE_TABLE_ALL_EMPLOYEE = 'CREATE TABLE IF NOT EXISTS  ${LocalConstant.TABLE_EMPLOYEES}'
+  static String CREATE_TABLE_ALL_EMPLOYEE =
+      'CREATE TABLE IF NOT EXISTS  ${LocalConstant.TABLE_EMPLOYEES}'
       '(notification_id TEXT PRIMARY KEY, '
       '${DBConstant.EMP_FULLNAME} TEXT, '
       '${DBConstant.EMP_CONTACT} TEXT, '
@@ -104,7 +107,8 @@ class DBHelper {
       '${DBConstant.EMP_APP_STATUS} TEXT, '
       '${DBConstant.EMP_DISPLAY} TEXT)';
 
-  static String CREATE_TABLE_PARENT_INFO = 'CREATE TABLE IF NOT EXISTS  ${LocalConstant.TABLE_PARENT_INFO}'
+  static String CREATE_TABLE_PARENT_INFO =
+      'CREATE TABLE IF NOT EXISTS  ${LocalConstant.TABLE_PARENT_INFO}'
       '(_id TEXT PRIMARY KEY, '
       '${DBConstant.FRANCHISEE_ID} INT, '
       '${DBConstant.STUDENT_PROGRAM_ID} INT, '
@@ -132,14 +136,14 @@ class DBHelper {
       '${DBConstant.STUDENT_AVTAR} TEXT, '
       '${DBConstant.DATE} TEXT)';
 
-
-
-  static String CREATE_TABLE_CVF_CATEGOTY = 'CREATE TABLE IF NOT EXISTS  ${LocalConstant.TABLE_CVF_CATEGORY}'
+  static String CREATE_TABLE_CVF_CATEGOTY =
+      'CREATE TABLE IF NOT EXISTS  ${LocalConstant.TABLE_CVF_CATEGORY}'
       '(${DBConstant.ID} INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, '
       '${DBConstant.CATEGORY_ID} INT, '
       '${DBConstant.CATEGORY_NAME} TEXT)';
 
-  static String CREATE_TABLE_CVF_QUESTIONS = 'CREATE TABLE IF NOT EXISTS ${LocalConstant.TABLE_CVF_QUESTIONS}'
+  static String CREATE_TABLE_CVF_QUESTIONS =
+      'CREATE TABLE IF NOT EXISTS ${LocalConstant.TABLE_CVF_QUESTIONS}'
       '(${DBConstant.ID} INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, '
       '${DBConstant.QUESTION_ID} INT, '
       '${DBConstant.QUESTION} TEXT, '
@@ -147,7 +151,8 @@ class DBHelper {
       '${DBConstant.IS_COMPULSARY} INT, '
       '${DBConstant.CATEGORY_NAME} TEXT)';
 
-  static String CREATE_TABLE_QUESTIONS_JSON = 'CREATE TABLE IF NOT EXISTS ${LocalConstant.TABLE_CVF_QUESTION_JSON}'
+  static String CREATE_TABLE_QUESTIONS_JSON =
+      'CREATE TABLE IF NOT EXISTS ${LocalConstant.TABLE_CVF_QUESTION_JSON}'
       '(${DBConstant.ID} INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, '
       '${DBConstant.CVF_ID} INT, '
       '${DBConstant.QUESTION} TEXT, '
@@ -156,7 +161,8 @@ class DBHelper {
       '${DBConstant.MODIFIED_DATE} INT, '
       '${DBConstant.CREATED_DATE} TEXT)';
 
-  static String CREATE_TABLE_CVF_ANSERR_MASTER = 'CREATE TABLE IF NOT EXISTS  ${LocalConstant.TABLE_CVF_ANSWER_MASTER}'
+  static String CREATE_TABLE_CVF_ANSERR_MASTER =
+      'CREATE TABLE IF NOT EXISTS  ${LocalConstant.TABLE_CVF_ANSWER_MASTER}'
       '(${DBConstant.ID} INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, '
       '${DBConstant.QUESTION_ID} INT, '
       '${DBConstant.CATEGORY_ID} INT, '
@@ -165,7 +171,8 @@ class DBHelper {
       '${DBConstant.ANSWER_TYPE} TEXT, '
       '${DBConstant.IS_COMPULSARY} INT)';
 
-  static String CREATE_TABLE_CVF_USER_ANSERR = 'CREATE TABLE IF NOT EXISTS  ${LocalConstant.TABLE_CVF_USER_ANSWERAS}'
+  static String CREATE_TABLE_CVF_USER_ANSERR =
+      'CREATE TABLE IF NOT EXISTS  ${LocalConstant.TABLE_CVF_USER_ANSWERAS}'
       '(${DBConstant.ID} INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, '
       '${DBConstant.CVF_ID} INT, '
       '${DBConstant.PJP_ID} INT, '
@@ -175,7 +182,8 @@ class DBHelper {
       '${DBConstant.IS_SYNC} INT, '
       '${DBConstant.CREATED_DATE} TEXT)';
 
-  static String CREATE_TABLE_CVF_FRANCHISEE = 'CREATE TABLE IF NOT EXISTS  ${LocalConstant.TABLE_CVF_FRANCHISEE}'
+  static String CREATE_TABLE_CVF_FRANCHISEE =
+      'CREATE TABLE IF NOT EXISTS  ${LocalConstant.TABLE_CVF_FRANCHISEE}'
       '(${DBConstant.ID} INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, '
       '${DBConstant.FRANCHISEE_ID} INT, '
       '${DBConstant.BUSINESS_ID} INT, '
@@ -185,7 +193,8 @@ class DBHelper {
       '${DBConstant.STATE} TEXT, '
       '${DBConstant.CITY} TEXT)';
 
-  static String CREATE_TABLE_BACKGROUND_SYNC = 'CREATE TABLE IF NOT EXISTS  ${LocalConstant.TABLE_DATA_SYNC}'
+  static String CREATE_TABLE_BACKGROUND_SYNC =
+      'CREATE TABLE IF NOT EXISTS  ${LocalConstant.TABLE_DATA_SYNC}'
       '(${DBConstant.ID} INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, '
       '${DBConstant.JSON_MODEL} INT, '
       '${DBConstant.ACTION_TYPE} TEXT, '
@@ -201,53 +210,64 @@ class DBHelper {
 
   DBHelper._internal();
 
-
   static initDb() async {
-    final dbPath = await sql.getDatabasesPath();
+    sql.DatabaseFactory factory =
+        kIsWeb ? databaseFactoryFfiWeb : sql.databaseFactory;
+    String dbPathStr = 'intranet.db';
+    if (kIsWeb) {
+      // factory = databaseFactoryFfiWeb;
+    } else {
+      final dbPath = await sql.getDatabasesPath();
+      dbPathStr = path.join(dbPath, 'intranet.db');
+    }
     // open if found, create if not found for db
-    return sql.openDatabase(path.join(dbPath, 'intranet.db'),
-        onCreate: (db, version) {
-          db.execute(CREATE_TABLE_ALL_EMPLOYEE);
-          db.execute(CREATE_TABLE_NOTIFICATION);
-          db.execute(CREATE_TABLE_PJP_MASTER);
-          db.execute(CREATE_TABLE_PJP_CENTER_DETAILS);
-          db.execute(CREATE_TABLE_CVF_CATEGOTY);
-          db.execute(CREATE_TABLE_CVF_QUESTIONS);
-          db.execute(CREATE_TABLE_CVF_ANSERR_MASTER);
-          db.execute(CREATE_TABLE_CVF_USER_ANSERR);
-          db.execute(CREATE_TABLE_CVF_FRANCHISEE);
-          db.execute(CREATE_TABLE_QUESTIONS_JSON);
-          db.execute(CREATE_TABLE_CHECKIN);
-          db.execute(CREATE_TABLE_BACKGROUND_SYNC);
-        },
-        onUpgrade: (db,old,newversion){
-            debugPrint('Database Upgrade-------------------');
-            if(old<=3)
+    return factory.openDatabase(dbPathStr,
+        options: sql.OpenDatabaseOptions(
+            version: 16,
+            onCreate: (db, version) {
+              db.execute(CREATE_TABLE_ALL_EMPLOYEE);
               db.execute(CREATE_TABLE_NOTIFICATION);
-            if(old==4){
+              db.execute(CREATE_TABLE_PJP_MASTER);
+              db.execute(CREATE_TABLE_PJP_CENTER_DETAILS);
+              db.execute(CREATE_TABLE_CVF_CATEGOTY);
+              db.execute(CREATE_TABLE_CVF_QUESTIONS);
+              db.execute(CREATE_TABLE_CVF_ANSERR_MASTER);
+              db.execute(CREATE_TABLE_CVF_USER_ANSERR);
+              db.execute(CREATE_TABLE_CVF_FRANCHISEE);
               db.execute(CREATE_TABLE_QUESTIONS_JSON);
-            }
-            if(old==5){
               db.execute(CREATE_TABLE_CHECKIN);
-            }else if(old<=6){
               db.execute(CREATE_TABLE_BACKGROUND_SYNC);
-            }
-            if(old<=7){
-              //db.execute(CREATE_TABLE_CVF_FRANCHISEE);
-              db.execute("ALTER TABLE ${LocalConstant.TABLE_CVF_FRANCHISEE} ADD COLUMN ${DBConstant.BUSINESS_ID} int;");
-            }if(old<=10){
-              //db.execute(CREATE_TABLE_CVF_FRANCHISEE);
-              db.execute("ALTER TABLE ${LocalConstant.TABLE_CVF_QUESTION_JSON} ADD COLUMN ${DBConstant.CATEGORY_ID} TEXT;");
-            }
-            if(old<=13){
-              //db.execute(CREATE_TABLE_CVF_FRANCHISEE);
-              db.execute(CREATE_TABLE_NOTIFICATION);
-            }
-            if(old<=15){
-              //db.execute(CREATE_TABLE_CVF_FRANCHISEE);
-              db.execute(CREATE_TABLE_NOTIFICATION);
-            }
-        }, version: 16);
+            },
+            onUpgrade: (db, old, newversion) {
+              debugPrint('Database Upgrade-------------------');
+              if (old <= 3) db.execute(CREATE_TABLE_NOTIFICATION);
+              if (old == 4) {
+                db.execute(CREATE_TABLE_QUESTIONS_JSON);
+              }
+              if (old == 5) {
+                db.execute(CREATE_TABLE_CHECKIN);
+              } else if (old <= 6) {
+                db.execute(CREATE_TABLE_BACKGROUND_SYNC);
+              }
+              if (old <= 7) {
+                //db.execute(CREATE_TABLE_CVF_FRANCHISEE);
+                db.execute(
+                    "ALTER TABLE ${LocalConstant.TABLE_CVF_FRANCHISEE} ADD COLUMN ${DBConstant.BUSINESS_ID} int;");
+              }
+              if (old <= 10) {
+                //db.execute(CREATE_TABLE_CVF_FRANCHISEE);
+                db.execute(
+                    "ALTER TABLE ${LocalConstant.TABLE_CVF_QUESTION_JSON} ADD COLUMN ${DBConstant.CATEGORY_ID} TEXT;");
+              }
+              if (old <= 13) {
+                //db.execute(CREATE_TABLE_CVF_FRANCHISEE);
+                db.execute(CREATE_TABLE_NOTIFICATION);
+              }
+              if (old <= 15) {
+                //db.execute(CREATE_TABLE_CVF_FRANCHISEE);
+                db.execute(CREATE_TABLE_NOTIFICATION);
+              }
+            }));
   }
 
   /// insert data to db
@@ -260,14 +280,13 @@ class DBHelper {
     print('notification ${affectedRow} insert ${data}');
   }
 
-  Future<void> deleteCategory(int categotyId)
-  async {
+  Future<void> deleteCategory(int categotyId) async {
     final dbClient = await db;
-    dbClient.delete(LocalConstant.TABLE_CVF_QUESTIONS, where: '${DBConstant.CATEGORY_ID} = ?', whereArgs: [categotyId]);
-    dbClient.delete(LocalConstant.TABLE_CVF_ANSWER_MASTER, where: '${DBConstant.CATEGORY_ID} = ?', whereArgs: [categotyId]);
-
+    dbClient.delete(LocalConstant.TABLE_CVF_QUESTIONS,
+        where: '${DBConstant.CATEGORY_ID} = ?', whereArgs: [categotyId]);
+    dbClient.delete(LocalConstant.TABLE_CVF_ANSWER_MASTER,
+        where: '${DBConstant.CATEGORY_ID} = ?', whereArgs: [categotyId]);
   }
-
 
   /// delete data to db
   /// @param table: the name of the table to delete from
@@ -275,33 +294,37 @@ class DBHelper {
   Future<void> delete(String table, String id) async {
     final dbClient = await db;
     print('Affected row is...');
-    int afftctedCount = await dbClient.delete(table, where: '${DBConstant.ID} = ?', whereArgs: [id]);
+    int afftctedCount = await dbClient
+        .delete(table, where: '${DBConstant.ID} = ?', whereArgs: [id]);
     print('Affected row ${afftctedCount}');
-
   }
 
   Future<void> deleteNotification(String table, int id) async {
     final dbClient = await db;
     print('Affected row is...');
     try {
-      int afftctedCount = await dbClient.delete(
-          table, where: '${DBConstant.ID} = ?', whereArgs: [id]);
+      int afftctedCount = await dbClient
+          .delete(table, where: '${DBConstant.ID} = ?', whereArgs: [id]);
       print('Affected row ${afftctedCount}');
-    }catch(e){
+    } catch (e) {
       print(e.toString());
     }
-
   }
 
   Future<void> deleteAllData() async {
     final dbClient = await db;
-    dbClient.delete(LocalConstant.TABLE_CVF_QUESTION_JSON, where: null, whereArgs: []);
-    dbClient.delete(LocalConstant.TABLE_CVF_ANSWER_MASTER, where: null, whereArgs: []);
-    dbClient.delete(LocalConstant.TABLE_CVF_FRANCHISEE, where: null, whereArgs: []);
-    dbClient.delete(LocalConstant.TABLE_CVF_QUESTION_JSON, where: null, whereArgs: []);
-    dbClient.delete(LocalConstant.TABLE_CVF_QUESTIONS, where: null, whereArgs: []);
-    dbClient.delete(LocalConstant.TABLE_CVF_CATEGORY, where: null, whereArgs: []);
-
+    dbClient.delete(LocalConstant.TABLE_CVF_QUESTION_JSON,
+        where: null, whereArgs: []);
+    dbClient.delete(LocalConstant.TABLE_CVF_ANSWER_MASTER,
+        where: null, whereArgs: []);
+    dbClient
+        .delete(LocalConstant.TABLE_CVF_FRANCHISEE, where: null, whereArgs: []);
+    dbClient.delete(LocalConstant.TABLE_CVF_QUESTION_JSON,
+        where: null, whereArgs: []);
+    dbClient
+        .delete(LocalConstant.TABLE_CVF_QUESTIONS, where: null, whereArgs: []);
+    dbClient
+        .delete(LocalConstant.TABLE_CVF_CATEGORY, where: null, whereArgs: []);
   }
 
   /// delete data to db
@@ -328,47 +351,65 @@ class DBHelper {
     return await dbClient.query(table);
   }
 
-  Future<List<Map<String, dynamic>>> getQuestionMasterList(String table,String categoryId) async {
+  Future<List<Map<String, dynamic>>> getQuestionMasterList(
+      String table, String categoryId) async {
     final dbClient = await db;
-    return await dbClient.rawQuery('Select * from ${LocalConstant.TABLE_CVF_QUESTION_JSON} where ${DBConstant.CATEGORY_ID}=${categoryId}');
+    return await dbClient.rawQuery(
+        'Select * from ${LocalConstant.TABLE_CVF_QUESTION_JSON} where ${DBConstant.CATEGORY_ID}=${categoryId}');
   }
 
-  Future<List<Map<String, dynamic>>> getOrderedData(String table,String ordebytable,String orderby) async {
+  Future<List<Map<String, dynamic>>> getOrderedData(
+      String table, String ordebytable, String orderby) async {
     final dbClient = await db;
-    return await dbClient.query(table,orderBy: ordebytable+' '+orderby);
+    return await dbClient.query(table, orderBy: ordebytable + ' ' + orderby);
   }
 
   //Update Data
-  Future<int> updateData(String table,Map<String, Object> data,String condition,List<Object?>? whereArgs) async {
+  Future<int> updateData(String table, Map<String, Object> data,
+      String condition, List<Object?>? whereArgs) async {
     final dbClient = await db;
     debugPrint(condition + whereArgs.toString());
-    return dbClient.update(table, data,where: condition,whereArgs: whereArgs);
-
+    return dbClient.update(table, data, where: condition, whereArgs: whereArgs);
   }
-  Future<int> updateCheckIn(String table,int checkin,int pjpId) async {
-    final dbClient = await db;
-    return dbClient.rawUpdate('update ${table} set ${DBConstant.IS_CHECK_IN} = ${checkin} where ${DBConstant.ID}=${pjpId}');
 
+  Future<int> updateCheckIn(String table, int checkin, int pjpId) async {
+    final dbClient = await db;
+    return dbClient.rawUpdate(
+        'update ${table} set ${DBConstant.IS_CHECK_IN} = ${checkin} where ${DBConstant.ID}=${pjpId}');
   }
-  Future<int> updatePJP(int isSync,int pjpId,int checkin,int checkout,int newPjp) async {
+
+  Future<int> updatePJP(
+      int isSync, int pjpId, int checkin, int checkout, int newPjp) async {
     final dbClient = await db;
 
-    dbClient.rawUpdate('update ${LocalConstant.TABLE_PJP_CENTERS_DETAILS} set ${DBConstant.PJP_ID} = ${newPjp}  where ${DBConstant.PJP_ID}=${pjpId}');
+    dbClient.rawUpdate(
+        'update ${LocalConstant.TABLE_PJP_CENTERS_DETAILS} set ${DBConstant.PJP_ID} = ${newPjp}  where ${DBConstant.PJP_ID}=${pjpId}');
 
-    return dbClient.rawUpdate('update ${LocalConstant.TABLE_PJP_INFO} set ${DBConstant.IS_SYNC} = ${isSync} , ${DBConstant.ID} = ${newPjp} , ${DBConstant.IS_CHECK_IN} = ${checkin},${DBConstant.IS_CHECK_OUT} = ${checkout} where ${DBConstant.ID}=${pjpId}');
-
+    return dbClient.rawUpdate(
+        'update ${LocalConstant.TABLE_PJP_INFO} set ${DBConstant.IS_SYNC} = ${isSync} , ${DBConstant.ID} = ${newPjp} , ${DBConstant.IS_CHECK_IN} = ${checkin},${DBConstant.IS_CHECK_OUT} = ${checkout} where ${DBConstant.ID}=${pjpId}');
   }
 
   /// clear database
   Future clear() async {
-    final dbPath = await sql.getDatabasesPath();
-    await sql.deleteDatabase(dbPath);
+    if (kIsWeb) {
+      var factory = databaseFactoryFfiWeb;
+      await factory.deleteDatabase('intranet.db');
+    } else {
+      final dbPath = await sql.getDatabasesPath();
+      await sql.deleteDatabase(path.join(dbPath, 'intranet.db'));
+    }
   }
 
-  Future<void> insertNotification(String id,String title,String type,String notification,String dataNotification,int isseen,String imageurl) async{
+  Future<void> insertNotification(
+      String id,
+      String title,
+      String type,
+      String notification,
+      String dataNotification,
+      int isseen,
+      String imageurl) async {
     var dbclient = await db;
     Map<String, Object> data = {
-
       'title': title,
       'type': type,
       'notification': notification,
@@ -380,9 +421,8 @@ class DBHelper {
     await dbclient.insert(LocalConstant.TABLE_NOTIFICATION, data);
   }
 
-
-
-  Future<void> insertCheckIn(String cvfId,String body,String status,int isSync) async{
+  Future<void> insertCheckIn(
+      String cvfId, String body, String status, int isSync) async {
     var dbclient = await db;
     Map<String, Object> data = {
       'body': body,
@@ -396,7 +436,7 @@ class DBHelper {
     await dbclient.insert(LocalConstant.TABLE_CHECKIN, data);
   }
 
-  Future<void> insertSyncData(String json,String action,int userid) async{
+  Future<void> insertSyncData(String json, String action, int userid) async {
     var dbclient = await db;
     Map<String, Object> data = {
       '${DBConstant.JSON_MODEL}': json,
@@ -408,8 +448,8 @@ class DBHelper {
     await dbclient.insert(LocalConstant.TABLE_DATA_SYNC, data);
   }
 
-
-  Future<void> insertCVFQuestions(String cvfid,String categoryId,String json,int isSync) async{
+  Future<void> insertCVFQuestions(
+      String cvfid, String categoryId, String json, int isSync) async {
     debugPrint('insert question=================');
     debugPrint(json);
     var dbclient = await db;
@@ -424,119 +464,128 @@ class DBHelper {
     await dbclient.insert(LocalConstant.TABLE_CVF_QUESTION_JSON, data);
   }
 
-  Future<void> updateCVFQuestions(String cvfId,String categoryId,String json,int isSync) async{
+  Future<void> updateCVFQuestions(
+      String cvfId, String categoryId, String json, int isSync) async {
     var dbclient = await db;
     try {
-      int value = await dbclient.rawUpdate('update ${LocalConstant
-          .TABLE_CVF_QUESTION_JSON} set ${DBConstant.QUESTION} = \'${json}\' ,${DBConstant
-          .IS_SYNC} = \'${isSync}\' ,${DBConstant.MODIFIED_DATE} = \'${Utility
-          .parseDate(DateTime.now())}\'   where ${DBConstant.CVF_ID}=${cvfId} and ${DBConstant.CATEGORY_ID}=${categoryId}');
+      int value = await dbclient.rawUpdate(
+          'update ${LocalConstant.TABLE_CVF_QUESTION_JSON} set ${DBConstant.QUESTION} = \'${json}\' ,${DBConstant.IS_SYNC} = \'${isSync}\' ,${DBConstant.MODIFIED_DATE} = \'${Utility.parseDate(DateTime.now())}\'   where ${DBConstant.CVF_ID}=${cvfId} and ${DBConstant.CATEGORY_ID}=${categoryId}');
       print('updated affected row ${value}');
       print('updated affected row ${json}');
-    }catch(e){
+    } catch (e) {
       debugPrint(e.toString());
     }
   }
 
-
-
-  Future<void> updateCheckInStatus(int id,int isSync) async{
+  Future<void> updateCheckInStatus(int id, int isSync) async {
     var dbclient = await db;
-    await dbclient.rawUpdate('update ${LocalConstant.TABLE_CHECKIN} set ${DBConstant.IS_SYNC} = \'${isSync}\'  where id=${id}');
+    await dbclient.rawUpdate(
+        'update ${LocalConstant.TABLE_CHECKIN} set ${DBConstant.IS_SYNC} = \'${isSync}\'  where id=${id}');
   }
 
-  Future<void> deleteCheckInStatus(String id) async{
+  Future<void> deleteCheckInStatus(String id) async {
     var dbclient = await db;
-    await dbclient.rawUpdate('delete from ${LocalConstant.TABLE_CHECKIN}  where id=${id}');
+    await dbclient.rawUpdate(
+        'delete from ${LocalConstant.TABLE_CHECKIN}  where id=${id}');
   }
 
-  Future<QuestionResponse> getQuestions(String cvfId,String categoryName,String categoryId) async {
-    QuestionResponse response = QuestionResponse(responseMessage: '', statusCode: 200, responseData: []);
-    List<Map<String, dynamic>> list = await  DBHelper().getQuestionMasterList(LocalConstant.TABLE_CVF_QUESTION_JSON,categoryId);
+  Future<QuestionResponse> getQuestions(
+      String cvfId, String categoryName, String categoryId) async {
+    QuestionResponse response = QuestionResponse(
+        responseMessage: '', statusCode: 200, responseData: []);
+    List<Map<String, dynamic>> list = await DBHelper().getQuestionMasterList(
+        LocalConstant.TABLE_CVF_QUESTION_JSON, categoryId);
     debugPrint('${categoryId} getQuestinos ${list}');
-    if(list !=null){
-      for(int index=0;index<list.length;index++) {
+    if (list != null) {
+      for (int index = 0; index < list.length; index++) {
         Map<String, dynamic> map = list[index];
         //if(cvfId==map[DBConstant.CVF_ID].toString().trim()){
-          try {
-            response = QuestionResponse.fromJson(
-              json.decode(map[DBConstant.QUESTION].toString()),
-            );
-          }catch(e){
-            var obj =  json.decode(map[DBConstant.QUESTION].toString());
-            response = QuestionResponse.fromJson(
-              json.decode(obj),
-            );
-          }
-          //notificaitonList.add(NotificationDataModel(message: map['data'], title: map['title'], image: map['imageurl'], URL: '', type: map['type'],time:time));
+        try {
+          response = QuestionResponse.fromJson(
+            json.decode(map[DBConstant.QUESTION].toString()),
+          );
+        } catch (e) {
+          var obj = json.decode(map[DBConstant.QUESTION].toString());
+          response = QuestionResponse.fromJson(
+            json.decode(obj),
+          );
+        }
+        //notificaitonList.add(NotificationDataModel(message: map['data'], title: map['title'], image: map['imageurl'], URL: '', type: map['type'],time:time));
         /*}else{
           debugPrint('not match');
         }*/
-
       }
-    }else{
+    } else {
       debugPrint('getQuestionsList list is null');
     }
     return response;
   }
 
   Future<QuestionResponse> getQuestionsListTemp(String cvfId) async {
-    QuestionResponse response = QuestionResponse(responseMessage: '', statusCode: 200, responseData: []);
-    List<Map<String, dynamic>> list = await  DBHelper().getData(LocalConstant.TABLE_CVF_QUESTION_JSON);
-    if(list !=null){
-      for(int index=0;index<list.length;index++) {
+    QuestionResponse response = QuestionResponse(
+        responseMessage: '', statusCode: 200, responseData: []);
+    List<Map<String, dynamic>> list =
+        await DBHelper().getData(LocalConstant.TABLE_CVF_QUESTION_JSON);
+    if (list != null) {
+      for (int index = 0; index < list.length; index++) {
         Map<String, dynamic> map = list[index];
-        if(cvfId==map[DBConstant.CVF_ID].toString().trim()){
+        if (cvfId == map[DBConstant.CVF_ID].toString().trim()) {
           try {
             response = QuestionResponse.fromJson(
               json.decode(map[DBConstant.QUESTION].toString()),
             );
-          }catch(e){
-            var obj =  json.decode(map[DBConstant.QUESTION].toString());
+          } catch (e) {
+            var obj = json.decode(map[DBConstant.QUESTION].toString());
             response = QuestionResponse.fromJson(
               json.decode(obj),
             );
           }
-        }else{
+        } else {
           debugPrint('not match');
         }
-
       }
-    }else{
+    } else {
       debugPrint('getQuestionsList list is null');
     }
     return response;
   }
 
   Future<List<ApproveLeaveRequestManager>> getUnSyncData(String userId) async {
-    QuestionResponse response = QuestionResponse(responseMessage: '', statusCode: 200, responseData: []);
-    List<ApproveLeaveRequestManager> unSyncList =[];
-    List<Map<String, dynamic>> list = await  DBHelper().getData(LocalConstant.TABLE_DATA_SYNC);
-    if(list !=null){
-      for(int index=0;index<list.length;index++) {
+    QuestionResponse response = QuestionResponse(
+        responseMessage: '', statusCode: 200, responseData: []);
+    List<ApproveLeaveRequestManager> unSyncList = [];
+    List<Map<String, dynamic>> list =
+        await DBHelper().getData(LocalConstant.TABLE_DATA_SYNC);
+    if (list != null) {
+      for (int index = 0; index < list.length; index++) {
         Map<String, dynamic> map = list[index];
-        if(map[DBConstant.IS_SYNC]==0) {
+        if (map[DBConstant.IS_SYNC] == 0) {
           unSyncList.add(ApproveLeaveRequestManager(
-            xml: map[DBConstant.JSON_MODEL], userId: userId, index: map[DBConstant.ID],actionType: map[DBConstant.ACTION_TYPE]));
+              xml: map[DBConstant.JSON_MODEL],
+              userId: userId,
+              index: map[DBConstant.ID],
+              actionType: map[DBConstant.ACTION_TYPE]));
         }
       }
-    }else{
+    } else {
       debugPrint('getQuestionsList list is null');
     }
     return unSyncList;
   }
 
-  Future<Map<String,String>> getCheckInStatus() async {
-    Map<String,String> mMap = Map();
+  Future<Map<String, String>> getCheckInStatus() async {
+    Map<String, String> mMap = Map();
 
-    List<Map<String, dynamic>> list = await  DBHelper().getOrderedData(LocalConstant.TABLE_CHECKIN,'id','desc');
-    if(list !=null){
-      for(int index=0;index<list.length;index++) {
+    List<Map<String, dynamic>> list = await DBHelper()
+        .getOrderedData(LocalConstant.TABLE_CHECKIN, 'id', 'desc');
+    if (list != null) {
+      for (int index = 0; index < list.length; index++) {
         Map<String, dynamic> map = list[index];
-        mMap.putIfAbsent(map[DBConstant.CVF_ID].toString(), () => map[DBConstant.STATE]);
+        mMap.putIfAbsent(
+            map[DBConstant.CVF_ID].toString(), () => map[DBConstant.STATE]);
         mMap.putIfAbsent(map['date'].toString(), () => map['date']);
       }
-    }else{
+    } else {
       debugPrint('offline status not found');
     }
     return mMap;
@@ -545,17 +594,19 @@ class DBHelper {
   Future<List<CheckInModel>> getOfflineCheckInStatus() async {
     List<CheckInModel> modelList = [];
 
-    List<Map<String, dynamic>> list = await  DBHelper().getOrderedData(LocalConstant.TABLE_CHECKIN,DBConstant.CVF_ID,"desc");
-    if(list !=null){
-      for(int index=0;index<list.length;index++) {
+    List<Map<String, dynamic>> list = await DBHelper()
+        .getOrderedData(LocalConstant.TABLE_CHECKIN, DBConstant.CVF_ID, "desc");
+    if (list != null) {
+      for (int index = 0; index < list.length; index++) {
         Map<String, dynamic> map = list[index];
-        if(map[DBConstant.IS_SYNC]==0) {
-          modelList.add(CheckInModel(id : map['id'],cvfId: map[DBConstant.CVF_ID].toString(),
+        if (map[DBConstant.IS_SYNC] == 0) {
+          modelList.add(CheckInModel(
+              id: map['id'],
+              cvfId: map[DBConstant.CVF_ID].toString(),
               body: map['body'].toString(),
               state: map[DBConstant.STATE].toString(),
               isSync: map[DBConstant.IS_SYNC].toString() == 1 ? true : false));
         }
-
       }
     }
     return modelList;
@@ -564,31 +615,42 @@ class DBHelper {
   Future<List<NotificationDataModel>> getNotificationList() async {
     List<NotificationDataModel> notificaitonList = [];
 
-    List<Map<String, dynamic>> list = await  DBHelper().getData(LocalConstant.TABLE_NOTIFICATION);
-    if(list !=null){
-      for(int index=0;index<list.length;index++) {
+    List<Map<String, dynamic>> list =
+        await DBHelper().getData(LocalConstant.TABLE_NOTIFICATION);
+    if (list != null) {
+      for (int index = 0; index < list.length; index++) {
         Map<String, dynamic> map = list[index];
         //debugPrint('date is  ${map['date']}');
         String time = '';
-        if(map['date'] != null){
+        if (map['date'] != null) {
           time = map['date'];
         }
 
-        notificaitonList.add(NotificationDataModel(message: map['data']!=null && map['data']!='' ?  map['data'] : map['notification'], title: map['title'], image: map['imageurl'], URL: '', type: map['type'],time:time));
+        notificaitonList.add(NotificationDataModel(
+            message: map['data'] != null && map['data'] != ''
+                ? map['data']
+                : map['notification'],
+            title: map['title'],
+            image: map['imageurl'],
+            URL: '',
+            type: map['type'],
+            time: time));
       }
     }
     print('length is ${notificaitonList.length}');
     return notificaitonList;
   }
 
-  Future<void> updateUserAnswer(cvfid,pjpid,quid,cat_name,useranswer) async {
+  Future<void> updateUserAnswer(
+      cvfid, pjpid, quid, cat_name, useranswer) async {
     var dbclient = await db;
-    int? count = Sqflite.firstIntValue(
-        await dbclient.rawQuery("SELECT COUNT(*) FROM ${LocalConstant.TABLE_CVF_USER_ANSWERAS} WHERE ${DBConstant.CVF_ID}=$cvfid and ${DBConstant.QUESTION_ID}=${quid}"));
-    if(count!>0){
+    int? count = Sqflite.firstIntValue(await dbclient.rawQuery(
+        "SELECT COUNT(*) FROM ${LocalConstant.TABLE_CVF_USER_ANSWERAS} WHERE ${DBConstant.CVF_ID}=$cvfid and ${DBConstant.QUESTION_ID}=${quid}"));
+    if (count! > 0) {
       //update
-      await dbclient.rawUpdate('update ${LocalConstant.TABLE_CVF_USER_ANSWERAS} set ${DBConstant.USER_ANSWER} = \'${useranswer}\'  where ${DBConstant.CVF_ID}=${cvfid} and ${DBConstant.QUESTION_ID}=${quid}');
-    }else{
+      await dbclient.rawUpdate(
+          'update ${LocalConstant.TABLE_CVF_USER_ANSWERAS} set ${DBConstant.USER_ANSWER} = \'${useranswer}\'  where ${DBConstant.CVF_ID}=${cvfid} and ${DBConstant.QUESTION_ID}=${quid}');
+    } else {
       //insert
       Map<String, Object> data = {
         DBConstant.CREATED_DATE: Utility.parseDate(DateTime.now()),
@@ -606,23 +668,26 @@ class DBHelper {
   Future<List<PJPModel>> getPjpList() async {
     List<PJPModel> pjpList = [];
 
-    List<Map<String, dynamic>> list = await  DBHelper().getData(LocalConstant.TABLE_PJP_INFO);
-    if(list !=null){
-      for(int index=0;index<list.length;index++) {
+    List<Map<String, dynamic>> list =
+        await DBHelper().getData(LocalConstant.TABLE_PJP_INFO);
+    if (list != null) {
+      for (int index = 0; index < list.length; index++) {
         Map<String, dynamic> map = list[index];
-        pjpList.add(PJPModel(pjpId: map[DBConstant.ID],
+        pjpList.add(PJPModel(
+            pjpId: map[DBConstant.ID],
             dateTime: Utility.convertDate(map[DBConstant.DATE]),
             fromDate: Utility.convertDate(map[DBConstant.TO_DATE]),
             toDate: Utility.convertDate(map[DBConstant.TO_DATE]),
             remark: map[DBConstant.REMARK],
-            isSync: map[DBConstant.IS_SYNC]==0 ? false : true,
+            isSync: map[DBConstant.IS_SYNC] == 0 ? false : true,
             employeeId: map[DBConstant.EMP_CODE],
             centerList: [],
-            isDelete: map[DBConstant.IS_DELETE]==0 ? false : true,
-            isActive: map[DBConstant.IS_ACTIVE]==0 ? false : true,
-            isCheckIn: map[DBConstant.IS_CHECK_IN]==0 ? false : true,
-            isCheckOut: map[DBConstant.IS_CHECK_OUT]==0 ? false : true,
-            isCVFCompleted: map[DBConstant.IS_CVF_COMPLETED]==0 ? false : true,
+            isDelete: map[DBConstant.IS_DELETE] == 0 ? false : true,
+            isActive: map[DBConstant.IS_ACTIVE] == 0 ? false : true,
+            isCheckIn: map[DBConstant.IS_CHECK_IN] == 0 ? false : true,
+            isCheckOut: map[DBConstant.IS_CHECK_OUT] == 0 ? false : true,
+            isCVFCompleted:
+                map[DBConstant.IS_CVF_COMPLETED] == 0 ? false : true,
             isEdit: false,
             createdDate: Utility.convertDate(map[DBConstant.CREATED_DATE]),
             modifiedDate: Utility.convertDate(map[DBConstant.MODIFIED_DATE])));
@@ -631,16 +696,18 @@ class DBHelper {
     return pjpList;
   }
 
-  Future<Map<String,String>> getUsersAnswerList(int cvfId) async {
-    Map<String,String> mMap = Map();
+  Future<Map<String, String>> getUsersAnswerList(int cvfId) async {
+    Map<String, String> mMap = Map();
 
-    List<Map<String, dynamic>> list = await  DBHelper().getData(LocalConstant.TABLE_CVF_USER_ANSWERAS);
-    if(list !=null){
+    List<Map<String, dynamic>> list =
+        await DBHelper().getData(LocalConstant.TABLE_CVF_USER_ANSWERAS);
+    if (list != null) {
       debugPrint('----${list.length}');
-      for(int index=0;index<list.length;index++) {
+      for (int index = 0; index < list.length; index++) {
         Map<String, dynamic> map = list[index];
-        if(map[DBConstant.CVF_ID] == cvfId)
-          mMap.putIfAbsent(map[DBConstant.QUESTION_ID].toString(), () => map[DBConstant.USER_ANSWER]);
+        if (map[DBConstant.CVF_ID] == cvfId)
+          mMap.putIfAbsent(map[DBConstant.QUESTION_ID].toString(),
+              () => map[DBConstant.USER_ANSWER]);
       }
     }
     return mMap;
@@ -649,18 +716,19 @@ class DBHelper {
   Future<List<GetDetailedPJP>> getCVFList() async {
     List<GetDetailedPJP> cvfList = [];
 
-    List<Map<String, dynamic>> list = await  DBHelper().getData(LocalConstant.TABLE_PJP_CENTERS_DETAILS);
-    if(list !=null){
-      for(int index=0;index<list.length;index++) {
+    List<Map<String, dynamic>> list =
+        await DBHelper().getData(LocalConstant.TABLE_PJP_CENTERS_DETAILS);
+    if (list != null) {
+      for (int index = 0; index < list.length; index++) {
         Map<String, dynamic> map = list[index];
         //cvfList.add(value)
-        
+
         /*cvfList.add(PJPCentersInfo(pjpId: map[DBConstant.PJP_ID],
             centerCode: map[DBConstant.CENTRE_CODE],
             centerName: map[DBConstant.CENTRE_NAME],
             purpose: map[DBConstant.PURPOSE],
             dateTime: Utility.convertDate(map[DBConstant.DATE]),
-            isSync: false*//*map[DBConstant.IS_SYNC]*//*,
+            isSync: false*/ /*map[DBConstant.IS_SYNC]*/ /*,
             isCheckIn: map[DBConstant.IS_CHECK_IN] ==1 ? true : false,
             isCheckOut: map[DBConstant.IS_CHECK_OUT] ==1 ? true : false,
             isActive: map[DBConstant.IS_ACTIVE] ==1 ? true : false,
@@ -669,7 +737,6 @@ class DBHelper {
             createdDate: Utility.convertDate(map[DBConstant.CREATED_DATE]), modifiedDate: Utility.convertDate(map[DBConstant.MODIFIED_DATE])));*/
         debugPrint(map.toString());
       }
-
     }
     return cvfList;
   }
@@ -677,22 +744,25 @@ class DBHelper {
   Future<List<FranchiseeInfo>> getFranchiseeList(int businessId) async {
     List<FranchiseeInfo> frichiseeList = [];
 
-    List<Map<String, dynamic>> list = await  DBHelper().getData(LocalConstant.TABLE_CVF_FRANCHISEE);
+    List<Map<String, dynamic>> list =
+        await DBHelper().getData(LocalConstant.TABLE_CVF_FRANCHISEE);
     debugPrint('list franchisee ${list}');
-    if(list !=null){
-      for(int index=0;index<list.length;index++) {
+    if (list != null) {
+      for (int index = 0; index < list.length; index++) {
         Map<String, dynamic> map = list[index];
-        debugPrint(' NAME ${map[DBConstant.FRANCHISEE_NAME]} business ${map[DBConstant.BUSINESS_ID]}  ${businessId}');
-        if(map[DBConstant.BUSINESS_ID] == businessId) {
-          frichiseeList.add(FranchiseeInfo(franchiseeId: double.parse(
-              map[DBConstant.FRANCHISEE_ID].toString()),
+        debugPrint(
+            ' NAME ${map[DBConstant.FRANCHISEE_NAME]} business ${map[DBConstant.BUSINESS_ID]}  ${businessId}');
+        if (map[DBConstant.BUSINESS_ID] == businessId) {
+          frichiseeList.add(FranchiseeInfo(
+              franchiseeId:
+                  double.parse(map[DBConstant.FRANCHISEE_ID].toString()),
               franchiseeCode: map[DBConstant.FRANCHISEE_CODE],
               franchiseeName: map[DBConstant.FRANCHISEE_NAME],
               franchiseeZone: map[DBConstant.ZONE],
               franchiseeState: map[DBConstant.STATE],
               franchiseeCity: map[DBConstant.CITY]));
         }
-        if(index>50){
+        if (index > 50) {
           break;
         }
       }

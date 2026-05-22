@@ -49,7 +49,12 @@ class ChatPage extends ConsumerStatefulWidget {
   String franchiseeName;
   bool isEdit;
 
-  ChatPage({Key? key, required this.taskModel,required this.isEdit,required this.franchiseeName}) : super(key: key);
+  ChatPage(
+      {Key? key,
+      required this.taskModel,
+      required this.isEdit,
+      required this.franchiseeName})
+      : super(key: key);
 
   @override
   ConsumerState<ConsumerStatefulWidget> createState() => _ChatPageState();
@@ -85,19 +90,18 @@ class _ChatPageState extends ConsumerState<ChatPage>
   void initState() {
     _controller.text = "";
     super.initState();
-    if(widget.taskModel.statusname.toLowerCase().contains('compl')){
+    if (widget.taskModel.statusname.toLowerCase().contains('compl')) {
       widget.isEdit = false;
     }
     loadTaskComments();
-
   }
-
 
   gsOfflineData() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     bool isInternet = await Utility.isInternet();
     var chatSummery = prefs.getString(getId());
-    bool isOfflineEligble = await Utility.isOfflineEligble(prefs.getString('sync_${getId()}') ?? '');
+    bool isOfflineEligble = await Utility.isOfflineEligble(
+        prefs.getString('sync_${getId()}') ?? '');
     if (chatSummery == null) {
       isInternet = false;
       isLoading = false;
@@ -142,15 +146,14 @@ class _ChatPageState extends ConsumerState<ChatPage>
   initData() async {
     //await getUserInfo();
     imgList.clear();
-    print('chat initData-------------------------${widget.taskModel.statusname}');
     getUserInfo();
     if (widget.taskModel.files.isNotEmpty) {
-      print('initData---${widget.taskModel.files}');
       imgList.addAll(widget.taskModel.files.split(','));
     }
     await Hive.openBox(LocalConstant.communicationKey); // settings
-    Hive.box(LocalConstant.communicationKey).watch(key: 'imageUpload').listen((event) {
-      print('Event Captured ${event}');
+    Hive.box(LocalConstant.communicationKey)
+        .watch(key: 'imageUpload')
+        .listen((event) {
       setState(() {
         //counter = event.value;
         //FileUploadModel
@@ -164,22 +167,22 @@ class _ChatPageState extends ConsumerState<ChatPage>
 
   Future<void> getUserInfo() async {
     var box = await Utility.openBox();
-    if(box.get(LocalConstant.KEY_EMPLOYEE_ID)!=null) {
-      print('in if emoloyee found');
+    if (box.get(LocalConstant.KEY_EMPLOYEE_ID) != null) {
       //userId = box.get(LocalConstant.KEY_EMPLOYEE_ID) as String;
-      userId = francId = (box.get(LocalConstant.KEY_FRANCHISEE_ID) as int).toString();
-      userName = '${box.get(LocalConstant.KEY_FIRST_NAME) as String} ${box.get(LocalConstant.KEY_LAST_NAME) as String}';
-      print('in if emoloyee found ${userId}');
+      userId = francId =
+          (box.get(LocalConstant.KEY_FRANCHISEE_ID) as int).toString();
+      userName =
+          '${box.get(LocalConstant.KEY_FIRST_NAME) as String} ${box.get(LocalConstant.KEY_LAST_NAME) as String}';
     }
     /*SharedPreferences prefs = await SharedPreferences.getInstance();
     francId = prefs.getString(LocalConstant.KEY_FRANCHISEE_ID) as String;
     userId = prefs.getString(LocalConstant.KEY_UID) as String;*/
-    print('UserId ${userId}');
     //loadTaskComments();
   }
 
   void loadTaskComments() {
-    GetTaskCommentRequest request = GetTaskCommentRequest(task_id: widget.taskModel.id);
+    GetTaskCommentRequest request =
+        GetTaskCommentRequest(task_id: widget.taskModel.id);
     IntranetServiceHandler().getTaskComments(request, this);
     initData();
   }
@@ -209,7 +212,6 @@ class _ChatPageState extends ConsumerState<ChatPage>
     temp.addAll(messages);
     messages.clear();
     messages.addAll(temp);
-    print('length ${messages.length}');
     if (messages.length > 4 && widget.taskModel.statusname != 'Pending') {
       _scrollController.animateTo(
         _scrollController.position.minScrollExtent,
@@ -362,9 +364,7 @@ class _ChatPageState extends ConsumerState<ChatPage>
   @override
   Widget build(BuildContext context) {
     final auth = ref.watch(authNotifierProvider);
-    print("build isLoading ${auth.loading} ");
-    if(auth.loading == AuthStatus.authenticated){
-      print('loading status false');
+    if (auth.loading == AuthStatus.authenticated) {
       isLoading = false;
     }
     final GlobalKey<RefreshIndicatorState> refreshIndicatorKey =
@@ -392,7 +392,6 @@ class _ChatPageState extends ConsumerState<ChatPage>
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
       insertTaskAttachment(value.imageModel![0].location);
       updateImage(value.imageModel![0].location);
-      print('afterFileUploading 384');
       //ref.read(authNotifierProvider.notifier).checkAuthStatus();
       setState(() {
         isLoading = false;
@@ -428,61 +427,66 @@ class _ChatPageState extends ConsumerState<ChatPage>
                 ),
               ),
               title: Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        widget.taskModel.title,
-                        style: const TextStyle(
-                          fontSize: 14.0,
-                        ),
-                      ),
-                      Text(
-                        widget.franchiseeName,
-                        style: const TextStyle(
-                          fontSize: 12,
-                        ),
-                      ),
-                      Text(
-                        widget.taskModel.statusname,
-                        style: const TextStyle(
-                          fontSize: 12,
-                        ),
-                      )
-                    ],
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    widget.taskModel.title,
+                    style: const TextStyle(
+                      fontSize: 14.0,
+                    ),
                   ),
-              actions: !widget.isEdit  ? null : [InkWell(
+                  Text(
+                    widget.franchiseeName,
+                    style: const TextStyle(
+                      fontSize: 12,
+                    ),
+                  ),
+                  Text(
+                    widget.taskModel.statusname,
+                    style: const TextStyle(
+                      fontSize: 12,
+                    ),
+                  )
+                ],
+              ),
+              actions: !widget.isEdit
+                  ? null
+                  : [
+                      InkWell(
                         onTap: () async {
-
                           final result = await Navigator.push(
                             context,
                             MaterialPageRoute(
-                                builder: (context) =>UpdateBPMSTask(taskModel: widget.taskModel,)),
+                                builder: (context) => UpdateBPMSTask(
+                                      taskModel: widget.taskModel,
+                                    )),
                           );
                           //_status = 'BP Completed';
                           //Utility.confirmalert(context, 'Are you sure?', 'Are you sure to Complete the Task', this);
                           //Utility.getConfirmation(context, 'Are you sure you want to complete the task?', '', this);
-
                         },
                         child: Padding(
                           padding: const EdgeInsets.all(8.0),
                           child: Card(
                             color: Colors.white,
                             child: Center(
-                              child: Text('  Edit  ',
+                              child: Text(
+                                '  Edit  ',
                                 style: LightColors.textHeaderStyle13,
                               ),
                             ),
                           ),
                         ),
                       ),
-                    ]
-          ),
+                    ]),
           body: SizedBox(
             height: MediaQuery.of(context).size.height,
             width: MediaQuery.of(context).size.width,
-            child: isLoading ? Utility.showLoader() : WillPopScope(
-              child: Column(
+            child: isLoading
+                ? Utility.showLoader()
+                : WillPopScope(
+                    child: Column(
                       children: [
                         Container(
                           child: imgList.isNotEmpty
@@ -508,17 +512,22 @@ class _ChatPageState extends ConsumerState<ChatPage>
                                   height: 70,
                                 );
                               }
-                              print(messages[index].toJson());
                               return OwnMessageCard(
                                 commentModel: messages[index],
                                 time: Utility.parseShortTime(
-                                    messages[index].CreatedDate), isSelf: messages[index].createduser == francId ? true : false,
+                                    messages[index].CreatedDate),
+                                isSelf: messages[index].createduser == francId
+                                    ? true
+                                    : false,
                               );
                             },
                           ),
                         ),
-                        !widget.isEdit ? SizedBox(height: 0,) :
-                        Align(
+                        !widget.isEdit
+                            ? SizedBox(
+                                height: 0,
+                              )
+                            : Align(
                                 alignment: Alignment.bottomCenter,
                                 child: SizedBox(
                                   height: 70,
@@ -569,7 +578,8 @@ class _ChatPageState extends ConsumerState<ChatPage>
                                                   decoration: InputDecoration(
                                                     border: InputBorder.none,
                                                     hintText: "Type a message",
-                                                    hintStyle: const TextStyle(color: Colors.grey),
+                                                    hintStyle: const TextStyle(
+                                                        color: Colors.grey),
                                                     suffixIcon: Row(
                                                       mainAxisSize:
                                                           MainAxisSize.min,
@@ -603,18 +613,32 @@ class _ChatPageState extends ConsumerState<ChatPage>
                                                                               .title,
                                                                         ))).then(
                                                                 (value) async {
-                                                              log('Response from CameraScreen is - $value');
-                                                              if (value !=null) {
+                                                              if (value !=
+                                                                  null) {
                                                                 setState(() {
-                                                                  isLoading = true;
+                                                                  isLoading =
+                                                                      true;
                                                                 });
-                                                                if(value is MessageModel) {
-                                                                  MessageModel model = value;
+                                                                if (value
+                                                                    is MessageModel) {
+                                                                  MessageModel
+                                                                      model =
+                                                                      value;
                                                                   //uploadImage(model.path);
-                                                                  APIService().uploadImage(userId,model.path!,listener: this);
-                                                                }else{
-
-                                                                  APIService().uploadImage(userId,value,isVideoFile:true,listener: this);
+                                                                  APIService().uploadImage(
+                                                                      userId,
+                                                                      model
+                                                                          .path!,
+                                                                      listener:
+                                                                          this);
+                                                                } else {
+                                                                  APIService().uploadImage(
+                                                                      userId,
+                                                                      value,
+                                                                      isVideoFile:
+                                                                          true,
+                                                                      listener:
+                                                                          this);
                                                                 }
                                                               }
                                                             });
@@ -676,22 +700,21 @@ class _ChatPageState extends ConsumerState<ChatPage>
                               )
                       ],
                     ),
-              onWillPop: () {
-                print('back button listener');
-                if (show) {
-                  setState(() {
-                    show = false;
-                  });
-                } else {
-                  if (isAnyChange) {
-                    Navigator.pop(context, widget.taskModel);
-                  } else {
-                    Navigator.of(context).pop();
-                  }
-                }
-                return Future.value(false);
-              },
-            ),
+                    onWillPop: () {
+                      if (show) {
+                        setState(() {
+                          show = false;
+                        });
+                      } else {
+                        if (isAnyChange) {
+                          Navigator.pop(context, widget.taskModel);
+                        } else {
+                          Navigator.of(context).pop();
+                        }
+                      }
+                      return Future.value(false);
+                    },
+                  ),
           ),
         ),
       ],
@@ -774,22 +797,18 @@ class _ChatPageState extends ConsumerState<ChatPage>
       XFile? photo;
       photo = await picker.pickImage(source: source, imageQuality: 72);
       if (photo != null) {
-        print('image upload');
         setState(() {
-          isLoading=true;
+          isLoading = true;
         });
         APIService().uploadImage(userId, photo.path, listener: this);
       }
-    } else {
-      print('image not found');
     }
   }
 
-  void updateTaskDetails(ProjectTaskModel item, String status, String remark) async{
+  void updateTaskDetails(
+      ProjectTaskModel item, String status, String remark) async {
     _status = status;
     isAnyChange = true;
-    print('updateTaskDetails----------------------=================${userId}');
-    print('yUserId a------------${userId}');
     CommentModel messageModel = CommentModel(
         comment: remark,
         CreatedBy: userId,
@@ -817,7 +836,6 @@ class _ChatPageState extends ConsumerState<ChatPage>
       isLoading = true;
     });
     ProjectTaskModel item = widget.taskModel;
-    print('insertTaskAttachment----------------------=================${userId}');
     InsertTaskAttachmentRequest request = InsertTaskAttachmentRequest(
         taskId: item.id, filePath: filepath, userId: userId);
     IntranetServiceHandler().insertTaskAttachment(request, this);
@@ -901,7 +919,6 @@ class _ChatPageState extends ConsumerState<ChatPage>
                             Colors.white,
                           ],
                           onPressed: () async {
-                            print('onPress calleed');
                             //Navigator.of(context).pop();
                             updateTaskDetails(item, _statusValue,
                                 _descriptinoController.text.toString());
@@ -937,7 +954,8 @@ class _ChatPageState extends ConsumerState<ChatPage>
     return status;
   }
 
-  Widget showBottomSheetStartTask1(BuildContext context, ProjectTaskModel item) {
+  Widget showBottomSheetStartTask1(
+      BuildContext context, ProjectTaskModel item) {
     return SizedBox(
       width: MediaQuery.of(context).size.width,
       height: 250,
@@ -1016,16 +1034,13 @@ class _ChatPageState extends ConsumerState<ChatPage>
   @override
   void onError(value) {
     //Navigator.pop(context);
-    print('onError');
     setState(() {
       isLoading = false;
     });
   }
 
   @override
-  void onStart() {
-    print('onStart');
-  }
+  void onStart() {}
 
   getId() {
     return 'task_${widget.taskModel.mtaskId}';
@@ -1041,26 +1056,19 @@ class _ChatPageState extends ConsumerState<ChatPage>
 
   @override
   void onSuccess(value) {
-    print('onSuccess');
-    print('in BP COmpltedadadakldnakldn123 $value $_status');
-
     setState(() {
       isLoading = false;
     });
     if (value is UpdateBpmsTaskResponse) {
       UpdateBpmsTaskResponse responseModel = value;
       widget.taskModel.statusname = _status;
-      print(_status);
-      print(responseModel.toJson());
       ref
           .read(authNotifierProvider.notifier)
           .updateMessage(widget.taskModel, _controller.text.toString());
       if (_status == 'In Progress') {
-
-      }else if (_status.toLowerCase().contains('completed')) {
+      } else if (_status.toLowerCase().contains('completed')) {
         widget.taskModel.statusname = _status;
         widget.taskModel.status = getStatus(_status);
-        print('in BP COmpltedadadakldnakldn');
         isAnyChange = true;
         Navigator.of(context).pop();
       }
@@ -1077,7 +1085,7 @@ class _ChatPageState extends ConsumerState<ChatPage>
               'last sync is ${Utility.parseShortTime(messages[0].CreatedDate)}';
         }
       }
-       setState(() {});
+      setState(() {});
     } else if (value is InsertTaskAttachmentResponse) {
       isAnyChange = true;
       InsertTaskAttachmentResponse response = value;
@@ -1093,14 +1101,12 @@ class _ChatPageState extends ConsumerState<ChatPage>
       String franchiseeId =
           prefs.getString(LocalConstant.KEY_FRANCHISEE_ID) as String;
       var taskDetails = prefs.getString('synctask_$franchiseeId');
-      print('task detasil $taskDetails');
       GetTaskDetailsResponseModel response =
           GetTaskDetailsResponseModel.fromJson(json.decode(taskDetails!));
       for (int index = 0; index < response.taskDetail.length; index++) {
         if (response.taskDetail[index].id == widget.taskModel.id) {
           response.taskDetail[index].files =
               '${response.taskDetail[index].files}, $url';
-          print('image update ${response.taskDetail[index].title}');
         }
       }
       String savejson = jsonEncode(response);
@@ -1114,12 +1120,10 @@ class _ChatPageState extends ConsumerState<ChatPage>
     if (json != 'null' && json.isNotEmpty) {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       prefs.setString('synctask_$franchiseeId', json);
-      print(json);
     }
   }
 
   /*uploadImage(value) async {
-    print('upload image ${value}');
     DBHelper dbHelper = DBHelper();
     dbHelper.insertSyncData(
         FileUploadModel(mTaskId: widget.taskModel.id, path: value, userId: userId, request: Utility.getFileName(value),).toJson(),
@@ -1129,20 +1133,17 @@ class _ChatPageState extends ConsumerState<ChatPage>
     final flutterService = FlutterBackgroundService();
     if (!await flutterService.isRunning()) {
       await initializeService();
-    }else{
-      print('servie is running');
     }
   }*/
 
   @override
   void onClick(int action, value) {
-    print('click listener action $action value $value');
     setState(() {
       isLoading = false;
     });
-    if(action == Utility.ACTION_CONFIRM){
+    if (action == Utility.ACTION_CONFIRM) {
       updateTaskDetails(widget.taskModel, 'BP Completed', 'BP Completed');
-    }else if (action == 0 && value == 0) {
+    } else if (action == 0 && value == 0) {
       //widget.clickListener.onClick(action, value);
     } else if (action == ACTION_DROPDOWN_STATUS) {
       _statusValue = value;
@@ -1164,26 +1165,22 @@ class _ChatPageState extends ConsumerState<ChatPage>
           break;
       }
     } else if (action == Utility.ACTION_IMAGE_UPLOAD_RESPONSE_ERROR) {
-      print('ACTION_IMAGE_UPLOAD_RESPONSE_ERROR');
       setState(() {
         isLoading = false;
       });
     } else if (action == Utility.ACTION_IMAGE_UPLOAD_RESPONSE_OK) {
-      print('ACTION_IMAGE_UPLOAD_RESPONSE_OK');
       setState(() {
         isLoading = false;
       });
       if (value is UploadImageResponse) {
-
         UploadImageResponse response = value;
         if (value.message.contains('Successfully')) {
           imgList.add(value.imageModel![0].location);
           insertTaskAttachment(value.imageModel![0].location);
           updateImage(value.imageModel![0].location);
           setState(() {
-            isLoading=false;
+            isLoading = false;
           });
-          print('1297 image Response');
           //ref.read(authNotifierProvider.notifier).checkAuthStatus();
         } else {
           Utility.showMessageCallback(context, 'Alert', value.message, this);

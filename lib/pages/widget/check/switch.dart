@@ -34,7 +34,7 @@ class FastSwitch extends FastFormField<bool> {
     this.dragStartBehavior = DragStartBehavior.start,
     this.dense,
     this.enableFeedback,
-    //this.errorBuilder,
+    // this.errorBuilder,
     this.focusNode,
     this.helperBuilder,
     this.hoverColor,
@@ -61,7 +61,7 @@ class FastSwitch extends FastFormField<bool> {
   final bool? dense;
   final DragStartBehavior dragStartBehavior;
   final bool? enableFeedback;
-  //final FastErrorBuilder<bool>? errorBuilder;
+  // final FastErrorBuilder<bool>? errorBuilder;
   final FocusNode? focusNode;
   final FastHelperBuilder<bool>? helperBuilder;
   final Color? hoverColor;
@@ -140,7 +140,7 @@ Widget cupertinoSwitchBuilder(FormFieldState<bool> field) {
     padding: widget.contentPadding,
     prefix: widget.labelText is String ? Text(widget.labelText!) : null,
     helper: (widget.helperBuilder ?? helperBuilder)(field),
-    error: (widget.errorBuilder ?? errorBuilder)(field),
+    error: (errorBuilder)(field),
     child: CupertinoSwitch(
       activeColor: widget.activeColor,
       dragStartBehavior: widget.dragStartBehavior,

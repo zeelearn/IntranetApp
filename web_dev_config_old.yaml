@@ -1,0 +1,3 @@
+web_dev_config:
+  proxy_rules:
+    - proxy_url: https://intranet.zeelearn.com

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:Intranet/api/response/login_response.dart';
@@ -8,17 +9,21 @@ import 'package:Intranet/firebase_options.dart';
 import 'package:Intranet/main.dart';
 import 'package:Intranet/pages/helper/LocalConstant.dart';
 import 'package:Intranet/pages/helper/utils.dart';
+import 'package:Intranet/pages/home/change_password_request.dart';
 import 'package:Intranet/pages/leave/leave_list.dart';
 import 'package:Intranet/pages/notification/UserNotification.dart';
 import 'package:Intranet/pages/outdoor/outdoor_list.dart';
 import 'package:Intranet/pages/pjp/models/PjpModel.dart';
 import 'package:Intranet/pages/pjp/mypjp.dart';
 import 'package:Intranet/pages/userinfo/employee_list.dart';
+import 'package:app_links/app_links.dart';
 import 'package:app_version_update/app_version_update.dart';
+import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -28,12 +33,14 @@ import 'package:image_picker/image_picker.dart';
 import 'package:in_app_update/in_app_update.dart';
 import 'package:intl/intl.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:saathi/zllsaathi.dart';
 import 'package:table_calendar/table_calendar.dart';
-import 'package:uni_links/uni_links.dart';
 
 import '../../api/APIService.dart';
 import '../../api/request/login_request.dart';
+import '../../api/ServiceHandler.dart';
+import '../iface/onResponse.dart';
 import '../attendance/attendance_list.dart';
 import '../attendance/attendance_marking.dart';
 import '../attendance/manager_screen.dart';
@@ -53,6 +60,8 @@ import '../pjp/IntranetEvents.dart';
 import '../pjp/cvf/mycvf.dart';
 import '../pjp/pjp_list_manager.dart';
 import '../utils/theme/colors/light_colors.dart';
+import '../utils/util.dart';
+import '../widget/VideoPlayer.dart';
 import 'home_page_menus.dart';
 
 class IntranetHomePage extends StatefulWidget {
@@ -60,8 +69,9 @@ class IntranetHomePage extends StatefulWidget {
   FilterSelection mPjpFilters =
       FilterSelection(filters: [], type: FILTERStatus.MYSELF);
   int _selectedDestination = 1;
+  final ReceivedAction? receivedAction;
 
-  IntranetHomePage({super.key, required this.userId});
+  IntranetHomePage({this.receivedAction, super.key, required this.userId});
 
   @override
   _IntranetHomePageState createState() => _IntranetHomePageState();
@@ -106,6 +116,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
   DateTime? _rangeEnd;
   Map<DateTime, List<PJPModel>> attendanceEvent = {};
   int employeeId = 0;
+  String employeeCode = '';
   int businessId = 0;
   String _currentBusinessName = '';
   String mUserName = '';
@@ -126,6 +137,12 @@ class _IntranetHomePageState extends State<IntranetHomePage>
   String appVersion = '';
   List<BusinessApplications> businessApplications = [];
 
+  final TextEditingController _newPasswordController = TextEditingController();
+  final TextEditingController _confirmPasswordController =
+      TextEditingController();
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  bool _obscureNewPassword = true;
+  bool _obscureConfirmPassword = true;
   updateCurrentBusiness(int bid, String name, int uid) async {
     hiveBox = await Utility.openBox();
     await Hive.openBox(LocalConstant.KidzeeDB);
@@ -323,6 +340,33 @@ class _IntranetHomePageState extends State<IntranetHomePage>
     //_listenForMessages();
 
     initNotification();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (widget.receivedAction?.payload != null &&
+          widget.receivedAction?.payload!['type'] != null &&
+          widget.receivedAction?.payload!['type'] == 'td') {
+        print(
+            'SAATHI Message sent via notification input: "${widget.receivedAction?.buttonKeyInput}"');
+        print('SAATHI payload - ${widget.receivedAction?.payload}');
+        Util.openSaathiNotification(widget.receivedAction!);
+      } else if (widget.receivedAction?.payload != null &&
+          widget.receivedAction?.payload!['Video_path'] != null) {
+        Navigator.push(
+            MyApp.navigatorKey.currentState!.context,
+            MaterialPageRoute(
+                builder: (context) => VideoPlayer(
+                      Title: widget.receivedAction!.payload!['Video_path']!,
+                      path: widget.receivedAction!.payload!['Video_path']!,
+                    )));
+      } else if (widget.receivedAction?.payload != null &&
+          widget.receivedAction!.payload!['url'] != null &&
+          widget.receivedAction!.payload!['url']!.isNotEmpty) {
+        Navigator.push(MyApp.navigatorKey.currentState!.context,
+            MaterialPageRoute(builder: (context) => const UserNotification()));
+      } /*  else {
+        Navigator.push(MyApp.navigatorKey.currentState!.context,
+            MaterialPageRoute(builder: (context) => const UserNotification()));
+      } */
+    });
 
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
       print('A new onMessageOpenedApp event was published123!');
@@ -338,7 +382,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
 
     getLoginResponse();
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-      _initURIHandler();
+      // _initURIHandler();
       _incomingLinkHandler();
       //showBusinessListDialog(false);
     });
@@ -349,23 +393,24 @@ class _IntranetHomePageState extends State<IntranetHomePage>
       initialURILinkHandled = true;
 
       try {
-        final initialURI = await getInitialUri();
+        // final appLinks = AppLinks();
+        // final initialURI = await getInitialUri();
         // Use the initialURI and warn the user if it is not correct,
         // but keep in mind it could be `null`.
-        if (initialURI != null) {
-          debugPrint("Initial URI on home screen received $initialURI");
+        // if (initialURI != null) {
+        //   debugPrint("Initial URI on home screen received $initialURI");
 
-          _initialURI = initialURI;
+        //   _initialURI = initialURI;
 
-          // SharedPreferences prefs = await SharedPreferences.getInstance();
-          // String uid = prefs.getString(LocalConstant.KEY_UID) as String;
-          deepLinkCommonFunction(_initialURI);
-        } else {
-          getLoginResponse();
-          validate(context);
-          // navigate();
-          debugPrint("Null Initial URI received");
-        }
+        //   // SharedPreferences prefs = await SharedPreferences.getInstance();
+        //   // String uid = prefs.getString(LocalConstant.KEY_UID) as String;
+        //   deepLinkCommonFunction(_initialURI);
+        // } else {
+        getLoginResponse();
+        validate(context);
+        // navigate();
+        debugPrint("Null Initial URI received");
+        // }
       } on PlatformException {
         // Platform messages may fail, so we use a try/catch PlatformException.
         // Handle exception by warning the user their action did not succeed
@@ -388,9 +433,10 @@ class _IntranetHomePageState extends State<IntranetHomePage>
   /// while already started.
   void _incomingLinkHandler() {
     if (!kIsWeb) {
+      final appLinks = AppLinks();
       // It will handle app links while the app is already started - be it in
       // the foreground or in the background.
-      _streamSubscription = uriLinkStream.listen((Uri? uri) async {
+      _streamSubscription = appLinks.uriLinkStream.listen((Uri? uri) async {
         if (!mounted) {
           return;
         }
@@ -439,7 +485,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
   initNotification() async {
     await initFirebase();
     await NotificationController.initializeLocalNotifications();
-    await NotificationController.initializeIsolateReceivePort();
+    // await NotificationController.initializeIsolateReceivePort();
     // Set the background messaging handler early on, as a named top-level function
     //FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
     FirebaseMessaging.onMessageOpenedApp.listen(_handleMessage);
@@ -447,63 +493,63 @@ class _IntranetHomePageState extends State<IntranetHomePage>
 
   Future<void> initFirebase() async {
     //await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-    if (!kIsWeb && !Platform.isAndroid)
-      await Firebase.initializeApp(
-          options: DefaultFirebaseOptions.currentPlatform);
-    else
-      await Firebase.initializeApp();
-    messaging = FirebaseMessaging.instance;
+    // if (!kIsWeb && !Platform.isAndroid)
+    //   await Firebase.initializeApp(
+    //       options: DefaultFirebaseOptions.currentPlatform);
+    // else
+    //   await Firebase.initializeApp();
+    // messaging = FirebaseMessaging.instance;
     // Set the background messaging handler early on, as a named top-level function
-    await FirebaseMessaging.instance.setAutoInitEnabled(true);
+    // await FirebaseMessaging.instance.setAutoInitEnabled(true);
     if (kDebugMode) {
       // Force disable Crashlytics collection while doing every day development.
       // Temporarily toggle this to true if you want to test crash reporting in your app.
-      await FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(false);
+      // await FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(false);
     } else {
       // Handle Crashlytics enabled status when not in Debug,
       FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(true);
     }
 
-    FirebaseMessaging firebaseMessaging = FirebaseMessaging.instance;
-    NotificationSettings settings = await firebaseMessaging.requestPermission(
-      alert: true,
-      announcement: false,
-      badge: true,
-      carPlay: false,
-      criticalAlert: false,
-      provisional: false,
-      sound: true,
-    );
+    // FirebaseMessaging firebaseMessaging = FirebaseMessaging.instance;
+    // NotificationSettings settings = await firebaseMessaging.requestPermission(
+    //   alert: true,
+    //   announcement: false,
+    //   badge: true,
+    //   carPlay: false,
+    //   criticalAlert: false,
+    //   provisional: false,
+    //   sound: true,
+    // );
     //FirebaseMessaging.instance.getInitialMessage();
-    print('User granted permission: ${settings.authorizationStatus}');
-    if (!kIsWeb) {
-      await FirebaseMessaging.instance
-          .setForegroundNotificationPresentationOptions(
-        alert: true,
-        badge: true,
-        sound: true,
-      );
+    // print('User granted permission: ${settings.authorizationStatus}');
+//     if (!kIsWeb) {
+//       await FirebaseMessaging.instance
+//           .setForegroundNotificationPresentationOptions(
+//         alert: true,
+//         badge: true,
+//         sound: true,
+//       );
 
-// Declaration of variables
+// // Declaration of variables
 
-      if (Platform.isIOS) {
-        await firebaseMessaging.setForegroundNotificationPresentationOptions(
-          alert: true, // Required to display a heads up notification
-          badge: true,
-          sound: true,
-        );
-      }
-    }
+//       if (Platform.isIOS) {
+//         await firebaseMessaging.setForegroundNotificationPresentationOptions(
+//           alert: true, // Required to display a heads up notification
+//           badge: true,
+//           sound: true,
+//         );
+//       }
+//     }
 
-    await FirebaseMessaging.instance
-        .setForegroundNotificationPresentationOptions(
-      alert: true,
-      badge: true,
-      sound: true,
-    );
+    // await FirebaseMessaging.instance
+    //     .setForegroundNotificationPresentationOptions(
+    //   alert: true,
+    //   badge: true,
+    //   sound: true,
+    // );
     await FirebaseMessaging.instance.setAutoInitEnabled(true);
     getPermission();
-    getToken();
+    // getToken();
 
     //runApp(MyApp());
   }
@@ -553,9 +599,10 @@ class _IntranetHomePageState extends State<IntranetHomePage>
 
   void _verifyVersion() async {
     await AppVersionUpdate.checkForUpdates(
-      appleId: '6443464060',
-      playStoreId: 'com.zeelearn.intranet',
-    ).then((result) async {
+            appleId: '6443464060',
+            playStoreId: 'com.zeelearn.intranet',
+            country: 'in')
+        .then((result) async {
       if (result.canUpdate!) {
         await AppVersionUpdate.showBottomSheetUpdate(
             context: context,
@@ -644,6 +691,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
     await Hive.openBox(LocalConstant.KidzeeDB);
     employeeId =
         int.parse(hiveBox.get(LocalConstant.KEY_EMPLOYEE_ID) as String);
+    employeeCode = hiveBox.get(LocalConstant.KEY_EMPLOYEE_CODE);
     mDesignation = hiveBox.get(LocalConstant.KEY_DESIGNATION) as String;
     email = hiveBox.get(LocalConstant.KEY_EMAIL) as String;
     var imageUrl = hiveBox.get(LocalConstant.KEY_EMPLOYEE_AVTAR);
@@ -671,11 +719,19 @@ class _IntranetHomePageState extends State<IntranetHomePage>
       String version = packageInfo.version;
       String buildNumber = packageInfo.buildNumber;
       appVersion = version;
+      if (!mounted) return;
+      setState(() {});
     });
     getProfileImage();
     //decodeJsonValue();
+    int passwordExpired = hiveBox.get(LocalConstant.KEY_PASSWORD_EXPIRED) ?? 0;
+    if (passwordExpired == 1) {
+      Future.delayed(Duration.zero, () => _showUpdatePasswordDialog());
+    }
     setState(() {});
   }
+
+  // Placeholder for showing password expired dialog
 
   getProfileImage() async {
     try {
@@ -716,7 +772,9 @@ class _IntranetHomePageState extends State<IntranetHomePage>
     var deviceInfo = DeviceInfoPlugin();
     String? id;
     String useragent = 'Android';
-    if (Platform.isIOS) {
+    if (kIsWeb) {
+      useragent = 'Web';
+    } else if (Platform.isIOS) {
       // import 'dart:io'
       var iosDeviceInfo = await deviceInfo.iosInfo;
       id = iosDeviceInfo.identifierForVendor; // unique ID on iOS
@@ -727,16 +785,304 @@ class _IntranetHomePageState extends State<IntranetHomePage>
       useragent =
           'Android_${androidDeviceInfo.brand}_${androidDeviceInfo.model}';
     }
-    if (!kIsWeb) {
-      final firebaseMessaging = FCM();
-      //useragent= Platform.isIOS ? 'IOS' : 'Android';
-      firebaseMessaging.setNotifications(
-          employeeId.toString(), id ?? '0', useragent);
-      FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+    // if (!kIsWeb) {
+    final firebaseMessaging = FCM();
+    //useragent= Platform.isIOS ? 'IOS' : 'Android';
+    firebaseMessaging.setNotifications(
+        employeeId.toString(), id ?? '0', useragent);
+    // }
+
+    // FirebaseMessaging.instance.onTokenRefresh.listen(
+    //   (event) {
+    //     firebaseMessaging.sendFcm(
+    //         event, employeeId.toString(), id ?? '0', useragent);
+    //   },
+    // );
+
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      log('Notification data is - ${message.toMap()}');
+      if (kIsWeb) {
+        ScaffoldMessenger.maybeOf(context)?.showSnackBar(SnackBar(
+            duration: Duration(seconds: 20),
+            showCloseIcon: false,
+            closeIconColor: Colors.redAccent,
+            backgroundColor: /* item.colorCode?.toColor() ?? */
+                kPrimaryLightColor,
+            margin: EdgeInsets.only(
+                left: MediaQuery.of(context).size.width / 2,
+                right: 10,
+                bottom: 20),
+            behavior: SnackBarBehavior.floating,
+            content: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                Text(
+                  message.data['title'],
+                  style: LightColors.subTextStyle.copyWith(color: Colors.white),
+                ),
+                SizedBox(
+                  height: 5,
+                ),
+                Text(
+                  message.data['body'],
+                  style: LightColors.subTextStyle.copyWith(color: Colors.white),
+                ),
+                SizedBox(
+                  height: 5,
+                ),
+              ],
+            )));
+      } else {
         NotificationService().parseNotification(message);
-      });
-    }
+      }
+    });
     return null;
+  }
+
+  void _showUpdatePasswordDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            return PopScope(
+              canPop:
+                  !kReleaseMode, // Allow pop in debug mode for testing, disable in release mode
+              onPopInvokedWithResult: (didPop, result) {
+                if (!didPop) {
+                  Fluttertoast.showToast(
+                    msg: "Please update your password to continue.",
+                    toastLength: Toast.LENGTH_SHORT,
+                    gravity: ToastGravity.BOTTOM,
+                    backgroundColor: Colors.black87,
+                    textColor: Colors.white,
+                    fontSize: 14.0,
+                  );
+                }
+              },
+              child: Dialog(
+                insetPadding: EdgeInsets.all(20),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20)),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 440),
+                  child: SingleChildScrollView(
+                    child: Padding(
+                      padding: const EdgeInsets.all(32),
+                      child: Form(
+                        key: _formKey,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: Colors.orange.withOpacity(0.1),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(Icons.lock_reset_rounded,
+                                  color: Colors.orange, size: 40),
+                            ),
+                            const SizedBox(height: 24),
+                            Text(
+                              'Password Expired',
+                              style: GoogleFonts.inter(
+                                fontSize: 22,
+                                fontWeight: FontWeight.w700,
+                                color: const Color(0xFF1A1D2E),
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              'Your password has expired. For security reasons, please set a new password to continue accessing the application.',
+                              textAlign: TextAlign.center,
+                              style: GoogleFonts.inter(
+                                fontSize: 14,
+                                color: const Color(0xFF6B7280),
+                                height: 1.5,
+                              ),
+                            ),
+                            const SizedBox(height: 32),
+                            TextFormField(
+                              controller: _newPasswordController,
+                              obscureText: _obscureNewPassword,
+                              textInputAction: TextInputAction.next,
+                              keyboardType: TextInputType.text,
+                              style: GoogleFonts.inter(fontSize: 15),
+                              decoration: InputDecoration(
+                                labelText: 'New Password',
+                                labelStyle: GoogleFonts.inter(
+                                    color: const Color(0xFF6B7280),
+                                    fontSize: 15),
+                                prefixIcon: const Icon(
+                                    Icons.lock_outline_rounded,
+                                    size: 20),
+                                suffixIcon: IconButton(
+                                  icon: Icon(
+                                    _obscureNewPassword
+                                        ? Icons.visibility_off
+                                        : Icons.visibility,
+                                    size: 20,
+                                  ),
+                                  onPressed: () {
+                                    setStateDialog(() {
+                                      _obscureNewPassword =
+                                          !_obscureNewPassword;
+                                    });
+                                  },
+                                ),
+                                border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12)),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: const BorderSide(
+                                      color: Color(0xFFE8EDF2)),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: const BorderSide(
+                                      color: kPrimaryLightColor, width: 2),
+                                ),
+                                errorStyle: GoogleFonts.inter(
+                                    color: Colors.black87, fontSize: 12),
+                                errorMaxLines: 2,
+                                contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 16, vertical: 16),
+                              ),
+                              onFieldSubmitted: (value) =>
+                                  FocusScope.of(context).nextFocus(),
+                              validator: (value) {
+                                if (value == null || value.isEmpty)
+                                  return 'Please enter a new password';
+                                if (value.length < 8)
+                                  return 'Password must be at least 8 characters';
+                                return null;
+                              },
+                            ),
+                            const SizedBox(height: 20),
+                            TextFormField(
+                              controller: _confirmPasswordController,
+                              obscureText: _obscureConfirmPassword,
+                              textInputAction: TextInputAction.done,
+                              keyboardType: TextInputType.text,
+                              style: GoogleFonts.inter(fontSize: 15),
+                              decoration: InputDecoration(
+                                labelText: 'Confirm New Password',
+                                labelStyle: GoogleFonts.inter(
+                                    color: const Color(0xFF6B7280),
+                                    fontSize: 15),
+                                prefixIcon: const Icon(Icons.lock_reset_rounded,
+                                    size: 20),
+                                suffixIcon: IconButton(
+                                  icon: Icon(
+                                    _obscureConfirmPassword
+                                        ? Icons.visibility_off
+                                        : Icons.visibility,
+                                    size: 20,
+                                  ),
+                                  onPressed: () {
+                                    setStateDialog(() {
+                                      _obscureConfirmPassword =
+                                          !_obscureConfirmPassword;
+                                    });
+                                  },
+                                ),
+                                border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12)),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: const BorderSide(
+                                      color: Color(0xFFE8EDF2)),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: const BorderSide(
+                                      color: kPrimaryLightColor, width: 2),
+                                ),
+                                errorStyle: GoogleFonts.inter(
+                                    color: Colors.black87, fontSize: 12),
+                                errorMaxLines: 2,
+                                contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 16, vertical: 16),
+                              ),
+                              validator: (value) {
+                                if (value == null || value.isEmpty)
+                                  return 'Please confirm your password';
+                                if (value != _newPasswordController.text)
+                                  return 'Passwords do not match';
+                                return null;
+                              },
+                              onFieldSubmitted: (value) {
+                                if (_formKey.currentState?.validate() ??
+                                    false) {
+                                  _performPasswordUpdate(dialogContext);
+                                }
+                              },
+                            ),
+                            const SizedBox(height: 32),
+                            SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton(
+                                onPressed: () {
+                                  if (_formKey.currentState?.validate() ??
+                                      false) {
+                                    _performPasswordUpdate(dialogContext);
+                                  }
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: kPrimaryLightColor,
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 16),
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12)),
+                                  elevation: 0,
+                                ),
+                                child: Text(
+                                  'Update and Continue',
+                                  style: GoogleFonts.inter(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _performPasswordUpdate(BuildContext dialogContext) {
+    String newPassword = _newPasswordController.text;
+    ChangePasswordRequest request = ChangePasswordRequest(
+      userName: employeeCode,
+      password: newPassword,
+    );
+
+    IntranetServiceHandler.changePassword(
+        request,
+        _ChangePasswordResponse(
+            context: context,
+            dialogContext: dialogContext,
+            onSuccessCallback: () {
+              _newPasswordController.clear();
+              _confirmPasswordController.clear();
+              // Update stored password if necessary
+              var hive = Hive.box(LocalConstant.KidzeeDB);
+              hive.put(LocalConstant.KEY_USER_PASSWORD, newPassword);
+              hive.put(LocalConstant.KEY_PASSWORD_EXPIRED, 0);
+            }));
   }
 
   getCurrentEvents(DateTime date, List<PJPModel> pjpListModels) {
@@ -915,10 +1261,10 @@ class _IntranetHomePageState extends State<IntranetHomePage>
     FirebaseAnalyticsUtils().enableAnytics();
     FirebaseAnalyticsUtils().sendAnalyticsEvent('HomeScreen');
     //analytics.logAppOpen();
-    return WillPopScope(
-      onWillPop: () async {
-        onBackClickListener();
-        return false;
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop) onBackClickListener();
       },
       child: Scaffold(
         key: _scaffoldKey,
@@ -927,7 +1273,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
         // ),
         appBar: getAppbar(),
         drawer: getNavigationalDrawar(),
-        body: getScreen(),
+        body: SafeArea(child: getScreen()),
         bottomNavigationBar: Utility.footer(appVersion),
         /*floatingActionButton:_selectedDestination==MENU_HOME ? FloatingActionButton.extended(
           onPressed: () {
@@ -1058,7 +1404,13 @@ class _IntranetHomePageState extends State<IntranetHomePage>
     switch (widget._selectedDestination) {
       case MENU_HOME:
         debugPrint('getscreen-------- $mUserName');
-        return HomePageMenu(isBpms, mUserName, email, _profileAvtar);
+        return HomePageMenu(
+          isBpms,
+          mUserName,
+          email,
+          _profileAvtar,
+          employeeCode,
+        );
         break;
       case MENU_ATTENDANCE:
         return AttendanceSummeryScreen(
@@ -1226,8 +1578,10 @@ class _IntranetHomePageState extends State<IntranetHomePage>
 
   Widget getNavigationalDrawar() {
     //debugPrint(_profileImage);
-    return Drawer(
-      child: getMenu(),
+    return SafeArea(
+      child: Drawer(
+        child: getMenu(),
+      ),
     );
   }
 
@@ -1251,7 +1605,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
               ),
               borderRadius: const BorderRadius.all(Radius.circular(5))),
           onDetailsPressed: () {
-//            uploadProfilePicture();
+            //            uploadProfilePicture();
             showBusinessListDialog(true);
           },
           accountEmail: Column(
@@ -1733,6 +2087,37 @@ class _IntranetHomePageState extends State<IntranetHomePage>
     } else if (action == ACTION_ADD_NEW_IMAGE) {
       uploadProfilePicture();
     }
+  }
+}
+
+class _ChangePasswordResponse implements onResponse {
+  final BuildContext context;
+  final BuildContext dialogContext;
+  final VoidCallback onSuccessCallback;
+
+  _ChangePasswordResponse({
+    required this.context,
+    required this.dialogContext,
+    required this.onSuccessCallback,
+  });
+
+  @override
+  void onStart() {
+    Utility.showLoaderDialog(context);
+  }
+
+  @override
+  void onSuccess(value) {
+    Navigator.of(context).pop(); // Dismiss loader
+    Navigator.of(dialogContext).pop(); // Dismiss password dialog
+    onSuccessCallback();
+    Utility.showMessage(context, 'Password updated successfully');
+  }
+
+  @override
+  void onError(value) {
+    Navigator.of(context).pop(); // Dismiss loader
+    Utility.showMessage(context, value.toString());
   }
 }
 

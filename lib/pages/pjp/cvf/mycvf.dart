@@ -230,11 +230,12 @@ class _MyCVFListScreen extends State<MyCVFListScreen>
     return GestureDetector(
       onTap: () {
         print(cvfView.toJson());
-        if(cvfView.approvalStatus.toLowerCase().contains('reject')){
-            Utility.showMessage(context, 'This PJP is rejected by your manager');
-        }else if(!cvfView.approvalStatus.toLowerCase().contains('approv')){
-            Utility.showMessage(context, 'PJP not yet approve, Please connect with your manager');
-        }else if (cvfView.Status == 'Check In' ||
+        if (cvfView.approvalStatus.toLowerCase().contains('reject')) {
+          Utility.showMessage(context, 'This PJP is rejected by your manager');
+        } else if (!cvfView.approvalStatus.toLowerCase().contains('approv')) {
+          Utility.showMessage(
+              context, 'PJP not yet approve, Please connect with your manager');
+        } else if (cvfView.Status == 'Check In' ||
             cvfView.Status == ' Check In' ||
             cvfView.Status == 'NA') {
           //Utility.showMessage(context, 'Please Click on Check In button');
@@ -378,43 +379,49 @@ class _MyCVFListScreen extends State<MyCVFListScreen>
                     fontWeight: FontWeight.normal,
                   ),
                 ),
-                trailing:  cvfView.approvalStatus.toLowerCase().contains('reject') ? Text(
-                          'PJP Rejected',
-                          style: TextStyle(
-                            fontFamily: 'Lexend Deca',
-                            color: Color(0xFF4B39EF),
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ) : !cvfView.approvalStatus.toLowerCase().contains('approv') ? null : cvfView.Status == 'Check Out'
-                    ? OutlinedButton(
-                        onPressed: () {
-                          selectCategory(context, cvfView);
-                        },
-                        child: Text(
-                          cvfView.Status,
-                          style: TextStyle(
-                            fontFamily: 'Lexend Deca',
-                            color: Color(0xFF4B39EF),
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                          ),
+                trailing: cvfView.approvalStatus
+                        .toLowerCase()
+                        .contains('reject')
+                    ? Text(
+                        'PJP Rejected',
+                        style: TextStyle(
+                          fontFamily: 'Lexend Deca',
+                          color: Color(0xFF4B39EF),
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
                         ),
                       )
-                    : cvfView.Status == 'Completed'
-                        ? Image.asset(
-                            'assets/icons/ic_checked.png',
-                            height: 50,
-                          )
-                        : Text(
-                            cvfView.Status,
-                            style: TextStyle(
-                              fontFamily: 'Lexend Deca',
-                              color: LightColors.kRed,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
+                    : !cvfView.approvalStatus.toLowerCase().contains('approv')
+                        ? null
+                        : cvfView.Status == 'Check Out'
+                            ? OutlinedButton(
+                                onPressed: () {
+                                  selectCategory(context, cvfView);
+                                },
+                                child: Text(
+                                  cvfView.Status,
+                                  style: TextStyle(
+                                    fontFamily: 'Lexend Deca',
+                                    color: Color(0xFF4B39EF),
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              )
+                            : cvfView.Status == 'Completed'
+                                ? Image.asset(
+                                    'assets/icons/ic_checked.png',
+                                    height: 50,
+                                  )
+                                : Text(
+                                    cvfView.Status,
+                                    style: TextStyle(
+                                      fontFamily: 'Lexend Deca',
+                                      color: LightColors.kRed,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
               ),
               Container(
                 color: LightColors.kLightGray,
@@ -752,9 +759,10 @@ class _MyCVFListScreen extends State<MyCVFListScreen>
       longitude= position.longitude;
     }*/
     print('saveDataOffline');
-    LocationData location = await LocationHelper.getLocation(context);
+    LocationData? location = await LocationHelper.getLocation(context);
     debugPrint('Status is ${cvfView.Status}');
-    String address = '';//await Utility.getAddress(location.latitude!, location.longitude!);
+    String address =
+        ''; //await Utility.getAddress(location.latitude!, location.longitude!);
     UpdateCVFStatusRequest request = UpdateCVFStatusRequest(
         PJPCVF_id: cvfView.PJPCVF_Id,
         DateTime: Utility.getDateTime(),
@@ -762,15 +770,15 @@ class _MyCVFListScreen extends State<MyCVFListScreen>
         Employee_id: employeeId,
         Latitude: cvfView.Status != 'FILL CVF'
             ? cvfView.Latitude
-            : location.latitude!,
+            : location?.latitude ?? 0.0,
         Longitude: cvfView.Status != 'FILL CVF'
             ? cvfView.Longitude
-            : location.longitude!,
+            : location?.longitude ?? 0.0,
         Address: address,
         CheckOutLatitude:
-            cvfView.Status == 'FILL CVF' ? location.latitude! : 0.0,
+            cvfView.Status == 'FILL CVF' ? location?.latitude ?? 0.0 : 0.0,
         CheckOutLongitude:
-            cvfView.Status == 'FILL CVF' ? location.longitude! : 0.0,
+            cvfView.Status == 'FILL CVF' ? location?.longitude ?? 0.0 : 0.0,
         CheckOutAddress: cvfView.Status == 'FILL CVF' ? address : '');
     debugPrint('Data saved locally....');
     debugPrint(request.toJson().toString());

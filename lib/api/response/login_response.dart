@@ -12,7 +12,7 @@ class LoginResponseModel {
   late final int statusCode;
   late final ResponseData responseData;
 
-  LoginResponseModel.fromJson(Map<String, dynamic> json){
+  LoginResponseModel.fromJson(Map<String, dynamic> json) {
     responseMessage = json['responseMessage'];
     statusCode = json['statusCode'];
     responseData = ResponseData.fromJson(json['responseData']);
@@ -28,23 +28,23 @@ class LoginResponseModel {
 }
 
 class ResponseData {
-  ResponseData({
-    required this.employeeDetails,
-    required this.employeeRoles,
-    required this.businessApplications
-  });
+  ResponseData(
+      {required this.employeeDetails,
+      required this.employeeRoles,
+      required this.businessApplications});
   late final List<EmployeeDetails> employeeDetails;
   late final List<EmployeeRoles> employeeRoles;
   late final List<BusinessApplications> businessApplications;
 
-  ResponseData.fromJson(Map<String, dynamic> json){
+  ResponseData.fromJson(Map<String, dynamic> json) {
     try {
-      employeeDetails = List.from(json['employeeDetails']).map((e) =>
-          EmployeeDetails.fromJson(e)).toList();
+      employeeDetails = List.from(json['employeeDetails'])
+          .map((e) => EmployeeDetails.fromJson(e))
+          .toList();
       employeeRoles = List.from(json['employeeRoles'])
           .map((e) => EmployeeRoles.fromJson(e))
           .toList();
-    }catch(e){
+    } catch (e) {
       debugPrint(e.toString());
     }
     businessApplications = [];
@@ -53,25 +53,28 @@ class ResponseData {
       json['businessApplications'].forEach((v) {
         try {
           businessApplications.add(new BusinessApplications.fromJson(v));
-          debugPrint('Business applications length is - ${businessApplications.length}');
+          debugPrint(
+              'Business applications length is - ${businessApplications.length}');
         } catch (e) {
           debugPrint('at line 21 ${v.toString()}');
           debugPrint(e.toString());
         }
       });
-    }else{
+    } else {
       debugPrint('at line 30');
-      businessApplications.add(BusinessApplications.fromJson(json['businessApplications']));
+      businessApplications
+          .add(BusinessApplications.fromJson(json['businessApplications']));
     }
     //businessApplications = List.from(json['businessApplications']).map((e)=>BusinessApplications.fromJson(e)).toList();
   }
 
   Map<String, dynamic> toJson() {
     final _data = <String, dynamic>{};
-    _data['employeeDetails'] = employeeDetails.map((e)=>e.toJson()).toList();
-    _data['employeeRoles'] = employeeRoles.map((e)=>e.toJson()).toList();
-    _data['businessApplications'] = businessApplications.map((e)=>e.toJson()).toList();
-    return _data;//jsonEncode(businessApplications);
+    _data['employeeDetails'] = employeeDetails.map((e) => e.toJson()).toList();
+    _data['employeeRoles'] = employeeRoles.map((e) => e.toJson()).toList();
+    _data['businessApplications'] =
+        businessApplications.map((e) => e.toJson()).toList();
+    return _data; //jsonEncode(businessApplications);
   }
 }
 
@@ -156,8 +159,10 @@ class EmployeeDetails {
   late final String employeeMaritalStatus;
   late final String landingPage;
   late final String companyName;
+  late final String managerName;
+  late final int passwordExpired;
 
-  EmployeeDetails.fromJson(Map<String, dynamic> json){
+  EmployeeDetails.fromJson(Map<String, dynamic> json) {
     employeeId = json['employee_Id'];
     employeeCode = json['employee_Code'] ?? '';
     employeeFirstName = json['employee_FirstName'] ?? '';
@@ -200,6 +205,8 @@ class EmployeeDetails {
     debugPrint('marritial status');
     landingPage = json['landingPage'] ?? "";
     companyName = json['companyName'] ?? "";
+    managerName = json['managerName'] ?? "";
+    passwordExpired = json['isPasswordExpired'] ?? "";
   }
 
   Map<String, dynamic> toJson() {
@@ -243,6 +250,8 @@ class EmployeeDetails {
     _data['employee_MaritalStatus'] = employeeMaritalStatus;
     _data['landingPage'] = landingPage;
     _data['companyName'] = companyName;
+    _data['managerName'] = managerName;
+    _data['isPasswordExpired'] = passwordExpired;
     return _data;
   }
 }
@@ -255,7 +264,7 @@ class EmployeeRoles {
   late final String splRole;
   late final int value;
 
-  EmployeeRoles.fromJson(Map<String, dynamic> json){
+  EmployeeRoles.fromJson(Map<String, dynamic> json) {
     splRole = json['splRole'];
     value = json['value'];
   }
@@ -288,7 +297,7 @@ class BusinessApplications {
   late final String? footerPath;
   late final String path;
 
-  BusinessApplications.fromJson(Map<String, dynamic> json){
+  BusinessApplications.fromJson(Map<String, dynamic> json) {
     businessID = json['business_ID'] ?? '';
     business_UserID = json['business_UserID'] ?? 0;
     employeeId = json['employee_Id'] ?? 0;
@@ -313,14 +322,15 @@ class BusinessApplications {
   }
 }
 
-
 class LoginResponseInvalid {
   late String responseMessage;
   late int statusCode;
   late String responseData;
 
   LoginResponseInvalid(
-      {required this.responseMessage,required  this.statusCode,required  this.responseData});
+      {required this.responseMessage,
+      required this.statusCode,
+      required this.responseData});
 
   LoginResponseInvalid.fromJson(Map<String, dynamic> json) {
     responseMessage = json['responseMessage'];

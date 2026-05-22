@@ -7,7 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive/hive.dart';
 import 'package:intl/intl.dart';
-import 'package:syncfusion_flutter_calendar/calendar.dart';
+// import 'package:syncfusion_flutter_calendar/calendar.dart';
 
 import '../../../api/APIService.dart';
 import '../../../api/request/cvf/centers_request.dart';
@@ -44,7 +44,7 @@ class _SelectedMonthPlannerState extends State<SelectedMonthPlanner> {
   final List<GetPlanData> meetings = <GetPlanData>[];
   final List meetinginmap = [];
 
-  final CalendarController calendarController = CalendarController();
+  // final CalendarController calendarController = CalendarController();
 
   List<XMLRequest> updatedxmlrequestlist = [];
 
@@ -65,7 +65,7 @@ class _SelectedMonthPlannerState extends State<SelectedMonthPlanner> {
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
       getCVFCenters();
       loadDataSource(DateTime(widget.year, widget.month), true);
-      calendarController.view = CalendarView.month;
+      // calendarController.view = CalendarView.month;
       // calendarController.forward = null;
     });
   }
@@ -107,7 +107,7 @@ class _SelectedMonthPlannerState extends State<SelectedMonthPlanner> {
 
     _multiDatePickerValueWithDefaultValue.clear();
 
-    for (var element in calendarEventsResult.data!) {
+    for (var element in (calendarEventsResult.data ?? [])) {
       _multiDatePickerValueWithDefaultValue.add(element);
     }
     setState(() {});
@@ -234,161 +234,154 @@ class _SelectedMonthPlannerState extends State<SelectedMonthPlanner> {
           ToastMessage().showErrorToast(state.error);
         }
       },
-      child: SafeArea(
-          child: Scaffold(
-              appBar: AppBar(
-                title: Text(
-                    'User Plan for ${DateFormat('MMM').format(DateTime(0, widget.month))}'),
-                actions: [
-                  firstTimeNullableDateTime != null &&
-                          empolyeeId == widget.selectedEmplyee
-                      ? IconButton(
-                          onPressed: () {
-                            showDialog(
-                              context: context,
-                              builder: (context) {
-                                return CalendarFormDialog(
-                                  datetime: selectedDate,
-                                  calendarId: calendarId,
-                                  centerResponse: centerResponse,
-                                );
-                              },
-                            ).then((value) async {
-                              if (value != null) {
-                                var listofgetplandate =
-                                    value as List<GetPlanData>;
-
-                                for (GetPlanData newData in listofgetplandate) {
-                                  bool isAlreadyPresent = widget.highlightDate
-                                      .any((item1) => item1.id == newData.id);
-
-                                  if (!isAlreadyPresent) {
-                                    widget.highlightDate.add(newData);
-                                  }
-                                }
-
-                                loadDataSource(selectedDate, false);
-
-                                setState(() {});
-                              }
-                            });
+      child: Scaffold(
+          appBar: AppBar(
+            title: Text(
+                'User Plan for ${DateFormat('MMM').format(DateTime(0, widget.month))}'),
+            actions: [
+              firstTimeNullableDateTime != null &&
+                      empolyeeId == widget.selectedEmplyee
+                  ? IconButton(
+                      onPressed: () {
+                        showDialog(
+                          context: context,
+                          builder: (context) {
+                            return CalendarFormDialog(
+                              datetime: selectedDate,
+                              calendarId: calendarId,
+                              centerResponse: centerResponse,
+                            );
                           },
-                          icon: const Icon(
-                            Icons.add,
-                            color: Colors.white,
-                          ))
-                      : const SizedBox.shrink()
-                ],
+                        ).then((value) async {
+                          if (value != null) {
+                            var listofgetplandate = value as List<GetPlanData>;
+
+                            for (GetPlanData newData in listofgetplandate) {
+                              bool isAlreadyPresent = widget.highlightDate
+                                  .any((item1) => item1.id == newData.id);
+
+                              if (!isAlreadyPresent) {
+                                widget.highlightDate.add(newData);
+                              }
+                            }
+
+                            loadDataSource(selectedDate, false);
+
+                            setState(() {});
+                          }
+                        });
+                      },
+                      icon: const Icon(
+                        Icons.add,
+                        color: Colors.white,
+                      ))
+                  : const SizedBox.shrink()
+            ],
+          ),
+          body: SafeArea(
+            child: Column(children: [
+              /* const SizedBox(
+                height: 20,
               ),
-              body: Column(children: [
-                const SizedBox(
-                  height: 20,
+              SfCalendar(
+                view: CalendarView.month,
+                viewNavigationMode: ViewNavigationMode.none,
+                initialDisplayDate: DateTime(widget.year, widget.month),
+                allowViewNavigation: false,
+                selectionDecoration: BoxDecoration(
+                  color: Colors.transparent,
+                  border: Border.all(
+                      color: const Color.fromARGB(255, 68, 140, 255), width: 2),
+                  // borderRadius: const BorderRadius.all(Radius.circular(4)),
+                  shape: BoxShape.circle,
                 ),
-                SfCalendar(
-                  view: CalendarView.month,
-                  viewNavigationMode: ViewNavigationMode.none,
-                  initialDisplayDate: DateTime(widget.year, widget.month),
-                  allowViewNavigation: false,
-                  selectionDecoration: BoxDecoration(
-                    color: Colors.transparent,
-                    border: Border.all(
-                        color: const Color.fromARGB(255, 68, 140, 255),
-                        width: 2),
-                    // borderRadius: const BorderRadius.all(Radius.circular(4)),
-                    shape: BoxShape.circle,
-                  ),
-                  dragAndDropSettings: const DragAndDropSettings(
-                    allowScroll: false,
-                    allowNavigation: false,
-                  ),
-                  showNavigationArrow: false,
-                  allowDragAndDrop: false,
-                  controller: calendarController,
-                  onTap: (CalendarTapDetails calendarTapDetails) async {
-                    selectedDate = calendarTapDetails.date!;
-                    firstTimeNullableDateTime = calendarTapDetails.date;
-                    loadDataSource(selectedDate, false);
+                dragAndDropSettings: const DragAndDropSettings(
+                  allowScroll: false,
+                  allowNavigation: false,
+                ),
+                showNavigationArrow: false,
+                allowDragAndDrop: false,
+                controller: calendarController,
+                onTap: (CalendarTapDetails calendarTapDetails) async {
+                  selectedDate = calendarTapDetails.date!;
+                  firstTimeNullableDateTime = calendarTapDetails.date;
+                  loadDataSource(selectedDate, false);
 
-                    setState(() {});
-                  },
-                  resourceViewHeaderBuilder: (context, details) {
-                    return const Text('resourceHeader');
-                  },
-                  // loadMoreWidgetBuilder: (context, loadMoreAppointments) {
-                  //   return const Text('loadmoreHeader');
-                  // },
-                  scheduleViewMonthHeaderBuilder: (context, details) {
-                    return const Text('monthHeader');
-                  },
-                  // headerStyle:
-                  //     const CalendarHeaderStyle(backgroundColor: Colors.black),
-                  headerHeight: 0,
-                  dataSource: MeetingDataSource(allMeetings),
-                  monthViewSettings: MonthViewSettings(
-                      appointmentDisplayMode:
-                          MonthAppointmentDisplayMode.indicator,
-                      appointmentDisplayCount: allMeetings.length),
-                  onSelectionChanged: (calendarSelectionDetails) {
-                    debugPrint('Is this getting clicked');
-                  },
-                ),
-                const SizedBox(
-                  height: 10,
-                ),
-                Expanded(
-                  child: BlocBuilder<GetplandetailsCubit, GetplandetailsState>(
-                    builder: (context, getplanbuilderstate) =>
-                        getplanbuilderstate is GetplandetailsLoadingState
-                            ? const Center(child: CircularProgressIndicator())
-                            : meetings.isNotEmpty
-                                ? ListView.builder(
-                                    shrinkWrap: true,
-                                    itemBuilder: (context, index) {
-                                      bool isSamePriority = true;
-                                      final String priority =
-                                          meetings[index].priority!;
+                  setState(() {});
+                },
+                resourceViewHeaderBuilder: (context, details) {
+                  return const Text('resourceHeader');
+                },
+                // loadMoreWidgetBuilder: (context, loadMoreAppointments) {
+                //   return const Text('loadmoreHeader');
+                // },
+                scheduleViewMonthHeaderBuilder: (context, details) {
+                  return const Text('monthHeader');
+                },
+                // headerStyle:
+                //     const CalendarHeaderStyle(backgroundColor: Colors.black),
+                headerHeight: 0,
+                dataSource: MeetingDataSource(allMeetings),
+                monthViewSettings: MonthViewSettings(
+                    appointmentDisplayMode:
+                        MonthAppointmentDisplayMode.indicator,
+                    appointmentDisplayCount: allMeetings.length),
+                onSelectionChanged: (calendarSelectionDetails) {
+                  debugPrint('Is this getting clicked');
+                },
+              ), */
+              const SizedBox(
+                height: 10,
+              ),
+              Expanded(
+                child: BlocBuilder<GetplandetailsCubit, GetplandetailsState>(
+                  builder: (context, getplanbuilderstate) => getplanbuilderstate
+                          is GetplandetailsLoadingState
+                      ? const Center(child: CircularProgressIndicator())
+                      : meetings.isNotEmpty
+                          ? ListView.builder(
+                              shrinkWrap: true,
+                              itemBuilder: (context, index) {
+                                bool isSamePriority = true;
+                                final String priority =
+                                    meetings[index].priority!;
 
-                                      if (index == 0) {
-                                        isSamePriority = false;
-                                      } else {
-                                        final String prevPriority =
-                                            meetings[index - 1].priority!;
+                                if (index == 0) {
+                                  isSamePriority = false;
+                                } else {
+                                  final String prevPriority =
+                                      meetings[index - 1].priority!;
 
-                                        isSamePriority =
-                                            priority == prevPriority;
-                                      }
-                                      if (index == 0 || !(isSamePriority)) {
-                                        return Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Padding(
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                        horizontal: 8.0,
-                                                        vertical: 4),
-                                                child: Text(
-                                                  priority == 'H'
-                                                      ? 'CVF'
-                                                      : 'Plan',
-                                                  style: Theme.of(context)
-                                                      .textTheme
-                                                      .headlineSmall,
-                                                ),
-                                              ),
-                                              listWidget(index, context)
-                                            ]);
-                                      } else {
-                                        return listWidget(index, context);
-                                      }
-                                    },
-                                    itemCount: meetings.length,
-                                  )
-                                : const Center(
-                                    child: Text('No Plan available.')),
-                  ),
+                                  isSamePriority = priority == prevPriority;
+                                }
+                                if (index == 0 || !(isSamePriority)) {
+                                  return Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 8.0, vertical: 4),
+                                          child: Text(
+                                            priority == 'H' ? 'CVF' : 'Plan',
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .headlineSmall,
+                                          ),
+                                        ),
+                                        listWidget(index, context)
+                                      ]);
+                                } else {
+                                  return listWidget(index, context);
+                                }
+                              },
+                              itemCount: meetings.length,
+                            )
+                          : const Center(child: Text('No Plan available.')),
                 ),
-              ]))),
+              ),
+            ]),
+          )),
     );
   }
 

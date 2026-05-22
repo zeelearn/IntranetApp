@@ -58,7 +58,7 @@ class _MyPjpListState extends State<MyPjpListScreen>
   }
 
   getAddress() async {
-    LocationData location = await LocationHelper.getLocation(context);
+    LocationData? location = await LocationHelper.getLocation(context);
     if (location != null) {
       double latitude = location.latitude!;
       double longitude = location.longitude!;

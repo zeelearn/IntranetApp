@@ -79,14 +79,15 @@ class NotificationService {
       initializationSettings,
     );
 
-    debugPrint(FirebaseMessaging.instance.getToken().toString());
+    // debugPrint(FirebaseMessaging.instance.getToken().toString());
   }
 
   showSimpleNotification(String title, String body,
       [RemoteMessage? message]) async {
     String channel = LocalConstant.NOTIFICATION_CHANNEL;
     print('showSimpleNotification Kidzee $channel');
-    debugPrint('Remote message for simple message is - $message');
+    debugPrint(
+        'Remote message for simple message is Notification_service - $message');
     AwesomeNotifications().createNotification(
         content: NotificationContent(
       id: -1,

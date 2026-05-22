@@ -5,7 +5,8 @@ import 'dart:isolate';
 import 'dart:math';
 import 'dart:ui';
 
-import 'package:Intranet/pages/firebase/firebase_options.dart';
+// import 'package:Intranet/pages/firebase/firebase_options.dart';
+import 'package:Intranet/firebase_options.dart';
 import 'package:Intranet/pages/firebase/notification_service.dart';
 import 'package:Intranet/pages/helper/DatabaseHelper.dart';
 import 'package:Intranet/pages/helper/LocalConstant.dart';
@@ -17,6 +18,7 @@ import 'package:Intranet/pages/model/NotificationDataModel.dart';
 import 'package:Intranet/pages/notification/UserNotification.dart';
 import 'package:Intranet/pages/outdoor/cubit/getplandetailscubit/getplandetails_cubit.dart';
 import 'package:Intranet/pages/pjp/cvf/CheckInModel.dart';
+import 'package:Intranet/pages/summary%20dashboard/summary_dashboard.dart';
 import 'package:Intranet/pages/theme/extention.dart';
 import 'package:Intranet/pages/utils/theme/colors/light_colors.dart';
 import 'package:Intranet/pages/widget/VideoPlayer.dart';
@@ -27,6 +29,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -42,6 +45,8 @@ import 'package:saathi/dependency_Injection/dependency_injection.dart';
 import 'package:saathi/model/notificationModel/notificationModel.dart';
 import 'package:saathi/model/ticketModel/ticket_model.dart';
 import 'package:saathi/zllsaathi.dart';
+import 'package:sqflite/sqflite.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 import 'api/APIService.dart';
 import 'api/request/cvf/update_cvf_status_request.dart';
@@ -50,6 +55,10 @@ import 'api/response/apply_leave_response.dart';
 import 'api/response/approve_attendance_response.dart';
 import 'api/response/cvf/update_status_response.dart';
 import 'pages/pjp/cvf/getVisitplannerCvfcubit/cubit/getvisitplannercvf_cubit.dart';
+import 'pages/utils/util.dart';
+import 'package:pdfrx/pdfrx.dart';
+import 'package:app_links/app_links.dart';
+import 'pages/auth/magic_link_handler.dart';
 
 part 'main.g.dart';
 
@@ -235,13 +244,13 @@ late ServiceInstance mService;
 FlutterLocalNotificationsPlugin? flutterLocalNotificationsPlugin;
 late FirebaseMessaging messaging;
 
-Future<bool> getInitNotif() async {
+Future<ReceivedAction?> getInitNotif() async {
   ReceivedAction? receivedAction = await AwesomeNotifications()
       .getInitialNotificationAction(removeFromActionEvents: true);
-  if (receivedAction?.buttonKeyPressed == 'ACCEPT') {
+  /* if (receivedAction?.buttonKeyPressed == 'ACCEPT') {
     return true;
-  }
-  return false;
+  } */
+  return receivedAction;
 }
 
 Future<Box> _openBox() async {
@@ -256,12 +265,9 @@ final localhostServer =
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  // await dotenv.load(fileName: ".env");
 
-  // Set the background messaging handler early on, as a named top-level function
-  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-
-
+  pdfrxFlutterInitialize();
   _openBox();
   await PermissionUtil.requestPermission();
 
@@ -282,17 +288,20 @@ Future<void> main() async {
     await localhostServer.start();
   }
 
+  // if (!kIsWeb) {
+  //   await Firebase.initializeApp(
+  //       name: 'intranet', options: DefaultFirebaseOptions.currentPlatform);
+  // } else {
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  // }
 
+  NotificationController.startListeningNotificationEvents();
+  await NotificationController.initializeLocalNotifications();
 
-  //NotificationController.startListeningNotificationEvents();
-   //Firebase.initializeApp( options: DefaultFirebaseOptions.currentPlatform);
-  await Firebase.initializeApp(demoProjectId: "intranet",name: "intranet", options: DefaultFirebaseOptions.currentPlatform);
   if (!kIsWeb) {
-    await NotificationController.initializeLocalNotifications();
     await NotificationController.initializeIsolateReceivePort();
-    messaging = FirebaseMessaging.instance;
-    messaging.subscribeToTopic("intranet");
-    messaging.subscribeToTopic("saathi");
+    // messaging = FirebaseMessaging.instance;
+
     print('saathi topic subscribed');
     // Set the background messaging handler early on, as a named top-level function
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
@@ -316,17 +325,17 @@ Future<void> main() async {
     /*await notificationService.init();
     await notificationService.requestIOSPermissions();*/
 
-    await FirebaseMessaging.instance
-        .setForegroundNotificationPresentationOptions(
-      alert: true,
-      badge: true,
-      sound: true,
-    );
+    // await FirebaseMessaging.instance
+    //     .setForegroundNotificationPresentationOptions(
+    //   alert: true,
+    //   badge: true,
+    //   sound: true,
+    // );
 
-    await FirebaseMessaging.instance.setAutoInitEnabled(true);
+    // await FirebaseMessaging.instance.setAutoInitEnabled(true);
   }
   //_requestPermission();
-
+  PermissionUtil.requestPermission();
 
   await Hive.initFlutter();
   await Hive.openBox(LocalConstant.communicationKey); // settings
@@ -345,7 +354,7 @@ Future<void> main() async {
 
   //await initializeService();
   //runApp(const MyApp());
-  bool acceptedNotification = await getInitNotif();
+  ReceivedAction? receivedNotification = await getInitNotif();
   runApp(MultiBlocProvider(
     providers: [
       BlocProvider<GetplandetailsCubit>(
@@ -356,7 +365,10 @@ Future<void> main() async {
       ),
     ],
     child: ProviderScope(
-      child: acceptedNotification ? const UserNotification() : const MyApp(),
+      child: /* acceptedNotification ? const UserNotification() : */
+          MyApp(
+        receivedAction: receivedNotification,
+      ),
     ),
   ));
 }
@@ -772,13 +784,47 @@ Future _showNotificationWithDefaultSound(
   debugPrint('Send Notification');
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   static final GlobalKey<NavigatorState> navigatorKey =
       GlobalKey<NavigatorState>();
+  final ReceivedAction? receivedAction;
 
-  const MyApp({super.key});
+  const MyApp({this.receivedAction, super.key});
 
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
   // This widget is the root of your application.
+  @override
+  void initState() {
+    super.initState();
+    _initDeepLinks();
+  }
+
+  void _initDeepLinks() {
+    final appLinks = AppLinks();
+
+    // App was closed — opened by clicking the link
+    appLinks.getInitialLink().then((uri) {
+      if (uri != null) {
+        Future.delayed(Duration(milliseconds: 500), () {
+          if (MyApp.navigatorKey.currentContext != null) {
+            MagicLinkHandler.handle(uri, MyApp.navigatorKey.currentContext!);
+          }
+        });
+      }
+    });
+
+    // App was already running — link clicked
+    appLinks.uriLinkStream.listen((uri) {
+      if (MyApp.navigatorKey.currentContext != null) {
+        MagicLinkHandler.handle(uri, MyApp.navigatorKey.currentContext!);
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -835,14 +881,6 @@ class MyApp extends StatelessWidget {
           ),
         )),
         fontFamily: 'Roboto',
-        /*colorScheme: ColorScheme.fromSeed(
-          seedColor: kPrimaryLightColor,
-          background: LightColors.kLightGray1,
-          brightness: Brightness.light,
-        ),
-        fontFamily: 'Roboto',
-        primaryColorDark: kPrimaryLightColor,
-        primaryColor: kPrimaryLightColor,*/
         appBarTheme: const AppBarTheme(
           // <-- SEE HERE
           color: kPrimaryLightColor,
@@ -898,107 +936,10 @@ class MyApp extends StatelessWidget {
           buttonColor: kPrimaryLightColor,
           textTheme: ButtonTextTheme.primary,
         ),
-        /*colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.white,
-          background: LightColors.kLightGray1,
-          primaryContainer: Colors.white,
-          secondary: Colors.white,
-          secondaryContainer: Colors.white,
-          primary: Colors.white,
-          brightness: Brightness.light,
-          onSurface: Colors.black87, // text color
-          surface: Colors.white
-
-        ),*/
       ),
-      home: const Scaffold(
-        body: SplashScreen(),
+      home: /*  SummaryDashboard() */ SplashScreen(
+        receivedAction: widget.receivedAction,
       ),
-    );
-  }
-}
-
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
-
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
-    return Scaffold(
-      appBar: AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Invoke "debug painting" (press "p" in the console, choose the
-          // "Toggle Debug Paint" action from the Flutter Inspector in Android
-          // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
-          // to see the wireframe for each widget.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 }
@@ -1085,11 +1026,15 @@ class NotificationController {
       // await executeLongTaskInBackground();
     } else if (receivedAction.payload != null &&
         receivedAction.payload!['type'] != null &&
+        receivedAction.payload!['type'] == 'logout') {
+      Utility.signOut(MyApp.navigatorKey.currentState!.context);
+    } else if (receivedAction.payload != null &&
+        receivedAction.payload!['type'] != null &&
         receivedAction.payload!['type'] == 'td') {
       print(
           'SAATHI Message sent via notification input: "${receivedAction.buttonKeyInput}"');
       print('SAATHI payload - ${receivedAction.payload}');
-      openSaathiNotification(receivedAction);
+      Util.openSaathiNotification(receivedAction);
     } else if (receivedAction.payload != null &&
         receivedAction.payload!['Video_path'] != null) {
       Navigator.push(
@@ -1107,30 +1052,6 @@ class NotificationController {
     } else {
       Navigator.push(MyApp.navigatorKey.currentState!.context,
           MaterialPageRoute(builder: (context) => const UserNotification()));
-    }
-  }
-
-  static openSaathiNotification(ReceivedAction receivedAction) async {
-    try {
-      var hiveBox = await Utility.openBox();
-      await Hive.openBox(LocalConstant.KidzeeDB);
-      String mUserName = hiveBox.get(LocalConstant.KEY_USER_NAME) as String;
-      Navigator.pushAndRemoveUntil(
-          // ignore: use_build_context_synchronously
-          MyApp.navigatorKey.currentState!.context,
-          MaterialPageRoute(
-            builder: (context) => ZllTicketDetails(
-              ticketId: receivedAction.payload!['id'].toString(),
-              bid: '0',
-              businessUserId: '',
-              userId: mUserName,
-              mColor: kPrimaryLightColor,
-            ),
-          ),
-          (route) => false);
-    } catch (e) {
-      print('SAATHI exception $e');
-      print(e);
     }
   }
 

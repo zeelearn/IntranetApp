@@ -31,7 +31,7 @@ class FastSlider extends FastFormField<double> {
     this.allowedInteraction,
     this.autofocus = false,
     this.divisions,
-    //this.errorBuilder,
+    // //this.errorBuilder,
     this.helperBuilder,
     this.inactiveColor,
     this.max = 1.0,
@@ -53,7 +53,7 @@ class FastSlider extends FastFormField<double> {
   final SliderInteraction? allowedInteraction;
   final bool autofocus;
   final int? divisions;
-  //final FastErrorBuilder<double>? errorBuilder;
+  // //final FastErrorBuilder<double>? errorBuilder;
   final FastHelperBuilder<double>? helperBuilder;
   final Color? inactiveColor;
   final FastSliderLabelBuilder? labelBuilder;
@@ -140,7 +140,7 @@ Widget cupertinoSliderBuilder(FormFieldState<double> field) {
     padding: widget.contentPadding,
     prefix: widget.labelText is String ? Text(widget.labelText!) : null,
     helper: (widget.helperBuilder ?? helperBuilder)(field),
-    error: (widget.errorBuilder ?? errorBuilder)(field),
+    error: (errorBuilder)(field),
     child: Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: <Widget>[

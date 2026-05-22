@@ -1,21 +1,28 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
+
 class CVFCategoryRequest {
   String Category_Id;
   int Business_id;
 
-  CVFCategoryRequest(
-      {
-        required this.Category_Id,
-        required this.Business_id,
-      });
+  CVFCategoryRequest({
+    required this.Category_Id,
+    required this.Business_id,
+  });
 
-  getJson(){
-    return jsonEncode( {
+  getJson() {
+    return jsonEncode({
       'Category_Id': Category_Id,
       'Business_id': Business_id,
-      'AppType' :Platform.isAndroid ? 'Android' : Platform.isIOS ? 'IOS' : 'unknown'
+      'AppType': kIsWeb
+          ? 'Web'
+          : Platform.isAndroid
+              ? 'Android'
+              : Platform.isIOS
+                  ? 'IOS'
+                  : 'unknown'
     });
   }
 

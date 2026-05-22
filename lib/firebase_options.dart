@@ -41,49 +41,56 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyBl0E5LxXz3l6tdSSITpaEiA1sF6jPr4Mg',
-    appId: '1:92536473318:web:2bff6cb251cb0157179d27',
-    messagingSenderId: '92536473318',
-    projectId: 'intranetweb-68536',
-    authDomain: 'intranetweb-68536.firebaseapp.com',
-    storageBucket: 'intranetweb-68536.firebasestorage.app',
-    measurementId: 'G-0934VN0XTW',
+    apiKey: 'AIzaSyDDvVRpknNCx8KTmy1TO-BXW6kPmzPEyNc',
+    appId: '1:411998223312:web:3ec3c688769d9aa2dd97d5',
+    messagingSenderId: '411998223312',
+    projectId: 'intranet-9fda2',
+    authDomain: 'intranet-9fda2.firebaseapp.com',
+    databaseURL: 'https://intranet-9fda2-default-rtdb.firebaseio.com',
+    storageBucket: 'intranet-9fda2.appspot.com',
+    measurementId: 'G-5DZKG2P4P9',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyDQSHQpIgT4Ouh3vwZHyVkqu-6AltfntEc',
-    appId: '1:92536473318:android:b224e4319ee42b8b179d27',
-    messagingSenderId: '92536473318',
-    projectId: 'intranetweb-68536',
-    storageBucket: 'intranetweb-68536.firebasestorage.app',
+    apiKey: 'AIzaSyBGUg3e_G7TzpwXWcX3KOyxCmYyCXiroDE',
+    appId: '1:411998223312:android:176ef77cd8fca5e4dd97d5',
+    messagingSenderId: '411998223312',
+    projectId: 'intranet-9fda2',
+    databaseURL: 'https://intranet-9fda2-default-rtdb.firebaseio.com',
+    storageBucket: 'intranet-9fda2.appspot.com',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyDOGGVh-K5cZkhlpi8s4YJskevop6HMP30',
-    appId: '1:92536473318:ios:6562f21c7144c517179d27',
-    messagingSenderId: '92536473318',
-    projectId: 'intranetweb-68536',
-    storageBucket: 'intranetweb-68536.firebasestorage.app',
+    apiKey: 'AIzaSyCpFlcHfIyHFmc1xQGxlP7aTfm5bwzI_Zk',
+    appId: '1:411998223312:ios:0dabf3a3a966fb4cdd97d5',
+    messagingSenderId: '411998223312',
+    projectId: 'intranet-9fda2',
+    databaseURL: 'https://intranet-9fda2-default-rtdb.firebaseio.com',
+    storageBucket: 'intranet-9fda2.appspot.com',
+    iosClientId: '411998223312-0svaok9ad4mid7v6t4f6vj8vi7q30a3g.apps.googleusercontent.com',
     iosBundleId: 'com.zeelearn.intranet',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyDOGGVh-K5cZkhlpi8s4YJskevop6HMP30',
-    appId: '1:92536473318:ios:6562f21c7144c517179d27',
-    messagingSenderId: '92536473318',
-    projectId: 'intranetweb-68536',
-    storageBucket: 'intranetweb-68536.firebasestorage.app',
+    apiKey: 'AIzaSyCpFlcHfIyHFmc1xQGxlP7aTfm5bwzI_Zk',
+    appId: '1:411998223312:ios:0dabf3a3a966fb4cdd97d5',
+    messagingSenderId: '411998223312',
+    projectId: 'intranet-9fda2',
+    databaseURL: 'https://intranet-9fda2-default-rtdb.firebaseio.com',
+    storageBucket: 'intranet-9fda2.appspot.com',
+    iosClientId: '411998223312-0svaok9ad4mid7v6t4f6vj8vi7q30a3g.apps.googleusercontent.com',
     iosBundleId: 'com.zeelearn.intranet',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'AIzaSyC0lKUd2IY6kw_VkpxaiMr5Q7BJfnXO4yE',
-    appId: '1:92536473318:web:426d7219add3f873179d27',
-    messagingSenderId: '92536473318',
-    projectId: 'intranetweb-68536',
-    authDomain: 'intranetweb-68536.firebaseapp.com',
-    storageBucket: 'intranetweb-68536.firebasestorage.app',
-    measurementId: 'G-R8XYK0L0VL',
+    apiKey: 'AIzaSyDa4mT4N2D2TlVhVFkghSMAwsWxaolYBTI',
+    appId: '1:411998223312:web:5a054b7dc4841ed0dd97d5',
+    messagingSenderId: '411998223312',
+    projectId: 'intranet-9fda2',
+    authDomain: 'intranet-9fda2.firebaseapp.com',
+    databaseURL: 'https://intranet-9fda2-default-rtdb.firebaseio.com',
+    storageBucket: 'intranet-9fda2.appspot.com',
+    measurementId: 'G-35YVLKPYT8',
   );
 
 }

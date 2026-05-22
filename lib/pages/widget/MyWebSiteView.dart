@@ -51,7 +51,7 @@ class MyWebsiteViewState extends State<MyWebsiteView> {
   void initState() {
     super.initState();
 
-    print('web url ${widget.title}');
+    /* print('web url ${widget.title}');
     late final PlatformWebViewControllerCreationParams params;
     if (WebViewPlatform.instance is WebKitWebViewPlatform) {
       params = WebKitWebViewControllerCreationParams(
@@ -130,7 +130,7 @@ class MyWebsiteViewState extends State<MyWebsiteView> {
     }
     // #enddocregion platform_features
 
-    _controller = controller;
+    _controller = controller; */
 
     // pullToRefreshController = kIsWeb ||
     //         ![TargetPlatform.iOS, TargetPlatform.android]
@@ -182,128 +182,171 @@ class MyWebsiteViewState extends State<MyWebsiteView> {
   @override
   Widget build(BuildContext context) {
     print(widget.url);
-    return Scaffold(
-      appBar: widget.title.isEmpty ||
-              widget.title == 'Parent Support Desk' ||
-              widget.title == 'ZLLSaathi'
-          ? null
-          : AppBar(
-              backgroundColor: kPrimaryLightColor,
-              leadingWidth: 30,
-              title: Text(
-                widget.title,
-                style: Theme.of(context)
-                    .textTheme
-                    .titleSmall!
-                    .copyWith(color: Colors.white),
-              ), // You can add title here
-              leading: Padding(
-                padding: const EdgeInsets.all(0.0),
-                child: IconButton(
-                  icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
-                  onPressed: () async {
-                    Navigator.pop(context);
-                    // WebViewController webViewController =
-                    //     await _controller.future;
-                    // if (await webViewController.canGoBack()) {
-                    //   webViewController.goBack();
-                    // } else {
-                    //   Navigator.pop(context);
-                    // }
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) {
+          return;
+        }
+        if (!kIsWeb &&
+            webViewController != null &&
+            await webViewController!.canGoBack()) {
+          await webViewController!.goBack();
+        } else {
+          Navigator.pop(context);
+        }
+      },
+      child: Scaffold(
+        appBar: widget.title.isEmpty ||
+                widget.title == 'Parent Support Desk' ||
+                widget.title == 'ZLLSaathi'
+            ? null
+            : AppBar(
+                backgroundColor: kPrimaryLightColor,
+                leadingWidth: 30,
+                title: Text(
+                  widget.title,
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleSmall!
+                      .copyWith(color: Colors.white),
+                ), // You can add title here
+                leading: Padding(
+                  padding: const EdgeInsets.all(0.0),
+                  child: IconButton(
+                    icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
+                    onPressed: () async {
+                      Navigator.pop(context);
+                      // WebViewController webViewController =
+                      //     await _controller.future;
+                      // if (await webViewController.canGoBack()) {
+                      //   webViewController.goBack();
+                      // } else {
+                      //   Navigator.pop(context);
+                      // }
+                    },
+                  ),
+                ), //You can make this transparent
+                elevation: 0.0, //No shadow
+              ),
+        backgroundColor: kPrimaryLightColor,
+        body: SafeArea(
+          child: InAppWebView(
+            key: webViewKey,
+            initialUrlRequest: URLRequest(url: WebUri(widget.url)),
+            // initialSettings: settings,
+            pullToRefreshController: pullToRefreshController,
+            onWebViewCreated: (controller) {
+              webViewController = controller;
+              if (!kIsWeb) {
+                webViewController?.addJavaScriptHandler(
+                  handlerName: 'closeWebView',
+                  callback: (args) {
+                    // Handle closing the WebView
+                    Navigator.of(context).pop();
+                    return null;
                   },
-                ),
-              ), //You can make this transparent
-              elevation: 0.0, //No shadow
-            ),
-      backgroundColor: Colors.white,
-      body: InAppWebView(
-        key: webViewKey,
-        initialUrlRequest: URLRequest(url: WebUri(widget.url)),
-        // initialSettings: settings,
-        pullToRefreshController: pullToRefreshController,
-        onWebViewCreated: (controller) {
-          webViewController = controller;
-        },
-        onLoadStart: (controller, url) {
-          setState(() {
-            this.url = url.toString();
-            urlController.text = this.url;
-          });
-        },
-        /* onPermissionRequest: (controller, request) async {
-                    return PermissionResponse(
-                        resources: request.resources,
-                        action: PermissionResponseAction.GRANT);
-                  }, */
-        shouldOverrideUrlLoading: (controller, navigationAction) async {
-          var uri = navigationAction.request.url!;
+                );
+              }
+            },
+            onLoadStart: (controller, url) {
+              // Workaround for Web: Check URL for a close signal (e.g., #close or ?close)
+              if (url != null && url.toString().contains('closeWebView')) {
+                Navigator.of(context).pop();
+                return;
+              }
+              setState(() {
+                this.url = url.toString();
+                urlController.text = this.url;
+              });
+            },
+            /* onPermissionRequest: (controller, request) async {
+                        return PermissionResponse(
+                            resources: request.resources,
+                            action: PermissionResponseAction.GRANT);
+                      }, */
+            shouldOverrideUrlLoading: (controller, navigationAction) async {
+              var uri = navigationAction.request.url!;
 
-          if (![
-            "http",
-            "https",
-            "file",
-            "chrome",
-            "data",
-            "javascript",
-            "about"
-          ].contains(uri.scheme)) {
-            if (await canLaunchUrl(uri)) {
-              // Launch the App
-              await launchUrl(
-                uri,
+              if (![
+                "http",
+                "https",
+                "file",
+                "chrome",
+                "data",
+                "javascript",
+                "about"
+              ].contains(uri.scheme)) {
+                if (await canLaunchUrl(uri)) {
+                  // Launch the App
+                  await launchUrl(
+                    uri,
+                  );
+                  // and cancel the request
+                  return NavigationActionPolicy.CANCEL;
+                }
+              }
+
+              return NavigationActionPolicy.ALLOW;
+            },
+            onLoadStop: (controller, url) async {
+              pullToRefreshController?.endRefreshing();
+              setState(() {
+                this.url = url.toString();
+                urlController.text = this.url;
+              });
+            },
+            /* onReceivedError: (controller, request, error) {
+                        pullToRefreshController?.endRefreshing();
+                      }, */
+            onProgressChanged: (controller, progress) {
+              if (progress == 100) {
+                pullToRefreshController?.endRefreshing();
+              }
+              setState(() {
+                this.progress = progress / 100;
+                urlController.text = this.url;
+              });
+            },
+            onUpdateVisitedHistory: (controller, url, androidIsReload) {
+              setState(() {
+                this.url = url.toString();
+                urlController.text = this.url;
+              });
+            },
+            onTitleChanged: (controller, title) {
+              // Standardize title-based communication for better reliability on Web
+              if (title != null && title.contains('closeWebView')) {
+                Navigator.of(context).pop();
+              }
+            },
+            onConsoleMessage: (controller, consoleMessage) {
+              // Permissive matching for console logs
+              if (consoleMessage.message.contains('closeWebView')) {
+                Navigator.of(context).pop();
+              }
+              // Manually forward to IDE console for debugging on Web
+              if (kDebugMode) {
+                debugPrint('WebView Console: ${consoleMessage.message}');
+              }
+            },
+            onDownloadStartRequest: (controller, downloadStartRequest) async {
+              debugPrint('Download is getting called - $downloadStartRequest');
+              final taskId = await FlutterDownloader.enqueue(
+                url: downloadStartRequest.url.toString(),
+                savedDir: (await getExternalStorageDirectory())!.path,
+                showNotification:
+                    true, // show download progress in status bar (for Android)
+                openFileFromNotification:
+                    true, // click on notification to open downloaded file (for Android)
               );
-              // and cancel the request
-              return NavigationActionPolicy.CANCEL;
-            }
-          }
-
-          return NavigationActionPolicy.ALLOW;
-        },
-        onLoadStop: (controller, url) async {
-          pullToRefreshController?.endRefreshing();
-          setState(() {
-            this.url = url.toString();
-            urlController.text = this.url;
-          });
-        },
-        /* onReceivedError: (controller, request, error) {
-                    pullToRefreshController?.endRefreshing();
-                  }, */
-        onProgressChanged: (controller, progress) {
-          if (progress == 100) {
-            pullToRefreshController?.endRefreshing();
-          }
-          setState(() {
-            this.progress = progress / 100;
-            urlController.text = url;
-          });
-        },
-        onUpdateVisitedHistory: (controller, url, androidIsReload) {
-          setState(() {
-            this.url = url.toString();
-            urlController.text = this.url;
-          });
-        },
-        onConsoleMessage: (controller, consoleMessage) {
-          if (kDebugMode) {
-            print(consoleMessage);
-          }
-        },
-        onDownloadStartRequest: (controller, downloadStartRequest) async {
-          debugPrint('Download is getting called - $downloadStartRequest');
-          final taskId = await FlutterDownloader.enqueue(
-            url: downloadStartRequest.url.toString(),
-            savedDir: (await getExternalStorageDirectory())!.path,
-            showNotification:
-                true, // show download progress in status bar (for Android)
-            openFileFromNotification:
-                true, // click on notification to open downloaded file (for Android)
-          );
-          /* await canLaunchUrl(downloadStartRequest.url)
-              ? await launchUrl(downloadStartRequest.url)
-              : throw 'Could not launch ${downloadStartRequest.url}'; */
-        },
-      ) /* WebViewWidget(controller: _controller) */,
+              /* await canLaunchUrl(downloadStartRequest.url)
+                  ? await launchUrl(downloadStartRequest.url)
+                  : throw 'Could not launch ${downloadStartRequest.url}'; */
+            },
+          ),
+        ) /* WebViewWidget(controller: _controller) */,
+      ),
     );
   }
 

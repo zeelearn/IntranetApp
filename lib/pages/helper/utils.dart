@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:Intranet/pages/helper/DatabaseHelper.dart';
 import 'package:Intranet/pages/helper/LocalStrings.dart';
 import 'package:Intranet/pages/helper/constants.dart';
 import 'package:Intranet/pages/iface/onClick.dart';
@@ -19,7 +20,9 @@ import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_nominatim/flutter_nominatim.dart';
 
+import '../intro/intro.dart';
 import '../utils/theme/colors/light_colors.dart';
 import 'LightColor.dart';
 import 'LocalConstant.dart';
@@ -41,7 +44,7 @@ class Utility {
   static int ACTION_IMAGE_UPLOAD_RESPONSE_OK = 100015;
   static int ACTION_IMAGE_UPLOAD_RESPONSE_ERROR = 100016;
 
-  static void openPermisisonSettings(BuildContext context) {
+  static Future<bool?> openPermisisonSettings(BuildContext context) async {
     AlertDialog alertBox = AlertDialog(
       title: const Text('Permission Required'),
       content: const Text(
@@ -50,7 +53,7 @@ class Utility {
         // usually buttons at the bottom of the dialog
         ElevatedButton(
           onPressed: () {
-            Navigator.of(context).pop();
+            Navigator.of(context).pop(false);
           },
           // style: ButtonStyle(elevation: MaterialStateProperty(12.0 )),
           style: ElevatedButton.styleFrom(
@@ -60,8 +63,9 @@ class Utility {
         ),
         ElevatedButton(
           onPressed: () async {
-            Navigator.of(context).pop();
-            await Utility.openSetting();
+            bool isAllowed = await Utility.openSetting();
+
+            Navigator.of(context).pop(isAllowed);
           },
           // style: ButtonStyle(elevation: MaterialStateProperty(12.0 )),
           style: ElevatedButton.styleFrom(
@@ -71,7 +75,7 @@ class Utility {
         ),
       ],
     );
-    showDialog(
+    showDialog<bool?>(
       context: context,
       builder: (BuildContext context) {
         return alertBox;
@@ -276,9 +280,9 @@ class Utility {
     );
   }
 
-  static openSetting() async {
+  static Future<bool> openSetting() async {
     print('open setting');
-    await openAppSettings();
+    return await openAppSettings();
   }
 
   static Future<bool> isOfflineEligble(String value) async {
@@ -548,17 +552,19 @@ class Utility {
   }
 
   static footer(String appVersion) {
-    return Container(
-      height: 30,
-      decoration: const BoxDecoration(
-        color: LightColors.kLightGray,
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(20),
-          topRight: Radius.circular(20),
+    return SafeArea(
+      child: Container(
+        height: 30,
+        decoration: const BoxDecoration(
+          color: LightColors.kLightGray,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(20),
+            topRight: Radius.circular(20),
+          ),
         ),
-      ),
-      child: Center(
-        child: Text('Intranet_$appVersion'),
+        child: Center(
+          child: Text('Intranet_$appVersion'),
+        ),
       ),
     );
   }
@@ -601,7 +607,8 @@ class Utility {
   }
 
   static void showMessageSingleButton(
-      BuildContext context, String message, onClickListener listener) {
+      BuildContext context, String message, onClickListener listener,
+      {dynamic object}) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -615,7 +622,7 @@ class Utility {
             ElevatedButton(
               onPressed: () {
                 Navigator.of(context).pop();
-                listener.onClick(ACTION_OK, '');
+                listener.onClick(ACTION_OK, object);
               },
               // style: ButtonStyle(elevation: MaterialStateProperty(12.0 )),
               style: ElevatedButton.styleFrom(
@@ -730,14 +737,20 @@ class Utility {
   }
 
   static DateTime convertDate(String value) {
-    DateTime dt = DateTime.now();
-    //2022-07-18T00:00:00
     try {
-      dt = DateFormat('yyyy-MM-dd\'T\'HH:mm:ss').parse(value);
+      // Try parsing as ISO 8601 format first (e.g., "2023-10-27T10:00:00")
+      return DateTime.parse(value);
     } catch (e) {
-      e.toString();
+      // Fallback to custom format if ISO parsing fails
+      try {
+        // Format: "dd-MM-yyyy'T'HH:mm:ss"
+        return DateFormat('dd-MM-yyyy\'T\'HH:mm:ss').parse(value);
+      } catch (e2) {
+        debugPrint('Could not parse date: "$value". Error: $e2');
+        // Return current time as a last resort
+        return DateTime.now();
+      }
     }
-    return dt;
   }
 
   static DateTime convertServerDate(String value) {
@@ -912,6 +925,29 @@ class Utility {
     );
   }
 
+  static signOut(BuildContext context) async {
+    var hiveBox = await Utility.openBox();
+    await Hive.openBox(LocalConstant.KidzeeDB);
+    hiveBox.clear();
+    hiveBox.close();
+    DBHelper helper = DBHelper();
+    helper.deleteAllData();
+    await Future.delayed(const Duration(seconds: 1));
+    Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(
+          builder: (context) => IntroPage(),
+        ),
+        (route) => false);
+    /* if (Platform.isAndroid) {
+      Future.delayed(const Duration(milliseconds: 100), () {
+        SystemChannels.platform.invokeMethod('SystemNavigator.pop');
+      });
+    } else if (Platform.isIOS) {
+      exit(0);
+    } */
+  }
+
   static onSuccessMessage(
       BuildContext context, String title, String message, onResponse response) {
     Dialogs.materialDialog(
@@ -980,6 +1016,55 @@ class Utility {
           onPressed: () {
             Future.delayed(const Duration(milliseconds: 50)).then((_) {
               response.onClick(ACTION_CCNCEL, action);
+            });
+          },
+          iconData: Icons.cancel,
+          text: actionCancel,
+          color: Colors.blue,
+          textStyle: const TextStyle(color: Colors.white),
+          iconColor: Colors.white,
+        ),
+      ],
+    );
+  }
+
+  static onConfirmationBoxNew(
+    BuildContext context,
+    String actionOk,
+    String actionCancel,
+    String title,
+    String message,
+    dynamic action,
+    VoidCallback onReject,
+    VoidCallback onApprove,
+  ) {
+    Dialogs.materialDialog(
+      color: Colors.white,
+      msg: message,
+      title: title,
+      lottieBuilder: Lottie.asset(
+        'assets/json/75382-question.json',
+        fit: BoxFit.contain,
+      ),
+      dialogWidth: kIsWeb ? 0.2 : null,
+      context: context,
+      actions: [
+        IconsButton(
+          onPressed: () {
+            Navigator.pop(context);
+            onApprove();
+          },
+          text: actionOk,
+          iconData: Icons.check,
+          color: Colors.blue,
+          textStyle: const TextStyle(color: Colors.white),
+          iconColor: Colors.white,
+        ),
+        IconsButton(
+          onPressed: () {
+            Future.delayed(const Duration(milliseconds: 50)).then((_) {
+              Navigator.pop(context);
+              onReject();
             });
           },
           iconData: Icons.cancel,
@@ -1190,45 +1275,48 @@ class Utility {
     );
   }
 
-  static getAddress(double latitude, double longitude) async {
-    List<Placemark> placemarks =
-        await placemarkFromCoordinates(latitude, longitude);
-    if (placemarks.isEmpty) {
-      return 'Unknown address';
-    }
+  static Future<String?> getAddress(double latitude, double longitude) async {
+    // if (kIsWeb) {
+    final nominatim = Nominatim.instance;
 
-    Placemark placemark = placemarks.first;
-    String address = '';
-    print(placemark.toString());
-    if (placemark.street != null) {
-      address += '${placemark.street}  , ';
-    } else if (placemark.thoroughfare != null) {
-      address += '${placemark.thoroughfare}, ';
-    }
+    // Get address from coordinates
+    Place address = await nominatim.getAddressFromLatLng(latitude, longitude);
+    print(
+        'Address web is - ${address.placeId}  ${address.displayName} - ${address.addressDetails}');
 
-    if (placemark.subLocality != null) {
-      address += '${placemark.subLocality}, ';
-    }
-    if (placemark.locality != null) {
-      address += '${placemark.locality}, ';
-    }
-    if (placemark.administrativeArea != null) {
-      address += '${placemark.administrativeArea}, ';
-    }
-    if (placemark.country != null) {
-      address += '${placemark.country}';
-    }
-    if (placemark.postalCode != null) {
-      address += ', ${placemark.postalCode}';
-    }
-    return address;
-  }
+    return address.displayName;
+    // } else {
+    //   List<Placemark> placemarks =
+    //       await placemarkFromCoordinates(latitude, longitude);
+    //   if (placemarks.isEmpty) {
+    //     return 'Unknown address';
+    //   }
 
-  static getAddress1(double latitude, double longitude) async {
-    final LocatitonGeocoder geocoder =
-        LocatitonGeocoder(LocalStrings.kGoogleApiKey);
-    final address = await geocoder
-        .findAddressesFromCoordinates(Coordinates(latitude, longitude));
-    return address.first.addressLine;
+    //   Placemark placemark = placemarks.first;
+    //   String address = '';
+    //   print(placemark.toString());
+    //   if (placemark.street != null) {
+    //     address += '${placemark.street ?? ''}  , ';
+    //   } else if (placemark.thoroughfare != null) {
+    //     address += '${placemark.thoroughfare ?? ''}, ';
+    //   }
+
+    //   if (placemark.subLocality != null) {
+    //     address += '${placemark.subLocality ?? ''}, ';
+    //   }
+    //   if (placemark.locality != null) {
+    //     address += '${placemark.locality ?? ''}, ';
+    //   }
+    //   if (placemark.administrativeArea != null) {
+    //     address += '${placemark.administrativeArea ?? ''}, ';
+    //   }
+    //   if (placemark.country != null) {
+    //     address += '${placemark.country ?? ''}';
+    //   }
+    //   if (placemark.postalCode != null) {
+    //     address += ', ${placemark.postalCode ?? ''}';
+    //   }
+    //   return address;
+    // }
   }
 }

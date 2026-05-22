@@ -10,9 +10,7 @@ import 'package:Intranet/pages/helper/LightColor.dart';
 import 'package:Intranet/pages/helper/constants.dart';
 import 'package:Intranet/pages/helper/utils.dart';
 import 'package:Intranet/pages/pjp/cvf/mypjpcvf.dart';
-import 'package:location/location.dart';
-import 'package:permission_handler/permission_handler.dart';
-import 'package:syncfusion_flutter_datepicker/datepicker.dart';
+import 'package:table_calendar/table_calendar.dart';
 
 import '../../api/APIService.dart';
 import '../../api/request/pjp/add_pjp_request.dart';
@@ -20,7 +18,6 @@ import '../../api/response/pjp/add_pjp_response.dart';
 import '../helper/DBConstant.dart';
 import '../helper/DatabaseHelper.dart';
 import '../helper/LocalConstant.dart';
-import '../helper/LocationHelper.dart';
 import '../iface/onClick.dart';
 import '../iface/onResponse.dart';
 import '../widget/primary_button.dart';
@@ -45,6 +42,7 @@ class _AddNewPJPState extends State<AddNewPJPScreen>
     implements onResponse, onClickListener {
   DateTime _fromDate = DateTime.now();
   DateTime _toDate = DateTime.now();
+  DateTime _focusedDay = DateTime.now();
   String _selectedDate = '';
   String _dateCount = '';
   String _range = '';
@@ -58,6 +56,7 @@ class _AddNewPJPState extends State<AddNewPJPScreen>
     super.initState();
     _fromDate = widget.currentDate;
     _toDate = widget.currentDate;
+    _focusedDay = widget.currentDate;
     mPjpModel = PJPModel(
         pjpId: 0,
         dateTime: DateTime.now(),
@@ -79,247 +78,248 @@ class _AddNewPJPState extends State<AddNewPJPScreen>
 
   @override
   Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    final bool isDesktop = width > 1100;
+    final bool isTablet = width >= 600 && width <= 1100;
+
     return Scaffold(
+      backgroundColor: const Color(0xFFF5F7FA),
       appBar: AppBar(
         backgroundColor: kPrimaryLightColor,
         elevation: 0.0,
-        leading: GestureDetector(
-          onTap: () {
-            Navigator.of(context).pop();
-          },
-          child: Icon(Icons.arrow_back),
-        ),
+        centerTitle: false,
         title: Text(
           "Add New PJP",
-          style: TextStyle(
+          style: GoogleFonts.inter(
             color: Colors.white,
-          ),
-        ),
-      ),
-      body: SingleChildScrollView(
-        child: Container(
-          padding: EdgeInsets.symmetric(horizontal: 14.0),
-          child: Column(
-            children: [
-              Container(
-                height: 300.0,
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.3),
-                  borderRadius: BorderRadius.circular(12.0),
-                ),
-                child: SfDateRangePicker(
-                  selectionMode: DateRangePickerSelectionMode.range,
-                  minDate: DateTime(
-                      DateTime.now().year, DateTime.now().month - 3, 1),
-                  maxDate: DateTime.now().add(const Duration(days: 30)),
-                  todayHighlightColor: Colors.white,
-                  initialSelectedRange:
-                      PickerDateRange(widget.currentDate, widget.currentDate),
-                  onSelectionChanged: _onSelectionChanged,
-                  enableMultiView: false,
-                  startRangeSelectionColor: LightColor.lightBlue,
-                  endRangeSelectionColor: LightColor.lightBlue,
-                  showTodayButton: false,
-                  selectionShape: DateRangePickerSelectionShape.rectangle,
-                  selectionColor: Colors.red,
-                  selectionTextStyle: TextStyle(color: Colors.white),
-                  headerStyle: DateRangePickerHeaderStyle(
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              ),
-              Card(
-                  child: Padding(
-                padding: EdgeInsets.all(10),
-                child: Column(
-                  children: [
-                    selectedDates(),
-                    getInput('Enter Purpose of Visit'),
-                    /*BookingPropertyFeatures(),*/
-                    SizedBox(
-                      height: 10.0,
-                    ),
-                    PrimaryButton(
-                      text: "Add NEW PJP",
-                      onPressed: () {
-                        addNewPjp();
-                        //Utility.showMessage(context, 'Please wait..');
-                      },
-                    )
-                  ],
-                ),
-              ))
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  getInput(String hint) {
-    return Container(
-      alignment: Alignment.centerLeft,
-      child: TextFormField(
-        controller: _remarkController,
-        obscureText: false,
-        decoration: InputDecoration(
-          hintText: hint,
-          hintStyle: TextStyle(
-            fontSize: 14.0,
-            color: Color.fromRGBO(124, 124, 124, 1),
             fontWeight: FontWeight.w600,
+            fontSize: 18,
           ),
-          enabledBorder: InputBorder.none,
-          focusedBorder: InputBorder.none,
-          border: OutlineInputBorder(
-            borderSide: BorderSide(
-              color: Colors.transparent,
-            ),
+        ),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+      ),
+      body: Center(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxWidth: isDesktop ? 1200 : 900),
+          child: SingleChildScrollView(
+            padding: EdgeInsets.all(isDesktop ? 32.0 : 16.0),
+            child: isDesktop || isTablet
+                ? Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(flex: 3, child: _buildCalendarCard()),
+                      const SizedBox(width: 24),
+                      Expanded(flex: 2, child: _buildFormCard()),
+                    ],
+                  )
+                : Column(
+                    children: [
+                      _buildCalendarCard(),
+                      const SizedBox(height: 20),
+                      _buildFormCard(),
+                    ],
+                  ),
           ),
         ),
       ),
     );
   }
 
-  void _onSelectionChanged(DateRangePickerSelectionChangedArgs args) {
-    /// The argument value will return the changed date as [DateTime] when the
-    /// widget [SfDateRangeSelectionMode] set as single.
-    ///
-    /// The argument value will return the changed dates as [List<DateTime>]
-    /// when the widget [SfDateRangeSelectionMode] set as multiple.
-    ///
-    /// The argument value will return the changed range as [PickerDateRange]
-    /// when the widget [SfDateRangeSelectionMode] set as range.
-    ///
-    /// The argument value will return the changed ranges as
-    /// [List<PickerDateRange] when the widget [SfDateRangeSelectionMode] set as
-    /// multi range.
-    setState(() {
-      if (args.value is PickerDateRange) {
-        debugPrint('range');
-        debugPrint(args.value.toString());
-        _fromDate = args.value.startDate;
-        _toDate = args.value.endDate ?? args.value.startDate;
-
-        _range = '${DateFormat('dd/MM/yyyy').format(args.value.startDate)} -'
-            // ignore: lines_longer_than_80_chars
-            ' ${DateFormat('dd/MM/yyyy').format(args.value.endDate ?? args.value.startDate)}';
-        debugPrint(_range);
-      } else if (args.value is DateTime) {
-        debugPrint('dateTime');
-        _selectedDate = args.value.toString();
-      } else if (args.value is List<DateTime>) {
-        debugPrint('datetime lise');
-        _dateCount = args.value.length.toString();
-      } else {
-        debugPrint('else');
-        _rangeCount = args.value.length.toString();
-      }
-    });
-  }
-
-  selectedDates() {
-    return Container(
-      margin: EdgeInsets.only(top: 0),
-      padding: EdgeInsets.symmetric(vertical: 0),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.3),
-        borderRadius: BorderRadius.circular(12.0),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            "NEW PJP",
-            textAlign: TextAlign.center,
-            style: GoogleFonts.inter(
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          Padding(
-            padding: EdgeInsets.symmetric(
-              horizontal: 16.0,
-              vertical: 10.0,
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  Widget _buildCalendarCard() {
+    return Card(
+      elevation: 2,
+      shadowColor: Colors.black12,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "From Date",
-                      style: GoogleFonts.inter(
-                        fontSize: 12.0,
-                      ),
-                    ),
-                    SizedBox(
-                      height: 5.0,
-                    ),
-                    Text(
-                      '${DateFormat('MMM dd').format(_fromDate)}',
-                      style: GoogleFonts.inter(
-                        fontSize: 20.0,
-                      ),
-                    ),
-                    SizedBox(
-                      height: 5.0,
-                    ),
-                    Text(
-                      '${DateFormat('EEEE').format(_fromDate)}',
-                      style: GoogleFonts.inter(
-                        fontSize: 20.0,
-                      ),
-                    ),
-                  ],
-                ),
-                Container(
-                  width: 45.0,
-                  height: 45.0,
-                  decoration: BoxDecoration(
-                    color: kPrimaryLightColor,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    FlutterIcons.arrowright_ant,
-                    color: Colors.white,
+                Icon(Icons.calendar_month_outlined,
+                    color: kPrimaryLightColor, size: 24),
+                const SizedBox(width: 12),
+                Text(
+                  "Select Journey Dates",
+                  style: GoogleFonts.inter(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: LightColors.kDarkBlue,
                   ),
                 ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "To Date",
-                      style: GoogleFonts.inter(
-                        fontSize: 12.0,
-                      ),
-                    ),
-                    SizedBox(
-                      height: 5.0,
-                    ),
-                    Text(
-                      '${DateFormat('MMM dd').format(_toDate)}',
-                      style: GoogleFonts.inter(
-                        fontSize: 20.0,
-                      ),
-                    ),
-                    SizedBox(
-                      height: 5.0,
-                    ),
-                    Text(
-                      '${DateFormat('EEEE').format(_toDate)}',
-                      style: GoogleFonts.inter(
-                        fontSize: 20.0,
-                      ),
-                    ),
-                  ],
-                )
               ],
             ),
-          )
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 16.0),
+              child: Divider(),
+            ),
+            TableCalendar(
+              firstDay:
+                  DateTime(DateTime.now().year, DateTime.now().month - 3, 1),
+              lastDay: DateTime.now().add(const Duration(days: 30)),
+              focusedDay: _focusedDay,
+              rangeStartDay: _fromDate,
+              rangeEndDay: _toDate,
+              rangeSelectionMode: RangeSelectionMode.toggledOn,
+              onRangeSelected: (start, end, focusedDay) {
+                setState(() {
+                  _focusedDay = focusedDay;
+                  if (start != null) {
+                    _fromDate = start;
+                    _toDate = end ?? start;
+                  }
+                });
+              },
+              headerStyle: const HeaderStyle(
+                formatButtonVisible: false,
+                titleCentered: true,
+              ),
+              calendarStyle: CalendarStyle(
+                todayDecoration: BoxDecoration(
+                  color: Colors.transparent,
+                  border: Border.all(color: kPrimaryLightColor),
+                ),
+                todayTextStyle: const TextStyle(color: Colors.black),
+                selectedTextStyle: const TextStyle(color: Colors.white),
+                rangeStartTextStyle: const TextStyle(color: Colors.white),
+                rangeEndTextStyle: const TextStyle(color: Colors.white),
+                rangeStartDecoration: BoxDecoration(
+                  color: kPrimaryLightColor,
+                  shape: BoxShape.circle,
+                ),
+                rangeEndDecoration: BoxDecoration(
+                  color: kPrimaryLightColor,
+                  shape: BoxShape.circle,
+                ),
+                rangeHighlightColor: kPrimaryLightColor.withOpacity(0.1),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFormCard() {
+    return Card(
+      elevation: 2,
+      shadowColor: Colors.black12,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _buildSelectedDatesSummary(),
+            const SizedBox(height: 24),
+            Text(
+              "Purpose of Visit",
+              style: GoogleFonts.inter(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: LightColors.kDarkBlue,
+              ),
+            ),
+            const SizedBox(height: 12),
+            _buildRemarkInput(),
+            const SizedBox(height: 32),
+            PrimaryButton(
+              text: "CREATE PJP PLAN",
+              onPressed: addNewPjp,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRemarkInput() {
+    return TextFormField(
+      controller: _remarkController,
+      maxLines: 4,
+      decoration: InputDecoration(
+        hintText: 'Enter specific details about your visit purpose...',
+        hintStyle: GoogleFonts.inter(fontSize: 14, color: Colors.grey[400]),
+        filled: true,
+        fillColor: Colors.grey[50],
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Colors.grey[300]!),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Colors.grey[300]!),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: kPrimaryLightColor, width: 2),
+        ),
+        contentPadding: const EdgeInsets.all(16),
+      ),
+    );
+  }
+
+  Widget _buildSelectedDatesSummary() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: kPrimaryLightColor.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: kPrimaryLightColor.withOpacity(0.1)),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          _buildDateDisplay("From Date", _fromDate),
+          const Icon(Icons.arrow_forward_rounded,
+              color: kPrimaryLightColor, size: 24),
+          _buildDateDisplay("To Date", _toDate),
         ],
       ),
     );
+  }
+
+  Widget _buildDateDisplay(String label, DateTime date) {
+    return Column(
+      children: [
+        Text(
+          label,
+          style: GoogleFonts.inter(
+              fontSize: 11,
+              color: Colors.grey[600],
+              fontWeight: FontWeight.w500),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          DateFormat('MMM dd').format(date),
+          style: GoogleFonts.inter(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: LightColors.kDarkBlue),
+        ),
+        Text(
+          DateFormat('EEEE').format(date),
+          style: GoogleFonts.inter(
+              fontSize: 11,
+              color: Colors.grey[500],
+              fontWeight: FontWeight.w400),
+        ),
+      ],
+    );
+  }
+
+  // Keep for compatibility but redirected to modern implementation
+  getInput(String hint) {
+    return _buildRemarkInput();
+  }
+
+  // Keep for compatibility but redirected to modern implementation
+  selectedDates() {
+    return _buildSelectedDatesSummary();
   }
 
   Future<bool> isValidate() async {
@@ -366,10 +366,13 @@ class _AddNewPJPState extends State<AddNewPJPScreen>
             mPjpModel.isSync = true;
             //mPjpModel.isActive = true;
             mPjpModel.remark = _remarkController.text.toString();
+
             debugPrint('New PJP ID ${mPjpModel.pjpId} ');
 
             addPJPinDB(1);
-            Utility.showMessageSingleButton(context, "PJP Added successfully", this);
+            Utility.showMessageSingleButton(
+                context, "PJP Added successfully", this,
+                object: mPjpModel);
             // Utility.showMessageMultiButton(context, "Done", "Add CVF",
             //     "Success", "PJP Added successfully", mPjpModel, this);
 
@@ -449,7 +452,7 @@ class _AddNewPJPState extends State<AddNewPJPScreen>
   @override
   void onClick(int action, value) {
     if (action == Utility.ACTION_OK) {
-      Navigator.of(context).pop();
+      Navigator.of(context).pop(value);
     } else if (action == Utility.ACTION_CCNCEL) {
       if (value is PJPModel) {
         PJPModel model = value;

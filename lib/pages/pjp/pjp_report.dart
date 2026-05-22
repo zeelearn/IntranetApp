@@ -105,6 +105,7 @@ class _MyPjpReportListState extends State<MyPjpReportScreen>
   loadPjpReport() async {
     PJPReportRequest request = PJPReportRequest(
         employeeCode: employeeCode,
+        businessId: businessId.toString(),
         fromDate: Utility.convertShortDate(fromDate),
         toDate: Utility.convertShortDate(toDate));
     isInternet = await Utility.isInternet();
@@ -135,6 +136,8 @@ class _MyPjpReportListState extends State<MyPjpReportScreen>
           mPjpList.addAll(response.responseData);
         setState(() {});
       } catch (e) {
+        isLoading = false;
+        setState(() {});
         loadPjpReport();
       }
     }
@@ -847,6 +850,7 @@ class _MyPjpReportListState extends State<MyPjpReportScreen>
     if (value is String) {
       PJPReportRequest request = PJPReportRequest(
           employeeCode: employeeCode,
+          businessId: businessId.toString(),
           fromDate: Utility.convertShortDate(fromDate),
           toDate: Utility.convertShortDate(toDate));
       IntranetServiceHandler.loadPjpReport(request, this);

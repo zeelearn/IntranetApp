@@ -16,27 +16,28 @@ class PJPModel {
   bool isCVFCompleted;
   DateTime createdDate;
   DateTime modifiedDate;
+  String? managerName;
   List<PJPCentersInfo> centerList;
 
-  PJPModel(
-      {required this.pjpId,
-        required this.dateTime,
-        required this.fromDate,
-        required this.toDate,
-        required this.remark,
-        required this.isSync,
-        required this.employeeId,
-        required this.centerList,
-        required this.isDelete,
-        required this.isActive,
-        required this.isCheckIn,
-        required this.isCheckOut,
-        required this.isCVFCompleted,
-        required this.isEdit,
-        required this.createdDate,
-        required this.modifiedDate,
-
-      });
+  PJPModel({
+    required this.pjpId,
+    required this.dateTime,
+    required this.fromDate,
+    required this.toDate,
+    required this.remark,
+    required this.isSync,
+    required this.employeeId,
+    required this.centerList,
+    required this.isDelete,
+    required this.isActive,
+    required this.isCheckIn,
+    required this.isCheckOut,
+    required this.isCVFCompleted,
+    required this.isEdit,
+    required this.createdDate,
+    required this.modifiedDate,
+    this.managerName,
+  });
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> map = {
@@ -55,6 +56,7 @@ class PJPModel {
       'isCVFCompleted': isCVFCompleted,
       'createdDate': createdDate,
       'modifiedDate': modifiedDate,
+      'managerName': managerName,
     };
 
     return map;

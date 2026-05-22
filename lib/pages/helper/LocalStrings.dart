@@ -7,12 +7,14 @@ class LocalStrings {
   static var stepThreeTitle = "Center Visit Form";
   static var stepThreeContent = "";
 
-  static const String bpms = "https://commonapi.zeelearn.com/";
+  static const String bpms = "https://kubapi.zeelearn.com/V1/commonapi";
+  static const String bpms_no_http = "kubapi.zeelearn.com";
   static const String productionBaseUrl = "https://app.ekidzee.com";
   static const String developmentBaseUrl = "https://intranetapi.zeelearn.com";
   static const kGoogleApiKey = "AIzaSyD-x4HqYO1O0kwDpkxIc128nM4f1bZ3oDM";
   static const String GET_TOKEN = "/snltoken";
   static const String GET_LOGIN = '/api/Account/Login';
+  static const String GET_MAGIC_LOGIN = '/api/Account/MagicLogin';
   static const String GET_ATTENDANCE_SUMMERY =
       '/api/EmployeeInfo/GetAttendance';
   static const String GET_LEAVE_SUMMERY = '/api/EmployeeInfo/CheckLeaveBalance';
@@ -55,6 +57,8 @@ class LocalStrings {
   static const String GET_FRANCHISEE_LAST_VISIT =
       '/api/PJP/GetFranchiseeLastVisit';
 
+  static const String API_CHANGE_PASSWORD = '/api/Account/ChangePassword';
+
   /*CVF*/
   static const String GET_CVF_CATEGORY = '/api/PJP/GetPJPCategory';
   static const String GET_CVF_CENTER_LIST = '/api/PJP/CenterSelect';
@@ -62,6 +66,8 @@ class LocalStrings {
   static const String SAVE_CVF_PJP = '/api/PJP/ins_pjpcvf';
   static const String GET_CVF_QUESTIONS = '/api/PJP/GetPJPQuestion';
   static const String GET_PJP_LIST = '/api/PJP/GetAllVisitDetails';
+  static const String GET_PJP_MYTEAM_REPORT =
+      '/api/PJP/RptMyTeamPJPCVF_updated';
   static const String GET_PJP_REPORT = '/api/PJP/RptMyTeamPJPCVF';
   static const String GET_PJP_EMPLOYEELIST =
       '/api/PJP/GetEmployeesBySuperiorID';
@@ -94,5 +100,5 @@ class LocalStrings {
   static const String API_BPMS_DELETETASK = 'api/bp//deletetask';
 
   static const String API_ZOHO_RECIPIENT =
-      'https://www.zohoapis.in/crm/v7/functions/get_zoho_sign_documnet_data/actions/execute?auth_type=apikey&zapikey=1003.e2dc28e888ffe4a032717981ed8fd253.c5db40b69abb74c9a47f51a6875f4248';
+      'https://www.zohoapis.in/crm/v7/functions/get_zoho_sign_documnet_data/actions/execute?auth_type=apikey&zapikey=1003.cf825177f2ce96ebc934296577eac040.f9c4c7b8967068e0cafbd4e62b900368';
 }

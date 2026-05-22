@@ -10,6 +10,10 @@
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
+	<key>MinimumOSVersion</key>
+	<string>16</string>
+	<key>LSApplicationCategoryType</key>
+	<string>public.app-category.utilities</string>
 	<key>CFBundleDisplayName</key>
 	<string>Intranet</string>
 	<key>CFBundleExecutable</key>
@@ -28,8 +32,8 @@
 	<string>????</string>
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
-    <key>FirebaseScreenReportingEnabled</key>
-    <true/>
+	<key>FirebaseScreenReportingEnabled</key>
+	<true/>
 	<key>FirebaseAppDelegateProxyEnabled</key>
 	<false/>
 	<key>FirebaseAutomaticScreenReportingEnabled</key>

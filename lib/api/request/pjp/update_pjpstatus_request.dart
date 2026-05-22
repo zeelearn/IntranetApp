@@ -1,21 +1,30 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
+
 class UpdatePJPStatusRequest {
   late int PJP_id;
   late int Is_Approved;
-  String Workflow_user='';
+  String Workflow_user = '';
 
   UpdatePJPStatusRequest(
-      {required this.PJP_id,required this.Is_Approved,required this.Workflow_user
-      });
+      {required this.PJP_id,
+      required this.Is_Approved,
+      required this.Workflow_user});
 
-  getJson(){
-    return jsonEncode( {
+  getJson() {
+    return jsonEncode({
       'PJP_id': PJP_id,
       'Is_Approved': Is_Approved,
       'Workflow_user': Workflow_user,
-      'AppType' :Platform.isAndroid ? 'Android' : Platform.isIOS ? 'IOS' : 'unknown'
+      'AppType': kIsWeb
+          ? 'Web'
+          : Platform.isAndroid
+              ? 'Android'
+              : Platform.isIOS
+                  ? 'IOS'
+                  : 'unknown'
     });
   }
 

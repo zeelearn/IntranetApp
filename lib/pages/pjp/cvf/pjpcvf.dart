@@ -10,6 +10,7 @@ import 'package:Intranet/pages/pjp/cvf/cvf_questions.dart';
 import 'package:location/location.dart';
 import 'package:order_tracker_zen/order_tracker_zen.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../api/ServiceHandler.dart';
 import '../../../api/request/cvf/update_cvf_status_request.dart';
@@ -432,6 +433,12 @@ class _MyCVFListScreen extends State<CVFListScreen>
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           // Add padding around the OrderTrackerZen widget for better presentation.
+          IconButton(
+            icon: Icon(Icons.map, color: Colors.blue),
+            onPressed: () {
+              openGoogleMaps(cvfInfo.Latitude, cvfInfo.Longitude);
+            },
+          ),
           Padding(
             padding: EdgeInsets.symmetric(horizontal: 20, vertical: 30),
             // OrderTrackerZen is the main widget of the package which displays the order tracking information.
@@ -443,6 +450,14 @@ class _MyCVFListScreen extends State<CVFListScreen>
         ],
       ),
     );
+  }
+
+  Future<void> openGoogleMaps(double lat, double lng) async {
+    final Uri url = Uri.parse(
+      'https://www.google.com/maps/search/?api=1&query=$lat,$lng',
+    );
+
+    await launchUrl(url, mode: LaunchMode.externalApplication);
   }
 
   getCvfView(GetDetailedPJP cvfView) {
@@ -1080,13 +1095,13 @@ class _MyCVFListScreen extends State<CVFListScreen>
   saveDataOffline(GetDetailedPJP cvfView) async {
     double latitude = 0.0;
     double longitude = 0.0;
-    LocationData location = await LocationHelper.getLocation(context);
+    LocationData? location = await LocationHelper.getLocation(context);
     if (location != null) {
       latitude = location.latitude!;
       longitude = location.longitude!;
     }
     print('pjpcvf ');
-    String address = '';//await Utility.getAddress(latitude, longitude);
+    String address = ''; //await Utility.getAddress(latitude, longitude);
     print('pjpcvf ${address}');
     UpdateCVFStatusRequest request = UpdateCVFStatusRequest(
         PJPCVF_id: cvfView.PJPCVF_Id,
@@ -1206,7 +1221,6 @@ class _MyCVFListScreen extends State<CVFListScreen>
 
       if (response.responseData != null && response.responseData.length > 0) {
         updateStatus(response);
-        
       }
     } else if (value is PjpListResponse) {
       PjpListResponse response = value;
@@ -1219,20 +1233,22 @@ class _MyCVFListScreen extends State<CVFListScreen>
     setState(() {});
   }
 
-  updateStatus(PjpListResponse response)async{
+  updateStatus(PjpListResponse response) async {
     String json = jsonEncode(response);
     DBHelper helper = DBHelper();
     saveCVFLocally(json);
-        mCvfList.clear();
-        for (int index = 0; index < response.responseData.length; index++) {
-          mCvfList.addAll(response.responseData[index].getDetailedPJP!);
-          for(int jIndex=0;jIndex < response.responseData[index].getDetailedPJP!.length;jIndex++)
-            await helper.deleteCheckInStatus(response.responseData[index].getDetailedPJP![jIndex].PJPCVF_Id);
-        }
-        setState(() {
-          //mPjpList.addAll(response.responseData);
-        });
-    
+    mCvfList.clear();
+    for (int index = 0; index < response.responseData.length; index++) {
+      mCvfList.addAll(response.responseData[index].getDetailedPJP!);
+      for (int jIndex = 0;
+          jIndex < response.responseData[index].getDetailedPJP!.length;
+          jIndex++)
+        await helper.deleteCheckInStatus(
+            response.responseData[index].getDetailedPJP![jIndex].PJPCVF_Id);
+    }
+    setState(() {
+      //mPjpList.addAll(response.responseData);
+    });
   }
 
   @override

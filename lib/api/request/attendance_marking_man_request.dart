@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
+
 class AttendanceMarkingManRequest {
   String Role;
   String Status;
@@ -9,28 +11,33 @@ class AttendanceMarkingManRequest {
   String FromDate;
   String Type;
 
+  AttendanceMarkingManRequest({
+    required this.Role,
+    required this.Status,
+    required this.Employee_Id,
+    required this.ToDate,
+    required this.FromDate,
+    required this.Type,
+  });
 
-  AttendanceMarkingManRequest(
-      {required this.Role,
-        required this.Status,
-        required this.Employee_Id,
-        required this.ToDate,
-        required this.FromDate,
-        required this.Type,
-
-      });
-
-  getJson(){
-    return jsonEncode( {
+  getJson() {
+    return jsonEncode({
       'Role': Role,
       'Status': Status.trim(),
       'Employee_Id': Employee_Id.trim(),
       'ToDate': ToDate.trim(),
       'FromDate': FromDate.trim(),
       'Type': Type.trim(),
-      'AppType' :Platform.isAndroid ? 'Android' : Platform.isIOS ? 'IOS' : 'unknown'
+      'AppType': kIsWeb
+          ? 'Web'
+          : Platform.isAndroid
+              ? 'Android'
+              : Platform.isIOS
+                  ? 'IOS'
+                  : 'unknown'
     });
   }
+
   Map<String, dynamic> toJson() {
     Map<String, dynamic> map = {
       'Role': Role,
@@ -39,7 +46,6 @@ class AttendanceMarkingManRequest {
       'ToDate': ToDate.trim(),
       'FromDate': FromDate.trim(),
       'Type': Type.trim(),
-
     };
 
     return map;

@@ -1,11 +1,13 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
+
 class CheckPhpRequest {
   late String Employee_id;
   late String OnDate;
 
-  CheckPhpRequest({required this.Employee_id,required this.OnDate});
+  CheckPhpRequest({required this.Employee_id, required this.OnDate});
 
   CheckPhpRequest.fromJson(Map<String, dynamic> json) {
     Employee_id = json['Employee_id'];
@@ -13,11 +15,16 @@ class CheckPhpRequest {
   }
 
   toJson() {
-    return jsonEncode( {
+    return jsonEncode({
       'Employee_id': this.Employee_id,
       'OnDate': this.OnDate,
-      'AppType' :Platform.isAndroid ? 'Android' : Platform.isIOS ? 'IOS' : 'unknown'
+      'AppType': kIsWeb
+          ? 'Web'
+          : Platform.isAndroid
+              ? 'Android'
+              : Platform.isIOS
+                  ? 'IOS'
+                  : 'unknown'
     });
-
   }
 }

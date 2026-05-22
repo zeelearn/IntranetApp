@@ -7,7 +7,13 @@
         {
             "name": "IntranetApp",
             "request": "launch",
-            "type": "dart"
+            "type": "dart",
+            "noDebug": true,
+            "args": [
+                "-v",
+                "--web-browser-flag",
+                "--disable-web-security"
+            ]
         },
         {
             "name": "IntranetApp (profile mode)",
@@ -19,7 +25,12 @@
             "name": "IntranetApp (release mode)",
             "request": "launch",
             "type": "dart",
-            "flutterMode": "release"
+            "flutterMode": "release",
+            "args": [
+                "-v",
+                "--web-browser-flag",
+                "--disable-web-security"
+            ]
         }
     ]
 }

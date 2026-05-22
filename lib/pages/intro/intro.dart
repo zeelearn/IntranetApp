@@ -11,16 +11,13 @@ class IntroPage extends StatefulWidget {
   _IntroPageState createState() => _IntroPageState();
 }
 
-
 class _IntroPageState extends State<IntroPage> {
   late PageController _pageController;
   int currentIndex = 0;
 
   @override
   void initState() {
-    _pageController = PageController(
-        initialPage: 0
-    );
+    _pageController = PageController(initialPage: 0);
     super.initState();
   }
 
@@ -39,78 +36,83 @@ class _IntroPageState extends State<IntroPage> {
         backgroundColor: Colors.white,
         actions: <Widget>[
           GestureDetector(
-            onTap: (){
+            onTap: () {
               Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(builder: (context) => LoginPage(isAutoLogin: false,)));
+                  MaterialPageRoute(
+                      builder: (context) => LoginPage(
+                            isAutoLogin: false,
+                          )));
             },
             child: Padding(
               padding: EdgeInsets.only(right: 20, top: 20),
-              child: Text('Skip', style: TextStyle(
-                  color: ColorSys.gray,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w400
-              ),),
+              child: Text(
+                'Skip',
+                style: TextStyle(
+                    color: ColorSys.gray,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w400),
+              ),
             ),
           )
-
         ],
       ),
-      body: Stack(
-        alignment: Alignment.bottomCenter,
-        children: <Widget>[
-          PageView(
-            onPageChanged: (int page) {
-              setState(() {
-                debugPrint('current page ${page}');
-                currentIndex = page;
-              });
-            },
-            controller: _pageController,
-            children: <Widget>[
-              makePage(
-                  image: 'assets/images/img_attendance.jpg',
-                  title: LocalStrings.stepOneTitle,
-                  content: LocalStrings.stepOneContent
-              ),
-              makePage(
-                  reverse: true,
-                  image: 'assets/images/img_intranetday.jpg',
-                  title: LocalStrings.stepTwoTitle,
-                  content: LocalStrings.stepTwoContent
-              ),
-              makePage(
-                  image: 'assets/images/img_attendance.jpg',
-                  title: LocalStrings.stepThreeTitle,
-                  content: LocalStrings.stepThreeContent
-              ),
-            ],
-          ),
-          Container(
-            margin: EdgeInsets.only(bottom: 90),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: _buildIndicator(),
-            ),
-          ),
-          Container(
-            margin: EdgeInsets.only(bottom: 30),
-            child: TextButton(
-              style: TextButton.styleFrom(
-                backgroundColor: Colors.red,
-                //primary: Colors.white, // foreground
-              ),
-              onPressed: () {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (context) => LoginPage(isAutoLogin: false,)),
-                );
+      body: SafeArea(
+        child: Stack(
+          alignment: Alignment.bottomCenter,
+          children: <Widget>[
+            PageView(
+              onPageChanged: (int page) {
+                setState(() {
+                  debugPrint('current page ${page}');
+                  currentIndex = page;
+                });
               },
-              child: Text('Start Now'),
+              controller: _pageController,
+              children: <Widget>[
+                makePage(
+                    image: 'assets/images/img_attendance.jpg',
+                    title: LocalStrings.stepOneTitle,
+                    content: LocalStrings.stepOneContent),
+                makePage(
+                    reverse: true,
+                    image: 'assets/images/img_intranetday.jpg',
+                    title: LocalStrings.stepTwoTitle,
+                    content: LocalStrings.stepTwoContent),
+                makePage(
+                    image: 'assets/images/img_attendance.jpg',
+                    title: LocalStrings.stepThreeTitle,
+                    content: LocalStrings.stepThreeContent),
+              ],
             ),
-          ),
-
-        ],
+            Container(
+              margin: EdgeInsets.only(bottom: 90),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: _buildIndicator(),
+              ),
+            ),
+            Container(
+              margin: EdgeInsets.only(bottom: 30),
+              child: TextButton(
+                style: TextButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  //primary: Colors.white, // foreground
+                ),
+                onPressed: () {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => LoginPage(
+                              isAutoLogin: false,
+                            )),
+                  );
+                },
+                child: Text('Start Now'),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -118,41 +120,61 @@ class _IntroPageState extends State<IntroPage> {
   Widget makePage({image, title, content, reverse = false}) {
     return Container(
       padding: EdgeInsets.only(left: 50, right: 50, bottom: 60),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          !reverse ?
-          Column(
-            children: <Widget>[
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20),
-                child: Image.asset(image),
-              ),
-              SizedBox(height: 30,),
-            ],
-          ) : SizedBox(),
-          Text(title, style: TextStyle(
-              color: ColorSys.primary,
-              fontSize: 30,
-              fontWeight: FontWeight.bold
-          ),),
-          SizedBox(height: 20,),
-          Text(content, textAlign: TextAlign.center, style: TextStyle(
-              color: ColorSys.gray,
-              fontSize: 20,
-              fontWeight: FontWeight.w400
-          ),),
-          reverse ?
-          Column(
-            children: <Widget>[
-              SizedBox(height: 30,),
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20),
-                child: Image.asset(image),
-              ),
-            ],
-          ) : SizedBox(),
-        ],
+      child: Center(
+        child: SingleChildScrollView(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: 600),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                !reverse
+                    ? Column(
+                        children: <Widget>[
+                          Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 20),
+                            child: Image.asset(image),
+                          ),
+                          SizedBox(
+                            height: 30,
+                          ),
+                        ],
+                      )
+                    : SizedBox(),
+                Text(
+                  title,
+                  style: TextStyle(
+                      color: ColorSys.primary,
+                      fontSize: 30,
+                      fontWeight: FontWeight.bold),
+                ),
+                SizedBox(
+                  height: 20,
+                ),
+                Text(
+                  content,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                      color: ColorSys.gray,
+                      fontSize: 20,
+                      fontWeight: FontWeight.w400),
+                ),
+                reverse
+                    ? Column(
+                        children: <Widget>[
+                          SizedBox(
+                            height: 30,
+                          ),
+                          Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 20),
+                            child: Image.asset(image),
+                          ),
+                        ],
+                      )
+                    : SizedBox(),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -164,15 +186,13 @@ class _IntroPageState extends State<IntroPage> {
       width: isActive ? 30 : 6,
       margin: EdgeInsets.only(right: 5),
       decoration: BoxDecoration(
-          color: ColorSys.secoundry,
-          borderRadius: BorderRadius.circular(5)
-      ),
+          color: ColorSys.secoundry, borderRadius: BorderRadius.circular(5)),
     );
   }
 
   List<Widget> _buildIndicator() {
     List<Widget> indicators = [];
-    for (int i = 0; i<3; i++) {
+    for (int i = 0; i < 3; i++) {
       if (currentIndex == i) {
         indicators.add(_indicator(true));
       } else {

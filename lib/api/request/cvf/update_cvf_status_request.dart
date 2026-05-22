@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
+
 class UpdateCVFStatusRequest {
   late String PJPCVF_id;
   late String DateTime;
@@ -14,13 +16,19 @@ class UpdateCVFStatusRequest {
   late String CheckOutAddress;
 
   UpdateCVFStatusRequest(
-      {
-        required this.PJPCVF_id,required this.DateTime,required this.Status,required this.Employee_id,required this.Latitude,required this.Longitude,
-        required this.Address, required this.CheckOutLatitude,required this.CheckOutLongitude,required this.CheckOutAddress
-      });
+      {required this.PJPCVF_id,
+      required this.DateTime,
+      required this.Status,
+      required this.Employee_id,
+      required this.Latitude,
+      required this.Longitude,
+      required this.Address,
+      required this.CheckOutLatitude,
+      required this.CheckOutLongitude,
+      required this.CheckOutAddress});
 
-  getJson(){
-    return jsonEncode( {
+  getJson() {
+    return jsonEncode({
       'PJPCVF_id': PJPCVF_id,
       'DateTime': DateTime,
       'Status': Status,
@@ -31,7 +39,13 @@ class UpdateCVFStatusRequest {
       'CheckOutLatitude': CheckOutLatitude,
       'CheckOutLongitude': CheckOutLongitude,
       'CheckOutAddress': CheckOutAddress,
-      'AppType' :Platform.isAndroid ? 'Android' : Platform.isIOS ? 'IOS' : 'unknown'
+      'AppType': kIsWeb
+          ? 'Web'
+          : Platform.isAndroid
+              ? 'Android'
+              : Platform.isIOS
+                  ? 'IOS'
+                  : 'unknown'
     });
   }
 

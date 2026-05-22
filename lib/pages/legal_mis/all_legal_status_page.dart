@@ -1,17 +1,17 @@
 import 'package:Intranet/api/APIService.dart';
+import 'package:Intranet/pages/legal_mis/document_status_screen.dart';
 import 'package:Intranet/pages/utils/theme/colors/light_colors.dart';
+import 'package:Intranet/pages/utils/util.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'package:saathi/core/utility/toastUtility.dart';
 import 'package:saathi/service/networking/apiService.dart';
 
-import '../../api/request/zoho_request_model.dart';
+// import '../../api/request/zoho_request_model.dart';
 import '../../api/request/zoho_request_model.dart' as zohoaction;
-import '../helper/LightColor.dart';
+
 import '../helper/constants.dart';
-import '../utils/toastmsg.dart';
-import '../widget/MyWebSiteView.dart';
-import 'all_legal_list_page.dart';
-import 'request_status_model.dart';
 
 class AllLegalStatusPage extends StatefulWidget {
   const AllLegalStatusPage({required this.email, super.key});
@@ -23,10 +23,50 @@ class AllLegalStatusPage extends StatefulWidget {
 
 class _AllLegalStatusPageState extends State<AllLegalStatusPage> {
   bool isLoading = true;
+  zohoaction.ZohoRequestModel? zohoRequestModel;
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
 
-  ZohoRequestModel? zohoRequestModel;
+  List<String> statusOrder = [
+    'All',
+  ];
 
-  List<RequestStatusModel> requestStatusList = [];
+  String _getEffectiveStatus(zohoaction.Requests request) {
+    if (request.actions != null) {
+      // Find the action corresponding to the current user.
+      for (final action in request.actions!) {
+        if (action.recipientEmail == widget.email) {
+          final actionStatus = action.actionStatus?.toLowerCase();
+          // If we found the user's action and it has a status, use that.
+          if (actionStatus != null && actionStatus.isNotEmpty) {
+            return actionStatus;
+          }
+          // Found the user's action, but it has no status.
+          // Stop searching and fall back to the main request status.
+          break;
+        }
+      }
+    }
+
+    // Fallback to the overall request status if no specific action is found for the user,
+    // or if the user's action has no status.
+    return request.requestStatus?.toLowerCase() ?? 'unknown';
+  }
+
+  String _getRequestStatus(zohoaction.Requests request) {
+    return request.requestStatus?.toLowerCase() ?? 'unknown';
+  }
+
+  String _getActionStatusOnly(zohoaction.Requests request) {
+    if (request.actions != null) {
+      for (final action in request.actions!) {
+        if (action.recipientEmail == widget.email) {
+          return action.actionStatus?.toLowerCase() ?? 'unknown';
+        }
+      }
+    }
+    return 'unknown';
+  }
 
   @override
   void initState() {
@@ -34,139 +74,524 @@ class _AllLegalStatusPageState extends State<AllLegalStatusPage> {
     super.initState();
   }
 
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
   getAllRequest() async {
     zohoRequestModel = await APIService().getRecipientList(widget.email);
-    requestStatusList.addAll(getStatusCounts(zohoRequestModel?.requests ?? []));
+
+    if (zohoRequestModel?.requests != null &&
+        zohoRequestModel!.requests!.isNotEmpty) {
+      zohoRequestModel!.requests!
+          .removeWhere((r) => _getRequestStatus(r) == 'draft');
+      Set<String> statuses = {};
+      for (var request in zohoRequestModel!.requests!) {
+        final status = _getRequestStatus(request);
+        if (status.isNotEmpty) statuses.add(status);
+      }
+
+      const List<String> desiredOrder = [
+        'inprogress',
+        'completed',
+        'no action',
+        'recalled',
+        'expired'
+      ];
+      List<String> sortedStatuses = statuses.toList();
+      sortedStatuses.sort((a, b) {
+        int indexA = desiredOrder.indexOf(a);
+        int indexB = desiredOrder.indexOf(b);
+        if (indexA == -1 && indexB == -1) return a.compareTo(b);
+        if (indexA == -1) return 1;
+        if (indexB == -1) return -1;
+        return indexA.compareTo(indexB);
+      });
+      statusOrder = ['All', ...sortedStatuses];
+    }
     setState(() {
       isLoading = false;
     });
   }
 
-  List<RequestStatusModel> getStatusCounts(List<Requests> requestsList) {
-    Map<String, int> statusCount = {};
-
-    for (var request in requestsList) {
-      if (request.requestStatus != null) {
-        statusCount[request.requestStatus!] =
-            (statusCount[request.requestStatus!] ?? 0) + 1;
-      }
-    }
-
-    String getDisplayName(String status) {
-      if (status == 'draft') {
-        return 'All Drafts';
-      } else if (status == 'inprogress') {
-        return 'In - Progress Agreements';
-      } else if (status == 'pending') {
-        return 'Pending Agreements';
-      } else if (status == 'completed') {
-        return 'Completed Agreements';
-      } else {
-        return status;
-      }
-    }
-
-    List<RequestStatusModel> result = statusCount.entries
-        .map((entry) => RequestStatusModel(
-            status: entry.key,
-            displayName: getDisplayName(entry.key),
-            count: entry.value))
+  List<zohoaction.Requests> getFilteredRequests(String status) {
+    if (zohoRequestModel?.requests == null) return [];
+    if (status == 'All') return zohoRequestModel!.requests!;
+    return zohoRequestModel!.requests!
+        .where((r) => _getRequestStatus(r) == status.toLowerCase())
         .toList();
-
-    result.insert(
-        0,
-        RequestStatusModel(
-            status: 'All',
-            displayName: 'All Agreements',
-            count: requestsList.length));
-
-    return result;
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Legal MIS'),
-      ),
-      body: Column(
-        children: [
-          Expanded(
-              child: isLoading
-                  ? const Center(
-                      child: CircularProgressIndicator(),
-                    )
-                  : zohoRequestModel?.error != null
-                      ? Center(child: Text(zohoRequestModel!.error!))
-                      : GridView.builder(
-                          gridDelegate:
-                              const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 2, // Number of columns
-                            crossAxisSpacing: 8.0, // Spacing between columns
-                            mainAxisSpacing: 8.0, // Spacing between rows
-                            childAspectRatio: 1, // Adjust the aspect ratio
-                          ),
-                          itemBuilder: (context, i) {
-                            return InkWell(
-                              onTap: () {
-                                Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => AllLegalListPage(
-                                        title: requestStatusList[i].status,
-                                        requestList: requestStatusList[i]
-                                                    .status ==
-                                                'All'
-                                            ? (zohoRequestModel?.requests ?? [])
-                                            : zohoRequestModel?.requests
-                                                    ?.where(
-                                                      (element) => (element
-                                                              .requestStatus
-                                                              ?.contains(
-                                                                  requestStatusList[
-                                                                          i]
-                                                                      .status) ??
-                                                          false),
-                                                    )
-                                                    .toList() ??
-                                                [],
+    // Default to 'inprogress' tab if it exists, otherwise 'All'.
+    int initialTabIndex = statusOrder.indexOf('inprogress');
+    if (initialTabIndex == -1) {
+      initialTabIndex = 0;
+    }
+
+    final bool hasNoData =
+        !isLoading && (zohoRequestModel?.requests?.isEmpty ?? true);
+
+    return DefaultTabController(
+      key: ValueKey(statusOrder.length),
+      length: statusOrder.length,
+      initialIndex: initialTabIndex,
+      child: Scaffold(
+        backgroundColor: const Color(0xFFF5F6F8),
+        appBar: AppBar(
+          title: const Text('Contracts'),
+          elevation: 0,
+          bottom: (isLoading || (zohoRequestModel?.error != null) || hasNoData)
+              ? null
+              : PreferredSize(
+                  preferredSize: const Size.fromHeight(60),
+                  child: Container(
+                    margin:
+                        const EdgeInsets.only(bottom: 12, left: 8, right: 8),
+                    child: TabBar(
+                      isScrollable: true,
+                      dividerColor: Colors.transparent,
+                      indicator: BoxDecoration(
+                        borderRadius: BorderRadius.circular(20),
+                        color: Colors.white,
+                      ),
+                      labelColor: kPrimaryLightColor,
+                      unselectedLabelColor: Colors.white,
+                      indicatorSize: TabBarIndicatorSize.tab,
+                      labelStyle: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                      ),
+                      unselectedLabelStyle: const TextStyle(
+                        fontWeight: FontWeight.w500,
+                        fontSize: 13,
+                      ),
+                      tabs: statusOrder
+                          .map((status) => Tab(
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 16),
+                                  child: Text(
+                                      '${Util.getDisplayTitle(status)} (${getFilteredRequests(status).length})'),
+                                ),
+                              ))
+                          .toList(),
+                    ),
+                  ),
+                ),
+        ),
+        body: SafeArea(
+          child: isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : zohoRequestModel?.error != null
+                  ? Center(child: Text(zohoRequestModel!.error!))
+                  : hasNoData
+                      ? const Center(child: Text('No agreements found.'))
+                      : Column(
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+                              child: Center(
+                                child: ConstrainedBox(
+                                  constraints:
+                                      const BoxConstraints(maxWidth: 800),
+                                  child: TextField(
+                                    controller: _searchController,
+                                    onChanged: (value) {
+                                      setState(() {
+                                        _searchQuery = value;
+                                      });
+                                    },
+                                    decoration: InputDecoration(
+                                      hintText: 'Search by Agreement Name',
+                                      hintStyle: const TextStyle(
+                                          color: Colors.grey, fontSize: 14),
+                                      prefixIcon: const Icon(Icons.search,
+                                          color: Colors.grey),
+                                      filled: true,
+                                      fillColor: Colors.white,
+                                      contentPadding:
+                                          const EdgeInsets.symmetric(
+                                              vertical: 10.0),
+                                      border: OutlineInputBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(12.0),
+                                        borderSide: BorderSide.none,
                                       ),
-                                    ));
-                              },
-                              child: Card(
-                                elevation: 5,
-                                color: kPrimaryLightColor,
-                                margin: const EdgeInsets.all(10),
-                                child: Container(
-                                  padding: const EdgeInsets.all(8),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.center,
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Text(
-                                        requestStatusList[i].count.toString(),
-                                        style: LightColors.textHeaderStyle16
-                                            .copyWith(
-                                                color: Colors.white,
-                                                fontWeight: FontWeight.bold),
+                                      enabledBorder: OutlineInputBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(12.0),
+                                        borderSide: BorderSide(
+                                            color:
+                                                Colors.grey.withOpacity(0.2)),
                                       ),
-                                      Text(
-                                        requestStatusList[i].displayName,
-                                        textAlign: TextAlign.center,
-                                        style: LightColors.textbigStyle
-                                            .copyWith(color: Colors.white),
+                                      focusedBorder: OutlineInputBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(12.0),
+                                        borderSide: BorderSide(
+                                            color: kPrimaryLightColor
+                                                .withOpacity(0.5)),
                                       ),
-                                    ],
+                                      suffixIcon: _searchQuery.isNotEmpty
+                                          ? IconButton(
+                                              icon: const Icon(Icons.clear,
+                                                  color: Colors.grey),
+                                              onPressed: () {
+                                                _searchController.clear();
+                                                setState(() {
+                                                  _searchQuery = '';
+                                                });
+                                              },
+                                            )
+                                          : null,
+                                    ),
                                   ),
                                 ),
                               ),
-                            );
-                          },
-                          itemCount: requestStatusList.length,
-                        ))
+                            ),
+                            Expanded(
+                              child: TabBarView(
+                                children: statusOrder
+                                    .map((status) => _buildRequestList(status))
+                                    .toList(),
+                              ),
+                            ),
+                          ],
+                        ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRequestList(String status) {
+    final initialRequests = getFilteredRequests(status);
+
+    final requests = _searchQuery.isEmpty
+        ? initialRequests
+        : initialRequests.where((request) {
+            final name = request.requestName?.toLowerCase() ?? '';
+            final id = request.requestId?.toLowerCase() ?? '';
+            final query = _searchQuery.toLowerCase();
+            return name.contains(query) || id.contains(query);
+          }).toList();
+
+    if (status.toLowerCase() == 'inprogress' && requests.isNotEmpty) {
+      return _buildNestedTabs(requests);
+    }
+
+    return _buildListView(requests, status);
+  }
+
+  Widget _buildNestedTabs(List<zohoaction.Requests> requests) {
+    Set<String> actionStatuses = {};
+    for (var r in requests) {
+      String as = _getActionStatusOnly(r);
+      if (as != 'unknown') actionStatuses.add(as);
+    }
+
+    if (actionStatuses.isEmpty) {
+      return _buildListView(requests, 'inprogress');
+    }
+
+    List<String> tabs = ['All', ...actionStatuses.toList()];
+
+    return DefaultTabController(
+      length: tabs.length,
+      child: Column(
+        children: [
+          Container(
+            color: Colors.white,
+            width: double.infinity,
+            child: TabBar(
+              isScrollable: true,
+              labelColor: kPrimaryLightColor,
+              unselectedLabelColor: Colors.grey,
+              indicatorSize: TabBarIndicatorSize.label,
+              tabs:
+                  tabs.map((t) => Tab(text: Util.getDisplayTitle(t))).toList(),
+            ),
+          ),
+          Expanded(
+            child: TabBarView(
+              children: tabs.map((t) {
+                List<zohoaction.Requests> filtered;
+                if (t == 'All') {
+                  filtered = requests;
+                } else {
+                  filtered = requests
+                      .where((r) => _getActionStatusOnly(r) == t)
+                      .toList();
+                }
+                return _buildListView(filtered, t);
+              }).toList(),
+            ),
+          ),
         ],
       ),
     );
+  }
+
+  Widget _buildListView(List<zohoaction.Requests> requests, String status) {
+    if (requests.isEmpty) {
+      return Center(
+        child: Text(
+          'No ${Util.getDisplayTitle(status)} agreements found',
+          style: const TextStyle(color: Colors.grey),
+        ),
+      );
+    }
+
+    return LayoutBuilder(builder: (context, constraints) {
+      if (constraints.maxWidth > 700) {
+        return GridView.builder(
+          padding: const EdgeInsets.only(left: 16, right: 16, top: 16),
+          gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+            maxCrossAxisExtent: 550,
+            childAspectRatio: constraints.maxWidth > 1100
+                ? 3.1
+                : constraints.maxWidth > 950
+                    ? 2.7
+                    : 2.7,
+            crossAxisSpacing: 16,
+            mainAxisSpacing: 16,
+          ),
+          itemCount: requests.length,
+          itemBuilder: (context, index) {
+            final request = requests[index];
+            return AgreementCard(
+              request: request,
+              effectiveStatus: _getEffectiveStatus(request),
+              email: widget.email,
+              margin: EdgeInsets.zero,
+            );
+          },
+        );
+      }
+      return ListView.builder(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        itemCount: requests.length,
+        itemBuilder: (context, index) {
+          final request = requests[index];
+          return AgreementCard(
+            request: request,
+            effectiveStatus: _getEffectiveStatus(request),
+            email: widget.email,
+          );
+        },
+      );
+    });
+  }
+}
+
+class AgreementCard extends StatelessWidget {
+  final zohoaction.Requests request;
+  final String email;
+  final String effectiveStatus;
+  final EdgeInsetsGeometry? margin;
+
+  const AgreementCard(
+      {required this.request,
+      required this.email,
+      required this.effectiveStatus,
+      this.margin,
+      super.key});
+
+  void _copyToClipboard(BuildContext context, String text, String label) {
+    Clipboard.setData(ClipboardData(text: text)).then((_) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Request Name copied to clipboard')),
+      );
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    String createdDate = request.createdTime == null
+        ? ''
+        : DateFormat('dd MMM yy').format(
+            DateTime.fromMillisecondsSinceEpoch(request.createdTime!.toInt()));
+    String expiryDate = request.expireBy == null
+        ? ''
+        : DateFormat('dd MMM yy').format(
+            DateTime.fromMillisecondsSinceEpoch(request.expireBy!.toInt()));
+
+    return InkWell(
+      onTap: () {
+        if (request.requestStatus?.toLowerCase() == 'draft') {
+          ToastUtility.showWarning(
+              msg:
+                  "This agreement is in Draft stage. Status details are not available.");
+          return;
+        }
+        Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => DocumentStatusScreen(
+                requests: request,
+              ),
+            ));
+      },
+      child: Container(
+        margin:
+            margin ?? const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: Colors.grey.withOpacity(0.2)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.03),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            request.requestName ?? 'Agreement',
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 16,
+                              color: Color(0xFF212121),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        InkWell(
+                          onTap: () => _copyToClipboard(
+                              context, request.requestName ?? '', "Name"),
+                          child: const Icon(Icons.copy,
+                              size: 18, color: Colors.blue),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: _getStatusColor(effectiveStatus).withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(4),
+                      border: Border.all(
+                          color: _getStatusColor(effectiveStatus)
+                              .withOpacity(0.2)),
+                    ),
+                    child: Text(
+                      (effectiveStatus).toUpperCase(),
+                      style: TextStyle(
+                        color: _getStatusColor(effectiveStatus),
+                        fontWeight: FontWeight.bold,
+                        fontSize: 11,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              _buildInfoItem(
+                  Icons.event_busy_outlined, 'Expires On', expiryDate),
+              /* const SizedBox(height: 16),
+              const Divider(height: 1, color: Color(0xFFEEEEEE)),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Text(
+                    'ID: ',
+                    style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                  ),
+                  Expanded(
+                    child: Text(
+                      request.requestId ?? 'N/A',
+                      maxLines: 1,
+                      style: const TextStyle(
+                          color: Colors.black87,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  InkWell(
+                    onTap: () => _copyToClipboard(
+                        context, request.requestId ?? '', "ID"),
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        color: Colors.blue.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child:
+                          const Icon(Icons.copy, size: 14, color: Colors.blue),
+                    ),
+                  ),
+                ],
+              ), */
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInfoItem(IconData icon, String label, String value) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 14, color: Colors.grey),
+            const SizedBox(width: 4),
+            Text(label,
+                style: const TextStyle(color: Colors.grey, fontSize: 12)),
+          ],
+        ),
+        const SizedBox(height: 4),
+        Text(value,
+            style: const TextStyle(
+                fontWeight: FontWeight.w500,
+                fontSize: 14,
+                color: Colors.black87)),
+      ],
+    );
+  }
+
+  Color _getStatusColor(String? status) {
+    switch (status?.toLowerCase()) {
+      case 'completed':
+      case 'signed':
+      case 'approved':
+        return Colors.green;
+      case 'pending':
+      case 'declined':
+        return Colors.orange;
+      case 'inprogress':
+      case 'viewed':
+        return Colors.blue;
+      case 'draft':
+      case 'recalled':
+        return Colors.grey;
+      default:
+        return Colors.black;
+    }
   }
 }
