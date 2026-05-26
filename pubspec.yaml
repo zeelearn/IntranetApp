@@ -137,10 +137,10 @@ dependencies:
     # path: D:/vishwan/ZeeSathi
 
   expensestracker:
-    # path: D:/vishwan/expensestracker
-    git:
-      url: https://github.com/ZeeLearnLtd/excepsesmanagement.git
-      ref: ui_enhancement
+    path: ../../excepsesmanagement
+    # git:
+    #   url: https://github.com/ZeeLearnLtd/excepsesmanagement.git
+    #   ref: ui_enhancement
 
 
   fl_chart: ^0.68.0
