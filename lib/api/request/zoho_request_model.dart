@@ -66,6 +66,7 @@ class ZohoRequestModel {
 
 class Requests {
   String? requestStatus;
+  String? agreementStatus;
   String? notes;
   num? reminderPeriod;
   String? ownerId;
@@ -97,6 +98,7 @@ class Requests {
 
   Requests(
       {this.requestStatus,
+      this.agreementStatus,
       this.notes,
       this.reminderPeriod,
       this.ownerId,
@@ -138,6 +140,7 @@ class Requests {
                 ? 'No Action'
                 : json['request_status'] ?? json['agreement_status']
         : json['agreement_status'];
+    agreementStatus = json['agreement_status'];
     notes = json['notes'];
     reminderPeriod = json['reminder_period'];
     ownerId = json['owner_id'];
@@ -193,6 +196,7 @@ class Requests {
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = <String, dynamic>{};
     data['request_status'] = requestStatus;
+    data['agreement_status'] = agreementStatus;
     data['notes'] = notes;
     data['reminder_period'] = reminderPeriod;
     data['owner_id'] = ownerId;

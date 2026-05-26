@@ -1,5 +1,6 @@
 import 'package:Intranet/api/APIService.dart';
 import 'package:Intranet/pages/legal_mis/document_status_screen.dart';
+import 'package:Intranet/pages/legal_mis/document_viewer.dart';
 import 'package:Intranet/pages/utils/theme/colors/light_colors.dart';
 import 'package:Intranet/pages/utils/util.dart';
 import 'package:flutter/material.dart';
@@ -508,8 +509,25 @@ class AgreementCard extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 16),
-              _buildInfoItem(
-                  Icons.event_busy_outlined, 'Expires On', expiryDate),
+              if(request.agreementStatus!=null && request.agreementStatus!.isNotEmpty && request.agreementStatus!.toLowerCase() =='completed' )
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  _buildInfoItem(
+                      Icons.event_busy_outlined, 'Expires On', expiryDate),
+                      IconButton(onPressed: () {
+                          Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) =>  PdfDocummentViewer(
+                              requestId: request.requestId! ,
+                              requestName : request.requestName!
+                            ),
+                          ),
+                        );
+                      }, icon: const Icon(Icons.picture_as_pdf,color: kPrimaryLightColor,size: 28,))
+                ],
+              ),
               /* const SizedBox(height: 16),
               const Divider(height: 1, color: Color(0xFFEEEEEE)),
               const SizedBox(height: 12),

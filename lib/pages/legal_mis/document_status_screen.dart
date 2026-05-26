@@ -1,7 +1,9 @@
 import 'dart:math' as math;
 import 'package:Intranet/api/request/zoho_request_model.dart';
+import 'package:Intranet/pages/helper/constants.dart';
 import 'package:Intranet/pages/legal_mis/document_provider.dart';
 import 'package:Intranet/pages/legal_mis/document_status.dart';
+import 'package:Intranet/pages/legal_mis/document_viewer.dart';
 import 'package:Intranet/pages/legal_mis/responsive_layout.dart';
 import 'package:Intranet/pages/utils/util.dart';
 import 'package:flutter/material.dart';
@@ -200,7 +202,19 @@ class DocumentStatusScreen extends ConsumerWidget {
             ],
           ),
         ],
-        const SizedBox(height: 16),
+        //const SizedBox(height: 16),
+        if(requests.agreementStatus!=null && requests.agreementStatus!.isNotEmpty && requests.agreementStatus!.toLowerCase() =='completed' )
+          IconButton(onPressed: () {
+                      Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) =>  PdfDocummentViewer(
+                          requestId: requests.requestId! ,
+                          requestName : requests.requestName!
+                        ),
+                      ),
+                    );
+                  }, icon: const Icon(Icons.picture_as_pdf,color: kPrimaryLightColor,size: 28,)),
         /* _buildInfoRow(
           Icons.tag,
           "ReqID",
