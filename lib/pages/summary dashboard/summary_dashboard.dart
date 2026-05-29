@@ -22,7 +22,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:saathi/core/utility/toastUtility.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+//import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:pointer_interceptor/pointer_interceptor.dart';
@@ -1690,7 +1690,7 @@ class _SummaryDashboardState extends State<SummaryDashboard>
       _KPICard('CVF', _totalVisits.toString(), Icons.check_circle_rounded,
           _green, presentBadge, true),
       _KPICard('Pending Approvals', _pendingApprovals.toString(),
-          FontAwesomeIcons.umbrellaBeach, _orange, onLeaveBadge, false),
+          Icons.pending, _orange, onLeaveBadge, false),
       _KPICard('Approved PJPs', _approvedPJP.toString(), Icons.task_alt_rounded,
           _accentSecondary, approvedBadge, true),
       _KPICard('Rejected PJPs', _rejectedPJP.toString(), Icons.cancel_rounded,
