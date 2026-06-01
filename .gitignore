@@ -11,6 +11,10 @@
 .svn/
 .swiftpm/
 migrate_working_dir/
+android/build/
+
+macos/
+/windows/flutter/
 
 # IntelliJ related
 *.iml

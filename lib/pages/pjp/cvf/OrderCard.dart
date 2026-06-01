@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_icons_null_safety/flutter_icons_null_safety.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
 
@@ -101,7 +100,8 @@ Widget getOrderIconWidget(OrderStatus status) {
           color: Color.fromRGBO(221, 40, 81, 0.18),
         ),
         child: Icon(
-          FlutterIcons.loader_fea,
+          //FlutterIcons.loader_fea,
+          Icons.donut_small,
           color: Color.fromRGBO(221, 40, 81, 1),
         ),
       );
@@ -114,7 +114,8 @@ Widget getOrderIconWidget(OrderStatus status) {
           color: Color.fromRGBO(255, 99, 2, 0.15),
         ),
         child: Icon(
-          FlutterIcons.history_mdi,
+          //FlutterIcons.history_mdi,
+          Icons.history,
           color: Color.fromRGBO(255, 99, 2, 1),
         ),
       );
@@ -127,7 +128,8 @@ Widget getOrderIconWidget(OrderStatus status) {
           color: Color.fromRGBO(221, 40, 81, 0.18),
         ),
         child: Icon(
-          FlutterIcons.loader_fea,
+          //FlutterIcons.loader_fea,
+          Icons.donut_small,
           color: Color.fromRGBO(221, 40, 81, 1),
         ),
       );
