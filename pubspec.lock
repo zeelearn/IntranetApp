@@ -613,11 +613,9 @@ packages:
   expensestracker:
     dependency: "direct main"
     description:
-      path: "."
-      ref: ui_enhancement
-      resolved-ref: dbe7f6f948a69c271e80a1fff8a21f8707bed747
-      url: "https://github.com/ZeeLearnLtd/excepsesmanagement.git"
-    source: git
+      path: "../excepsesmanagement"
+      relative: true
+    source: path
     version: "1.0.2+11"
   fake_async:
     dependency: transitive
