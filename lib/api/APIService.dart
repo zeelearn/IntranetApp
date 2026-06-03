@@ -1136,6 +1136,33 @@ class APIService {
     }
   }
 
+  Future<dynamic> cancelCVF(int pjpId, String docXml, int userId) async {
+    try {
+      var body = jsonEncode({
+        'PJP_Id': pjpId,
+        'DocXml': docXml,
+        'UserId': userId,
+        'IsCancelled': 1,
+        'AppType': kIsWeb
+            ? 'Web'
+            : Platform.isAndroid
+                ? 'Android'
+                : Platform.isIOS
+                    ? 'IOS'
+                    : 'unknown'
+      });
+      final response = await http.post(
+          Uri.parse(url + LocalStrings.UPDATE_PJPCVF),
+          headers: commonHeaders,
+          body: body);
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      }
+    } catch (e) {
+      debugPrint(e.toString());
+    }
+  }
+
   Future<dynamic> getMyReports(MyReportRequest requestModel) async {
     try {
       debugPrint(Uri.parse(url + LocalStrings.GET_GETPJPREPORT).toString());

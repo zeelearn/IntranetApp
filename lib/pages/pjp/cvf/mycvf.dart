@@ -392,7 +392,12 @@ class _MyCVFListScreen extends State<MyCVFListScreen>
                         ),
                       )
                     : !cvfView.approvalStatus.toLowerCase().contains('approv')
-                        ? null
+                        ? IconButton(
+                            icon: const Icon(Icons.cancel, color: Colors.red),
+                            onPressed: () {
+                              _showCancelConfirmation(cvfView);
+                            },
+                          )
                         : cvfView.Status == 'Check Out'
                             ? OutlinedButton(
                                 onPressed: () {
@@ -422,6 +427,31 @@ class _MyCVFListScreen extends State<MyCVFListScreen>
                                       fontWeight: FontWeight.w500,
                                     ),
                                   ),
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    cvfView.Address == 'Search Location'
+                        ? cvfView.franchiseeCode
+                        : cvfView.Address.length < 50
+                            ? cvfView.Address
+                            : cvfView.Address.substring(0, 50) + '..',
+                    style: const TextStyle(
+                      fontFamily: 'Lexend Deca',
+                      color: LightColor.grey,
+                      fontSize: 14,
+                      fontWeight: FontWeight.normal,
+                    ),
+                  ),
+                  if (cvfView.Status == 'Cancelled' &&
+                      cvfView.remarks.isNotEmpty &&
+                      cvfView.remarks != 'NA')
+                    Text(
+                      'Remark: ${cvfView.remarks}',
+                      style: const TextStyle(color: Colors.red, fontSize: 12),
+                    ),
+                ],
               ),
               Container(
                 color: LightColors.kLightGray,
@@ -910,6 +940,83 @@ class _MyCVFListScreen extends State<MyCVFListScreen>
       } else if (action == Utility.ACTION_CCNCEL) {}
     } else {
       debugPrint('click functions not implemented......');
+    }
+  }
+
+  void _showCancelConfirmation(GetDetailedPJP cvfView) {
+    final TextEditingController _remarkController = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("Cancel CVF"),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text("Are you sure you want to cancel this CVF?"),
+              const SizedBox(height: 10),
+              TextField(
+                controller: _remarkController,
+                decoration: const InputDecoration(
+                  labelText: "Remark",
+                  hintText: "Enter cancellation reason",
+                  border: OutlineInputBorder(),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              child: const Text("No"),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+            TextButton(
+              child: const Text("Yes"),
+              onPressed: () {
+                if (_remarkController.text.trim().isEmpty) {
+                  Utility.showMessage(context, 'Please enter a remark');
+                } else {
+                  Navigator.of(context).pop();
+                  _cancelCVF(cvfView, _remarkController.text.trim());
+                }
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _cancelCVF(GetDetailedPJP cvfView, String remark) async {
+    Utility.showLoaderDialog(context);
+    String categoryId = cvfView.purpose != null && cvfView.purpose!.isNotEmpty
+        ? cvfView.purpose![0].categoryId
+        : "0";
+
+    String docXml = '<root><tblPJPCVF>'
+        '<CVF_Id>${cvfView.PJPCVF_Id}</CVF_Id>'
+        '<Business_Id>$businessId</Business_Id>'
+        '<Employee_Id>$employeeId</Employee_Id>'
+        '<Franchisee_Id>${cvfView.franchiseeCode}</Franchisee_Id>'
+        '<Visit_Date>${cvfView.visitDate}</Visit_Date>'
+        '<Visit_Time>${cvfView.visitTime}</Visit_Time>'
+        '<Category_Id>$categoryId</Category_Id>'
+        '<Latitude>${cvfView.Latitude}</Latitude>'
+        '<Longitude>${cvfView.Longitude}</Longitude>'
+        '<ActivityTitle>${cvfView.ActivityTitle}</ActivityTitle>'
+        '<Address>${cvfView.Address}</Address>'
+        '<Remarks>$remark</Remarks>'
+        '</tblPJPCVF></root>';
+
+    APIService apiService = APIService();
+    var response = await apiService.cancelCVF(0, docXml, employeeId);
+    Navigator.of(context).pop();
+
+    if (response != null) {
+      Utility.showMessage(context, 'CVF Cancelled successfully');
+      loadAllCVF();
+    } else {
+      Utility.showMessage(context, 'Failed to cancel CVF');
     }
   }
 }

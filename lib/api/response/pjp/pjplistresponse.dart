@@ -264,6 +264,7 @@ class GetDetailedPJP implements Comparable<GetDetailedPJP> {
   late double LongitudeOut = 0.0;
   late String AddressOut = '';
   late String Status = '';
+  late String remarks = '';
   late List<Purpose>? purpose = [];
 
   late bool isSync = false;
@@ -295,6 +296,7 @@ class GetDetailedPJP implements Comparable<GetDetailedPJP> {
       required this.LongitudeOut,
       required this.AddressOut,
       required this.Status,
+      required this.remarks,
       required this.ActivityTitle,
       required this.purpose,
       required this.isActive,
@@ -360,6 +362,7 @@ class GetDetailedPJP implements Comparable<GetDetailedPJP> {
               json['ApprovalStatus'] ??
               'Pending')
           .toString();
+      remarks = json['Remarks'];
       purpose = <Purpose>[];
       final purposeData = json['Purpose'] ?? json['purpose'];
       if (purposeData != null && purposeData != 'NA') {

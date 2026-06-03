@@ -1,7 +1,6 @@
-import 'package:Intranet/pages/helper/utils.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:location/location.dart';
-import 'package:saathi/core/utility/toastUtility.dart';
+// imports trimmed: utils and toastUtility are unused here
 import 'location_service_stub.dart'
     if (dart.library.html) 'location_service_web.dart'
     if (dart.library.io) 'location_service_mobile.dart';
@@ -11,7 +10,6 @@ class LocationHelper {
     Location location = Location();
     bool serviceEnabled;
     PermissionStatus permissionGranted;
-    LocationData locationData;
     print('in Permission');
     serviceEnabled = await location.serviceEnabled();
     if (!serviceEnabled) {
@@ -21,8 +19,23 @@ class LocationHelper {
       }
     }
 
-    permissionGranted = await location.hasPermission();
-    if (permissionGranted == PermissionStatus.denied) {
+    try {
+      permissionGranted = await location.hasPermission();
+    } catch (e) {
+      // Some browsers' Permissions API can throw when used this way
+      // (e.g. PermissionDescriptor.name undefined). Fall back to
+      // requesting permission where possible, or return false.
+      print('location.hasPermission() failed: $e');
+      try {
+        permissionGranted = await location.requestPermission();
+      } catch (e2) {
+        print('location.requestPermission() also failed: $e2');
+        return false;
+      }
+    }
+
+    if (permissionGranted == PermissionStatus.denied ||
+        permissionGranted == PermissionStatus.deniedForever) {
       return false;
     }
     return true;

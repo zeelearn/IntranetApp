@@ -132,14 +132,14 @@ dependencies:
   saathi:
     git:
       url: https://github.com/ZeeLearnLtd/ZeeSathi.git
-      ref: native
+      ref: uat
     # path: D:/vishwan/ZeeSathi
 
   expensestracker:
-    # path: ../../excepsesmanagement
-    git:
-      url: https://github.com/ZeeLearnLtd/excepsesmanagement.git
-      ref: ui_enhancement
+    path: D:/vishwan/expensestracker
+    # git:
+    #   url: https://github.com/ZeeLearnLtd/excepsesmanagement.git
+    #   ref: uat
 
 
   fl_chart: ^1.2.0

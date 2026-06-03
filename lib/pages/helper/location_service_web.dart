@@ -13,10 +13,31 @@ class LocationServiceImpl {
         if (!serviceEnabled) return null;
       }
 
-      // Check and request permissions using the cross-platform package
-      PermissionStatus permissionStatus = await location.hasPermission();
+      // Check and request permissions using the cross-platform package.
+      // Some browsers can throw when the Permissions API is queried;
+      // guard against that and fall back to requesting permission.
+      PermissionStatus permissionStatus;
+      try {
+        permissionStatus = await location.hasPermission();
+      } catch (e) {
+        print('location.hasPermission() failed on web: $e');
+        try {
+          permissionStatus = await location.requestPermission();
+        } catch (e2) {
+          print('location.requestPermission() also failed on web: $e2');
+          _showMessage(context);
+          return null;
+        }
+      }
+
       if (permissionStatus == PermissionStatus.denied) {
-        permissionStatus = await location.requestPermission();
+        try {
+          permissionStatus = await location.requestPermission();
+        } catch (e) {
+          print('requestPermission failed: $e');
+          _showMessage(context);
+          return null;
+        }
       }
 
       if (permissionStatus != PermissionStatus.granted) {
