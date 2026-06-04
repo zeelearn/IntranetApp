@@ -232,8 +232,11 @@ class _MyCVFListScreen extends State<MyCVFListScreen>
   getCvfView(GetDetailedPJP cvfView) {
     return GestureDetector(
       onTap: () {
-        print(cvfView.toJson());
-        if (cvfView.approvalStatus.toLowerCase().contains('reject')) {
+        debugPrint(
+            "cvfView.Status ${cvfView.IsCancelled} ${cvfView.Status}  cvfView.approvalStatus ${cvfView.approvalStatus}");
+        if (cvfView.IsCancelled || cvfView.Status == 'Cancelled') {
+          Utility.showMessage(context, 'This CVF is cancelled');
+        } else if (cvfView.approvalStatus.toLowerCase().contains('reject')) {
           Utility.showMessage(context, 'This PJP is rejected by your manager');
         } else if (!cvfView.approvalStatus.toLowerCase().contains('approv')) {
           Utility.showMessage(
@@ -382,70 +385,114 @@ class _MyCVFListScreen extends State<MyCVFListScreen>
                     fontWeight: FontWeight.normal,
                   ),
                 ),
-                trailing: cvfView.approvalStatus
-                        .toLowerCase()
-                        .contains('reject')
-                    ? Text(
-                        'PJP Rejected',
+                trailing: (cvfView.IsCancelled || cvfView.Status == 'Cancelled')
+                    ? const Text(
+                        'Cancelled',
                         style: TextStyle(
-                          fontFamily: 'Lexend Deca',
-                          color: Color(0xFF4B39EF),
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
+                          color: Colors.red,
+                          fontWeight: FontWeight.bold,
                         ),
                       )
-                    : !cvfView.approvalStatus.toLowerCase().contains('approv')
-                        ? Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(
-                                icon: const Icon(Icons.edit_calendar,
-                                    color: Colors.blue),
-                                tooltip: 'Reschedule',
-                                onPressed: () {
-                                  _showRescheduleDialog(cvfView);
-                                },
-                              ),
-                              IconButton(
-                                icon:
-                                    const Icon(Icons.cancel, color: Colors.red),
-                                tooltip: 'Cancel',
-                                onPressed: () {
-                                  _showCancelConfirmation(cvfView);
-                                },
-                              ),
-                            ],
+                    : cvfView.approvalStatus.toLowerCase().contains('reject')
+                        ? Text(
+                            'PJP Rejected',
+                            style: TextStyle(
+                              fontFamily: 'Lexend Deca',
+                              color: Color(0xFF4B39EF),
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
                           )
-                        : cvfView.Status == 'Check Out'
-                            ? OutlinedButton(
-                                onPressed: () {
-                                  selectCategory(context, cvfView);
-                                },
-                                child: Text(
-                                  cvfView.Status,
-                                  style: TextStyle(
-                                    fontFamily: 'Lexend Deca',
-                                    color: Color(0xFF4B39EF),
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w500,
+                        : !cvfView.approvalStatus
+                                .toLowerCase()
+                                .contains('approv')
+                            ? Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  IconButton(
+                                    icon: const Icon(Icons.edit_calendar,
+                                        color: Colors.blue),
+                                    tooltip: 'Reschedule',
+                                    onPressed: () {
+                                      _showRescheduleDialog(cvfView);
+                                    },
                                   ),
-                                ),
+                                  IconButton(
+                                    icon: const Icon(Icons.cancel,
+                                        color: Colors.red),
+                                    tooltip: 'Cancel',
+                                    onPressed: () {
+                                      _showCancelConfirmation(cvfView);
+                                    },
+                                  ),
+                                ],
                               )
-                            : cvfView.Status == 'Completed'
-                                ? Image.asset(
-                                    'assets/icons/ic_checked.png',
-                                    height: 50,
-                                  )
-                                : Text(
-                                    cvfView.Status,
-                                    style: TextStyle(
-                                      fontFamily: 'Lexend Deca',
-                                      color: LightColors.kRed,
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w500,
+                            : cvfView.Status == 'Check Out'
+                                ? OutlinedButton(
+                                    onPressed: () {
+                                      selectCategory(context, cvfView);
+                                    },
+                                    child: Text(
+                                      cvfView.Status,
+                                      style: TextStyle(
+                                        fontFamily: 'Lexend Deca',
+                                        color: Color(0xFF4B39EF),
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w500,
+                                      ),
                                     ),
-                                  ),
+                                  )
+                                : cvfView.Status == 'Completed'
+                                    ? Image.asset(
+                                        'assets/icons/ic_checked.png',
+                                        height: 50,
+                                      )
+                                    : Text(
+                                        cvfView.Status,
+                                        style: TextStyle(
+                                          fontFamily: 'Lexend Deca',
+                                          color: LightColors.kRed,
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
               ),
+              if (cvfView.cvfHistory != null && cvfView.cvfHistory!.isNotEmpty)
+                Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.shade50,
+                      borderRadius: BorderRadius.circular(4),
+                      border: Border.all(color: Colors.blue.shade100),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Rescheduled From:',
+                          style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.blue),
+                        ),
+                        ...cvfView.cvfHistory!
+                            .map((history) => Padding(
+                                  padding: const EdgeInsets.only(top: 4.0),
+                                  child: Text(
+                                    '${Utility.shortDate(Utility.convertServerDate(history.visitDate))} at ${Utility.shortTime(Utility.convertTime(history.visitTime))} ${Utility.shortTimeAMPM(Utility.convertTime(history.visitTime))}',
+                                    style: const TextStyle(
+                                        fontSize: 12, color: Colors.black87),
+                                  ),
+                                ))
+                            .toList(),
+                      ],
+                    ),
+                  ),
+                ),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [

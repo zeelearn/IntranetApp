@@ -471,9 +471,10 @@ class _MyCVFListScreen extends State<CVFListScreen>
     }
     return GestureDetector(
       onTap: () {
-        print(
-            'in 456 ${widget.isView} status ${widget.mPjpInfo.ApprovalStatus}');
-        if (widget.isView && widget.mPjpInfo.ApprovalStatus == 'Pending') {
+        if (cvfView.IsCancelled || cvfView.Status == 'Cancelled') {
+          Utility.showMessage(context, 'This CVF is cancelled');
+        } else if (widget.isView &&
+            widget.mPjpInfo.ApprovalStatus == 'Pending') {
           Utility.showMessageSingleButton(
               context,
               'This pjp is not approved yet, Please connect with your manager',
@@ -634,12 +635,26 @@ class _MyCVFListScreen extends State<CVFListScreen>
                             ),
                           )
                         : widget.mPjpInfo.ApprovalStatus == 'Pending'
-                            ? IconButton(
-                                icon:
-                                    const Icon(Icons.cancel, color: Colors.red),
-                                onPressed: () {
-                                  _showCancelConfirmation(cvfView);
-                                },
+                            ? Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  IconButton(
+                                    icon: const Icon(Icons.edit_calendar,
+                                        color: Colors.blue),
+                                    tooltip: 'Reschedule',
+                                    onPressed: () {
+                                      // _showRescheduleDialog(cvfView);
+                                    },
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(Icons.cancel,
+                                        color: Colors.red),
+                                    tooltip: 'Cancel',
+                                    onPressed: () {
+                                      _showCancelConfirmation(cvfView);
+                                    },
+                                  ),
+                                ],
                               )
                             : cvfView.Status == 'Check Out'
                                 ? OutlinedButton(
@@ -671,6 +686,42 @@ class _MyCVFListScreen extends State<CVFListScreen>
                                         ),
                                       ),
               ),
+              if (cvfView.cvfHistory != null && cvfView.cvfHistory!.isNotEmpty)
+                Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.shade50,
+                      borderRadius: BorderRadius.circular(4),
+                      border: Border.all(color: Colors.blue.shade100),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Rescheduled From:',
+                          style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.blue),
+                        ),
+                        ...cvfView.cvfHistory!
+                            .map((history) => Padding(
+                                  padding: const EdgeInsets.only(top: 4.0),
+                                  child: Text(
+                                    '${Utility.shortDate(Utility.convertServerDate(history.visitDate))} at ${Utility.shortTime(Utility.convertTime(history.visitTime))} ${Utility.shortTimeAMPM(Utility.convertTime(history.visitTime))}',
+                                    style: const TextStyle(
+                                        fontSize: 12, color: Colors.black87),
+                                  ),
+                                ))
+                            .toList(),
+                      ],
+                    ),
+                  ),
+                ),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [

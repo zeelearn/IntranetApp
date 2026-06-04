@@ -1056,11 +1056,11 @@ class APIService {
           Uri.parse(url + LocalStrings.GET_ALL_CVF),
           headers: commonHeaders,
           body: requestModel.getJson());
-      debugPrint(LocalStrings.GET_ALL_CVF);
-      debugPrint(response.body);
+      // debugPrint(LocalStrings.GET_ALL_CVF);
+      // debugPrint(response.body);
       if (response.statusCode == 200 || response.statusCode == 400) {
         String data = response.body.replaceAll('null', 'NA');
-        debugPrint(data);
+        // debugPrint(data);
         if (response.body is GetAllCVFResponse) {
           return GetAllCVFResponse.fromJson(
             json.decode(data),

@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/cupertino.dart';
 
 class PjpListResponse {
@@ -268,6 +270,7 @@ class GetDetailedPJP implements Comparable<GetDetailedPJP> {
   late String Status = '';
   late String remarks = '';
   late List<Purpose>? purpose = [];
+  List<CVFHistory>? cvfHistory = [];
 
   late bool isSync = false;
   late bool isNotify = false;
@@ -312,7 +315,8 @@ class GetDetailedPJP implements Comparable<GetDetailedPJP> {
       required this.isSync,
       required this.isCompleted,
       required this.IsCancelled,
-      required this.approvalStatus});
+      required this.approvalStatus,
+      this.cvfHistory});
 
   @override
   int compareTo(GetDetailedPJP other) {
@@ -371,8 +375,8 @@ class GetDetailedPJP implements Comparable<GetDetailedPJP> {
               json['ApprovalStatus'] ??
               'Pending')
           .toString();
-      remarks = json['Remarks'];
-      IsCancelled = json['IsCancelled'] ?? false;
+      remarks = json['Remarks'] ?? '';
+
       purpose = <Purpose>[];
       final purposeData = json['Purpose'] ?? json['purpose'];
       if (purposeData != null && purposeData != 'NA') {
@@ -398,8 +402,24 @@ class GetDetailedPJP implements Comparable<GetDetailedPJP> {
           purpose!.add(Purpose.fromJson(purposeData));
         }
       }
+      IsCancelled =
+          (json['IsCancelled'] ?? '0').toString() == '1' ? true : false;
+      log('CVF id - ${PJPCVF_Id} - ${json['IsCancelled']}  - $IsCancelled');
+      final historyData = json['cvf_history'];
+      cvfHistory = <CVFHistory>[];
+      if (historyData != null && historyData != 'NA') {
+        if (historyData is List) {
+          for (var v in historyData) {
+            if (v != null && v is Map<String, dynamic>) {
+              cvfHistory!.add(CVFHistory.fromJson(v));
+            }
+          }
+        } else if (historyData is Map<String, dynamic>) {
+          cvfHistory!.add(CVFHistory.fromJson(historyData));
+        }
+      }
     } catch (e) {
-      debugPrint(e.toString());
+      debugPrint("Error while parsing ${e.toString()}");
     }
   }
 
@@ -428,11 +448,65 @@ class GetDetailedPJP implements Comparable<GetDetailedPJP> {
     data['ActivityTitle'] = ActivityTitle;
     data['Remarks'] = remarks;
     data['approvalStatus'] = approvalStatus;
+    data['IsCancelled'] = IsCancelled ? '1' : '0';
     if (purpose != null) {
       data['Purpose'] = purpose!.map((v) => v.toJson()).toList();
     } else {
       data['Purpose'] = [];
     }
+    if (cvfHistory != null) {
+      data['cvf_history'] = cvfHistory!.map((v) => v.toJson()).toList();
+    }
+    return data;
+  }
+}
+
+class CVFHistory {
+  late String visitDate;
+  late String visitTime;
+  late String franchiseeId;
+  late String franchiseeCode;
+  late String franchiseeName;
+  late String latitude;
+  late String longitude;
+  late String address;
+  String? activityTitle;
+
+  CVFHistory({
+    required this.visitDate,
+    required this.visitTime,
+    required this.franchiseeId,
+    required this.franchiseeCode,
+    required this.franchiseeName,
+    required this.latitude,
+    required this.longitude,
+    required this.address,
+    this.activityTitle,
+  });
+
+  CVFHistory.fromJson(Map<String, dynamic> json) {
+    visitDate = json['Visit_Date'] ?? '';
+    visitTime = json['Visit_Time'] ?? '';
+    franchiseeId = (json['Franchisee_Id'] ?? '').toString();
+    franchiseeCode = json['Franchisee_Code'] ?? '';
+    franchiseeName = json['Franchisee_Name'] ?? '';
+    latitude = (json['Latitude'] ?? '0').toString();
+    longitude = (json['Longitude'] ?? '0').toString();
+    address = json['Address'] ?? '';
+    activityTitle = json['ActivityTitle'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['Visit_Date'] = visitDate;
+    data['Visit_Time'] = visitTime;
+    data['Franchisee_Id'] = franchiseeId;
+    data['Franchisee_Code'] = franchiseeCode;
+    data['Franchisee_Name'] = franchiseeName;
+    data['Latitude'] = latitude;
+    data['Longitude'] = longitude;
+    data['Address'] = address;
+    data['ActivityTitle'] = activityTitle;
     return data;
   }
 }
