@@ -881,6 +881,7 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
               // Construct the detailed visit object locally to update the UI without an API call
               final newVisit = GetDetailedPJP(
                 remarks: '',
+                franchiseeId: getFrichanseeId().toString(),
                 PJPCVF_Id: response.responseData.toString(),
                 visitDate: Utility.convertShortDate(cvfDate),
                 visitTime: "${vistitDateTime?.hour}:${vistitDateTime?.minute}",

@@ -1136,13 +1136,14 @@ class APIService {
     }
   }
 
-  Future<dynamic> cancelCVF(int pjpId, String docXml, int userId) async {
+  Future<dynamic> cancelCVF(
+      int pjpId, String docXml, int userId, bool isCancel) async {
     try {
       var body = jsonEncode({
         'PJP_Id': pjpId,
         'DocXml': docXml,
         'UserId': userId,
-        'IsCancelled': 1,
+        'IsCancelled': isCancel ? 1 : 0,
         'AppType': kIsWeb
             ? 'Web'
             : Platform.isAndroid

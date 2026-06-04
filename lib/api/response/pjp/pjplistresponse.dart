@@ -244,10 +244,12 @@ class PJP {
 
 class GetDetailedPJP implements Comparable<GetDetailedPJP> {
   late String PJPCVF_Id = '';
+  String? PJP_Id;
 
   late String visitDate = '';
   late String visitTime = '';
   late String franchiseeCode = '';
+  late String franchiseeId = '';
   late String franchiseeName = '';
   late double Latitude = 0.0;
   late double Longitude = 0.0;
@@ -274,13 +276,17 @@ class GetDetailedPJP implements Comparable<GetDetailedPJP> {
   late bool isCheckIn = false;
   late bool isCheckOut = false;
   late bool isCompleted = false;
+  late bool IsCancelled = false;
+
   late String approvalStatus = 'Pending';
 
   GetDetailedPJP(
       {required this.PJPCVF_Id,
+      this.PJP_Id,
       required this.visitDate,
       required this.visitTime,
       required this.franchiseeCode,
+      required this.franchiseeId,
       required this.franchiseeName,
       required this.Latitude,
       required this.Longitude,
@@ -305,6 +311,7 @@ class GetDetailedPJP implements Comparable<GetDetailedPJP> {
       required this.isCheckOut,
       required this.isSync,
       required this.isCompleted,
+      required this.IsCancelled,
       required this.approvalStatus});
 
   @override
@@ -319,6 +326,7 @@ class GetDetailedPJP implements Comparable<GetDetailedPJP> {
   GetDetailedPJP.fromJson(Map<String, dynamic> json) {
     try {
       PJPCVF_Id = (json['PJPCVF_Id'] ?? json['pJPCVF_Id'] ?? '0').toString();
+      PJP_Id = json['PJP_Id'];
       visitDate =
           (json['Visit_Date'] ?? json['visit_Date']) == "1900-01-01T00:00:00"
               ? 'NA'
@@ -330,6 +338,7 @@ class GetDetailedPJP implements Comparable<GetDetailedPJP> {
       Status = json['Status'] ?? (json['status'] ?? 'Check In');
       franchiseeCode =
           json['Franchisee_Code'] ?? json['franchisee_Code'] ?? 'NA';
+      franchiseeId = json['Franchisee_Id'] ?? json['franchisee_Id'] ?? 'NA';
       franchiseeName =
           json['Franchisee_Name'] ?? json['franchisee_Name'] ?? 'NA';
       Address = json['Address'] ?? json['address'] ?? 'NA';
@@ -363,6 +372,7 @@ class GetDetailedPJP implements Comparable<GetDetailedPJP> {
               'Pending')
           .toString();
       remarks = json['Remarks'];
+      IsCancelled = json['IsCancelled'] ?? false;
       purpose = <Purpose>[];
       final purposeData = json['Purpose'] ?? json['purpose'];
       if (purposeData != null && purposeData != 'NA') {
@@ -396,10 +406,10 @@ class GetDetailedPJP implements Comparable<GetDetailedPJP> {
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = <String, dynamic>{};
     data['PJPCVF_Id'] = PJPCVF_Id;
-    //data['pjpId'] = this.pjpId;
+    data['PJP_Id'] = PJP_Id;
     data['Visit_Date'] = visitDate;
     data['Visit_Time'] = visitTime;
-    data['Franchisee_Code'] = franchiseeCode;
+    data['Franchisee_Id'] = franchiseeId;
     data['Franchisee_Name'] = franchiseeName;
     data['Status'] = Status;
     data['Latitude'] = Latitude;
@@ -416,6 +426,7 @@ class GetDetailedPJP implements Comparable<GetDetailedPJP> {
     data['LongitudeOut'] = LongitudeOut;
     data['AddressOut'] = AddressOut;
     data['ActivityTitle'] = ActivityTitle;
+    data['Remarks'] = remarks;
     data['approvalStatus'] = approvalStatus;
     if (purpose != null) {
       data['Purpose'] = purpose!.map((v) => v.toJson()).toList();

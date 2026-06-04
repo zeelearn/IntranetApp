@@ -7,6 +7,7 @@ import 'package:Intranet/pages/pjp/cvf/cvf_questions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hive/hive.dart';
+import 'package:intl/intl.dart';
 import 'package:location/location.dart';
 import 'package:order_tracker_zen/order_tracker_zen.dart';
 
@@ -36,6 +37,7 @@ class MyCVFListScreen extends StatefulWidget {
 class _MyCVFListScreen extends State<MyCVFListScreen>
     implements onResponse, onClickListener {
   int employeeId = 0;
+  int userId = 0;
   int businessId = 0;
   List<GetDetailedPJP> mCvfList = [];
   bool isLoading = true;
@@ -62,6 +64,7 @@ class _MyCVFListScreen extends State<MyCVFListScreen>
     await Hive.openBox(LocalConstant.KidzeeDB);
     employeeId =
         int.parse(hiveBox.get(LocalConstant.KEY_EMPLOYEE_ID) as String);
+    // userId = int.parse(hiveBox.get(LocalConstant.KEY_UID) as String);
     businessId = hiveBox.get(LocalConstant.KEY_BUSINESS_ID);
     loadData();
   }
@@ -392,11 +395,26 @@ class _MyCVFListScreen extends State<MyCVFListScreen>
                         ),
                       )
                     : !cvfView.approvalStatus.toLowerCase().contains('approv')
-                        ? IconButton(
-                            icon: const Icon(Icons.cancel, color: Colors.red),
-                            onPressed: () {
-                              _showCancelConfirmation(cvfView);
-                            },
+                        ? Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.edit_calendar,
+                                    color: Colors.blue),
+                                tooltip: 'Reschedule',
+                                onPressed: () {
+                                  _showRescheduleDialog(cvfView);
+                                },
+                              ),
+                              IconButton(
+                                icon:
+                                    const Icon(Icons.cancel, color: Colors.red),
+                                tooltip: 'Cancel',
+                                onPressed: () {
+                                  _showCancelConfirmation(cvfView);
+                                },
+                              ),
+                            ],
                           )
                         : cvfView.Status == 'Check Out'
                             ? OutlinedButton(
@@ -997,7 +1015,7 @@ class _MyCVFListScreen extends State<MyCVFListScreen>
         '<CVF_Id>${cvfView.PJPCVF_Id}</CVF_Id>'
         '<Business_Id>$businessId</Business_Id>'
         '<Employee_Id>$employeeId</Employee_Id>'
-        '<Franchisee_Id>${cvfView.franchiseeCode}</Franchisee_Id>'
+        '<Franchisee_Id>${cvfView.franchiseeId}</Franchisee_Id>'
         '<Visit_Date>${cvfView.visitDate}</Visit_Date>'
         '<Visit_Time>${cvfView.visitTime}</Visit_Time>'
         '<Category_Id>$categoryId</Category_Id>'
@@ -1009,7 +1027,8 @@ class _MyCVFListScreen extends State<MyCVFListScreen>
         '</tblPJPCVF></root>';
 
     APIService apiService = APIService();
-    var response = await apiService.cancelCVF(0, docXml, employeeId);
+    var response = await apiService.cancelCVF(
+        int.parse(cvfView.PJP_Id ?? '0'), docXml, employeeId, true);
     Navigator.of(context).pop();
 
     if (response != null) {
@@ -1017,6 +1036,146 @@ class _MyCVFListScreen extends State<MyCVFListScreen>
       loadAllCVF();
     } else {
       Utility.showMessage(context, 'Failed to cancel CVF');
+    }
+  }
+
+  void _showRescheduleDialog(GetDetailedPJP cvfView) {
+    DateTime selectedDate = Utility.convertServerDate(cvfView.visitDate);
+    DateTime visitTimeDt = Utility.convertTime(cvfView.visitTime);
+    TimeOfDay selectedTime =
+        TimeOfDay(hour: visitTimeDt.hour, minute: visitTimeDt.minute);
+
+    final TextEditingController _dateController = TextEditingController(
+      text: DateFormat('dd-MMM-yyyy').format(selectedDate),
+    );
+    final TextEditingController _timeController = TextEditingController(
+      text: DateFormat('hh:mm a').format(visitTimeDt),
+    );
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: const Text("Reschedule CVF"),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text("Update date and time for this visit."),
+                  const SizedBox(height: 15),
+                  TextField(
+                    controller: _dateController,
+                    readOnly: true,
+                    decoration: const InputDecoration(
+                      labelText: "Visit Date",
+                      suffixIcon: Icon(Icons.calendar_today),
+                      border: OutlineInputBorder(),
+                    ),
+                    onTap: () async {
+                      final DateTime? picked = await showDatePicker(
+                        context: context,
+                        initialDate: selectedDate,
+                        // Range should ideally be within the PJP's validity.
+                        // Since parent bounds are missing in this context, we default to current date.
+                        firstDate: DateTime.now(),
+                        lastDate: DateTime(2101),
+                      );
+                      if (picked != null) {
+                        setDialogState(() {
+                          selectedDate = picked;
+                          _dateController.text =
+                              DateFormat('dd-MMM-yyyy').format(selectedDate);
+                        });
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 15),
+                  TextField(
+                    controller: _timeController,
+                    readOnly: true,
+                    decoration: const InputDecoration(
+                      labelText: "Visit Time",
+                      suffixIcon: Icon(Icons.access_time),
+                      border: OutlineInputBorder(),
+                    ),
+                    onTap: () async {
+                      final TimeOfDay? picked = await showTimePicker(
+                        context: context,
+                        initialTime: selectedTime,
+                      );
+                      if (picked != null) {
+                        setDialogState(() {
+                          selectedTime = picked;
+                          final dt = DateTime(
+                              DateTime.now().year,
+                              DateTime.now().month,
+                              DateTime.now().day,
+                              selectedTime.hour,
+                              selectedTime.minute);
+                          _timeController.text =
+                              DateFormat('hh:mm a').format(dt);
+                        });
+                      }
+                    },
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  child: const Text("Cancel"),
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+                TextButton(
+                  child: const Text("Reschedule"),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    _rescheduleCVF(cvfView, selectedDate, selectedTime);
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _rescheduleCVF(
+      GetDetailedPJP cvfView, DateTime newDate, TimeOfDay newTime) async {
+    Utility.showLoaderDialog(context);
+    String categoryId = cvfView.purpose != null && cvfView.purpose!.isNotEmpty
+        ? cvfView.purpose![0].categoryId
+        : "0";
+
+    String visitDateFormatted = Utility.convertShortDate(newDate);
+    String visitTimeFormatted = "${newTime.hour}:${newTime.minute}";
+
+    String docXml = '<root><tblPJPCVF>'
+        '<CVF_Id>${cvfView.PJPCVF_Id}</CVF_Id>'
+        '<Business_Id>$businessId</Business_Id>'
+        '<Employee_Id>$employeeId</Employee_Id>'
+        '<Franchisee_Id>${cvfView.franchiseeId}</Franchisee_Id>'
+        '<Visit_Date>$visitDateFormatted</Visit_Date>'
+        '<Visit_Time>$visitTimeFormatted</Visit_Time>'
+        '<Category_Id>$categoryId</Category_Id>'
+        '<Latitude>${cvfView.Latitude}</Latitude>'
+        '<Longitude>${cvfView.Longitude}</Longitude>'
+        '<ActivityTitle>${cvfView.ActivityTitle}</ActivityTitle>'
+        '<Address>${cvfView.Address}</Address>'
+        '<Remarks>${cvfView.remarks}</Remarks>'
+        '</tblPJPCVF></root>';
+
+    APIService apiService = APIService();
+    var response = await apiService.cancelCVF(
+        int.parse(cvfView.PJP_Id ?? '0'), docXml, employeeId, false);
+    Navigator.of(context).pop();
+
+    if (response != null) {
+      Utility.showMessage(context, 'CVF Rescheduled successfully');
+      loadAllCVF();
+    } else {
+      Utility.showMessage(context, 'Failed to reschedule CVF');
     }
   }
 }

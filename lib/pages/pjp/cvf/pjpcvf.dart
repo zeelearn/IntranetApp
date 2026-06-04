@@ -1266,7 +1266,7 @@ class _MyCVFListScreen extends State<CVFListScreen>
         '<CVF_Id>${cvfView.PJPCVF_Id}</CVF_Id>'
         '<Business_Id>$businessId</Business_Id>'
         '<Employee_Id>$employeeId</Employee_Id>'
-        '<Franchisee_Id>${cvfView.franchiseeCode}</Franchisee_Id>'
+        '<Franchisee_Id>${cvfView.franchiseeId}</Franchisee_Id>'
         '<Visit_Date>${cvfView.visitDate}</Visit_Date>'
         '<Visit_Time>${cvfView.visitTime}</Visit_Time>'
         '<Category_Id>$categoryId</Category_Id>'
@@ -1279,7 +1279,7 @@ class _MyCVFListScreen extends State<CVFListScreen>
 
     APIService apiService = APIService();
     var response = await apiService.cancelCVF(
-        int.parse(widget.mPjpInfo.PJP_Id), docXml, employeeId);
+        int.parse(widget.mPjpInfo.PJP_Id), docXml, employeeId, true);
     Navigator.of(context).pop();
 
     if (response != null) {

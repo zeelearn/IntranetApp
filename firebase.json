@@ -1,1 +1,56 @@
-{"hosting":{"public":"build/web","ignore":["firebase.json","**/.*","**/node_modules/**"]},"flutter":{"platforms":{"android":{"default":{"projectId":"intranetweb-68536","appId":"1:92536473318:android:b224e4319ee42b8b179d27","fileOutput":"android/app/google-services.json"}},"ios":{"default":{"projectId":"intranetweb-68536","appId":"1:92536473318:ios:6562f21c7144c517179d27","uploadDebugSymbols":true,"fileOutput":"ios/Runner/GoogleService-Info.plist"}},"macos":{"default":{"projectId":"intranetweb-68536","appId":"1:92536473318:ios:6562f21c7144c517179d27","uploadDebugSymbols":true,"fileOutput":"macos/Runner/GoogleService-Info.plist"}},"dart":{"lib/firebase_options.dart":{"projectId":"intranetweb-68536","configurations":{"android":"1:92536473318:android:b224e4319ee42b8b179d27","ios":"1:92536473318:ios:6562f21c7144c517179d27","macos":"1:92536473318:ios:6562f21c7144c517179d27","web":"1:92536473318:web:2bff6cb251cb0157179d27","windows":"1:92536473318:web:426d7219add3f873179d27"}}}}}}
+{
+    "hosting": {
+        "public": "build/web",
+        "ignore": [
+            "firebase.json",
+            "**/.*",
+            "**/node_modules/**"
+        ],
+         "redirects": [
+      {
+        "source": "**",
+        "destination": "https://intranetapp.zeelearn.com",
+        "type": 301
+      }
+    ]
+    },
+    "flutter": {
+        "platforms": {
+            "android": {
+                "default": {
+                    "projectId": "intranetweb-68536",
+                    "appId": "1:92536473318:android:b224e4319ee42b8b179d27",
+                    "fileOutput": "android/app/google-services.json"
+                }
+            },
+            "ios": {
+                "default": {
+                    "projectId": "intranetweb-68536",
+                    "appId": "1:92536473318:ios:6562f21c7144c517179d27",
+                    "uploadDebugSymbols": true,
+                    "fileOutput": "ios/Runner/GoogleService-Info.plist"
+                }
+            },
+            "macos": {
+                "default": {
+                    "projectId": "intranetweb-68536",
+                    "appId": "1:92536473318:ios:6562f21c7144c517179d27",
+                    "uploadDebugSymbols": true,
+                    "fileOutput": "macos/Runner/GoogleService-Info.plist"
+                }
+            },
+            "dart": {
+                "lib/firebase_options.dart": {
+                    "projectId": "intranetweb-68536",
+                    "configurations": {
+                        "android": "1:92536473318:android:b224e4319ee42b8b179d27",
+                        "ios": "1:92536473318:ios:6562f21c7144c517179d27",
+                        "macos": "1:92536473318:ios:6562f21c7144c517179d27",
+                        "web": "1:92536473318:web:2bff6cb251cb0157179d27",
+                        "windows": "1:92536473318:web:426d7219add3f873179d27"
+                    }
+                }
+            }
+        }
+    }
+}
