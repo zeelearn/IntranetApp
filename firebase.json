@@ -5,14 +5,7 @@
             "firebase.json",
             "**/.*",
             "**/node_modules/**"
-        ],
-         "redirects": [
-      {
-        "source": "**",
-        "destination": "https://intranetapp.zeelearn.com",
-        "type": 301
-      }
-    ]
+        ]
     },
     "flutter": {
         "platforms": {

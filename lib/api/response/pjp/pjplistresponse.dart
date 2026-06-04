@@ -395,7 +395,7 @@ class GetDetailedPJP implements Comparable<GetDetailedPJP> {
               json['ApprovalStatus'] ??
               'Pending')
           .toString();
-      remarks = json['Remarks'] ?? '';
+      remarks = (json['Remarks'] ?? json['remarks'] ?? '').toString();
 
       purpose = <Purpose>[];
       final purposeData = json['Purpose'] ?? json['purpose'];

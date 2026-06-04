@@ -506,34 +506,35 @@ class _MyCVFListScreen extends State<MyCVFListScreen>
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    cvfView.Address == 'Search Location'
-                        ? cvfView.franchiseeCode
-                        : cvfView.Address.length < 50
-                            ? cvfView.Address
-                            : cvfView.Address.substring(0, 50) + '..',
-                    style: const TextStyle(
-                      fontFamily: 'Lexend Deca',
-                      color: LightColor.grey,
-                      fontSize: 14,
-                      fontWeight: FontWeight.normal,
-                    ),
-                  ),
                   if ((cvfView.IsCancelled || cvfView.Status == 'Cancelled') &&
                       cvfView.remarks.isNotEmpty &&
                       cvfView.remarks != 'NA')
-                    Text(
-                      'Cancel Remark: ${cvfView.remarks}',
-                      style: const TextStyle(color: Colors.red, fontSize: 12),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 4),
+                      child: Text(
+                        'Cancel Remark: ${cvfView.remarks}',
+                        style: const TextStyle(
+                            color: Colors.red,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500),
+                      ),
                     ),
                   if (!(cvfView.IsCancelled || cvfView.Status == 'Cancelled') &&
                       cvfView.cvfHistory != null &&
                       cvfView.cvfHistory!.isNotEmpty &&
                       cvfView.remarks.isNotEmpty &&
                       cvfView.remarks != 'NA')
-                    Text(
-                      'Reschedule Remark: ${cvfView.remarks}',
-                      style: const TextStyle(color: Colors.blue, fontSize: 12),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 4),
+                      child: Text(
+                        'Reschedule Remark: ${cvfView.remarks}',
+                        style: const TextStyle(
+                            color: Colors.blue,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500),
+                      ),
                     ),
                 ],
               ),
