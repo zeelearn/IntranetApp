@@ -365,9 +365,7 @@ class _MyPjpListState extends State<MyPjpListScreen>
               context,
               MaterialPageRoute(
                   builder: (context) =>
-                      CVFListScreen(mPjpInfo: pjpInfo, isView: true)));
-          // Utility.showMessageSingleButton(
-          //     context,
+                      CVFListScreen(mPjpInfo: pjpInfo, isView: false)));
           //     'This pjp is not approved yet, Please connect with your manager',
           //     this);
         }

@@ -151,11 +151,17 @@ class PJPInfo {
         if (detailedData is List) {
           for (var v in detailedData) {
             if (v != null && v is Map<String, dynamic>) {
-              getDetailedPJP!.add(GetDetailedPJP.fromJson(v));
+              var item = GetDetailedPJP.fromJson(v);
+              item.pjpFromDate = fromDate;
+              item.pjpToDate = toDate;
+              getDetailedPJP!.add(item);
             }
           }
         } else if (detailedData is Map<String, dynamic>) {
-          getDetailedPJP!.add(GetDetailedPJP.fromJson(detailedData));
+          var item = GetDetailedPJP.fromJson(detailedData);
+          item.pjpFromDate = fromDate;
+          item.pjpToDate = toDate;
+          getDetailedPJP!.add(item);
         }
       }
     } catch (e) {}
@@ -249,6 +255,7 @@ class GetDetailedPJP implements Comparable<GetDetailedPJP> {
   String? PJP_Id;
 
   late String visitDate = '';
+
   late String visitTime = '';
   late String franchiseeCode = '';
   late String franchiseeId = '';
@@ -272,6 +279,9 @@ class GetDetailedPJP implements Comparable<GetDetailedPJP> {
   late List<Purpose>? purpose = [];
   List<CVFHistory>? cvfHistory = [];
 
+  String? pjpFromDate;
+  String? pjpToDate;
+
   late bool isSync = false;
   late bool isNotify = false;
   late bool isDelete = false;
@@ -287,6 +297,8 @@ class GetDetailedPJP implements Comparable<GetDetailedPJP> {
       {required this.PJPCVF_Id,
       this.PJP_Id,
       required this.visitDate,
+      this.pjpFromDate,
+      this.pjpToDate,
       required this.visitTime,
       required this.franchiseeCode,
       required this.franchiseeId,
@@ -317,6 +329,12 @@ class GetDetailedPJP implements Comparable<GetDetailedPJP> {
       required this.IsCancelled,
       required this.approvalStatus,
       this.cvfHistory});
+
+  bool get hasPjpRange =>
+      pjpFromDate != null &&
+      pjpToDate != null &&
+      pjpFromDate != 'NA' &&
+      pjpToDate != 'NA';
 
   @override
   int compareTo(GetDetailedPJP other) {
@@ -357,6 +375,8 @@ class GetDetailedPJP implements Comparable<GetDetailedPJP> {
           (json['DateTimeIn'] ?? json['dateTimeIn']) == "1900-01-01T00:00:00"
               ? 'NA'
               : (json['DateTimeIn'] ?? json['dateTimeIn'] ?? 'NA').toString();
+      pjpFromDate = json['FromDate'] /* ?? json['FromDate'] */;
+      pjpToDate = json['ToDate'] /*  ?? ['ToDate'] */;
       Latitude = double.tryParse(json['Latitude']?.toString() ?? "") ?? 0.0;
       Longitude = double.tryParse(json['Longitude']?.toString() ?? "") ?? 0.0;
       LatitudeIn = double.tryParse(json['LatitudeIn']?.toString() ?? "") ?? 0.0;
@@ -404,7 +424,7 @@ class GetDetailedPJP implements Comparable<GetDetailedPJP> {
       }
       IsCancelled =
           (json['IsCancelled'] ?? '0').toString() == '1' ? true : false;
-      log('CVF id - ${PJPCVF_Id} - ${json['IsCancelled']}  - $IsCancelled');
+      // log('CVF id - ${PJPCVF_Id} - ${json['IsCancelled']}  - $IsCancelled');
       final historyData = json['cvf_history'];
       cvfHistory = <CVFHistory>[];
       if (historyData != null && historyData != 'NA') {

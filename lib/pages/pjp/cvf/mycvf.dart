@@ -232,6 +232,9 @@ class _MyCVFListScreen extends State<MyCVFListScreen>
   getCvfView(GetDetailedPJP cvfView) {
     return GestureDetector(
       onTap: () {
+        if (cvfView.Status.trim() == 'NA') {
+          cvfView.Status = 'Check In';
+        }
         debugPrint(
             "cvfView.Status ${cvfView.IsCancelled} ${cvfView.Status}  cvfView.approvalStatus ${cvfView.approvalStatus}");
         if (cvfView.IsCancelled || cvfView.Status == 'Cancelled') {
@@ -403,20 +406,27 @@ class _MyCVFListScreen extends State<MyCVFListScreen>
                               fontWeight: FontWeight.w500,
                             ),
                           )
-                        : !cvfView.approvalStatus
-                                .toLowerCase()
-                                .contains('approv')
+                        : (cvfView.Status == 'Check In' ||
+                                cvfView.Status == 'NA')
                             ? Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  IconButton(
-                                    icon: const Icon(Icons.edit_calendar,
-                                        color: Colors.blue),
-                                    tooltip: 'Reschedule',
-                                    onPressed: () {
-                                      _showRescheduleDialog(cvfView);
-                                    },
-                                  ),
+                                  if (cvfView.approvalStatus
+                                      .toLowerCase()
+                                      .contains('approv'))
+                                    IconButton(
+                                      icon: const Icon(Icons.edit_calendar,
+                                          color: Colors.blue),
+                                      tooltip: 'Reschedule',
+                                      onPressed: () {
+                                        if (cvfView.hasPjpRange) {
+                                          _showRescheduleDialog(cvfView);
+                                        } else {
+                                          Utility.showMessage(context,
+                                              "Cannot reschedule: PJP range not available.");
+                                        }
+                                      },
+                                    ),
                                   IconButton(
                                     icon: const Icon(Icons.cancel,
                                         color: Colors.red),
@@ -509,12 +519,21 @@ class _MyCVFListScreen extends State<MyCVFListScreen>
                       fontWeight: FontWeight.normal,
                     ),
                   ),
-                  if (cvfView.Status == 'Cancelled' &&
+                  if ((cvfView.IsCancelled || cvfView.Status == 'Cancelled') &&
                       cvfView.remarks.isNotEmpty &&
                       cvfView.remarks != 'NA')
                     Text(
-                      'Remark: ${cvfView.remarks}',
+                      'Cancel Remark: ${cvfView.remarks}',
                       style: const TextStyle(color: Colors.red, fontSize: 12),
+                    ),
+                  if (!(cvfView.IsCancelled || cvfView.Status == 'Cancelled') &&
+                      cvfView.cvfHistory != null &&
+                      cvfView.cvfHistory!.isNotEmpty &&
+                      cvfView.remarks.isNotEmpty &&
+                      cvfView.remarks != 'NA')
+                    Text(
+                      'Reschedule Remark: ${cvfView.remarks}',
+                      style: const TextStyle(color: Colors.blue, fontSize: 12),
                     ),
                 ],
               ),
@@ -1092,12 +1111,16 @@ class _MyCVFListScreen extends State<MyCVFListScreen>
     TimeOfDay selectedTime =
         TimeOfDay(hour: visitTimeDt.hour, minute: visitTimeDt.minute);
 
+    final TextEditingController _remarkController = TextEditingController();
     final TextEditingController _dateController = TextEditingController(
       text: DateFormat('dd-MMM-yyyy').format(selectedDate),
     );
     final TextEditingController _timeController = TextEditingController(
       text: DateFormat('hh:mm a').format(visitTimeDt),
     );
+
+    DateTime? firstDate = Utility.convertDate(cvfView.pjpFromDate ?? '');
+    DateTime? lastDate = Utility.convertDate(cvfView.pjpToDate ?? '');
 
     showDialog(
       context: context,
@@ -1122,11 +1145,15 @@ class _MyCVFListScreen extends State<MyCVFListScreen>
                     onTap: () async {
                       final DateTime? picked = await showDatePicker(
                         context: context,
-                        initialDate: selectedDate,
-                        // Range should ideally be within the PJP's validity.
-                        // Since parent bounds are missing in this context, we default to current date.
-                        firstDate: DateTime.now(),
-                        lastDate: DateTime(2101),
+                        initialDate: (firstDate != null &&
+                                selectedDate.isBefore(firstDate))
+                            ? firstDate
+                            : ((lastDate != null &&
+                                    selectedDate.isAfter(lastDate))
+                                ? lastDate
+                                : selectedDate),
+                        firstDate: firstDate ?? DateTime.now(),
+                        lastDate: lastDate ?? DateTime(2101),
                       );
                       if (picked != null) {
                         setDialogState(() {
@@ -1166,6 +1193,15 @@ class _MyCVFListScreen extends State<MyCVFListScreen>
                       }
                     },
                   ),
+                  const SizedBox(height: 15),
+                  TextField(
+                    controller: _remarkController,
+                    decoration: const InputDecoration(
+                      labelText: "Reason for Rescheduling",
+                      hintText: "Enter mandatory reason",
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
                 ],
               ),
               actions: [
@@ -1176,8 +1212,14 @@ class _MyCVFListScreen extends State<MyCVFListScreen>
                 TextButton(
                   child: const Text("Reschedule"),
                   onPressed: () {
-                    Navigator.of(context).pop();
-                    _rescheduleCVF(cvfView, selectedDate, selectedTime);
+                    if (_remarkController.text.trim().isEmpty) {
+                      Utility.showMessage(
+                          context, 'Please enter a reason for rescheduling');
+                    } else {
+                      Navigator.of(context).pop();
+                      _rescheduleCVF(cvfView, selectedDate, selectedTime,
+                          _remarkController.text.trim());
+                    }
                   },
                 ),
               ],
@@ -1188,8 +1230,8 @@ class _MyCVFListScreen extends State<MyCVFListScreen>
     );
   }
 
-  void _rescheduleCVF(
-      GetDetailedPJP cvfView, DateTime newDate, TimeOfDay newTime) async {
+  void _rescheduleCVF(GetDetailedPJP cvfView, DateTime newDate,
+      TimeOfDay newTime, String remark) async {
     Utility.showLoaderDialog(context);
     String categoryId = cvfView.purpose != null && cvfView.purpose!.isNotEmpty
         ? cvfView.purpose![0].categoryId
@@ -1210,7 +1252,7 @@ class _MyCVFListScreen extends State<MyCVFListScreen>
         '<Longitude>${cvfView.Longitude}</Longitude>'
         '<ActivityTitle>${cvfView.ActivityTitle}</ActivityTitle>'
         '<Address>${cvfView.Address}</Address>'
-        '<Remarks>${cvfView.remarks}</Remarks>'
+        '<Remarks>$remark</Remarks>'
         '</tblPJPCVF></root>';
 
     APIService apiService = APIService();
