@@ -265,6 +265,9 @@ final localhostServer =
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  if (kReleaseMode) {
+    debugPrint = (String? message, {int? wrapWidth}) {};
+  }
   // await dotenv.load(fileName: ".env");
 
   pdfrxFlutterInitialize();
@@ -518,7 +521,6 @@ Future<void> leaveService(int action) async {
 
 @pragma('vm:entry-point')
 Future<bool> onIosBackground(ServiceInstance service) async {
-
   DartPluginRegistrant.ensureInitialized();
 
   return true;

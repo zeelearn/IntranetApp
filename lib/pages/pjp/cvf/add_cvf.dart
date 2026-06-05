@@ -879,7 +879,8 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
               debugPrint(response.toString());
 
               // Construct the detailed visit object locally to update the UI without an API call
-              final newVisit = GetDetailedPJP(IsCancelled: false,
+              final newVisit = GetDetailedPJP(
+                IsCancelled: false,
                 remarks: '',
                 franchiseeId: getFrichanseeId().toString(),
                 PJPCVF_Id: response.responseData.toString(),

@@ -232,8 +232,14 @@ class _MyCVFListScreen extends State<MyCVFListScreen>
   getCvfView(GetDetailedPJP cvfView) {
     return GestureDetector(
       onTap: () {
-        print(cvfView.toJson());
-        if (cvfView.approvalStatus.toLowerCase().contains('reject')) {
+        if (cvfView.Status.trim() == 'NA') {
+          cvfView.Status = 'Check In';
+        }
+        debugPrint(
+            "cvfView.Status ${cvfView.IsCancelled} ${cvfView.Status}  cvfView.approvalStatus ${cvfView.approvalStatus}");
+        if (cvfView.IsCancelled || cvfView.Status == 'Cancelled') {
+          Utility.showMessage(context, 'This CVF is cancelled');
+        } else if (cvfView.approvalStatus.toLowerCase().contains('reject')) {
           Utility.showMessage(context, 'This PJP is rejected by your manager');
         } else if (!cvfView.approvalStatus.toLowerCase().contains('approv')) {
           Utility.showMessage(
@@ -382,92 +388,153 @@ class _MyCVFListScreen extends State<MyCVFListScreen>
                     fontWeight: FontWeight.normal,
                   ),
                 ),
-                trailing: cvfView.approvalStatus
-                        .toLowerCase()
-                        .contains('reject')
-                    ? Text(
-                        'PJP Rejected',
+                trailing: (cvfView.IsCancelled || cvfView.Status == 'Cancelled')
+                    ? const Text(
+                        'Cancelled',
                         style: TextStyle(
-                          fontFamily: 'Lexend Deca',
-                          color: Color(0xFF4B39EF),
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
+                          color: Colors.red,
+                          fontWeight: FontWeight.bold,
                         ),
                       )
-                    : !cvfView.approvalStatus.toLowerCase().contains('approv')
-                        ? Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(
-                                icon: const Icon(Icons.edit_calendar,
-                                    color: Colors.blue),
-                                tooltip: 'Reschedule',
-                                onPressed: () {
-                                  _showRescheduleDialog(cvfView);
-                                },
-                              ),
-                              IconButton(
-                                icon:
-                                    const Icon(Icons.cancel, color: Colors.red),
-                                tooltip: 'Cancel',
-                                onPressed: () {
-                                  _showCancelConfirmation(cvfView);
-                                },
-                              ),
-                            ],
+                    : cvfView.approvalStatus.toLowerCase().contains('reject')
+                        ? Text(
+                            'PJP Rejected',
+                            style: TextStyle(
+                              fontFamily: 'Lexend Deca',
+                              color: Color(0xFF4B39EF),
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
                           )
-                        : cvfView.Status == 'Check Out'
-                            ? OutlinedButton(
-                                onPressed: () {
-                                  selectCategory(context, cvfView);
-                                },
-                                child: Text(
-                                  cvfView.Status,
-                                  style: TextStyle(
-                                    fontFamily: 'Lexend Deca',
-                                    color: Color(0xFF4B39EF),
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              )
-                            : cvfView.Status == 'Completed'
-                                ? Image.asset(
-                                    'assets/icons/ic_checked.png',
-                                    height: 50,
-                                  )
-                                : Text(
-                                    cvfView.Status,
-                                    style: TextStyle(
-                                      fontFamily: 'Lexend Deca',
-                                      color: LightColors.kRed,
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w500,
+                        : (cvfView.Status == 'Check In' ||
+                                cvfView.Status == 'NA')
+                            ? Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  if (cvfView.approvalStatus
+                                      .toLowerCase()
+                                      .contains('approv'))
+                                    IconButton(
+                                      icon: const Icon(Icons.edit_calendar,
+                                          color: Colors.blue),
+                                      tooltip: 'Reschedule',
+                                      onPressed: () {
+                                        if (cvfView.hasPjpRange) {
+                                          _showRescheduleDialog(cvfView);
+                                        } else {
+                                          Utility.showMessage(context,
+                                              "Cannot reschedule: PJP range not available.");
+                                        }
+                                      },
                                     ),
+                                  IconButton(
+                                    icon: const Icon(Icons.cancel,
+                                        color: Colors.red),
+                                    tooltip: 'Cancel',
+                                    onPressed: () {
+                                      _showCancelConfirmation(cvfView);
+                                    },
                                   ),
+                                ],
+                              )
+                            : cvfView.Status == 'Check Out'
+                                ? OutlinedButton(
+                                    onPressed: () {
+                                      selectCategory(context, cvfView);
+                                    },
+                                    child: Text(
+                                      cvfView.Status,
+                                      style: TextStyle(
+                                        fontFamily: 'Lexend Deca',
+                                        color: Color(0xFF4B39EF),
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  )
+                                : cvfView.Status == 'Completed'
+                                    ? Image.asset(
+                                        'assets/icons/ic_checked.png',
+                                        height: 50,
+                                      )
+                                    : Text(
+                                        cvfView.Status,
+                                        style: TextStyle(
+                                          fontFamily: 'Lexend Deca',
+                                          color: LightColors.kRed,
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
               ),
+              if (cvfView.cvfHistory != null && cvfView.cvfHistory!.isNotEmpty)
+                Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.shade50,
+                      borderRadius: BorderRadius.circular(4),
+                      border: Border.all(color: Colors.blue.shade100),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Rescheduled From:',
+                          style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.blue),
+                        ),
+                        ...cvfView.cvfHistory!
+                            .map((history) => Padding(
+                                  padding: const EdgeInsets.only(top: 4.0),
+                                  child: Text(
+                                    '${Utility.shortDate(Utility.convertServerDate(history.visitDate))} at ${Utility.shortTime(Utility.convertTime(history.visitTime))} ${Utility.shortTimeAMPM(Utility.convertTime(history.visitTime))}',
+                                    style: const TextStyle(
+                                        fontSize: 12, color: Colors.black87),
+                                  ),
+                                ))
+                            .toList(),
+                      ],
+                    ),
+                  ),
+                ),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    cvfView.Address == 'Search Location'
-                        ? cvfView.franchiseeCode
-                        : cvfView.Address.length < 50
-                            ? cvfView.Address
-                            : cvfView.Address.substring(0, 50) + '..',
-                    style: const TextStyle(
-                      fontFamily: 'Lexend Deca',
-                      color: LightColor.grey,
-                      fontSize: 14,
-                      fontWeight: FontWeight.normal,
-                    ),
-                  ),
-                  if (cvfView.Status == 'Cancelled' &&
+                  if ((cvfView.IsCancelled || cvfView.Status == 'Cancelled') &&
                       cvfView.remarks.isNotEmpty &&
                       cvfView.remarks != 'NA')
-                    Text(
-                      'Remark: ${cvfView.remarks}',
-                      style: const TextStyle(color: Colors.red, fontSize: 12),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 4),
+                      child: Text(
+                        'Cancel Remark: ${cvfView.remarks}',
+                        style: const TextStyle(
+                            color: Colors.red,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500),
+                      ),
+                    ),
+                  if (!(cvfView.IsCancelled || cvfView.Status == 'Cancelled') &&
+                      cvfView.cvfHistory != null &&
+                      cvfView.cvfHistory!.isNotEmpty &&
+                      cvfView.remarks.isNotEmpty &&
+                      cvfView.remarks != 'NA')
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 4),
+                      child: Text(
+                        'Reschedule Remark: ${cvfView.remarks}',
+                        style: const TextStyle(
+                            color: Colors.blue,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500),
+                      ),
                     ),
                 ],
               ),
@@ -1045,12 +1112,16 @@ class _MyCVFListScreen extends State<MyCVFListScreen>
     TimeOfDay selectedTime =
         TimeOfDay(hour: visitTimeDt.hour, minute: visitTimeDt.minute);
 
+    final TextEditingController _remarkController = TextEditingController();
     final TextEditingController _dateController = TextEditingController(
       text: DateFormat('dd-MMM-yyyy').format(selectedDate),
     );
     final TextEditingController _timeController = TextEditingController(
       text: DateFormat('hh:mm a').format(visitTimeDt),
     );
+
+    DateTime? firstDate = Utility.convertDate(cvfView.pjpFromDate ?? '');
+    DateTime? lastDate = Utility.convertDate(cvfView.pjpToDate ?? '');
 
     showDialog(
       context: context,
@@ -1075,11 +1146,15 @@ class _MyCVFListScreen extends State<MyCVFListScreen>
                     onTap: () async {
                       final DateTime? picked = await showDatePicker(
                         context: context,
-                        initialDate: selectedDate,
-                        // Range should ideally be within the PJP's validity.
-                        // Since parent bounds are missing in this context, we default to current date.
-                        firstDate: DateTime.now(),
-                        lastDate: DateTime(2101),
+                        initialDate: (firstDate != null &&
+                                selectedDate.isBefore(firstDate))
+                            ? firstDate
+                            : ((lastDate != null &&
+                                    selectedDate.isAfter(lastDate))
+                                ? lastDate
+                                : selectedDate),
+                        firstDate: firstDate ?? DateTime.now(),
+                        lastDate: lastDate ?? DateTime(2101),
                       );
                       if (picked != null) {
                         setDialogState(() {
@@ -1119,6 +1194,15 @@ class _MyCVFListScreen extends State<MyCVFListScreen>
                       }
                     },
                   ),
+                  const SizedBox(height: 15),
+                  TextField(
+                    controller: _remarkController,
+                    decoration: const InputDecoration(
+                      labelText: "Reason for Rescheduling",
+                      hintText: "Enter mandatory reason",
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
                 ],
               ),
               actions: [
@@ -1129,8 +1213,14 @@ class _MyCVFListScreen extends State<MyCVFListScreen>
                 TextButton(
                   child: const Text("Reschedule"),
                   onPressed: () {
-                    Navigator.of(context).pop();
-                    _rescheduleCVF(cvfView, selectedDate, selectedTime);
+                    if (_remarkController.text.trim().isEmpty) {
+                      Utility.showMessage(
+                          context, 'Please enter a reason for rescheduling');
+                    } else {
+                      Navigator.of(context).pop();
+                      _rescheduleCVF(cvfView, selectedDate, selectedTime,
+                          _remarkController.text.trim());
+                    }
                   },
                 ),
               ],
@@ -1141,8 +1231,8 @@ class _MyCVFListScreen extends State<MyCVFListScreen>
     );
   }
 
-  void _rescheduleCVF(
-      GetDetailedPJP cvfView, DateTime newDate, TimeOfDay newTime) async {
+  void _rescheduleCVF(GetDetailedPJP cvfView, DateTime newDate,
+      TimeOfDay newTime, String remark) async {
     Utility.showLoaderDialog(context);
     String categoryId = cvfView.purpose != null && cvfView.purpose!.isNotEmpty
         ? cvfView.purpose![0].categoryId
@@ -1163,7 +1253,7 @@ class _MyCVFListScreen extends State<MyCVFListScreen>
         '<Longitude>${cvfView.Longitude}</Longitude>'
         '<ActivityTitle>${cvfView.ActivityTitle}</ActivityTitle>'
         '<Address>${cvfView.Address}</Address>'
-        '<Remarks>${cvfView.remarks}</Remarks>'
+        '<Remarks>$remark</Remarks>'
         '</tblPJPCVF></root>';
 
     APIService apiService = APIService();
