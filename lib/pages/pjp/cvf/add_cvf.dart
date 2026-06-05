@@ -833,10 +833,7 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
   }
 
   addNewCVF() async {
-    if (!await LocationHelper.isLocationPermission(context)) {
-      print('in if location status');
-      LocationData? deviceLocation = await LocationHelper.getLocation(context);
-    } else if (await validate()) {
+    if (await validate()) {
       if (!await Utility.isInternet()) {
         Utility.noInternetConnection(context);
       } else {
