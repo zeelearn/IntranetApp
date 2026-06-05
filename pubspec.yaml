@@ -176,7 +176,7 @@ dependency_overrides:
   firebase_app_check: ^0.4.0
   firebase_auth: ^6.0.1
   #cloud_firestore: ^6.3.0
-  cloud_firestore: ^6.4.1
+  cloud_firestore: 6.4.1
   share_plus: ^11.0.0
   fluttertoast: ^9.0.0
   flutter_widget_from_html_core: ^0.17.0
