@@ -74,7 +74,7 @@ class _SplashScreenState extends State<SplashScreen> {
               ));
     } else {
       debugPrint(' in else');
-      if (kIsWeb) {
+      if (false && kIsWeb) {
         Navigator.of(context).pushReplacement(MaterialPageRoute(
             builder: (BuildContext context) => LoginPage(
                   isAutoLogin: false,

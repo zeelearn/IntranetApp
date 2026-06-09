@@ -17,7 +17,6 @@ import 'package:hive/hive.dart';
 import 'package:collection/collection.dart';
 import 'package:saathi/models/getStaticDashboardModel.dart';
 import 'package:saathi/zllsaathi.dart';
-import 'package:expensestracker/main.dart' as expenseMainPlaceholder;
 
 import '../bpms/bpms_dashboard.dart';
 import '../helper/utils.dart';
@@ -479,16 +478,12 @@ class _HomePageMenuState extends State<HomePageMenu> {
     var empCode = int.tryParse(
             hiveBox.get(LocalConstant.KEY_EMPLOYEE_CODE)?.toString() ?? '0') ??
         0;
-    // expenseMainPlaceholder.main(isExternal: true, eCode: empCode.toString());
     await HiveDatabase.clear();
-    Navigator.push(
-        context,
-        MaterialPageRoute(
-            builder: (context) => MyApp(
-                  eCode: empCode.toString(),
-                  isExternal: true,
-                  buildContext: context,
-                )));
+    // The host (Intranet) app is already a GetMaterialApp. Pushing the expense
+    // module's own GetMaterialApp as a route registers a second global
+    // navigator key and crashes ("Duplicate GlobalKey detected" /
+    // DefaultSelectionStyle assertion). Embed it on the existing navigator.
+    await openExpenseTracker(eCode: empCode.toString());
   }
 
   openSaarthi(BuildContext context) async {
