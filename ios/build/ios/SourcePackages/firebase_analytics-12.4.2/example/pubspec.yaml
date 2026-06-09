@@ -1,0 +1,17 @@
+name: firebase_analytics_example
+description: Demonstrates how to use the firebase_analytics plugin.
+resolution: workspace
+
+environment:
+  sdk: '^3.6.0'
+  flutter: '>=3.27.0'
+
+dependencies:
+  firebase_analytics: ^12.4.2
+  firebase_core: ^4.10.0
+  flutter:
+    sdk: flutter
+  in_app_purchase: ^3.2.3
+
+flutter:
+  uses-material-design: true
