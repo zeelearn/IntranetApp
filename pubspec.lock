@@ -613,7 +613,7 @@ packages:
   expensestracker:
     dependency: "direct main"
     description:
-      path: "../../excepsesmanagement"
+      path: "../excepsesmanagement"
       relative: true
     source: path
     version: "1.0.2+11"
@@ -2247,7 +2247,7 @@ packages:
     source: hosted
     version: "2.5.2+1"
   permission_handler:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
       name: permission_handler
       sha256: fe54465bcc62a4564c6e4db337bbaded6c0c0fa6e10487414436d163114784f6
@@ -2529,8 +2529,8 @@ packages:
   saathi:
     dependency: "direct main"
     description:
-      path: "../../ZeeSathi"
-      relative: true
+      path: "/users/zlldev/documents/github/ZeeSathi"
+      relative: false
     source: path
     version: "1.0.0+2"
   sanitize_html:

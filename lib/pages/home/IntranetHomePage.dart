@@ -585,7 +585,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      if (!kDebugMode) {
+      if (!kDebugMode && !kIsWeb) {
         if (Platform.isAndroid) {
           checkForUpdate();
         } else if (Platform.isIOS) {
