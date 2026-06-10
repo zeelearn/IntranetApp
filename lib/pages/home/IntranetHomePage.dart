@@ -5,7 +5,6 @@ import 'dart:developer';
 import 'dart:io';
 
 import 'package:Intranet/api/response/login_response.dart';
-import 'package:Intranet/firebase_options.dart';
 import 'package:Intranet/main.dart';
 import 'package:Intranet/pages/helper/LocalConstant.dart';
 import 'package:Intranet/pages/helper/utils.dart';
@@ -20,7 +19,6 @@ import 'package:app_links/app_links.dart';
 import 'package:app_version_update/app_version_update.dart';
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:device_info_plus/device_info_plus.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -587,7 +585,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      if (!kDebugMode) {
+      if (!kDebugMode && !kIsWeb) {
         if (Platform.isAndroid) {
           checkForUpdate();
         } else if (Platform.isIOS) {

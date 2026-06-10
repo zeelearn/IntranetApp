@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:Intranet/pages/login/login_screen.dart';
-
+import 'package:get/get.dart';
 import '../auth/login.dart';
 import '../helper/ColorsSys.dart';
 import '../helper/LocalStrings.dart';
+
+import '../home/v2/dashboardv2.dart';
 
 class IntroPage extends StatefulWidget {
   @override
@@ -100,12 +102,15 @@ class _IntroPageState extends State<IntroPage> {
                   //primary: Colors.white, // foreground
                 ),
                 onPressed: () {
+                  debugPrint('Start Now DashboardV2Page');
+                  //Get.to(() => const DashboardV2Page());
+
                   Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
                         builder: (context) => LoginPage(
                               isAutoLogin: false,
-                            )),
+                            ) /*DashboardV2Page() */),
                   );
                 },
                 child: Text('Start Now'),
