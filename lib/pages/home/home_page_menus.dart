@@ -1,20 +1,13 @@
-import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:Intranet/pages/helper/LocalConstant.dart';
-import 'package:Intranet/pages/home/dashboard.dart';
-import 'package:Intranet/api/APIService.dart';
-import 'package:Intranet/pages/outdoor/outdoor/myoutdoorplanner.dart';
 import 'package:Intranet/pages/pjp/cvf/mycvf.dart';
-import 'package:Intranet/pages/pjp/dashboard/presentation/dashboard_module.dart';
 import 'package:Intranet/pages/summary%20dashboard/summary_dashboard.dart';
 import 'package:Intranet/pages/widget/MyWebSiteView.dart';
 import 'package:expensestracker/app/hiveDatabase/hive_database.dart';
 import 'package:expensestracker/presentation/app.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
-import 'package:collection/collection.dart';
 import 'package:saathi/models/getStaticDashboardModel.dart';
 import 'package:saathi/zllsaathi.dart';
 
@@ -33,9 +26,15 @@ class HomePageMenu extends StatefulWidget {
   String name;
   String empID;
   Uint8List? profileAvtar;
+  int businessId;
+
   HomePageMenu(
-      this.isBpms, this.mUserName, this.name, this.profileAvtar, this.empID,
-      {super.key});
+      this.isBpms,
+      this.mUserName,
+      this.name,
+      this.profileAvtar,
+      this.empID,
+      {this.businessId = 0, super.key});
 
   @override
   State<HomePageMenu> createState() => _HomePageMenuState();
@@ -78,29 +77,22 @@ class _HomePageMenuState extends State<HomePageMenu> {
         child: Padding(
           padding: const EdgeInsets.all(8.0),
           child: SingleChildScrollView(
-              child:
-                  _buildMenuGrid()) /* SingleChildScrollView(
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                _buildDashboardHeader(),
-                const SizedBox(height: 16),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                  child: subheading("Quick Actions"),
-                ),
-                const SizedBox(height: 16),
+                if (widget.businessId == 0) _buildBusinessNotMappedCard(),
                 _buildMenuGrid(),
               ],
             ),
-          ) */
-          ,
+          ),
         ),
       ),
     );
   }
 
   Widget _buildMenuGrid() {
+    final bool isBusinessMapped = widget.businessId != 0;
+
     return LayoutBuilder(
       builder: (context, constraints) {
         int crossAxisCount;
@@ -133,9 +125,11 @@ class _HomePageMenuState extends State<HomePageMenu> {
           mainAxisSpacing: 16,
           childAspectRatio: childAspectRatio,
           children: [
+            if(isBusinessMapped)
             _buildMenuCard(
               title: 'My PJP',
               icon: Icons.electric_car,
+              disabled: !isBusinessMapped,
               onTap: () {
                 Navigator.push(
                   context,
@@ -150,9 +144,11 @@ class _HomePageMenuState extends State<HomePageMenu> {
                 );
               },
             ),
+            if(isBusinessMapped)
             _buildMenuCard(
               title: 'My CVF',
               icon: Icons.calendar_today,
+              disabled: !isBusinessMapped,
               onTap: () {
                 Navigator.push(
                   context,
@@ -174,10 +170,11 @@ class _HomePageMenuState extends State<HomePageMenu> {
                 );
               },
             ),
-            if (!isBpms)
+            if (!isBpms && isBusinessMapped)
               _buildMenuCard(
                 title: 'PJP-CVF Approval (Exp)',
                 icon: Icons.approval,
+                disabled: !isBusinessMapped,
                 onTap: () {
                   Navigator.push(
                     context,
@@ -266,10 +263,11 @@ class _HomePageMenuState extends State<HomePageMenu> {
                       );
                     },
                   ), */
-            if (isBpms)
+            if (isBpms && isBusinessMapped)
               _buildMenuCard(
                 title: 'PJP-CVF Approval (Exp)',
                 icon: Icons.approval,
+                disabled: !isBusinessMapped,
                 onTap: () {
                   Navigator.push(
                     context,
@@ -303,9 +301,11 @@ class _HomePageMenuState extends State<HomePageMenu> {
                       );
                     },
                   ), */
+                  if (isBusinessMapped)
             _buildMenuCard(
               title: 'PJP Dashboard',
               icon: Icons.group,
+              disabled: !isBusinessMapped,
               onTap: () {
                 Navigator.push(
                   context,
@@ -513,26 +513,80 @@ class _HomePageMenuState extends State<HomePageMenu> {
     // }
   }
 
+  Widget _buildBusinessNotMappedCard() {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.red.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.red.shade400),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(Icons.error_outline, color: Colors.red),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: const [
+                Text(
+                  'Business not mapped',
+                  style: TextStyle(
+                    color: Colors.red,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 16,
+                  ),
+                ),
+                SizedBox(height: 8),
+                Text(
+                  'Please connect with your manager.',
+                  style: TextStyle(
+                    color: Colors.black87,
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildMenuCard({
     required String title,
     required IconData icon,
     required VoidCallback onTap,
+    bool disabled = false,
   }) {
+    final Color backgroundColor = disabled
+        ? Colors.grey.shade300
+        : Colors.blue;
+    final Color iconColor = disabled ? Colors.grey.shade600 : Colors.white;
+    final Color textColor = disabled ? Colors.grey.shade700 : Colors.white;
+
     return GestureDetector(
-      onTap: onTap,
+      onTap: disabled ? null : onTap,
       child: Card(
-        elevation: 4,
+        elevation: disabled ? 1 : 4,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
         ),
         child: Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(12),
-            gradient: LinearGradient(
-              colors: [Colors.blue.withOpacity(0.8), Colors.blue],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
+            gradient: disabled
+                ? LinearGradient(
+                    colors: [backgroundColor, backgroundColor],
+                  )
+                : LinearGradient(
+                    colors: [Colors.blue.withOpacity(0.8), backgroundColor],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
           ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -540,15 +594,15 @@ class _HomePageMenuState extends State<HomePageMenu> {
               Icon(
                 icon,
                 size: 44,
-                color: Colors.white,
+                color: iconColor,
               ),
               const SizedBox(height: 8),
               Text(
                 title,
                 textAlign: TextAlign.center,
-                style: const TextStyle(
+                style: TextStyle(
                   fontFamily: 'Lexend Deca',
-                  color: Colors.white,
+                  color: textColor,
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
                 ),

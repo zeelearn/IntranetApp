@@ -613,7 +613,7 @@ packages:
   expensestracker:
     dependency: "direct main"
     description:
-      path: "../excepsesmanagement"
+      path: "../../excepsesmanagement"
       relative: true
     source: path
     version: "1.0.2+11"
@@ -2529,8 +2529,8 @@ packages:
   saathi:
     dependency: "direct main"
     description:
-      path: "/users/zlldev/documents/github/ZeeSathi"
-      relative: false
+      path: "../../ZeeSathi"
+      relative: true
     source: path
     version: "1.0.0+2"
   sanitize_html:

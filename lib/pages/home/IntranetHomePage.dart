@@ -143,6 +143,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
   bool _obscureConfirmPassword = true;
   updateCurrentBusiness(int bid, String name, int uid) async {
     hiveBox = await Utility.openBox();
+    businessId = bid;
     await Hive.openBox(LocalConstant.KidzeeDB);
     hiveBox.put(LocalConstant.KEY_BUSINESS_ID, bid);
     hiveBox.put(LocalConstant.KEY_BUSINESS_NAME, name);
@@ -214,10 +215,15 @@ class _IntranetHomePageState extends State<IntranetHomePage>
               FirebaseAnalyticsUtils.sendEvent(info.userName);
               hive.put(LocalConstant.KEY_LOGIN_RESPONSE, jsonEncode(value));
               try {
-                hive.put(LocalConstant.KEY_BUSINESS_ID,
-                    value.responseData.businessApplications[0].businessID);
-                List<BusinessApplications> businessApplications =
-                    value.responseData.businessApplications;
+                hive.put(LocalConstant.KEY_BUSINESS_ID,value.responseData.businessApplications[0].businessID);
+                List<BusinessApplications> businessApplications = value.responseData.businessApplications;
+                if (businessApplications.isEmpty) {
+                  hive.clear();
+                  Utility.showMessage(context,
+                      'Business not mapped for your account, please connect with your manager/hr');
+                      Navigator.of(context).pop();
+                  return;
+                }
                 for (int index = 0;
                     index < businessApplications.length;
                     index++) {
@@ -255,9 +261,17 @@ class _IntranetHomePageState extends State<IntranetHomePage>
     var loginresponse = hiveBox.get(LocalConstant.KEY_LOGIN_RESPONSE);
     debugPrint('login Response is : ' + loginresponse);
     try {
+      
       LoginResponseModel response = LoginResponseModel.fromJson(
         json.decode(loginresponse),
       );
+      print('login response decoded successfully');
+      print('Business Applications: ${response.responseData.businessApplications.length}');
+      // if (response.responseData.businessApplications.isEmpty) {
+      //   print('No business applications found for the user');
+      //   Utility().showBusinessNotMappedDialog(context);
+      //   return;
+      // }
       debugPrint('response received.....');
       businessApplications.addAll(response.responseData.businessApplications);
       if (_currentBusinessName.isNotEmpty && businessApplications.isNotEmpty) {
@@ -700,6 +714,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
         "${hiveBox.get(LocalConstant.KEY_FIRST_NAME)} ${hiveBox.get(LocalConstant.KEY_LAST_NAME)}";
     _currentBusinessName =
         hiveBox.get(LocalConstant.KEY_BUSINESS_NAME).toString();
+    businessId = hiveBox.get(LocalConstant.KEY_BUSINESS_ID) ?? 0;
     _profileImage = 'https://cdn-icons-png.flaticon.com/128/149/149071.png';
     String sex = hiveBox.get(LocalConstant.KEY_GENDER) as String;
     if (imageUrl != null) {
@@ -1408,6 +1423,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
           email,
           _profileAvtar,
           employeeCode,
+          businessId: businessId,
         );
         break;
       case MENU_ATTENDANCE:
@@ -1754,16 +1770,22 @@ class _IntranetHomePageState extends State<IntranetHomePage>
                 width: 32.0,
                 child: Image.asset('assets/icons/ic_journey.png')),
             title: const Text('PJP'),
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => MyPjpListScreen(
-                            mFilterSelection: FilterSelection(
-                                filters: [], type: FILTERStatus.MYSELF),
-                          )));
-            },
+            onTap: businessId == 0
+                ? () {
+                    Utility.showMessage(context,
+                        'Business not mapped. Please connect with your manager.');
+                  }
+                : () {
+                    Navigator.pop(context);
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => MyPjpListScreen(
+                                  mFilterSelection: FilterSelection(
+                                      filters: [],
+                                      type: FILTERStatus.MYSELF),
+                                )));
+                  },
           ),
         ),
         Ink(
@@ -1774,11 +1796,16 @@ class _IntranetHomePageState extends State<IntranetHomePage>
                 width: 32.0,
                 child: Image.asset('assets/icons/ic_checklist.png')),
             title: const Text('CVF'),
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => MyCVFListScreen()));
-            },
+            onTap: businessId == 0
+                ? () {
+                    Utility.showMessage(context,
+                        'Business not mapped. Please connect with your manager.');
+                  }
+                : () {
+                    Navigator.pop(context);
+                    Navigator.push(context,
+                        MaterialPageRoute(builder: (context) => MyCVFListScreen()));
+                  },
           ),
         ),
         Ink(
@@ -1898,19 +1925,19 @@ class _IntranetHomePageState extends State<IntranetHomePage>
                 width: 32.0,
                 child: Image.asset('assets/icons/ic_journey.png')),
             title: const Text('PJP'),
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => PJPManagerScreen(
-                          employeeId:
-                              employeeId) /*MyPjpListScreen(
-                          mFilterSelection: FilterSelection(
-                              filters: [], type: FILTERStatus.NONE),
-                        )*/
-                      ));
-            },
+            onTap: businessId == 0
+                ? () {
+                    Utility.showMessage(context,
+                        'Business not mapped. Please connect with your manager.');
+                  }
+                : () {
+                    Navigator.pop(context);
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => PJPManagerScreen(
+                                employeeId: employeeId))); 
+                  },
           ),
         ),
         const Divider(),
