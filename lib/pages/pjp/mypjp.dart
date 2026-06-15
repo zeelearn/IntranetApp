@@ -5,9 +5,15 @@ import 'package:Intranet/api/request/pjp/update_pjpstatus_request.dart';
 import 'package:Intranet/pages/helper/LocationHelper.dart';
 import 'package:Intranet/pages/pjp/cvf/add_cvf.dart';
 import 'package:expensestracker/app/util/util.dart';
+import 'package:expensestracker/data/repositories/claim_repository.dart';
+import 'package:expensestracker/domain/usercases/add_claim_usecase.dart';
+import 'package:expensestracker/domain/usercases/get_autocomplete_requisition_claim_usecase.dart';
+import 'package:expensestracker/domain/usercases/get_city_usecase.dart';
+import 'package:expensestracker/presentation/controllers/addClaim/add_claim_controller.dart';
 import 'package:expensestracker/presentation/pages/advance_requisition/add_advance_requisition_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:get/get.dart';
 import 'package:hive/hive.dart';
 import 'package:location/location.dart';
 
@@ -161,6 +167,14 @@ class _MyPjpListState extends State<MyPjpListScreen>
                       hiveBox.get(LocalConstant.KEY_EMPLOYEE_CODE) as String;
                   debugPrint('Employee code is - $employeeCode');
                   Utils.isExternal = true;
+                  Get.put(AddClaimController(
+                      addClaimUsecase: AddClaimUsecase(
+                          claimRepository: ClaimRepositoryImpl()),
+                      getAutocompleteRequisitionClaimUsecase:
+                          GetAutocompleteRequisitionClaimUsecase(
+                              claimRepository: ClaimRepositoryImpl()),
+                      getCityUsecase: GetCityUsecase(
+                          claimRepository: ClaimRepositoryImpl())));
                   showDialog(
                       context: context,
                       builder: (context) => Dialog(
@@ -433,6 +447,15 @@ class _MyPjpListState extends State<MyPjpListScreen>
                                       as String;
                               debugPrint('Employee code is - $employeeCode');
                               Utils.isExternal = true;
+                              Get.put(AddClaimController(
+                                  addClaimUsecase: AddClaimUsecase(
+                                      claimRepository: ClaimRepositoryImpl()),
+                                  getAutocompleteRequisitionClaimUsecase:
+                                      GetAutocompleteRequisitionClaimUsecase(
+                                          claimRepository:
+                                              ClaimRepositoryImpl()),
+                                  getCityUsecase: GetCityUsecase(
+                                      claimRepository: ClaimRepositoryImpl())));
                               showDialog(
                                   context: context,
                                   builder: (context) => Dialog(

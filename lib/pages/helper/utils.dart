@@ -26,6 +26,7 @@ import '../intro/intro.dart';
 import '../utils/theme/colors/light_colors.dart';
 import 'LightColor.dart';
 import 'LocalConstant.dart';
+import 'window_close.dart';
 
 enum TaskPageStatus {
   all,
@@ -598,6 +599,31 @@ class Utility {
               style: ElevatedButton.styleFrom(
                   elevation: 12.0,
                   textStyle: const TextStyle(color: LightColors.kLightGreen)),
+              child: const Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+
+  void showBusinessNotMappedDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Access Denied'),
+          content: const Text(
+            'Business is not mapped for your account.',
+          ),
+          actions: [
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                closeAppWindow();
+              },
               child: const Text('OK'),
             ),
           ],

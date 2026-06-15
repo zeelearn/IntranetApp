@@ -236,10 +236,21 @@ class _LoginFormState extends State<LoginForm>
 
               List<BusinessApplications> businessapplications =
                   value.responseData.businessApplications;
-              if (businessapplications.isNotEmpty) {
-                hiveBox.put(LocalConstant.KEY_BUSINESS_USERID,
-                    businessapplications[0] as String);
-              }
+              // if (businessapplications.isEmpty) {
+              //   hiveBox.clear();
+              //   Utility.showMessage(context,
+              //       'Business not mapped for your account, please connect with your manager/hr');
+              //   return;
+              // }
+
+              final firstBusiness = businessapplications[0];
+              hiveBox.put(LocalConstant.KEY_BUSINESS_ID,
+                  firstBusiness.businessID);
+              hiveBox.put(LocalConstant.KEY_BUSINESS_NAME,
+                  firstBusiness.businessName);
+              hiveBox.put(LocalConstant.KEY_BUSINESS_USERID,
+                  firstBusiness.business_UserID);
+
               debugPrint('-------------------------LOGINFORM');
               debugPrint(jsonEncode(value.responseData));
               Navigator.push(

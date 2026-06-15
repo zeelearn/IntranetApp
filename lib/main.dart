@@ -35,6 +35,7 @@ import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:get/get.dart';
 import 'package:hive_flutter/adapters.dart';
 import 'package:intl/intl.dart';
 import 'package:location/location.dart';
@@ -341,19 +342,23 @@ Future<void> main() async {
   PermissionUtil.requestPermission();
 
   await Hive.initFlutter();
+  
+  if (!Hive.isAdapterRegistered(103)) {
+    Hive.registerAdapter(TicketModelAdapter());
+  }
+  if (!Hive.isAdapterRegistered(101)) {
+    Hive.registerAdapter(NotificationModelAdapter());
+  }
+
   await Hive.openBox(LocalConstant.communicationKey); // settings
   await Hive.openBox(LocalConstant.authStorageKey);
   await Hive.openBox(LocalConstant.indent);
-  DependencyInjection.init();
-
-  if (!Hive.isAdapterRegistered(0)) {
-    Hive.registerAdapter(TicketModelAdapter());
-    Hive.registerAdapter(NotificationModelAdapter());
-  }
   await Hive.openBox<TicketModel>(HiveConstant.key_TicketListData);
   //await Hive.openBox<NotificationModel>(HiveConstant.key_NotificationList);
   await Hive.openBox(HiveConstant.box_SSOUser);
   await Hive.openBox(HiveConstant.key_logindetails);
+  
+  DependencyInjection.init();
 
   //await initializeService();
   //runApp(const MyApp());
@@ -829,7 +834,10 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    // GetMaterialApp initialises GetX (routing, dependency injection,
+    // snackbars and reactive state) while remaining a drop-in replacement
+    // for MaterialApp.
+    return GetMaterialApp(
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
