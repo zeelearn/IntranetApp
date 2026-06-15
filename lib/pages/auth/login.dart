@@ -538,6 +538,14 @@ class _LoginPage extends State<LoginPage> {
             FirebaseAnalyticsUtils.sendEvent(info.userName);
             hive.put(LocalConstant.KEY_LOGIN_RESPONSE, jsonEncode(value));
             debugPrint('========Login Form ====== ${jsonEncode(value)}');
+            List<BusinessApplications> businessapplications =
+                  value.responseData.businessApplications;
+            // if (businessapplications.isEmpty) {
+            //   hive.clear();
+            //   Utility.showMessage(context,
+            //       'Business not mapped for your account, please connect with your manager/hr');
+            //   return;
+            // }
             Navigator.push(
               context,
               MaterialPageRoute(
