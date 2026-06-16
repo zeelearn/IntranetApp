@@ -5,11 +5,11 @@ import 'package:Intranet/firebase_options.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:hive/hive.dart';
 
 import '../../api/request/fcm_request.dart';
 import '../helper/LocalConstant.dart';
-
 
 Future<void> onBackgroundMessage(RemoteMessage message) async {
   await Firebase.initializeApp(
@@ -28,8 +28,6 @@ Future<void> onBackgroundMessage(RemoteMessage message) async {
 }
 
 class FCM {
-
-
   final streamCtlr = StreamController<String>.broadcast();
   final titleCtlr = StreamController<String>.broadcast();
   final bodyCtlr = StreamController<String>.broadcast();
@@ -59,9 +57,11 @@ class FCM {
               vapidKey:
                   'BG5w1AwwXhI1M3Y18az4mr5yISPo2isT_xDisMq89OL05-hZY1WO5FEvmiE0UkOdGDvFK9gCHtufo7YIVE4kpn0');
           if (token != null) {
-            await FirebaseMessaging.instance.subscribeToTopic("intranet");
-            await Future.delayed(Duration(seconds: 1));
-            await FirebaseMessaging.instance.subscribeToTopic("saathi");
+            if (!kIsWeb) {
+              await FirebaseMessaging.instance.subscribeToTopic("intranet");
+              await Future.delayed(Duration(seconds: 1));
+              await FirebaseMessaging.instance.subscribeToTopic("saathi");
+            }
             print('Response from getToken is - ${token}');
             sendFcm(token!, employeeId, deviceId, userAgent);
           }

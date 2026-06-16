@@ -1696,7 +1696,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
           ),
         ),
         const Divider(),
-        Ink(
+        /* Ink(
           color: widget._selectedDestination == MENU_LEAVE
               ? LightColors.kLightBlue
               : Colors.white,
@@ -1717,8 +1717,8 @@ class _IntranetHomePageState extends State<IntranetHomePage>
             selected: widget._selectedDestination == MENU_LEAVE,
             onTap: () => selectDestination(MENU_LEAVE),
           ),
-        ),
-        Ink(
+        ), */
+        /* Ink(
           color: widget._selectedDestination == MENU_OUTDOOR
               ? LightColors.kLightBlue
               : Colors.white,
@@ -1739,8 +1739,8 @@ class _IntranetHomePageState extends State<IntranetHomePage>
             selected: widget._selectedDestination == MENU_OUTDOOR,
             onTap: () => selectDestination(MENU_OUTDOOR),
           ),
-        ),
-        Ink(
+        ), */
+        /* Ink(
           color: widget._selectedDestination == MENU_ATTENDANCE
               ? LightColors.kLightBlue
               : Colors.white,
@@ -1761,7 +1761,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
             selected: widget._selectedDestination == MENU_ATTENDANCE,
             onTap: () => selectDestination(MENU_ATTENDANCE),
           ),
-        ),
+        ), */
         Ink(
           color: Colors.white,
           child: ListTile(
@@ -1808,7 +1808,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
                   },
           ),
         ),
-        Ink(
+        /* Ink(
           color: widget._selectedDestination == MENU_ATTENDANCE_MARKING
               ? LightColors.kLightBlue
               : Colors.white,
@@ -1829,7 +1829,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
             selected: widget._selectedDestination == MENU_ATTENDANCE_MARKING,
             onTap: () => selectDestination(MENU_ATTENDANCE_MARKING),
           ),
-        ),
+        ), */
         Container(
           color: LightColors.kLightGray,
           child: const Padding(
@@ -1844,7 +1844,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
             ),
           ),
         ),
-        Ink(
+        /* Ink(
           color: widget._selectedDestination == MENU_LEAVE_APPROVAL
               ? LightColors.kLightBlue
               : Colors.white,
@@ -1865,8 +1865,8 @@ class _IntranetHomePageState extends State<IntranetHomePage>
             selected: widget._selectedDestination == MENU_LEAVE_APPROVAL,
             onTap: () => selectDestination(MENU_LEAVE_APPROVAL),
           ),
-        ),
-        Ink(
+        ), */
+        /* Ink(
           color: widget._selectedDestination == MENU_OUTDOOR_APPROVAL
               ? LightColors.kLightBlue
               : Colors.white,
@@ -1887,8 +1887,8 @@ class _IntranetHomePageState extends State<IntranetHomePage>
             selected: widget._selectedDestination == MENU_OUTDOOR_APPROVAL,
             onTap: () => selectDestination(MENU_OUTDOOR_APPROVAL),
           ),
-        ),
-        Ink(
+        ), */
+        /* Ink(
           color: widget._selectedDestination == MENU_ATTENDANCE_MARKING_APPROVAL
               ? LightColors.kLightBlue
               : Colors.white,
@@ -1916,7 +1916,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
                 widget._selectedDestination == MENU_ATTENDANCE_MARKING_APPROVAL,
             onTap: () => selectDestination(MENU_ATTENDANCE_MARKING_APPROVAL),
           ),
-        ),
+        ), */
         Ink(
           color: Colors.white,
           child: ListTile(

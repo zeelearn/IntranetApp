@@ -2529,12 +2529,10 @@ packages:
   saathi:
     dependency: "direct main"
     description:
-      path: "."
-      ref: uat
-      resolved-ref: "4a2f07c72760cc6d3dc7decc319ab8d76d7ff74c"
-      url: "https://github.com/ZeeLearnLtd/ZeeSathi.git"
-    source: git
-    version: "1.0.0+2"
+      path: "../ZeeSathi"
+      relative: true
+    source: path
+    version: "1.0.12+14"
   sanitize_html:
     dependency: transitive
     description:
