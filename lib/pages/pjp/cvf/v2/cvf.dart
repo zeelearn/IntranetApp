@@ -623,6 +623,7 @@ class _WebCardActions extends StatelessWidget {
   Widget build(BuildContext context) {
     final canRescheduleVisit = controller.canReschedule(cvf);
     final canCancelVisit = controller.canRescheduleOrCancel(cvf);
+    final isCompleted = controller.isCompleted(cvf);
     final hasMap = controller.hasLocation(cvf);
 
     return Padding(
@@ -657,6 +658,15 @@ class _WebCardActions extends StatelessWidget {
               label: const Text(
                 'Cancel CVF',
                 style: TextStyle(color: Colors.red, fontWeight: FontWeight.w600),
+              ),
+            ),
+          if(isCompleted)
+            TextButton.icon(
+              onPressed: () => controller.openWebsiteReport(context, cvf),
+              icon: const Icon(Icons.category, size: 18, color: kPrimaryLightColor),
+              label: const Text(
+                'Report',
+                style: TextStyle(color: kPrimaryLightColor, fontWeight: FontWeight.w600),
               ),
             ),
         ],

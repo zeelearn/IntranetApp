@@ -102,4 +102,6 @@ class LocalStrings {
 
   static const String API_ZOHO_RECIPIENT =
       'https://www.zohoapis.in/crm/v7/functions/get_zoho_sign_documnet_data/actions/execute?auth_type=apikey&zapikey=1003.cf825177f2ce96ebc934296577eac040.f9c4c7b8967068e0cafbd4e62b900368';
+
+  static const String CVF_REPORT_URL = 'https://intranet.zeelearn.com/cvfreport.html?cid=';
 }

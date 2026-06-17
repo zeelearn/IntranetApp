@@ -11,6 +11,7 @@ import 'package:Intranet/api/response/pjp/pjplistresponse.dart';
 import 'package:Intranet/pages/firebase/anylatics.dart';
 import 'package:Intranet/pages/helper/DatabaseHelper.dart';
 import 'package:Intranet/pages/helper/LocalConstant.dart';
+import 'package:Intranet/pages/helper/LocalStrings.dart';
 import 'package:Intranet/pages/helper/constants.dart';
 import 'package:Intranet/pages/helper/LocationHelper.dart';
 import 'package:Intranet/pages/helper/utils.dart';
@@ -19,10 +20,14 @@ import 'package:Intranet/pages/iface/onClick.dart';
 import 'package:Intranet/pages/iface/onResponse.dart';
 import 'package:Intranet/pages/pjp/cvf/cvf_questions.dart';
 import 'package:Intranet/pages/pjp/cvf/v2/cvf_location_map.dart';
+import 'package:Intranet/pages/widget/MyWebSiteView.dart';
+import 'package:Intranet/pages/widget/report.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 enum CvfFilter { all, completed, checkIn, fillCvf }
 
@@ -256,6 +261,9 @@ class CVFController extends GetxController {
   bool isCancelled(GetDetailedPJP cvf) =>
       cvf.IsCancelled || cvf.Status == 'Cancelled';
 
+  bool isCompleted(GetDetailedPJP cvf) =>
+      cvf.Status == 'Completed';
+
   bool canManageVisit(GetDetailedPJP cvf) {
     if (isViewOnly) return false;
     if (isPjpMode && pjpInfo!.isSelfPJP == '0') return false;
@@ -266,6 +274,32 @@ class CVFController extends GetxController {
     if (!canManageVisit(cvf)) return false;
     //if (!isApproved(cvf)) return false;
     return cvf.Status == 'Check In' || cvf.Status == 'NA';
+  }
+
+  openWebsiteReport(BuildContext context, GetDetailedPJP cvf) {
+    final url = LocalStrings.CVF_REPORT_URL + cvf.PJPCVF_Id;
+    if (url.isEmpty) {
+      Utility.showMessage(context, 'Report URL not available');
+      return;
+    }
+    if (kIsWeb) {
+      launchUrl(
+        Uri.parse(url),
+        mode: LaunchMode.platformDefault,
+      );
+    } else {
+      Get.to(() => CVFReportWebView(url: url));
+    }
+    // Navigator.push(
+    //   context,
+    //   MaterialPageRoute(
+    //     builder: (_) => MyWebsiteView(
+    //       url: url,
+    //       title: 'CVF Report',
+    //     ),
+    //   ),
+    // );
+    //Utility.openUrl(context, url);
   }
 
   /// Reschedule is hidden when today is past the PJP end date or no valid dates remain.
