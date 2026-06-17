@@ -215,13 +215,15 @@ class _IntranetHomePageState extends State<IntranetHomePage>
               FirebaseAnalyticsUtils.sendEvent(info.userName);
               hive.put(LocalConstant.KEY_LOGIN_RESPONSE, jsonEncode(value));
               try {
-                hive.put(LocalConstant.KEY_BUSINESS_ID,value.responseData.businessApplications[0].businessID);
-                List<BusinessApplications> businessApplications = value.responseData.businessApplications;
+                hive.put(LocalConstant.KEY_BUSINESS_ID,
+                    value.responseData.businessApplications[0].businessID);
+                List<BusinessApplications> businessApplications =
+                    value.responseData.businessApplications;
                 if (businessApplications.isEmpty) {
                   hive.clear();
                   Utility.showMessage(context,
                       'Business not mapped for your account, please connect with your manager/hr');
-                      Navigator.of(context).pop();
+                  Navigator.of(context).pop();
                   return;
                 }
                 for (int index = 0;
@@ -261,12 +263,12 @@ class _IntranetHomePageState extends State<IntranetHomePage>
     var loginresponse = hiveBox.get(LocalConstant.KEY_LOGIN_RESPONSE);
     debugPrint('login Response is : ' + loginresponse);
     try {
-      
       LoginResponseModel response = LoginResponseModel.fromJson(
         json.decode(loginresponse),
       );
       print('login response decoded successfully');
-      print('Business Applications: ${response.responseData.businessApplications.length}');
+      print(
+          'Business Applications: ${response.responseData.businessApplications.length}');
       // if (response.responseData.businessApplications.isEmpty) {
       //   print('No business applications found for the user');
       //   Utility().showBusinessNotMappedDialog(context);
@@ -814,41 +816,8 @@ class _IntranetHomePageState extends State<IntranetHomePage>
 
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       log('Notification data is - ${message.toMap()}');
-      if (kIsWeb) {
-        ScaffoldMessenger.maybeOf(context)?.showSnackBar(SnackBar(
-            duration: Duration(seconds: 20),
-            showCloseIcon: false,
-            closeIconColor: Colors.redAccent,
-            backgroundColor: /* item.colorCode?.toColor() ?? */
-                kPrimaryLightColor,
-            margin: EdgeInsets.only(
-                left: MediaQuery.of(context).size.width / 2,
-                right: 10,
-                bottom: 20),
-            behavior: SnackBarBehavior.floating,
-            content: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                Text(
-                  message.data['title'],
-                  style: LightColors.subTextStyle.copyWith(color: Colors.white),
-                ),
-                SizedBox(
-                  height: 5,
-                ),
-                Text(
-                  message.data['body'],
-                  style: LightColors.subTextStyle.copyWith(color: Colors.white),
-                ),
-                SizedBox(
-                  height: 5,
-                ),
-              ],
-            )));
-      } else {
-        NotificationService().parseNotification(message);
-      }
+
+      NotificationService().parseNotification(message);
     });
     return null;
   }
@@ -1782,8 +1751,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
                         MaterialPageRoute(
                             builder: (context) => MyPjpListScreen(
                                   mFilterSelection: FilterSelection(
-                                      filters: [],
-                                      type: FILTERStatus.MYSELF),
+                                      filters: [], type: FILTERStatus.MYSELF),
                                 )));
                   },
           ),
@@ -1803,8 +1771,10 @@ class _IntranetHomePageState extends State<IntranetHomePage>
                   }
                 : () {
                     Navigator.pop(context);
-                    Navigator.push(context,
-                        MaterialPageRoute(builder: (context) => MyCVFListScreen()));
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => MyCVFListScreen()));
                   },
           ),
         ),
@@ -1935,8 +1905,8 @@ class _IntranetHomePageState extends State<IntranetHomePage>
                     Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) => PJPManagerScreen(
-                                employeeId: employeeId))); 
+                            builder: (context) =>
+                                PJPManagerScreen(employeeId: employeeId)));
                   },
           ),
         ),

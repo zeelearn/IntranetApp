@@ -45,24 +45,18 @@ messaging.onBackgroundMessage(async function (payload) {
 
   console.log("Message receiving in firebase-messaging-sw.js file -", payload);
 
+  const notificationTitle = payload.data.title;
+
+  console.log('Notification title is - ', notificationTitle);
+
+  const notificationOptions = { body: payload.data.body, icon: 'https://zeelearn.com/wp-content/uploads/zeelearnlogo_new171.png', data: { url: payload.data.url }, };
+
+
   let dbUserRequest = indexedDB.open('kidzeepref');
 
   dbUserRequest.onerror = function (event) {
     console.error("logindetails Failed to open database:", event.target.errorCode);
   };
-
-
-  dbUserRequest.onupgradeneeded = function (event) {
-    var db = event.target.result;
-
-  };
-
-
-  const notificationTitle = payload.data.title;
-
-  console.log('Notification title is - ', notificationTitle);
-
-  const notificationOptions = { body: payload.data.body, icon: '/assets/assets/icons/app_logo.png', data: { url: payload.data.url }, };
 
   dbUserRequest.onsuccess = function (dbvent) {
 
@@ -83,6 +77,48 @@ messaging.onBackgroundMessage(async function (payload) {
         console.log('Notification data after parsed  is - ', payload.data.empid);
 
         if (payload.data.empid == parsedOfflineUserData.empid) {
+
+          e.waitUntil(self.registration.showNotification(notificationTitle, notificationOptions));
+        }
+        else {
+          console.log('User id not matching');
+
+        }
+      }
+    };
+    getRequest.onerror = function (event) {
+      console.log("Error retrieving notifications:", event.target.error);
+
+    };
+  };
+
+  let dbUserRequestsaathi = indexedDB.open('logindetails');
+
+  dbUserRequestsaathi.onerror = function (event) {
+    console.error("logindetails Failed to open database:", event.target.errorCode);
+  };
+
+  dbUserRequestsaathi.onsuccess = function (dbvent) {
+
+    console.log("logindetails Database opened successfully");
+
+    let db = dbvent.target.result;
+
+    let transaction = db.transaction(['box'], 'readwrite');
+    let objectStore = transaction.objectStore('box');
+
+    let getRequest = objectStore.get('userData');
+    getRequest.onsuccess = function (successevent) {
+      let userData = successevent.target.result;
+
+      let exists = Object.values(userData).includes("success");
+      if (exists != null) {
+        let parsedOfflineUserData = JSON.parse(userData);
+
+        console.log('UserSSO data after parsed  is - ', parsedOfflineUserData.data.user_info[0].user_id);
+        console.log('Notification data after parsed  is - ', payload.data.user_id);
+
+        if (payload.data.user_id == parsedOfflineUserData.data.user_info[0].user_id) {
 
           e.waitUntil(self.registration.showNotification(notificationTitle, notificationOptions));
         }

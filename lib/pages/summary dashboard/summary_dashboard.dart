@@ -15,6 +15,7 @@ import 'package:Intranet/pages/pjp/cvf/add_cvf.dart';
 import 'package:Intranet/pages/pjp/cvf/cvf_questions.dart';
 import 'package:Intranet/pages/pjp/models/PjpModel.dart';
 import 'package:Intranet/pages/utils/theme/colors/light_colors.dart';
+import 'package:Intranet/pages/widget/MyWebSiteView.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:hive/hive.dart';
@@ -1689,8 +1690,8 @@ class _SummaryDashboardState extends State<SummaryDashboard>
           Colors.blueAccent, '', true),
       _KPICard('CVF', _totalVisits.toString(), Icons.check_circle_rounded,
           _green, presentBadge, true),
-      _KPICard('Pending Approvals', _pendingApprovals.toString(),
-          Icons.pending, _orange, onLeaveBadge, false),
+      _KPICard('Pending Approvals', _pendingApprovals.toString(), Icons.pending,
+          _orange, onLeaveBadge, false),
       _KPICard('Approved PJPs', _approvedPJP.toString(), Icons.task_alt_rounded,
           _accentSecondary, approvedBadge, true),
       _KPICard('Rejected PJPs', _rejectedPJP.toString(), Icons.cancel_rounded,
@@ -3272,6 +3273,37 @@ class _VisitTile extends StatelessWidget {
                       ),
                     ),
                   ),
+                visit.Status.trim().toLowerCase() == 'completed'
+                    ? Container(
+                        margin: EdgeInsets.only(left: 8),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: _statusColor(visit.Status)
+                              .withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: InkWell(
+                          onTap: () {
+                            Navigator.of(context).push(MaterialPageRoute(
+                                builder: (BuildContext context) =>
+                                    MyWebsiteView(
+                                      title: 'CVF Report - ${visit.PJPCVF_Id}',
+                                      url:
+                                          'https://intranet.zeelearn.com/cvfreport.html?cid=${visit.PJPCVF_Id}',
+                                    )));
+                          },
+                          child: Text(
+                            'View Report',
+                            style: GoogleFonts.inter(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600,
+                              color: _statusColor(visit.Status),
+                            ),
+                          ),
+                        ),
+                      )
+                    : const SizedBox(),
               ],
             ),
             if (visit.franchiseeName.trim().isNotEmpty &&
