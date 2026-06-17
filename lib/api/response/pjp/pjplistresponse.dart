@@ -28,7 +28,7 @@ class PjpListResponse {
           for (var v in data) {
             try {
               responseData.add(PJPInfo.fromJson(v));
-            } catch (e) {}
+            } catch (_) {}
           }
         } else if (data is Map<String, dynamic>) {
           // Case 2: responseData is an object (ResponseData structure)
@@ -36,27 +36,25 @@ class PjpListResponse {
             for (var v in data['PJP']) {
               try {
                 responseData.add(PJPInfo.fromJson(v));
-              } catch (e) {}
+              } catch (_) {}
             }
           }
           if (data.containsKey('MYTEAM') && data['MYTEAM'] is List) {
             for (var v in data['MYTEAM']) {
               try {
                 myTeamData.add(MYTEAM.fromJson(v));
-              } catch (e) {}
+              } catch (_) {}
             }
           }
           // Fallback: If it's a Map but not the wrapper, treat as single PJPInfo
           if (!data.containsKey('PJP') && !data.containsKey('MYTEAM')) {
             try {
               responseData.add(PJPInfo.fromJson(data));
-            } catch (e) {}
+            } catch (_) {}
           }
         }
       }
-    } catch (e) {
-      print('error ${e.toString()}');
-    }
+    } catch (_) {}
   }
 
   Map<String, dynamic> toJson() {
@@ -164,7 +162,7 @@ class PJPInfo {
           getDetailedPJP!.add(item);
         }
       }
-    } catch (e) {}
+    } catch (_) {}
   }
 
   Map<String, dynamic> toJson() {
@@ -438,9 +436,7 @@ class GetDetailedPJP implements Comparable<GetDetailedPJP> {
           cvfHistory!.add(CVFHistory.fromJson(historyData));
         }
       }
-    } catch (e) {
-      debugPrint("Error while parsing ${e.toString()}");
-    }
+    } catch (_) {}
   }
 
   Map<String, dynamic> toJson() {
@@ -490,6 +486,7 @@ class CVFHistory {
   late String latitude;
   late String longitude;
   late String address;
+  late String remarks;
   String? activityTitle;
 
   CVFHistory({
@@ -501,6 +498,7 @@ class CVFHistory {
     required this.latitude,
     required this.longitude,
     required this.address,
+    required this.remarks,
     this.activityTitle,
   });
 
@@ -513,6 +511,7 @@ class CVFHistory {
     latitude = (json['Latitude'] ?? '0').toString();
     longitude = (json['Longitude'] ?? '0').toString();
     address = json['Address'] ?? '';
+    remarks = json['Remarks'] ?? '';
     activityTitle = json['ActivityTitle'];
   }
 
@@ -527,6 +526,7 @@ class CVFHistory {
     data['Longitude'] = longitude;
     data['Address'] = address;
     data['ActivityTitle'] = activityTitle;
+    data['Remarks'] = remarks;
     return data;
   }
 }

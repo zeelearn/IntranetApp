@@ -326,7 +326,6 @@ class _ApplyLeaveScreen extends State<ApplyLeaveScreen>
     //2022-07-18T00:00:00
     try {
       dt = new DateFormat('dd-MMM-yyyy').parse(value);
-      //debugPrint('asasdi   ' + dt.day.toString());
     } catch (e) {
       e.toString();
     }
@@ -358,7 +357,6 @@ class _ApplyLeaveScreen extends State<ApplyLeaveScreen>
                 : 'unknown',
         WorkLocation: "",
         IsHappinessLeave: isHappinessLeave);
-    debugPrint(request.toJson().toString());
     APIService apiService = APIService();
     apiService.applyLeave(request).then((value) {
       Navigator.of(context).pop();
@@ -373,7 +371,6 @@ class _ApplyLeaveScreen extends State<ApplyLeaveScreen>
       } else {
         Navigator.pop(context);
         Utility.showMessage(context, "Unable to Apply Leave Request");
-        debugPrint("null value");
       }
     });
   }
@@ -383,7 +380,6 @@ class _ApplyLeaveScreen extends State<ApplyLeaveScreen>
     //2022-07-18T00:00:00
     try {
       dt = new DateFormat('yyyy-MM-dd').parse(value);
-      //debugPrint('asasdi   ' + dt.day.toString());
     } catch (e) {
       e.toString();
     }

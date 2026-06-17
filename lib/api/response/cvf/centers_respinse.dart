@@ -79,7 +79,6 @@ class FranchiseeInfo {
   }
 
   isEqual(FranchiseeInfo s) {
-    print('isEqual ${s.franchiseeName}');
     if (franchiseeName == s.franchiseeName) {
       return true;
     } else {

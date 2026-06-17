@@ -49,21 +49,17 @@ class _BPMSProjectTask extends  ConsumerState<BPMSProjectTask> with WidgetsBindi
 
   ProjectTaskModel? currentTask;
   void pop(){
-    print('pop');
     paths.removeLast();
     supportPath = paths.last.path;
     path =supportPath;
-    print(paths.length);
     if(paths.length<=1){
       isAddButton=false;
     }
-    print('supportPath ${supportPath}');
     getSortedData();
   }
 
   void push(ProjectTaskModel data,String supportName){
     //String path  = data.title;
-    //print('------ ${data.taskcreateduser} ${frichiseeId}');
     if(false && data.taskcreateduser ==frichiseeId.toString()){
       Navigator.push(
           context,
@@ -76,7 +72,6 @@ class _BPMSProjectTask extends  ConsumerState<BPMSProjectTask> with WidgetsBindi
         supportPath = "$supportPath/${data.title}";
       }
       path = supportPath;
-      //print(path);
       data.path = supportPath;
       paths.add(data);
       if(paths.length>=2){
@@ -102,7 +97,6 @@ class _BPMSProjectTask extends  ConsumerState<BPMSProjectTask> with WidgetsBindi
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      print('loading on resume');
         loadProjectTask();
     }
   }
@@ -143,7 +137,6 @@ class _BPMSProjectTask extends  ConsumerState<BPMSProjectTask> with WidgetsBindi
         //}
       }
     }else{
-      print('getSorting no list');
     }
     setState(() {
       //isLoading=false;
@@ -205,11 +198,8 @@ class _BPMSProjectTask extends  ConsumerState<BPMSProjectTask> with WidgetsBindi
           canPop: false,
           onPopInvoked: (value){
             if(paths.length>1){
-              print('if pop ${paths.length}');
               pop();
-              print('if pop ${paths.length}');
             }else{
-              print('else print ${paths.length}');
               Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(
@@ -237,7 +227,6 @@ class _BPMSProjectTask extends  ConsumerState<BPMSProjectTask> with WidgetsBindi
                       paths: paths,
                       icon: Icons.sd_card,
                       onChanged: (index) {
-                        print('index ${index} - ${paths.length} ${path}');
                         if(index == paths.length-1){
 
                         }else if(index==0){
@@ -259,7 +248,6 @@ class _BPMSProjectTask extends  ConsumerState<BPMSProjectTask> with WidgetsBindi
                           pop();
                           //getSortedData();
                         }
-                        print('Path is ${path}');
                         setState(() {});
                       },
                     ),
@@ -394,7 +382,6 @@ class _BPMSProjectTask extends  ConsumerState<BPMSProjectTask> with WidgetsBindi
             //showImageOption(model);
           },
         ));
-        print('${model.title} ${model.mtaskId}');
         if(model.mtaskId=='0')
         list.add(IconButton(
           icon: const Icon(Icons.delete),
@@ -788,7 +775,6 @@ getView12(ProjectTaskModel model,bool isLastElement){
     }
 
     DateTimeCard(ProjectTaskModel model){
-    //print(model.toJson());
       return Container(
         decoration: BoxDecoration(
           color: Color(0xffe8eafe),
@@ -868,7 +854,7 @@ getView12(ProjectTaskModel model,bool isLastElement){
       try{
         var d = date.split(',');
         return d[index];
-      }catch(e){}
+      }catch (_) {}
       return newDate;
     }
 
@@ -877,14 +863,11 @@ getView12(ProjectTaskModel model,bool isLastElement){
     Utility.showLoaderDialog(context);
     apiService.deleteTask(DeleteTaskRequest(taskId: currentTask!.id)).then((value) {
       Navigator.of(context).pop();
-      print('response ---');
-      print(value);
       if (value != null) {
         if (value == null ) {
           Utility.showMessage(context, 'data not found');
         } else if (value is CommonResponse) {
           CommonResponse response = value;
-          print(response.toJson());
           if(response.data[0].msg.toLowerCase().contains('sucess')){
             Utility.getConfirmationDialog(context, 'Task Deleted Successfully', response.data[0].msg,this);
           }else

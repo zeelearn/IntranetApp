@@ -27,13 +27,10 @@ class IntranetEventContainer extends StatelessWidget {
   }
 
   Widget getEvent(BuildContext context, double width) {
-    debugPrint(event.toString());
     if (event is PJPModel) {
-      debugPrint('in event');
       PJPModel mEvent = event;
       return generatePJPRow(context,mEvent,width);
     } else {
-      debugPrint('in else ');
       return Stack(
         children: [
           Container(

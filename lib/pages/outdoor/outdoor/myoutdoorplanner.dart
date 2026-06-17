@@ -36,7 +36,6 @@ class _MyOutdoorPlannerState extends State<MyOutdoorPlanner> {
 
     employeeID = hive.get(LocalConstant.KEY_EMPLOYEE_ID);
     businessID = hive.get(LocalConstant.KEY_BUSINESS_ID).toString();
-    debugPrint('Business id is - $businessID');
     BlocProvider.of<GetplandetailsCubit>(context)
         .getPlanDetails(int.parse(employeeID), int.parse(businessID));
   }
@@ -186,7 +185,6 @@ class _MyOutdoorPlannerState extends State<MyOutdoorPlanner> {
                       'Dec',
                     ],
                     onMonthTap: (int year, int month) {
-                      debugPrint('Tapped $month/$year');
                       Navigator.push(
                               context,
                               MaterialPageRoute(

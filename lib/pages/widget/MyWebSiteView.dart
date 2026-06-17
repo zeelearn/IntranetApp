@@ -72,42 +72,27 @@ class MyWebsiteViewState extends State<MyWebsiteView> {
       ..setNavigationDelegate(
         NavigationDelegate(
           onProgress: (int progress) {
-            debugPrint('WebView is loading (progress : $progress%)');
           },
           onPageStarted: (String url) {
             //Utility.showLoader();
-            debugPrint('Page started loading: $url');
           },
           onPageFinished: (String url) {
-            debugPrint('Page finished loading: $url');
             //Navigator.of(context, rootNavigator: true).pop('dialog');
           },
           onWebResourceError:
               (webview_flutter_platform_interface.WebResourceError error) {
-            debugPrint('''
-              Page resource error:
-                code: ${error.errorCode}
-                description: ${error.description}
-                errorType: ${error.errorType}
-                isForMainFrame: ${error.isForMainFrame}
-          ''');
           },
           onNavigationRequest: (NavigationRequest request) {
             if (request.url.startsWith('https://www.youtube.com/')) {
-              debugPrint('blocking navigation to ${request.url}');
               return NavigationDecision.prevent;
             }
-            debugPrint('allowing navigation to ${request.url}');
             return NavigationDecision.navigate;
           },
           onHttpError: (HttpResponseError error) {
-            debugPrint('Error occurred on page: ${error.response?.statusCode}');
           },
           onUrlChange: (UrlChange change) {
-            debugPrint('url change to ${change.url}');
           },
           onHttpAuthRequest: (HttpAuthRequest request) {
-            debugPrint('url change to $request');
             //openDialog(request);
           },
         ),
@@ -181,7 +166,6 @@ class MyWebsiteViewState extends State<MyWebsiteView> {
 
   @override
   Widget build(BuildContext context) {
-    print(widget.url);
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) async {
@@ -327,11 +311,9 @@ class MyWebsiteViewState extends State<MyWebsiteView> {
               }
               // Manually forward to IDE console for debugging on Web
               if (kDebugMode) {
-                debugPrint('WebView Console: ${consoleMessage.message}');
               }
             },
             onDownloadStartRequest: (controller, downloadStartRequest) async {
-              debugPrint('Download is getting called - $downloadStartRequest');
               final taskId = await FlutterDownloader.enqueue(
                 url: downloadStartRequest.url.toString(),
                 savedDir: (await getExternalStorageDirectory())!.path,
@@ -438,7 +420,6 @@ class MyWebsiteViewState extends State<MyWebsiteView> {
 //         // });
 //       },
 //       onConsoleMessage: (controller, consoleMessage) {
-//         print(consoleMessage);
 //       },
 //     ));
 //   }
@@ -465,11 +446,8 @@ class MyWebsiteViewState extends State<MyWebsiteView> {
 //                   _webViewController = controller;
 //                 },
 //                 onDownloadStartRequest: (controller,url) async {
-//                   print("onDownloadStart ${url}");
 //                   //Utility.downloadImage(url.toString(), url.suggestedFilename.toString());
 
-//                   print("onDownloadStart new Url  ${url.url.scheme} ");
-//                   print("onDownloadStart new Url  ${url.url.query} ");
 //                    /*final taskId = await FlutterDownloader.enqueue(
 //                     url: url.url.data?.uri.toString() as String,
 //                     savedDir: (await getTemporaryDirectory()).path,
@@ -546,13 +524,11 @@ class MyWebsiteViewState extends State<MyWebsiteView> {
   //             initialUrl: widget.url,
   //             javascriptMode: JavascriptMode.unrestricted,
   //             onWebViewCreated: (WebViewController webViewController) {
-  //               print('FLWEB webview created....');
   //               _controller = webViewController;
   //               controller.complete(webViewController);
   //               //_controller.complete(webViewController);
   //             },
   //             onProgress: (int progress) {
-  //               print('FLWEB- WebView is loading (onProgress : $progress%)');
   //               if (progress >= 100 && !isUrlLoadingCompleted) {
   //                 isUrlLoadingCompleted = true;
   //                 Navigator.of(context, rootNavigator: true).pop('dialog');
@@ -564,7 +540,6 @@ class MyWebsiteViewState extends State<MyWebsiteView> {
   //               _toasterJavascriptChannel(context),
   //             },
   //             navigationDelegate: (NavigationRequest request) {
-  //               print('FLWEB-allowing navigation to $request');
   //               if (request.url.startsWith('fb://profile')) {
   //                 return NavigationDecision.prevent;
   //               }
@@ -573,13 +548,10 @@ class MyWebsiteViewState extends State<MyWebsiteView> {
   //             onPageStarted: (String url) {
   //               isUrlLoadingCompleted = false;
   //               showLoaderDialog(context);
-  //               print('FLWEB-Page started loading: $url');
   //             },
   //             onPageFinished: (String url) {
-  //               print('FLWEB-Page onPageFinished loading: $url');
   //             },
   //             onWebResourceError: (WebResourceError error) {
-  //               print(error.toString());
   //               //print('======');
   //             },
   //             gestureNavigationEnabled: true,

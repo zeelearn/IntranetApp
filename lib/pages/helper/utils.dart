@@ -222,12 +222,9 @@ class Utility {
   static String parseShortTime(String value) {
     String date = value;
     DateTime dt = DateTime.now();
-    //print('value ${value}');
     try {
       dt = DateFormat('yyyy-MM-dd\'T\'HH:mm:ss.sss\'Z\'').parse(value);
-      //print('dt ${dt.day}');
       date = DateFormat("hh:mm a").format(dt);
-      //print('date ${date}');
     } catch (e) {
       e.toString();
     }
@@ -282,7 +279,6 @@ class Utility {
   }
 
   static Future<bool> openSetting() async {
-    print('open setting');
     return await openAppSettings();
   }
 
@@ -291,7 +287,6 @@ class Utility {
     int currentSelection = prefs.containsKey(LocalConstant.KEY_SYNC_INTERVAL)
         ? prefs.getInt(LocalConstant.KEY_SYNC_INTERVAL) as int
         : 4;
-    print('Current Selection is $currentSelection');
     bool isOfflineEligble = false;
     if (currentSelection == 0) {
       return false;
@@ -307,14 +302,12 @@ class Utility {
       if (numberOfHour <= currentSelection) {
         isOfflineEligble = true;
       }
-      print('is Offline $isOfflineEligble');
-    } catch (e) {}
+    } catch (_) {}
     return isOfflineEligble;
   }
 
   static DateTime parseStringDate(String value) {
     DateTime dt = DateTime.now();
-    print('value $value');
     try {
       dt = DateFormat('yyyy-MM-dd\'T\'HH:mm:ss.sss\'Z\'').parse(value);
     } catch (e) {
@@ -326,12 +319,9 @@ class Utility {
   static String parseShortDate(String value) {
     String date = value;
     DateTime dt = DateTime.now();
-    //print('value ${value}');
     try {
       dt = DateFormat('yyyy-MM-dd\'T\'HH:mm:ss.sss\'Z\'').parse(value);
-      //print('dt ${dt.day}');
       date = DateFormat("dd MMM yy").format(dt);
-      //print('date ${date}');
     } catch (e) {
       e.toString();
     }
@@ -341,12 +331,9 @@ class Utility {
   static String parsePJPDateTime(String value) {
     String date = value;
     DateTime dt = DateTime.now();
-    //print('value ${value}');
     try {
       dt = DateFormat('yyyy-MM-dd\'T\'HH:mm:ss').parse(value);
-      //print('dt ${dt.day}');
       date = DateFormat("dd MMM yy, hh:mm a").format(dt);
-      //print('date ${date}');
     } catch (e) {
       e.toString();
     }
@@ -355,10 +342,8 @@ class Utility {
 
   static DateTime parseDateTime(String value) {
     DateTime date = DateTime.now();
-    print('value $value');
     try {
       date = DateFormat('yyyy-MM-dd').parse(value);
-      print(date.toString());
     } catch (e) {
       e.toString();
     }
@@ -368,12 +353,9 @@ class Utility {
   static String parseDateOnly(String value) {
     String date = value;
     DateTime dt = DateTime.now();
-    //print('value ${value}');
     try {
       dt = DateFormat('mm-dd-yy').parse(value);
-      //print('dt ${dt.day}');
       date = DateFormat("dd MMM yy").format(dt);
-      //print('date ${date}');
     } catch (e) {
       e.toString();
     }
@@ -383,12 +365,9 @@ class Utility {
   static String parseCVFDateOnly(String value) {
     String date = value;
     DateTime dt = DateTime.now();
-    //print('value ${value}');
     try {
       dt = DateFormat('yyyy-MM-dd').parse(value);
-      // print('dt ${dt.day} ${dt.month}');
       date = DateFormat("dd MMM yy").format(dt);
-      //print('date ${date}');
     } catch (e) {
       e.toString();
     }
@@ -396,7 +375,6 @@ class Utility {
   }
 
   static downloadXFile(BuildContext context, String url, String name) async {
-    print(url);
     Directory? tempDir = Platform.isIOS
         ? await getApplicationDocumentsDirectory()
         : await getExternalStorageDirectory();
@@ -417,10 +395,8 @@ class Utility {
   }
 
   static shareFile(String filename) async {
-    debugPrint('shareFile $filename');
     String dir = (await getTemporaryDirectory()).path;
     String path = '$dir/$filename';
-    print('in share file $path');
     //Share.shareXFiles([XFile(path)], text: model.ContentDescription);
     Share.shareXFiles([XFile(path)], text: filename);
   }
@@ -430,52 +406,37 @@ class Utility {
     String dir = (await getTemporaryDirectory()).path;
     String path = '$dir/$fileName';
     if (await File(path).exists()) {
-      debugPrint('exists');
       isFileExists = true;
     } else {
-      debugPrint('NOT exists');
       isFileExists = false;
     }
     return isFileExists;
   }
 
   static Future<dynamic> downloadFile(String url, String filename) async {
-    debugPrint('download url  59 $url');
     var httpClient = HttpClient();
     String dir = (await getTemporaryDirectory()).path;
-    debugPrint(dir.toString());
     File file = File('$dir/$filename');
-    debugPrint(file.path.toString());
     try {
-      debugPrint('in Download file ${Uri.parse(url)} $filename');
       var request = await httpClient.getUrl(Uri.parse(url));
       var response = await request.close();
       var bytes = await consolidateHttpClientResponseBytes(response);
       await file.writeAsBytes(bytes);
-      debugPrint('in Download file completed...${file.path}');
       return file;
-    } catch (e) {
-      debugPrint(e.toString());
-    }
-    debugPrint('in Download file completed...');
+    } catch (_) {}
   }
 
   static Future<dynamic> downloadContent(String url, String filename) async {
     //String dir = (await getTemporaryDirectory()).path;
     var httpClient = HttpClient();
     File file = File(filename);
-    debugPrint(filename);
     try {
       var request = await httpClient.getUrl(Uri.parse(url));
       var response = await request.close();
       var bytes = await consolidateHttpClientResponseBytes(response);
       await file.writeAsBytes(bytes);
       return file;
-    } catch (e) {
-      debugPrint('error ');
-      debugPrint(e.toString());
-    }
-    debugPrint('in Download file completed...');
+    } catch (_) {}
   }
 
   static Future<bool> isInternet() async {
@@ -486,10 +447,8 @@ class Utility {
       try {
         final result = await InternetAddress.lookup('example.com');
         if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
-          debugPrint('connected');
         }
       } on SocketException catch (_) {
-        debugPrint('not connected');
         isConnected = false;
       }
     }
@@ -525,30 +484,43 @@ class Utility {
   }
 
   static Widget emptyDataSet(BuildContext context, String message) {
-    return SizedBox(
-      width: MediaQuery.of(context).size.width,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: <Widget>[
-          /*Image.asset(
-            'assets/images/ic_empty_box.png',
-            height: 200.0,
-          ),*/
-          Lottie.asset('assets/json/not_found.json'),
-          Center(
-            child: Text(
-              message,
-              style: GoogleFonts.inter(
-                fontSize: 16.0,
-                color: LightColor.black,
-                fontWeight: FontWeight.w600,
-                height: 1.5,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final maxH = constraints.maxHeight.isFinite
+            ? constraints.maxHeight
+            : MediaQuery.sizeOf(context).height * 0.4;
+        final animationHeight = (maxH * 0.55).clamp(100.0, 200.0);
+        return SizedBox(
+          width: constraints.maxWidth,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              SizedBox(
+                height: animationHeight,
+                child: Lottie.asset(
+                  'assets/json/not_found.json',
+                  fit: BoxFit.contain,
+                ),
               ),
-              textAlign: TextAlign.center,
-            ),
-          )
-        ],
-      ),
+              const SizedBox(height: 12),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Text(
+                  message,
+                  style: GoogleFonts.inter(
+                    fontSize: 16.0,
+                    color: LightColor.black,
+                    fontWeight: FontWeight.w600,
+                    height: 1.5,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -572,7 +544,6 @@ class Utility {
 
   static String getPercentage(int value1, int total) {
     int percentage = ((value1 / total) * 100).round();
-    debugPrint('value $value1 and $total $percentage');
     if (percentage == 0) {
       return '';
     } else {
@@ -772,7 +743,6 @@ class Utility {
         // Format: "dd-MM-yyyy'T'HH:mm:ss"
         return DateFormat('dd-MM-yyyy\'T\'HH:mm:ss').parse(value);
       } catch (e2) {
-        debugPrint('Could not parse date: "$value". Error: $e2');
         // Return current time as a last resort
         return DateTime.now();
       }
@@ -880,7 +850,6 @@ class Utility {
   static int getDateDifference(DateTime start, DateTime end) {
     int difference = 1;
     int days = end.difference(start).inDays;
-    //debugPrint('${Utility.shortDate(start)} to ${Utility.shortDate(end)} : days ${days}');
     if (days > 1) {
       difference = days;
     }
@@ -1026,7 +995,6 @@ class Utility {
       actions: [
         IconsButton(
           onPressed: () {
-            debugPrint('click functions listener......');
             response.onClick(ACTION_OK, action);
             /*Future.delayed(Duration(milliseconds: 50)).then((_) {
 
@@ -1307,9 +1275,6 @@ class Utility {
 
     // Get address from coordinates
     Place address = await nominatim.getAddressFromLatLng(latitude, longitude);
-    print(
-        'Address web is - ${address.placeId}  ${address.displayName} - ${address.addressDetails}');
-
     return address.displayName;
     // } else {
     //   List<Placemark> placemarks =
@@ -1320,7 +1285,6 @@ class Utility {
 
     //   Placemark placemark = placemarks.first;
     //   String address = '';
-    //   print(placemark.toString());
     //   if (placemark.street != null) {
     //     address += '${placemark.street ?? ''}  , ';
     //   } else if (placemark.thoroughfare != null) {

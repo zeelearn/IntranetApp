@@ -233,7 +233,7 @@ class _SummaryDashboardState extends State<SummaryDashboard>
             if (minStart == null || fyStart.isBefore(minStart))
               minStart = fyStart;
             if (maxEnd == null || fyEnd.isAfter(maxEnd)) maxEnd = fyEnd;
-          } catch (e) {}
+          } catch (_) {}
         }
         if (minStart != null)
           fromDate = DateFormat('yyyy-MM-dd').format(minStart);
@@ -822,7 +822,6 @@ class _SummaryDashboardState extends State<SummaryDashboard>
                             currentDate: DateTime.now(),
                           )),
                 );
-                print('Add PJP result: $result');
                 if (result != null && result is PJPModel) {
                   setState(() {
                     PJPInfo pjpInfo = PJPInfo(
@@ -3103,7 +3102,6 @@ class _CheckInClickListener implements onClickListener {
         updateCVF(cvfView);
       } else if (action == Utility.ACTION_CCNCEL) {}
     } else {
-      debugPrint('click functions not implemented......');
     }
   }
 }
@@ -3171,7 +3169,7 @@ class _VisitTile extends StatelessWidget {
 
     return InkWell(
       onTap: () async {
-        if (isViewOnly) {
+        if (!isCompleted && isViewOnly) {
           ToastUtility.showError(msg: 'You cannot access this visit');
           return;
         }
@@ -3931,6 +3929,7 @@ class _VisitTile extends StatelessWidget {
         longitude: visit.Longitude.toString(),
         address: visit.Address,
         activityTitle: visit.ActivityTitle,
+        remarks: visit.remarks,
       ));
       visit.visitDate = visitDateFormatted;
       visit.visitTime = visitTimeFormatted;

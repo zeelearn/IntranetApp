@@ -239,7 +239,6 @@ class DBHelper {
               db.execute(CREATE_TABLE_BACKGROUND_SYNC);
             },
             onUpgrade: (db, old, newversion) {
-              debugPrint('Database Upgrade-------------------');
               if (old <= 3) db.execute(CREATE_TABLE_NOTIFICATION);
               if (old == 4) {
                 db.execute(CREATE_TABLE_QUESTIONS_JSON);
@@ -277,7 +276,6 @@ class DBHelper {
     final dbClient = await db;
     int affectedRow = await dbClient.insert(table, data,
         conflictAlgorithm: sql.ConflictAlgorithm.replace);
-    print('notification ${affectedRow} insert ${data}');
   }
 
   Future<void> deleteCategory(int categotyId) async {
@@ -293,22 +291,16 @@ class DBHelper {
   /// @param id: product id to be deleted
   Future<void> delete(String table, String id) async {
     final dbClient = await db;
-    print('Affected row is...');
     int afftctedCount = await dbClient
         .delete(table, where: '${DBConstant.ID} = ?', whereArgs: [id]);
-    print('Affected row ${afftctedCount}');
   }
 
   Future<void> deleteNotification(String table, int id) async {
     final dbClient = await db;
-    print('Affected row is...');
     try {
       int afftctedCount = await dbClient
           .delete(table, where: '${DBConstant.ID} = ?', whereArgs: [id]);
-      print('Affected row ${afftctedCount}');
-    } catch (e) {
-      print(e.toString());
-    }
+    } catch (_) {}
   }
 
   Future<void> deleteAllData() async {
@@ -368,7 +360,6 @@ class DBHelper {
   Future<int> updateData(String table, Map<String, Object> data,
       String condition, List<Object?>? whereArgs) async {
     final dbClient = await db;
-    debugPrint(condition + whereArgs.toString());
     return dbClient.update(table, data, where: condition, whereArgs: whereArgs);
   }
 
@@ -432,7 +423,6 @@ class DBHelper {
       DBConstant.IS_SYNC: isSync,
       'date': Utility.parseDate(DateTime.now()),
     };
-    debugPrint(data.toString());
     await dbclient.insert(LocalConstant.TABLE_CHECKIN, data);
   }
 
@@ -450,8 +440,6 @@ class DBHelper {
 
   Future<void> insertCVFQuestions(
       String cvfid, String categoryId, String json, int isSync) async {
-    debugPrint('insert question=================');
-    debugPrint(json);
     var dbclient = await db;
     Map<String, Object> data = {
       '${DBConstant.CVF_ID}': cvfid,
@@ -470,11 +458,7 @@ class DBHelper {
     try {
       int value = await dbclient.rawUpdate(
           'update ${LocalConstant.TABLE_CVF_QUESTION_JSON} set ${DBConstant.QUESTION} = \'${json}\' ,${DBConstant.IS_SYNC} = \'${isSync}\' ,${DBConstant.MODIFIED_DATE} = \'${Utility.parseDate(DateTime.now())}\'   where ${DBConstant.CVF_ID}=${cvfId} and ${DBConstant.CATEGORY_ID}=${categoryId}');
-      print('updated affected row ${value}');
-      print('updated affected row ${json}');
-    } catch (e) {
-      debugPrint(e.toString());
-    }
+    } catch (_) {}
   }
 
   Future<void> updateCheckInStatus(int id, int isSync) async {
@@ -495,7 +479,6 @@ class DBHelper {
         responseMessage: '', statusCode: 200, responseData: []);
     List<Map<String, dynamic>> list = await DBHelper().getQuestionMasterList(
         LocalConstant.TABLE_CVF_QUESTION_JSON, categoryId);
-    debugPrint('${categoryId} getQuestinos ${list}');
     if (list != null) {
       for (int index = 0; index < list.length; index++) {
         Map<String, dynamic> map = list[index];
@@ -512,11 +495,9 @@ class DBHelper {
         }
         //notificaitonList.add(NotificationDataModel(message: map['data'], title: map['title'], image: map['imageurl'], URL: '', type: map['type'],time:time));
         /*}else{
-          debugPrint('not match');
         }*/
       }
     } else {
-      debugPrint('getQuestionsList list is null');
     }
     return response;
   }
@@ -541,11 +522,9 @@ class DBHelper {
             );
           }
         } else {
-          debugPrint('not match');
         }
       }
     } else {
-      debugPrint('getQuestionsList list is null');
     }
     return response;
   }
@@ -568,7 +547,6 @@ class DBHelper {
         }
       }
     } else {
-      debugPrint('getQuestionsList list is null');
     }
     return unSyncList;
   }
@@ -586,7 +564,6 @@ class DBHelper {
         mMap.putIfAbsent(map['date'].toString(), () => map['date']);
       }
     } else {
-      debugPrint('offline status not found');
     }
     return mMap;
   }
@@ -620,7 +597,6 @@ class DBHelper {
     if (list != null) {
       for (int index = 0; index < list.length; index++) {
         Map<String, dynamic> map = list[index];
-        //debugPrint('date is  ${map['date']}');
         String time = '';
         if (map['date'] != null) {
           time = map['date'];
@@ -637,7 +613,6 @@ class DBHelper {
             time: time));
       }
     }
-    print('length is ${notificaitonList.length}');
     return notificaitonList;
   }
 
@@ -702,7 +677,6 @@ class DBHelper {
     List<Map<String, dynamic>> list =
         await DBHelper().getData(LocalConstant.TABLE_CVF_USER_ANSWERAS);
     if (list != null) {
-      debugPrint('----${list.length}');
       for (int index = 0; index < list.length; index++) {
         Map<String, dynamic> map = list[index];
         if (map[DBConstant.CVF_ID] == cvfId)
@@ -735,7 +709,6 @@ class DBHelper {
             isNotify: map[DBConstant.IS_NOTIFY] ==1 ? true : false,
             isCompleted: map[DBConstant.IS_CVF_COMPLETED] ==1 ? true : false,
             createdDate: Utility.convertDate(map[DBConstant.CREATED_DATE]), modifiedDate: Utility.convertDate(map[DBConstant.MODIFIED_DATE])));*/
-        debugPrint(map.toString());
       }
     }
     return cvfList;
@@ -746,12 +719,9 @@ class DBHelper {
 
     List<Map<String, dynamic>> list =
         await DBHelper().getData(LocalConstant.TABLE_CVF_FRANCHISEE);
-    debugPrint('list franchisee ${list}');
     if (list != null) {
       for (int index = 0; index < list.length; index++) {
         Map<String, dynamic> map = list[index];
-        debugPrint(
-            ' NAME ${map[DBConstant.FRANCHISEE_NAME]} business ${map[DBConstant.BUSINESS_ID]}  ${businessId}');
         if (map[DBConstant.BUSINESS_ID] == businessId) {
           frichiseeList.add(FranchiseeInfo(
               franchiseeId:

@@ -38,7 +38,6 @@ class FCM {
     // FirebaseMessaging.onBackgroundMessage(onBackgroundMessage);
     // FirebaseMessaging.onMessage.listen(
     //       (message) async {
-    //         debugPrint(message.toString());
     //     if (message.data.containsKey('data')) {
     //       // Handle data message
     //       streamCtlr.sink.add(message.data['data']);
@@ -62,12 +61,9 @@ class FCM {
             await FirebaseMessaging.instance.subscribeToTopic("intranet");
             await Future.delayed(Duration(seconds: 1));
             await FirebaseMessaging.instance.subscribeToTopic("saathi");
-            print('Response from getToken is - ${token}');
             sendFcm(token!, employeeId, deviceId, userAgent);
           }
-        } catch (e) {
-          print('Exception while getting Token - $e');
-        }
+        } catch (_) {}
       },
     );
   }
@@ -76,7 +72,6 @@ class FCM {
     var hiveBox = Hive.box(LocalConstant.KidzeeDB);
     await Hive.openBox(LocalConstant.KidzeeDB);
     var oldoken = hiveBox.get(LocalConstant.KEY_FCM_ID);
-    debugPrint(token);
     if (oldoken == null || oldoken != token) {
       hiveBox.put(LocalConstant.KEY_FCM_ID, token);
       APIService service = APIService();
@@ -88,7 +83,6 @@ class FCM {
           User_Agent: userAgent);
       service.updateFCM(model);
     } else {
-      print('in else notification id not change');
     }
   }
 

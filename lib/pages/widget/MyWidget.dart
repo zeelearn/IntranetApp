@@ -171,8 +171,6 @@ class MyWidget{
           if (pickedDate != null) {
             String formattedDate = DateFormat('dd-MMM-yyyy').format(pickedDate);
             controller.text = formattedDate;
-            debugPrint(formattedDate); //formatted date output using intl package =>  2021-03-16
-
           }
         });
   }

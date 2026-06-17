@@ -277,22 +277,14 @@ class _AttendanceMarkingScreen extends State<AttendanceMarkingScreen> implements
         FromDT: DateFormat('yyyy-MM-ddTHH:mm:ss').format(parseDateTime('${_startDateController.text} ${_fromTimeController.text}')),
         ToDT: DateFormat('yyyy-MM-ddTHH:mm:ss').format(parseDateTime('${_startDateController.text} ${_toTimeController.text}')));
 
-  debugPrint(request.getJson());
-    print('in attendance marking 123');
     APIService apiService = APIService();
     apiService.attendanceMarking(request).then((value) {
-      print('response : ${value}');
       Navigator.of(context).pop();
-      print(value);
       if (value != null) {
-        print('in value not null');
         if (value == null ) {
-          print('in if');
           Utility.showMessage(context, 'Unable to Process your Request');
         } else if (value is AttendanceMarkingResponse) {
-          print('in else if');
           AttendanceMarkingResponse response = value;
-          print('in Response asd ${response.responseMessage}');
           Utility.showMessageSingleButton(context, response.responseMessage,this);
           if(response.responseMessage=='Attendance marked successfully') {
             clearForm();
@@ -302,10 +294,8 @@ class _AttendanceMarkingScreen extends State<AttendanceMarkingScreen> implements
 
         }
       } else {
-        print('in else');
         Navigator.pop(context);
         Utility.showMessage(context, "Unable to Apply Attendance Request");
-        debugPrint("null value");
       }
     });
   }
@@ -316,7 +306,6 @@ class _AttendanceMarkingScreen extends State<AttendanceMarkingScreen> implements
     //2022-07-18T00:00:00
     try {
       dt = new DateFormat('yyyy-MM-dd').parse(value);
-      //debugPrint('asasdi   ' + dt.day.toString());
     } catch (e) {
       e.toString();
     }
@@ -327,7 +316,6 @@ class _AttendanceMarkingScreen extends State<AttendanceMarkingScreen> implements
     //2022-07-18T00:00:00
     try {
       dt = new DateFormat('dd-MMM-yyyy hh:mm a').parse(value);
-      //debugPrint('asasdi   ' + dt.day.toString());
     } catch (e) {
       e.toString();
     }

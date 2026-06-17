@@ -66,7 +66,6 @@ class _IntroPageState extends State<IntroPage> {
             PageView(
               onPageChanged: (int page) {
                 setState(() {
-                  debugPrint('current page ${page}');
                   currentIndex = page;
                 });
               },
@@ -102,7 +101,6 @@ class _IntroPageState extends State<IntroPage> {
                   //primary: Colors.white, // foreground
                 ),
                 onPressed: () {
-                  debugPrint('Start Now DashboardV2Page');
                   //Get.to(() => const DashboardV2Page());
 
                   Navigator.pushReplacement(

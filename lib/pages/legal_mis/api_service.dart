@@ -17,7 +17,6 @@ class ApiService {
           body: jsonEncode({"request_id": requestId}),
           headers: {"content-type": "application/json", "dbid": "1"});
 
-      // print('API Response Status:  ${requestId} ${response.statusCode} - ${response.body.runtimeType} - ${response.body} ');
       if (response.statusCode == 200 || response.statusCode == 201) {
         final Map<String, dynamic> body = json.decode(response.body);
 

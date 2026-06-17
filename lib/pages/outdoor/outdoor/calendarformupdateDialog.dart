@@ -52,9 +52,6 @@ class _CalendarFormUpdateDialogState extends State<CalendarFormUpdateDialog> {
     _deviceCalendarPlugin = DeviceCalendarPlugin();
     getCurrentTimeZone();
 
-    debugPrint(
-        'getplandata in initstate  is - ${widget.getPlandata.centerId} ');
-
     eventTextController.text = widget.getPlandata.eventName ?? '';
     descriptionTextController.text = widget.getPlandata.remarks ?? '';
     urlTextController.text = widget.getPlandata.url ?? '';
@@ -71,9 +68,7 @@ class _CalendarFormUpdateDialogState extends State<CalendarFormUpdateDialog> {
   getCurrentTimeZone() async {
     /*try {
       timezone = await FlutterNativeTimezone.getLocalTimezone();
-    } catch (e) {
-      debugPrint('Could not get the local timezone');
-    }*/
+    } catch (_) {}*/
 
     currentLocation = timeZoneDatabase.locations[timezone];
   }
@@ -155,12 +150,6 @@ class _CalendarFormUpdateDialogState extends State<CalendarFormUpdateDialog> {
                             xmlRequest.clear();
                             var selectedDateTime =
                                 DateTime.parse(widget.getPlandata.visitDate!);
-
-                            debugPrint(
-                                'Location of time zone is - $currentLocation and location date is - ${DateFormat('yyyy-MM-dd').format(TZDateTime(currentLocation!, selectedDateTime.year, selectedDateTime.month, selectedDateTime.day))}');
-
-                            debugPrint(
-                                'getplandata is - ${widget.getPlandata.centerId} ');
 
                             xmlRequest.add(XMLRequest(
                                 id: widget.getPlandata.id!,

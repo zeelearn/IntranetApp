@@ -43,10 +43,7 @@ class Tasks extends StatelessWidget {
     var result = await Navigator.push(context, MaterialPageRoute(builder: (context) {
       return ChatPage(taskModel: taskModel, isEdit: true, franchiseeName: taskModel.projectId,);
     }));
-    print('showChatScreen ------notifier-----------${result}');
     ref.read(authNotifierProvider.notifier).refreshTask();
-    print('showChatScreen ------notifier---END--------');
-
   }
   Widget getView(BuildContext context, ProjectTaskModel taskModel){
     return GestureDetector(

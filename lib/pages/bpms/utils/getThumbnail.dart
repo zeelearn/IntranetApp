@@ -36,13 +36,9 @@
 //         timeMs: thumbnailRequest.timeMs,
 //         quality: thumbnailRequest.quality);
 
-//     print("thumbnail file is located: $thumbnailPath");
-
 //     final file = File(thumbnailPath ?? '');
 //     bytes = file.readAsBytesSync();
 //     int imageDataSize = bytes.length;
-//     print("image size: $imageDataSize");
-
 //     final imagestore.Image image = imagestore.Image.memory(bytes);
 //     image.image
 //         .resolve(const ImageConfiguration())

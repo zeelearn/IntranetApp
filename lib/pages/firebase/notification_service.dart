@@ -79,15 +79,11 @@ class NotificationService {
       initializationSettings,
     );
 
-    // debugPrint(FirebaseMessaging.instance.getToken().toString());
   }
 
   showSimpleNotification(String title, String body,
       [RemoteMessage? message]) async {
     String channel = LocalConstant.NOTIFICATION_CHANNEL;
-    print('showSimpleNotification Kidzee $channel');
-    debugPrint(
-        'Remote message for simple message is Notification_service - $message');
     AwesomeNotifications().createNotification(
         content: NotificationContent(
       id: -1,
@@ -109,14 +105,12 @@ class NotificationService {
             message != null ? (message.data['employee_code'] ?? '') : ''
       },
     ));
-    print('showSimpleNotification');
   }
 
   showBigNotification(String title, String body, String logo, String imageUrl,
       bool showBigTextNotification,
       [RemoteMessage? message]) async {
     String channel = LocalConstant.NOTIFICATION_CHANNEL;
-    print('showBigNotification kid $channel');
     if (showBigTextNotification) {
       await AwesomeNotifications().createNotification(
         content: NotificationContent(
@@ -225,11 +219,9 @@ class NotificationService {
   }
 
   void parseNotification(RemoteMessage message) {
-    print('parse Notification 217');
     String cdate = DateFormat("yyyy-MM-dd hh:mm a").format(DateTime.now());
     String? imsageUrl = '';
     if (kIsWeb) {
-      print('its web Notification 220');
     } else if (Platform.isAndroid) {
       imsageUrl = message.notification?.android?.imageUrl.toString();
     } else if (Platform.isIOS) {
@@ -238,7 +230,6 @@ class NotificationService {
     DBHelper helper = DBHelper();
     Map<String, String> data = {};
     if (message.notification != null) {
-      print('its simple Notification 12');
       data.putIfAbsent('title', () => message.notification?.title as String);
       data.putIfAbsent(
           'description', () => message.notification?.body as String);
@@ -267,12 +258,9 @@ class NotificationService {
       //     message.notification?.body as String,
       //     message);
     } else {
-      print('its data Notification 143');
       if (message.data.containsKey('type') && message.data['type'] == 'td') {
-        print('Identifying notification');
         identifySaathiNotification(message);
       } else if (message.data.containsKey('topic')) {
-        print('Identifying notification');
         identifyNotification(message);
       } else {
         data.putIfAbsent('title', () => message.data['title']);
@@ -304,7 +292,6 @@ class NotificationService {
                 ? message.data['url'] as String
                 : '');
         helper.insert(LocalConstant.TABLE_NOTIFICATION, data);
-        print('insert in database ${data}');
         if (message.data.containsKey('type') &&
             message.data['type'] == 'BPMS') {
           BpmsNotificationModelList list = BpmsNotificationModelList.fromJson(
@@ -337,7 +324,6 @@ void identifySaathiNotification(RemoteMessage message, [WidgetRef? ref]) async {
   var hiveBox = await Utility.openBox();
   var hive = Hive.box(LocalConstant.KidzeeDB);
   String employeeCode = hiveBox.get(LocalConstant.KEY_EMPLOYEE_CODE) as String;
-  print(' 291 Intranet user Name ${employeeCode}');
   if (employeeCode.isNotEmpty &&
       message.data.containsKey('employee_code') &&
       message.data['employee_code'] == employeeCode) {
@@ -377,11 +363,9 @@ void identifySaathiNotification(RemoteMessage message, [WidgetRef? ref]) async {
 void identifyNotification(RemoteMessage message, [WidgetRef? ref]) async {
   var box = await Utility.openBox();
   String userName = box.get(LocalConstant.KEY_EMPLOYEE_ID) as String;
-  print('Intranet user Name ${userName}');
   if (userName.isNotEmpty &&
       message.data.containsKey('user_id') &&
       message.data['user_id'] == userName) {
-    print('notificaiton found...');
     DBHelper helper = DBHelper();
     Map<String, String> data = {};
     String cdate = DateFormat("yyyy-MM-dd hh:mm a").format(DateTime.now());

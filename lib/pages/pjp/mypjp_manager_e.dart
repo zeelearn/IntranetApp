@@ -56,14 +56,12 @@ class _MyPjpListState extends State<PjpExceotionalScreen>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      print('didChangeAppLifecycleState - Manager');
       getUserInfo();
     }
   }
 
   @override
   void initState() {
-    print('exceptional page');
     super.initState();
     WidgetsBinding.instance?.addObserver(this);
     FirebaseAnalyticsUtils()
@@ -105,7 +103,6 @@ class _MyPjpListState extends State<PjpExceotionalScreen>
     try {
       var attendanceList = hiveBox.get(getId());
       isLoading = false;
-      //debugPrint(attendanceList.toString());
       PjpExceptionalResponse response = PjpExceptionalResponse.fromJson(
         json.decode(attendanceList!),
       );
@@ -139,7 +136,6 @@ class _MyPjpListState extends State<PjpExceotionalScreen>
     PjpExceptionalResponse response = PjpExceptionalResponse.fromJson(
       json.decode(pjpList),
     );
-    print('locai ${pjpList}');
     if (response.responseData != null && response.responseData!.length > 0) {
       mPjpList.clear();
       if (response != null && response.responseData != null) {
@@ -165,7 +161,6 @@ class _MyPjpListState extends State<PjpExceotionalScreen>
             }
           }
         } else if (widget.mFilterSelection.type == FILTERStatus.MYSELF) {
-          debugPrint('FOR MY SELF');
           for (int index = 0; index < response.responseData.length; index++) {
             if (true /*|| response.responseData[index].isSelfPJP == '1'*/) {
               if (widget.isApproved &&
@@ -188,12 +183,10 @@ class _MyPjpListState extends State<PjpExceotionalScreen>
               mPjpList.add(response.responseData[index]);
           }
         } else {
-          debugPrint('In else');
           for (int index = 0; index < response.responseData.length; index++) {
             for (int jIndex = 0;
                 jIndex < widget.mFilterSelection.filters.length;
                 jIndex++) {
-              print('---- ${widget.mFilterSelection.filters[jIndex].name}');
               if (response.responseData[index].displayName ==
                   widget.mFilterSelection.filters[jIndex].name) {
                 if (widget.isApproved &&
@@ -212,7 +205,6 @@ class _MyPjpListState extends State<PjpExceotionalScreen>
         _isChecked = List<bool>.filled(mPjpList.length, false);
       }
     }
-    print('local ${mPjpList.length}');
   }
 
   @override
@@ -370,7 +362,6 @@ class _MyPjpListState extends State<PjpExceotionalScreen>
   bool isValid() {
     bool isValid = false;
     if (_isChecked != null && _isChecked.length > 0) {
-      debugPrint('length ${_isChecked.length}');
       for (int index = 0; index < _isChecked.length; index++) {
         if (_isChecked[index] == true) {
           isValid = true;
@@ -378,7 +369,6 @@ class _MyPjpListState extends State<PjpExceotionalScreen>
         }
       }
     }
-    debugPrint('isValid ${isValid}');
     return isValid;
   }
 
@@ -403,8 +393,6 @@ class _MyPjpListState extends State<PjpExceotionalScreen>
                 currentDate: DateTime.now(),
               )),
     );
-    //debugPrint('Response Received');
-
     IntranetServiceHandler.loadPjpExceptionalSummery(employeeId, this);
   }
 
@@ -427,10 +415,8 @@ class _MyPjpListState extends State<PjpExceotionalScreen>
       for (int index = 0; index < filter.filters.length; index++) {
         if (filter.filters[index].isSelected) {
           widget.mFilterSelection.filters.add(filter.filters[index]);
-          debugPrint('--${filter.filters[index].name}');
         }
       }
-      //debugPrint(filter.filters.toList());
       IntranetServiceHandler.loadPjpExceptionalSummery(employeeId, this);
     }
     //Scaffold.of(context).showSnackBar(SnackBar(content: Text("$result"),duration: Duration(seconds: 3),));
@@ -444,7 +430,6 @@ class _MyPjpListState extends State<PjpExceotionalScreen>
         ),
       );
     } else if (mPjpList.isEmpty) {
-      //debugPrint('PJP List not avaliable');
       return Utility.emptyDataSet(
           context, "your PJP-CVF list is Empty, Please plan your journey");
     } else if (mPjpList.isEmpty && isInternet) {
@@ -843,20 +828,16 @@ class _MyPjpListState extends State<PjpExceotionalScreen>
       for (int index = 0; index < filter.filters.length; index++) {
         if (filter.filters[index].isSelected) {
           widget.mFilterSelection.filters.add(filter.filters[index]);
-          //debugPrint(filter.filters[index].name);
         }
       }
-      //debugPrint(filter.filters.toList());
       IntranetServiceHandler.loadPjpExceptionalSummery(employeeId, this);
     } else {
-      //debugPrint('Object not found ${result}');
     }
   }
 
   @override
   void onError(value) {
     isLoading = false;
-    print('=========error ${value}');
     if (context.mounted) {
       setState(() {});
     }
@@ -886,15 +867,12 @@ class _MyPjpListState extends State<PjpExceotionalScreen>
   void onSuccess(value) {
     //
     isLoading = false;
-    debugPrint('PJP List onSuccess ');
     if (value is String) {
-      print('Approves ${value}');
       //if(value=='SUCCESS')
       //Navigator.of(context).pop();
       IntranetServiceHandler.loadPjpExceptionalSummery(employeeId, this);
     } else if (value is UpdatePJPStatusResponse) {
       UpdatePJPStatusResponse val = value;
-      //debugPrint(val.toJson());
       if (val.responseData == 0) {
         //rejected
         Utility.getRejectionDialog(
@@ -903,15 +881,11 @@ class _MyPjpListState extends State<PjpExceotionalScreen>
         Utility.getConfirmationDialogPJP(context, this);
       }
     } else if (value is PjpExceptionalResponse) {
-      //debugPrint('PJP List onSuccess PjpListResponse');
       PjpExceptionalResponse response = value;
-      //debugPrint(response.toString());
       String json = jsonEncode(response);
       savePJPLocally(json);
-      //debugPrint('onResponse in if ${widget.mFilterSelection.type}');
       isLoading = false;
       mPjpList.clear();
-      //debugPrint('PJP List onSuccess ${response.responseData.toString()}');
       if (response.responseData != null && response.responseData!.length > 0) {
         if (response != null && response.responseData != null) {
           if (widget.mFilterSelection == null ||
@@ -938,7 +912,6 @@ class _MyPjpListState extends State<PjpExceotionalScreen>
               }
             }
           } else if (widget.mFilterSelection.type == FILTERStatus.MYSELF) {
-            debugPrint('FOR MY SELF');
             for (int index = 0; index < response.responseData.length; index++) {
               if (true /*|| response.responseData[index].isSelfPJP == '1'*/) {
                 if (widget.isApproved &&
@@ -961,18 +934,12 @@ class _MyPjpListState extends State<PjpExceotionalScreen>
                 mPjpList.add(response.responseData[index]);
             }
           } else {
-            debugPrint('In else 123');
             for (int index = 0; index < response.responseData.length; index++) {
               for (int jIndex = 0;
                   jIndex < widget.mFilterSelection.filters.length;
                   jIndex++) {
-                print(
-                    '${widget.mFilterSelection.filters[jIndex].name.trim()}vs${response.responseData[index].displayName.trim()}');
-                print(
-                    ' ${widget.isApproved} ${response.responseData[index].getStatus()}');
                 if (response.responseData[index].displayName.trim() ==
                     widget.mFilterSelection.filters[jIndex].name.trim()) {
-                  print(' display name matched');
                   if (widget.isApproved &&
                           response.responseData[index].getStatus() !=
                               PJPCVFStatus.UNKNOWN ||
@@ -988,19 +955,15 @@ class _MyPjpListState extends State<PjpExceotionalScreen>
           if (mPjpList.length > 0) sort();
           _isChecked = List<bool>.filled(mPjpList.length, false);
           //mPjpList.addAll(response.responseData);
-          //debugPrint('========================${mPjpList.length}');
-          //debugPrint(response.toJson());
           //mPjpList = mPjpList.reversed.toList();
         }
       } else {
-        //debugPrint('onResponse in if else');
       }
     } else if (value is GeneralResponse) {
       GeneralResponse response = value;
       Utility.onSuccessMessage(context, 'PJP Updated',
           'PJP-CVF  status has been updated Successfully', this);
     }
-    debugPrint('length ${mPjpList.length}');
     setState(() {
       //mPjpList.addAll(response.responseData);
     });
@@ -1032,13 +995,11 @@ class _MyPjpListState extends State<PjpExceotionalScreen>
     UpdatePJPStatusListRequest request = UpdatePJPStatusListRequest(
         DocXML: jsonEncode(pjpApprovals).toString(),
         Workflow_user: employeeId.toString());
-    //debugPrint(request.toJson());
     IntranetServiceHandler.updatePJPStatusExceptional(request, this);
   }
 
   @override
   void onClick(int action, value) {
-    //debugPrint('onClick called ${value}');
     if (value is int) {
       if (action == Utility.ACTION_OK && value == Utility.ACTION_REJECT) {
         approvePjpList(0);

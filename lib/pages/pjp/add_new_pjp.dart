@@ -336,10 +336,8 @@ class _AddNewPJPState extends State<AddNewPJPScreen>
   AddPJPRequest? request;
   addNewPjp() async {
     if (await isValidate()) {
-      print('addNew PJP validate');
       Utility.showLoaderDialog(context);
       //mCategoryList.clear();
-      //debugPrint('categoty');
       mPjpModel.fromDate = _fromDate;
       mPjpModel.toDate = _toDate;
       request = AddPJPRequest(
@@ -348,10 +346,8 @@ class _AddNewPJPState extends State<AddNewPJPScreen>
           ToDate: Utility.convertShortDate(mPjpModel.toDate),
           ByEmployee_Id: widget.employeeId.toString(),
           remarks: _remarkController.text.toString());
-      debugPrint(request!.toJson().toString());
       APIService apiService = APIService();
       apiService.addNewPJP(request!).then((value) {
-        debugPrint(value.toString());
         Navigator.of(context).pop();
         if (value != null) {
           if (value == null || value.responseData == null) {
@@ -365,8 +361,6 @@ class _AddNewPJPState extends State<AddNewPJPScreen>
             mPjpModel.isSync = true;
             //mPjpModel.isActive = true;
             mPjpModel.remark = _remarkController.text.toString();
-
-            debugPrint('New PJP ID ${mPjpModel.pjpId} ');
 
             addPJPinDB(1);
             Utility.showMessageSingleButton(
@@ -388,7 +382,6 @@ class _AddNewPJPState extends State<AddNewPJPScreen>
   }
 
   onsetp2(PJPInfo infoModel) {
-    debugPrint('onStep 2');
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
@@ -417,7 +410,6 @@ class _AddNewPJPState extends State<AddNewPJPScreen>
       DBConstant.CREATED_DATE: Utility.parseDate(DateTime.now()),
     };
     dbHelper.insert(LocalConstant.TABLE_PJP_INFO, data);
-    debugPrint('db update');
   }
 
   @override
@@ -432,19 +424,14 @@ class _AddNewPJPState extends State<AddNewPJPScreen>
 
   @override
   void onSuccess(value) {
-    debugPrint('onResponse');
     Navigator.of(context).pop();
     if (value is PjpListResponse) {
       PjpListResponse response = value;
-      debugPrint('onResponse in if ');
       if (response.responseData != null && response.responseData.length > 0) {
-        debugPrint('onResponse ${response.responseData.length}');
         onsetp2(response.responseData[0]);
       } else {
-        debugPrint('onResponse in if else');
       }
     } else {
-      debugPrint('onResponse in else');
     }
   }
 

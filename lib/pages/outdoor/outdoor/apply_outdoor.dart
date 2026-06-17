@@ -237,7 +237,6 @@ class _ApplyOutDoorScreen extends State<ApplyOutDoorScreen> implements onClickLi
     //2022-01-17T10:26:02
     CheckPhpRequest request = CheckPhpRequest(Employee_id: widget.employeeId.toString(),
         OnDate: DateFormat('yyyy-MM-dd').format(parseDateTime('${_startDateController.text} ${_fromTimeController.text}')));
-    debugPrint(request.toJson());
     APIService apiService = APIService();
     apiService.getPhpByDate(request).then((value) {
       if (value != null) {
@@ -258,7 +257,6 @@ class _ApplyOutDoorScreen extends State<ApplyOutDoorScreen> implements onClickLi
                 Utility.getAlertDialog(context, response.responseData[0].msg, this);
               }
             }else{
-              print(response.responseData);
               //warning and continue
               if(response.responseData[0].count>0) {
                 Utility.showWarning(context, response.responseData[0].msg, '', 'alert_animation','Apply', this);
@@ -277,7 +275,6 @@ class _ApplyOutDoorScreen extends State<ApplyOutDoorScreen> implements onClickLi
       } else {
         Navigator.pop(context);
         Utility.showMessages(context, "Unable to Apply Outdoor Request");
-        debugPrint("null value");
       }
     });
   }
@@ -299,7 +296,6 @@ class _ApplyOutDoorScreen extends State<ApplyOutDoorScreen> implements onClickLi
         noofChildren: "0",
         AppType :Platform.isAndroid ? 'Android' : Platform.isIOS ? 'IOS' : 'unknown',
         WorkLocation: "", IsHappinessLeave: false);
-    debugPrint(request.toJson().toString());
     APIService apiService = APIService();
     apiService.applyLeave(request).then((value) {
       if (value != null) {
@@ -321,7 +317,6 @@ class _ApplyOutDoorScreen extends State<ApplyOutDoorScreen> implements onClickLi
       } else {
         Navigator.pop(context);
         Utility.showMessages(context, "Unable to Apply Outdoor Request");
-        debugPrint("null value");
       }
     });
   }
@@ -330,14 +325,11 @@ class _ApplyOutDoorScreen extends State<ApplyOutDoorScreen> implements onClickLi
   DateTime parseDate(String value) {
     DateTime dt = DateTime.now();
     //2022-07-18T00:00:00
-    debugPrint(value);
     try {
       dt = new DateFormat('yyyy-MM-dd').parse(value);
-      //debugPrint('asasdi   ' + dt.day.toString());
     } catch (e) {
       e.toString();
     }
-    debugPrint('parsed date sss ${dt}');
     return dt;
   }
   DateTime parseDateTime(String value) {
@@ -345,7 +337,6 @@ class _ApplyOutDoorScreen extends State<ApplyOutDoorScreen> implements onClickLi
     //2022-07-18T00:00:00
     try {
       dt = new DateFormat('dd-MMM-yyyy hh:mm a').parse(value);
-      //debugPrint('asasdi   ' + dt.day.toString());
     } catch (e) {
       e.toString();
     }

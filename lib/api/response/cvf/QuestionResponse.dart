@@ -21,9 +21,7 @@ class QuestionResponse {
       } else {
         responseData.add(new QuestionMaster.fromJson(json['responseData']));
       }
-    }catch(e){
-      debugPrint(e.toString());
-    }
+    }catch (_) {}
   }
 
   toJsonMap(){
@@ -62,9 +60,7 @@ class QuestionMaster {
           json['allquestion'].forEach((v) {
             allquestion.add(new Allquestion.fromJson(v));
           });
-        }catch(e){
-          debugPrint('error ${e.toString()}');
-        }
+        }catch (_) {}
       }else{
         allquestion.add(new Allquestion.fromJson(json['allquestion']));
       }
@@ -135,9 +131,7 @@ class Allquestion {
           answers.add(new Answers.fromJson(json['answers']));
         }
       }
-    }catch(e){
-      debugPrint(e.toString());
-    }
+    }catch (_) {}
   }
 
   Map<String, dynamic> toJson() {

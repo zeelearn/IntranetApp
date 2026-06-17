@@ -39,13 +39,10 @@ class _FiltersScreenState extends State<FiltersScreen> {
         EmployeeListRequest(SuperiorId: widget.employeeId);
     APIService apiService = APIService();
     apiService.getEmployeeListPJP(request).then((value) {
-      debugPrint(' value is ${value.toString()}');
       if (value != null) {
         if (value == null || value.responseData == null) {
-          debugPrint('value is nill');
           Utility.showMessage(context, 'data not found');
         } else if (value is EmployeeListPJPResponse) {
-          debugPrint('value is in object');
           EmployeeListPJPResponse response = value;
           _selection.filters.clear();
           for (int index = 0; index < response.responseData.length; index++) {
@@ -59,9 +56,7 @@ class _FiltersScreenState extends State<FiltersScreen> {
                 employeeId: 0));
           }
           setState(() {});
-          debugPrint('summery list ${_selection.filters.length}');
         } else {
-          debugPrint('value is null');
           Utility.showMessage(context, 'data not found');
         }
       }
@@ -195,7 +190,6 @@ class _FiltersScreenState extends State<FiltersScreen> {
 
   getFilterListView() {
     if (_selection.filters.isEmpty) {
-      debugPrint('PJP List not available');
       return Utility.emptyDataSet(context, "Filters are not avaliable");
     } else {
       return getListView();
@@ -236,7 +230,6 @@ class _FiltersScreenState extends State<FiltersScreen> {
   }
 
   void itemChange(bool val, int index) {
-    debugPrint('INDEX $index');
     setState(() {
       if (index == -1) {
         _selection.type = FILTERStatus.MYSELF;
@@ -256,7 +249,6 @@ class _FiltersScreenState extends State<FiltersScreen> {
           _selection.filters[index].isSelected = val;
         }
       } else {
-        debugPrint('in else');
         _selection.type = FILTERStatus.CUSTOM;
         _selection.filters[index].isSelected = val;
       }

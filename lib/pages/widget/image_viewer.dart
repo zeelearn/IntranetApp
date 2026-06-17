@@ -12,7 +12,6 @@ class ImageViewer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    print('image is '+imageUrl);
     return Scaffold(
       body: GestureDetector(
         child: PinchZoom(
@@ -36,8 +35,8 @@ class ImageViewer extends StatelessWidget {
                 ),
               ),
               /*resetDuration: const Duration(milliseconds: 100),*/
-              onZoomStart: (){print('Start zooming');},
-              onZoomEnd: (){print('Stop zooming');},
+              onZoomStart: () {},
+              onZoomEnd: () {},
             ),
         onTap: () {
           Navigator.pop(context);

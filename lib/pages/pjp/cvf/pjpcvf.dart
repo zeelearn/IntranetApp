@@ -89,7 +89,6 @@ class _MyCVFListScreen extends State<CVFListScreen>
 
   getLocalData() {
     bool isLoad = false;
-    print('in local data 89-------------------');
     try {
       var attendanceList = hiveBox.get(getId());
       isLoading = false;
@@ -1216,9 +1215,7 @@ class _MyCVFListScreen extends State<CVFListScreen>
       latitude = location.latitude!;
       longitude = location.longitude!;
     }
-    print('pjpcvf ');
     String address = ''; //await Utility.getAddress(latitude, longitude);
-    print('pjpcvf ${address}');
     UpdateCVFStatusRequest request = UpdateCVFStatusRequest(
         PJPCVF_id: cvfView.PJPCVF_Id,
         DateTime: Utility.getDateTime(),

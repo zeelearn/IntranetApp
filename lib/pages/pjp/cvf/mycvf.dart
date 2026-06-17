@@ -53,7 +53,6 @@ class _MyCVFListScreen extends State<MyCVFListScreen>
   void initState() {
     // TODO: implement initState
     super.initState();
-    //debugPrint('int init state My CVF');
     Future.delayed(Duration.zero, () {
       this.getUserInfo();
     });
@@ -88,7 +87,6 @@ class _MyCVFListScreen extends State<MyCVFListScreen>
     try {
       var attendanceList = hiveBox.get(getId());
       isLoading = false;
-      debugPrint(attendanceList.toString());
       GetAllCVFResponse response = GetAllCVFResponse.fromJson(
         json.decode(attendanceList!),
       );
@@ -136,7 +134,6 @@ class _MyCVFListScreen extends State<MyCVFListScreen>
                   .compareTo(DateTime.parse(b.visitDate));
             });
           }
-          debugPrint('pjp list ${response.responseData.length}');
         } else {
           Utility.showMessage(context, 'data not found');
         }
@@ -148,8 +145,6 @@ class _MyCVFListScreen extends State<MyCVFListScreen>
 
         Navigator.of(context).pop();
       } else {
-        debugPrint(
-            'Screen is not mounted while loading cvf data and removing loader');
       }
     });
   }
@@ -235,8 +230,6 @@ class _MyCVFListScreen extends State<MyCVFListScreen>
         if (cvfView.Status.trim() == 'NA') {
           cvfView.Status = 'Check In';
         }
-        debugPrint(
-            "cvfView.Status ${cvfView.IsCancelled} ${cvfView.Status}  cvfView.approvalStatus ${cvfView.approvalStatus}");
         if (cvfView.IsCancelled || cvfView.Status == 'Cancelled') {
           Utility.showMessage(context, 'This CVF is cancelled');
         } else if (cvfView.approvalStatus.toLowerCase().contains('reject')) {
@@ -422,8 +415,7 @@ class _MyCVFListScreen extends State<MyCVFListScreen>
                                         if (cvfView.hasPjpRange) {
                                           _showRescheduleDialog(cvfView);
                                         } else {
-                                          Utility.showMessage(context,
-                                              "Cannot reschedule: PJP range not available.");
+                                          Utility.showMessage(context,"Cannot reschedule: PJP range not available.");
                                         }
                                       },
                                     ),
@@ -637,15 +629,11 @@ class _MyCVFListScreen extends State<MyCVFListScreen>
 /*   getTextRounded(GetDetailedPJP cvfView, String name) {
     if (offlineStatus.containsKey(cvfView.PJPCVF_Id.toString())) {
       cvfView.Status = offlineStatus[cvfView.PJPCVF_Id].toString();
-      debugPrint(
-          'Status get it from Offline ${cvfView.Status}  ${cvfView.PJPCVF_Id}');
     } else {
-      debugPrint(' ${cvfView.PJPCVF_Id} key not found');
     }
 
     return GestureDetector(
       onTap: () {
-        debugPrint('GestureDetector====');
         if (cvfView.Status == 'Completed') {
           Utility.showMessageSingleButton(
               context, 'The PJP is Already Completed', this);
@@ -654,7 +642,6 @@ class _MyCVFListScreen extends State<MyCVFListScreen>
           Utility.showMessageSingleButton(
               context, 'Please Fill All questions and check out', this);
         } else if (cvfView.Status == 'FILL CVF') {
-          debugPrint('selectCategory');
           selectCategory(context, cvfView);
         } else {
           Utility.onConfirmationBox(
@@ -827,7 +814,6 @@ class _MyCVFListScreen extends State<MyCVFListScreen>
           Utility.getDateTime(), getNextStatus(cvfView.Status), this);
       McvfView = cvfView;
     } else {
-      debugPrint('internet not avaliabnle');
       //offline
       saveOffline(cvfView);
     }
@@ -873,9 +859,7 @@ class _MyCVFListScreen extends State<MyCVFListScreen>
       latitude= position.latitude;
       longitude= position.longitude;
     }*/
-    print('saveDataOffline');
     LocationData? location = await LocationHelper.getLocation(context);
-    debugPrint('Status is ${cvfView.Status}');
     String address =
         ''; //await Utility.getAddress(location.latitude!, location.longitude!);
     UpdateCVFStatusRequest request = UpdateCVFStatusRequest(
@@ -895,8 +879,6 @@ class _MyCVFListScreen extends State<MyCVFListScreen>
         CheckOutLongitude:
             cvfView.Status == 'FILL CVF' ? location?.longitude ?? 0.0 : 0.0,
         CheckOutAddress: cvfView.Status == 'FILL CVF' ? address : '');
-    debugPrint('Data saved locally....');
-    debugPrint(request.toJson().toString());
     DBHelper helper = DBHelper();
     helper.insertCheckIn(cvfView.PJPCVF_Id, jsonEncode(request.toJson()),
         getNextStatus(cvfView.Status), 0);
@@ -1000,12 +982,10 @@ class _MyCVFListScreen extends State<MyCVFListScreen>
           'Thanks for updating the CVF status', this);
     } else if (value is PjpListResponse) {
       PjpListResponse response = value;
-      debugPrint('onResponse in if ');
       if (response.responseData != null && response.responseData.length > 0) {
         saveDataOffline(McvfView);
         loadData();
       } else {
-        debugPrint('onResponse in if else');
       }
     } else if (value is String) {
       // loadData();
@@ -1015,8 +995,6 @@ class _MyCVFListScreen extends State<MyCVFListScreen>
 
   @override
   void onClick(int action, value) {
-    debugPrint(
-        'click functions not implemented...... action is - $action and value is - $value');
     if (value is GetDetailedPJP) {
       Navigator.of(context).pop();
       GetDetailedPJP cvfView = value;
@@ -1024,7 +1002,6 @@ class _MyCVFListScreen extends State<MyCVFListScreen>
         updateCVF(cvfView);
       } else if (action == Utility.ACTION_CCNCEL) {}
     } else {
-      debugPrint('click functions not implemented......');
     }
   }
 

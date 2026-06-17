@@ -42,13 +42,9 @@ class NotificationActionModel {
   NotificationActionModel({required this.type,required this.message,required this.title});
 
   NotificationActionModel.fromJson(Map<String, dynamic> json) {
-    debugPrint('in from json...tt $json');
     type = json['type'] ?? "";
-    debugPrint('in from json...$type');
     message = json['message'] ?? "";
-    debugPrint('in from json...$message');
     title = json['title'] ?? "";
-    debugPrint('in from json...$title');
   }
 
   Map<String, dynamic> toJson() {
