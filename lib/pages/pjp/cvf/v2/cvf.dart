@@ -599,8 +599,8 @@ class _CvfCardActions extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (kIsWeb) {
-      return _WebCardActions(controller: controller, cvf: cvf);
+    if (true || kIsWeb) {
+      return WebCardActions(controller: controller, cvf: cvf);
     }
     return Align(
       alignment: Alignment.centerRight,
@@ -613,8 +613,8 @@ class _CvfCardActions extends StatelessWidget {
   }
 }
 
-class _WebCardActions extends StatelessWidget {
-  const _WebCardActions({required this.controller, required this.cvf});
+class WebCardActions extends StatelessWidget {
+  const WebCardActions({required this.controller, required this.cvf});
 
   final CVFController controller;
   final GetDetailedPJP cvf;

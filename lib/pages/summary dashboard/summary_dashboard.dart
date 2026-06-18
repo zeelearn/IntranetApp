@@ -14,9 +14,12 @@ import 'package:Intranet/pages/outdoor/apply_outdoor.dart';
 import 'package:Intranet/pages/pjp/add_new_pjp.dart';
 import 'package:Intranet/pages/pjp/cvf/add_cvf.dart';
 import 'package:Intranet/pages/pjp/cvf/cvf_questions.dart';
+import 'package:Intranet/pages/pjp/cvf/v2/cvf.dart';
+import 'package:Intranet/pages/pjp/cvf/v2/cvf_controller.dart';
 import 'package:Intranet/pages/pjp/models/PjpModel.dart';
 import 'package:Intranet/pages/utils/theme/colors/light_colors.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:hive/hive.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -2705,6 +2708,7 @@ class _PjpInfoCard extends StatelessWidget {
   final String empCode;
   final String empName;
 
+
   const _PjpInfoCard(
       {required this.pjp,
       required this.color,
@@ -2797,6 +2801,11 @@ class _PjpInfoCard extends StatelessWidget {
             .toList() ??
         [];
     final statusColor = _statusColor(pjp.ApprovalStatus);
+    String _tag = pjp.PJP_Id ?? 'all_cvf';
+    CVFController controller = Get.put(
+      CVFController(pjpInfo: pjp, isViewOnly: false),
+      tag: _tag,
+    );
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -2969,35 +2978,36 @@ class _PjpInfoCard extends StatelessWidget {
                         color: _textSecondary),
                   ),
                   const Spacer(),
-                  if (validLocations.isNotEmpty)
-                    TextButton.icon(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => _MapScreen(
-                              title: '${pjp.displayName} – Visits',
-                              visits: validLocations,
-                            ),
-                          ),
-                        );
-                      },
-                      icon: const Icon(Icons.map_rounded, size: 14),
-                      label: Text('View on Map',
-                          style: GoogleFonts.inter(fontSize: 12)),
-                      style: TextButton.styleFrom(
-                        foregroundColor: _accent,
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 4),
-                        visualDensity: VisualDensity.compact,
-                      ),
-                    ),
+                  // if (validLocations.isNotEmpty)
+                  //   TextButton.icon(
+                  //     onPressed: () {
+                  //       Navigator.push(
+                  //         context,
+                  //         MaterialPageRoute(
+                  //           builder: (_) => _MapScreen(
+                  //             title: '${pjp.displayName} – Visits',
+                  //             visits: validLocations,
+                  //           ),
+                  //         ),
+                  //       );
+                  //     },
+                  //     icon: const Icon(Icons.map_rounded, size: 14),
+                  //     label: Text('View on Map',
+                  //         style: GoogleFonts.inter(fontSize: 12)),
+                  //     style: TextButton.styleFrom(
+                  //       foregroundColor: _accent,
+                  //       padding: const EdgeInsets.symmetric(
+                  //           horizontal: 10, vertical: 4),
+                  //       visualDensity: VisualDensity.compact,
+                  //     ),
+                  //   ),
                 ],
               ),
             ),
             // Visit tiles
             ...pjp.getDetailedPJP!.map((visit) => _VisitTile(
                   visit: visit,
+                  controller: controller,
                   pjpApprovalStatus: pjp.ApprovalStatus,
                   isViewOnly: pjp.isSelfPJP.trim() != '1',
                   onCVFUpdateSuccess: (p0) {
@@ -3113,12 +3123,14 @@ class _VisitTile extends StatelessWidget {
   final onResponse onupdateResponse;
   final Function(GetDetailedPJP) onCVFUpdateSuccess;
   final String pjpApprovalStatus;
+  final CVFController controller;
   const _VisitTile(
       {required this.visit,
       required this.isViewOnly,
       required this.onupdateResponse,
       required this.onCVFUpdateSuccess,
-      required this.pjpApprovalStatus});
+      required this.pjpApprovalStatus,
+      required this.controller});
 
   static const Color _textPrimary = Color(0xFF1A1D2E);
   static const Color _textSecondary = Color(0xFF6B7280);
@@ -3166,6 +3178,11 @@ class _VisitTile extends StatelessWidget {
         visit.DateTimeOut.isNotEmpty && visit.DateTimeOut != 'NA';
     final bool isCancelled =
         visit.IsCancelled || visit.Status.trim().toLowerCase() == 'cancelled';
+
+
+    final canRescheduleVisit = controller.canReschedule(visit);
+    final canCancelVisit = controller.canRescheduleOrCancel(visit);
+    final isVisitCompleted = controller.isCompleted(visit);
 
     return InkWell(
       onTap: () async {
@@ -3317,17 +3334,18 @@ class _VisitTile extends StatelessWidget {
                               }
                             },
                           ),
-                        if (pjpApprovalStatus.toLowerCase().contains('approv'))
-                          const SizedBox(width: 8),
-                        IconButton(
-                          icon: const Icon(Icons.cancel, color: Colors.red, size: 20),
-                          tooltip: 'Cancel',
-                          padding: EdgeInsets.zero,
-                          constraints: const BoxConstraints(),
-                          onPressed: () {
-                            _showCancelConfirmation(context);
-                          },
-                        ),
+                        // if (pjpApprovalStatus.toLowerCase().contains('approv'))
+                        //   const SizedBox(width: 8),
+                        // IconButton(
+                        //   icon: const Icon(Icons.cancel, color: Colors.red, size: 20),
+                        //   tooltip: 'Cancel',
+                        //   padding: EdgeInsets.zero,
+                        //   constraints: const BoxConstraints(),
+                        //   onPressed: () {
+                        //     controller.showCancelDialog(context, visit);
+                        //     //_showCancelConfirmation(context);
+                        //   },
+                        // ),
                       ],
                     ),
                   ),
@@ -3454,6 +3472,7 @@ class _VisitTile extends StatelessWidget {
                   ),
                 ),
               ),
+              WebCardActions(controller: controller, cvf: visit),
             if (isCancelled &&
                 visit.remarks.isNotEmpty &&
                 visit.remarks != 'NA')
