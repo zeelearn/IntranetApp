@@ -98,12 +98,12 @@ class _CVFListScreenV2State extends State<CVFListScreenV2> {
             tooltip: 'Filter',
             onPressed: () => controller.showFilterSheet(context),
           ),
-          // if (controller.showAddCvf)
-          //   IconButton(
-          //     icon: const Icon(Icons.add_box),
-          //     tooltip: 'ADD CVF',
-          //     onPressed: () => controller.navigateToAddCvf(context),
-          //   ),
+          if (widget.pjpInfo!=null && widget.isViewOnly!=null && controller.showAddCvf && !widget.isViewOnly && widget.pjpInfo!.ApprovalStatus != 'Rejected' && widget.pjpInfo!.ApprovalStatus != 'Canceled')
+            IconButton(
+              icon: const Icon(Icons.add_box),
+              tooltip: 'ADD CVF',
+              onPressed: () => controller.navigateToAddCvf(context),
+            ),
         ],
       ),
       body: Column(

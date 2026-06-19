@@ -140,7 +140,7 @@ class _MyPjpListState extends State<MyPjpListScreen>
             //IconButton
             IconButton(
               icon: const Icon(Icons.add_box),
-              tooltip: 'Filter',
+              tooltip: 'Create PJP',
               onPressed: () {
                 openNewPjp();
               },
@@ -456,7 +456,7 @@ class _MyPjpListState extends State<MyPjpListScreen>
                                   builder: (context) => Dialog(
                                         child: AddAdvanceRequisitionPage(
                                           e_id: employeeCode,
-                                          //pjpId: pjpInfo.PJP_Id,
+                                          pjpId: pjpInfo.PJP_Id,
                                         ),
                                       ));
                             },

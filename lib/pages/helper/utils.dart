@@ -1,10 +1,12 @@
 import 'dart:io';
 
+import 'package:Intranet/api/response/pjp/pjplistresponse.dart';
 import 'package:Intranet/pages/helper/DatabaseHelper.dart';
 import 'package:Intranet/pages/helper/LocalStrings.dart';
 import 'package:Intranet/pages/helper/constants.dart';
 import 'package:Intranet/pages/iface/onClick.dart';
 import 'package:Intranet/pages/iface/onResponse.dart';
+import 'package:Intranet/pages/pjp/models/PjpModel.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
@@ -1308,5 +1310,494 @@ class Utility {
     //   }
     //   return address;
     // }
+  }
+
+
+  Future<void> showPJPStatusDialog({
+    required BuildContext pageContext,
+    required PJPModel pjp,
+    required onClickListener listener,
+    required bool isSuccess,
+    String? message,
+  }) {
+
+    return showDialog(
+      context: pageContext,
+      barrierDismissible: false,
+      builder: (dialogContext) {
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(
+              maxWidth: 340,
+            ),
+            child: Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: const [
+                  BoxShadow(
+                    blurRadius: 20,
+                    color: Color(0x1A000000),
+                    offset: Offset(0, 8),
+                  ),
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  /// Icon
+                  Container(
+                    width: 72,
+                    height: 72,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: (isSuccess
+                              ? Colors.green
+                              : Colors.red)
+                          .withOpacity(0.1),
+                    ),
+                    child: Icon(
+                      isSuccess
+                          ? Icons.check_circle
+                          : Icons.cancel,
+                      size: 42,
+                      color: isSuccess
+                          ? Colors.green
+                          : Colors.red,
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  /// Title
+                  Text(
+                    isSuccess
+                        ? "PJP Created Successfully"
+                        : "Failed to Create PJP",
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+
+                  const SizedBox(height: 8),
+
+                  /// Subtitle
+                  Text(
+                    isSuccess
+                        ? "Your PJP has been created successfully."
+                        : "We couldn't create your PJP. Please try again.",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.grey.shade600,
+                      fontSize: 14,
+                    ),
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  _infoCard(
+                    Icons.calendar_today_outlined,
+                    "From Date",
+                    DateFormat('MMM dd').format(pjp.fromDate)  ?? "-",
+                    isSuccess,
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  _infoCard(
+                    Icons.calendar_today_outlined,
+                    "To Date",
+                    DateFormat('MMM dd').format(pjp.toDate)  ?? "-",
+                    isSuccess,
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  _infoCard(
+                    Icons.description_outlined,
+                    "Description",
+                    pjp.remark ?? "-",
+                    isSuccess,
+                  ),
+
+                  if (!isSuccess) ...[
+                    const SizedBox(height: 16),
+
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.red.withOpacity(0.05),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: Colors.red.withOpacity(0.2),
+                        ),
+                      ),
+                      child: Row(
+                        crossAxisAlignment:
+                            CrossAxisAlignment.start,
+                        children: [
+                          const Icon(
+                            Icons.warning_amber_rounded,
+                            color: Colors.red,
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              message ??
+                                  "Something went wrong. Please try again.",
+                              style: const TextStyle(
+                                color: Colors.red,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+
+                  const SizedBox(height: 24),
+
+                  SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.pop(dialogContext);
+
+                        if (isSuccess) {
+                          Navigator.pop(pageContext);
+                        }
+                        //listener.onClick(Utility.ACTION_OK, pjp);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: isSuccess
+                            ? Colors.green
+                            : Colors.red,
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius:
+                              BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: Text(
+                        isSuccess ? "Done" : "OK",
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _infoCard(
+    IconData icon,
+    String title,
+    String value,
+    bool isSuccess,
+  ) {
+    final color =
+        isSuccess ? Colors.green : Colors.red;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF7F8FA),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: color.withOpacity(0.1),
+            ),
+            child: Icon(
+              icon,
+              color: color,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment:
+                  CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    color: Colors.grey.shade600,
+                    fontSize: 13,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  value,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /**
+   * Create a Dialog on Fri 19th Jun 2026, to show the confirmation message to Managers before approving or rejecting the PJP. This dialog will display the PJP details and provide options for approval or rejection.
+   * 
+   */
+  String generatePJPApprovalMessage(List<PJPInfo> pjps,isApprove) {
+    StringBuffer DocXML = new StringBuffer("<root>");
+    for (int index = 0; index < pjps.length; index++) {
+        DocXML.write("<subroot><PJP_id>${pjps[index].PJP_Id}</PJP_id><Is_Approved>${isApprove}</Is_Approved></subroot>");
+    }
+    DocXML.write("</root>");
+    return DocXML.toString();
+  }
+
+  Future<String?> showPJPApprovalDialog(
+    BuildContext context,
+    List<PJPInfo> pjps,
+  ) {
+    //final remarkController = TextEditingController();
+
+    return showDialog<String>(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) {
+        return Dialog(
+          insetPadding: const EdgeInsets.all(16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: StatefulBuilder(
+            builder: (context, setState) {
+              return Container(
+                constraints: const BoxConstraints(
+                  maxWidth: 700,
+                  maxHeight: 700,
+                ),
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const CircleAvatar(
+                      radius: 36,
+                      backgroundColor: Color(0xFFF3F8F4),
+                      child: Icon(
+                        Icons.assignment_turned_in,
+                        color: Colors.green,
+                        size: 40,
+                      ),
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    const Text(
+                      'Approve or Reject PJP(s)?',
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+
+                    const SizedBox(height: 8),
+
+                    Text(
+                      'You are about to approve or reject ${pjps.length} selected PJP(s).',
+                      textAlign: TextAlign.center,
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF8FAF8),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: Colors.green.shade100,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(
+                            Icons.groups,
+                            color: Colors.green,
+                          ),
+                          const SizedBox(width: 10),
+                          Text(
+                            '${pjps.length} PJP(s) Selected',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        'Selected PJP(s)',
+                        style: Theme.of(context)
+                            .textTheme
+                            .titleMedium,
+                      ),
+                    ),
+
+                    const SizedBox(height: 10),
+
+                    Expanded(
+                      child: ListView.separated(
+                        itemCount: pjps.length,
+                        separatorBuilder: (_, __) =>
+                            const SizedBox(height: 8),
+                        itemBuilder: (context, index) {
+                          final pjp = pjps[index];
+
+                          return Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade50,
+                              borderRadius:
+                                  BorderRadius.circular(12),
+                            ),
+                            child: Column(
+                              crossAxisAlignment:
+                                  CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  pjp.displayName ?? '-',
+                                  style: const TextStyle(
+                                    fontWeight:
+                                        FontWeight.w600,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  '${pjp.fromDate} - ${pjp.toDate}',
+                                ),
+                                if ((pjp.remarks ?? '')
+                                    .isNotEmpty)
+                                  Padding(
+                                    padding:
+                                        const EdgeInsets.only(
+                                      top: 4,
+                                    ),
+                                    child: Text(
+                                      pjp.remarks!,
+                                      maxLines: 2,
+                                      overflow:
+                                          TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+
+                    // const SizedBox(height: 16),
+
+                    // TextField(
+                    //   controller: remarkController,
+                    //   maxLines: 3,
+                    //   decoration: InputDecoration(
+                    //     labelText: 'Comments (Optional)',
+                    //     hintText:
+                    //         'Enter comments here...',
+                    //     border: OutlineInputBorder(
+                    //       borderRadius:
+                    //           BorderRadius.circular(12),
+                    //     ),
+                    //   ),
+                    // ),
+
+                    const SizedBox(height: 20),
+
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: () =>
+                                Navigator.pop(context),
+                            child: const Text('Cancel'),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            icon: const Icon(
+                              Icons.close,
+                              color: Colors.red,
+                            ),
+                            label: const Text(
+                              'Reject',
+                              style: TextStyle(
+                                color: Colors.red,
+                              ),
+                            ),
+                            onPressed: () {
+                              String requestXML = generatePJPApprovalMessage(pjps,false);
+                              Navigator.pop(
+                                context,
+                                requestXML,
+                              );
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            icon: const Icon(
+                              Icons.check,
+                              color: Colors.white,
+                            ),
+                            label: const Text(
+                              'Approve',
+                            ),
+                            style:
+                                ElevatedButton.styleFrom(
+                              backgroundColor:
+                                  Colors.green,
+                              foregroundColor:
+                                  Colors.white,
+                            ),
+                            onPressed: () {
+                              String requestXML = generatePJPApprovalMessage(pjps,true);
+                              Navigator.pop(
+                                context,
+                                requestXML,
+                              );
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        );
+      },
+    );
   }
 }

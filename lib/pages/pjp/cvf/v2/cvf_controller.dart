@@ -271,9 +271,11 @@ class CVFController extends GetxController {
   }
 
   bool canRescheduleOrCancel(GetDetailedPJP cvf) {
+    //print('canRescheduleOrCancel: ${cvf.PJPCVF_Id} ${cvf.Status}, ${cvf.approvalStatus}');
     if (!canManageVisit(cvf)) return false;
     //if (!isApproved(cvf)) return false;
-    return cvf.Status == 'Check In' || cvf.Status == 'NA';
+    if(cvf.approvalStatus == 'Rejected') return false;
+    return cvf.Status == 'FILL CVF' ||cvf.Status == 'Check In' || cvf.Status == 'NA';
   }
 
   openWebsiteReport(BuildContext context, GetDetailedPJP cvf) {
@@ -397,6 +399,7 @@ class CVFController extends GetxController {
   }
 
   Future<void> checkIn(GetDetailedPJP cvf) async {
+    print('checkIn called from cvf_controller.dart for PJPCVF_Id: ${cvf.PJPCVF_Id}, Current Status: ${cvf.Status}');
     final context = Get.context;
     if (!_isMounted(context)) return;
 
@@ -410,6 +413,8 @@ class CVFController extends GetxController {
     Utility.showLoaderDialog(context!);
     try {
       await _updateCvfStatusOnline(cvf);
+      Navigator.of(context).pop(); // Dismiss loader dialog
+      isUpdating.value = false;
       if (_isMounted(context)) {
         Utility.onSuccessMessage(
           context,
@@ -434,7 +439,7 @@ class CVFController extends GetxController {
   Future<void> _updateCvfStatusOnline(GetDetailedPJP cvf) async {
     final nextStatus = _nextStatus(cvf.Status);
     final completer = Completer<void>();
-
+    print('Updating CVF Status Online _updateCvfStatusOnline for PJPCVF_Id: ${cvf.PJPCVF_Id}, Current Status: ${cvf.Status}, Next Status: $nextStatus');
     IntranetServiceHandler.updateCVFStatus(
       employeeId,
       cvf,

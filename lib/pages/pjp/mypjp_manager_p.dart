@@ -215,8 +215,7 @@ class _MyPjpListState extends State<MyPjpManPListScreen>
                                     if (isValid()) {
                                       _approveRejectAll();
                                     } else {
-                                      Utility.showMessage(
-                                          context, 'Please Select the PJP');
+                                      Utility.showMessage(context, 'Please Select atleast one PJP to approve or reject');
                                     }
                                     //approvePjpList(pjpInfo, isApprove);
                                   },
@@ -246,50 +245,20 @@ class _MyPjpListState extends State<MyPjpManPListScreen>
         ));
   }
 
-  void _approveRejectAll() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        // return object of type Dialog
-        return AlertDialog(
-          title: Text("PJP Approval"),
-          content: Text('Are you sure to approve the PJP request'),
-          actions: <Widget>[
-            // usually buttons at the bottom of the dialog
-            ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                Utility.onConfirmationBox(
-                    context,
-                    'REJECT',
-                    'Cancel',
-                    'Reject PJP',
-                    'Are you sure to reject the PJP',
-                    Utility.ACTION_REJECT,
-                    this);
-                //approveAcquisition(model, 'REJ');
-              },
-              // style: ButtonStyle(elevation: MaterialStateProperty(12.0 )),
-              style: ElevatedButton.styleFrom(
-                  elevation: 12.0,
-                  textStyle: const TextStyle(color: LightColors.kRed)),
-              child: const Text('Reject'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                approvePjpList(1);
-              },
-              // style: ButtonStyle(elevation: MaterialStateProperty(12.0 )),
-              style: ElevatedButton.styleFrom(
-                  elevation: 12.0,
-                  textStyle: const TextStyle(color: LightColors.kLightGreen)),
-              child: const Text('Approve'),
-            ),
-          ],
-        );
-      },
+  /*
+   * Create a function to handle the approval or rejection of all selected PJPs. This function will display a dialog to confirm the action and then send the appropriate request to update the status of the selected PJPs.
+   * 
+   */
+  void _approveRejectAll() async{
+    final result = await Utility().showPJPApprovalDialog(
+      context,
+      getSelectedPjpList(),
     );
+    print('Result from dialog: $result');
+    if (result != null) {
+      UpdatePJPStatusListRequest request = UpdatePJPStatusListRequest(DocXML: result, Workflow_user: employeeId.toString());
+      IntranetServiceHandler.updatePJPStatusList(request, this);
+    }
   }
 
   bool isValid() {
@@ -503,22 +472,22 @@ class _MyPjpListState extends State<MyPjpManPListScreen>
                         pjpInfo.ApprovalStatus == 'Pending'
                     ? OutlinedButton(
                         onPressed: () {
-                          if (pjpInfo.isSelfPJP == '0' ||
-                              widget.mFilterSelection.type ==
-                                      FILTERStatus.MYSELF &&
-                                  pjpInfo.ApprovalStatus == 'Approved') {
-                            Utility.showMessageMultiButton(
-                                context,
-                                'Approve',
-                                'Reject',
-                                'PJP : ${pjpInfo.PJP_Id}',
-                                'Are you sure to approve the PJP, created by ${pjpInfo.displayName}',
-                                pjpInfo,
-                                this);
-                          } else {
-                            Utility.showMessages(context,
-                                'Please wait Your manager need to approve the PJP');
-                          }
+                          // if (pjpInfo.isSelfPJP == '0' ||
+                          //     widget.mFilterSelection.type ==
+                          //             FILTERStatus.MYSELF &&
+                          //         pjpInfo.ApprovalStatus == 'Approved') {
+                          //   Utility.showMessageMultiButton(
+                          //       context,
+                          //       'Approve',
+                          //       'Reject',
+                          //       'PJP : ${pjpInfo.PJP_Id}',
+                          //       'Are you sure to approve the PJP : created by ${pjpInfo.displayName}',
+                          //       pjpInfo,
+                          //       this);
+                          // } else {
+                          //   Utility.showMessages(context,
+                          //       'Please wait Your manager need to approve the PJP');
+                          // }
                         },
                         child: Checkbox(
                           checkColor: Colors.black,
@@ -871,26 +840,34 @@ class _MyPjpListState extends State<MyPjpManPListScreen>
     IntranetServiceHandler.updatePJPStatus(request, this);
   }
 
-  void approvePjpList(int isApprove) {
-    StringBuffer DocXML = new StringBuffer("<root>");
+  List<PJPInfo> getSelectedPjpList() {
+    List<PJPInfo> selectedPjpList = [];
     for (int index = 0; index < mPjpList.length; index++) {
-      if (_isChecked[index] == true)
-        DocXML.write(
-            "<subroot><PJP_id>${mPjpList[index].PJP_Id}</PJP_id><Is_Approved>${isApprove}</Is_Approved></subroot>");
-      //<subroot><PJP_id>135</PJP_id><Is_Approved>0</Is_Approved></subroot><subroot><PJP_id>136</PJP_id><Is_Approved>1</Is_Approved></subroot>
+      if (_isChecked[index] == true) selectedPjpList.add(mPjpList[index]);
     }
-    DocXML.write("</root>");
-    UpdatePJPStatusListRequest request = UpdatePJPStatusListRequest(
-        DocXML: DocXML.toString(), Workflow_user: employeeId.toString());
-    IntranetServiceHandler.updatePJPStatusList(request, this);
+    return selectedPjpList;
   }
+
+  // void approvePjpList(int isApprove) {
+  //   StringBuffer DocXML = new StringBuffer("<root>");
+  //   for (int index = 0; index < mPjpList.length; index++) {
+  //     if (_isChecked[index] == true)
+  //       DocXML.write(
+  //           "<subroot><PJP_id>${mPjpList[index].PJP_Id}</PJP_id><Is_Approved>${isApprove}</Is_Approved></subroot>");
+  //     //<subroot><PJP_id>135</PJP_id><Is_Approved>0</Is_Approved></subroot><subroot><PJP_id>136</PJP_id><Is_Approved>1</Is_Approved></subroot>
+  //   }
+  //   DocXML.write("</root>");
+  //   UpdatePJPStatusListRequest request = UpdatePJPStatusListRequest(
+  //       DocXML: DocXML.toString(), Workflow_user: employeeId.toString());
+  //   IntranetServiceHandler.updatePJPStatusList(request, this);
+  // }
 
   @override
   void onClick(int action, value) {
     if (value is int) {
-      if (action == Utility.ACTION_OK && value == Utility.ACTION_REJECT) {
-        approvePjpList(0);
-      }
+      // if (action == Utility.ACTION_OK && value == Utility.ACTION_REJECT) {
+      //   approvePjpList(0);
+      // }
       Navigator.of(context, rootNavigator: true).pop('dialog');
     } else if (value is PJPInfo) {
       PJPInfo pjpInfo = value;

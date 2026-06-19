@@ -766,6 +766,7 @@ class APIService {
       }
     } catch (e) {
       e.toString();
+      return null;
     }
   }
 

@@ -1162,6 +1162,7 @@ class _MyCVFListScreen extends State<CVFListScreen>
   }
 
   updateCVF(GetDetailedPJP cvfView) async {
+    print('Updating CVF Status pjpcfv.dart for PJPCVF_Id: ${cvfView.PJPCVF_Id}, Current Status: ${cvfView.Status}');
     isInternet = await Utility.isInternet();
     if (isInternet) {
       //online
@@ -1401,6 +1402,7 @@ class _MyCVFListScreen extends State<CVFListScreen>
 
   @override
   void onSuccess(value) {
+    print('onSuccess called in pjpcvf.dart with value: $value');
     Navigator.of(context).pop();
     if (value is UpdateCVFStatusResponse) {
       UpdateCVFStatusResponse response = value;

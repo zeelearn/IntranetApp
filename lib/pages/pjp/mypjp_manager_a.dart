@@ -377,7 +377,7 @@ class _MyPjpListState extends State<MyPjpManAListScreen>
                                 'Approve',
                                 'Reject',
                                 'PJP : ${pjpInfo.PJP_Id}',
-                                'Are you sure to approve the PJP, created by ${pjpInfo.displayName}',
+                                'Are you sure to approve the PJP, created by : ${pjpInfo.displayName}',
                                 pjpInfo,
                                 this);
                           } else {

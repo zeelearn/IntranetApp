@@ -111,7 +111,7 @@ class _IntroPageState extends State<IntroPage> {
                             ) /*DashboardV2Page() */),
                   );
                 },
-                child: Text('Start Now'),
+                child: Text('Start Now',style: TextStyle(color: Colors.white)),
               ),
             ),
           ],

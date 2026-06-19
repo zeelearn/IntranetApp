@@ -2732,6 +2732,18 @@ class _PjpInfoCard extends StatelessWidget {
     return _textSecondary;
   }
 
+  // _approveOrRejectPJP(List<PJPInfo> selectedPjpList, BuildContext context) async {
+  //   final result = await Utility().showPJPApprovalDialog(
+  //     context,
+  //     selectedPjpList
+  //   );
+  //   print('Result from dialog: $result');
+  //   if (result != null) {
+  //     UpdatePJPStatusListRequest request = UpdatePJPStatusListRequest(DocXML: result, Workflow_user: empCode.toString());
+  //     IntranetServiceHandler.updatePJPStatusList(request, this);
+  //   }
+  // }
+
   Widget _actionButton(BuildContext context, String label, Color color,
       {bool isOutlined = false}) {
     return SizedBox(

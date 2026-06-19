@@ -974,6 +974,7 @@ class _MyCVFListScreen extends State<MyCVFListScreen>
 
   @override
   void onSuccess(value) {
+    print('onSuccess value mycvf.dart : $value');
     Navigator.of(context).pop();
 
     if (value is UpdateCVFStatusResponse) {
@@ -995,6 +996,7 @@ class _MyCVFListScreen extends State<MyCVFListScreen>
 
   @override
   void onClick(int action, value) {
+    print('onClick value mycvf.dart : $value $action');
     if (value is GetDetailedPJP) {
       Navigator.of(context).pop();
       GetDetailedPJP cvfView = value;

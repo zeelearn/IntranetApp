@@ -521,19 +521,45 @@ class _QuestionListScreenState extends State<QuestionListScreen>
           title: const Text('Questions'),
           actions: !widget.isViewOnly
               ? [
-                  IconButton(
-                    icon: const Icon(Icons.refresh),
-                    tooltip: 'Refresh',
+                  TextButton(
+                    style: ButtonStyle(
+                      backgroundColor: WidgetStateProperty.all(
+                        LightColors.kLightGreen,
+                      ),
+                      foregroundColor: WidgetStateProperty.all(Colors.white),
+                    ),
+                    child: const Text(
+                      'Refresh',
+                      style: TextStyle(color: Colors.black),
+                    ),
+                    // icon: const Icon(Icons.refresh),
+                    // tooltip: 'Refresh',
                     onPressed: () {
                       loadData();
                     },
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.done),
-                    tooltip: 'Save Answers',
+                  SizedBox(
+                    width: 10,
+                  ),
+                  TextButton(
+                    style: ButtonStyle(
+                      backgroundColor: WidgetStateProperty.all(
+                        LightColors.kLightGreen,
+                      ),
+                      foregroundColor: WidgetStateProperty.all(Colors.white),
+                    ),
+                    child: const Text(
+                      'Save',
+                      style: TextStyle(color: Colors.black),
+                    ),
+                    //icon: const Icon(Icons.done),
+                    //tooltip: 'Save Answers',
                     onPressed: () {
                       saveAnswers('');
                     },
+                  ),
+                   SizedBox(
+                    width: 10,
                   ),
                 ]
               : null,
@@ -1093,8 +1119,8 @@ class _QuestionListScreenState extends State<QuestionListScreen>
                                 questions.files.contains('data/user')
                             ? Image.file(
                                 File(questions.files),
-                                height: 30,
-                                width: 30,
+                                height: 48,
+                                width: 48,
                               )
                             : isImage(questions.files)
                                 ? getIcon(questions.files)
@@ -1109,8 +1135,8 @@ class _QuestionListScreenState extends State<QuestionListScreen>
                                     fit: BoxFit.fill)
                             : questions.files.isEmpty
                                 ? Icon(
-                                    Icons.photo,
-                                    size: 20,
+                                    Icons.upload_file,
+                                    size: 38,
                                   )
                                 : Image.network(getImageUrl(questions.files),
                                     // width: 300,
@@ -2235,7 +2261,7 @@ class DetailScreen extends StatelessWidget {
                     padding: const EdgeInsets.all(8.0),
                     child: Icon(
                       Icons.add,
-                      size: 20,
+                      size: 28,
                     ),
                   ),
                 ),
