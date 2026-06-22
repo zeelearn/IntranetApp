@@ -1,5 +1,7 @@
+import 'package:Intranet/pages/widget/MyWebSiteView.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:hive/hive.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
@@ -458,6 +460,46 @@ class _MyCVFListScreen extends State<MyPJPCVFListScreen> implements onResponse {
                 ),
               )),
         ),
+
+         cvfView.Status == 'Completed'
+                  ? Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          Container(
+                            // width: 200,
+                            alignment: Alignment.centerLeft,
+                            margin: EdgeInsets.only(left: 20),
+                                padding: EdgeInsets.only(left: 20, right: 20),
+                                color: kPrimaryLightColor.withOpacity(0.4),
+                                child: InkWell(
+                                  onTap: () {
+                                    Navigator.of(context).push(MaterialPageRoute(
+                                        builder: (BuildContext context) =>
+                                            MyWebsiteView(
+                                              title:
+                                                  'CVF Report - ${cvfView.PJPCVF_Id}',
+                                              url:
+                                                  'https://intranet.zeelearn.com/cvfreport.html?cid=${cvfView.PJPCVF_Id}',
+                                            )));
+                                  },
+                                  child: Text(
+                                    'View Report',
+                                    style: GoogleFonts.lato(
+                                      fontSize: 14,
+                                      color: Colors.black87,
+                                      fontWeight: FontWeight.normal,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                        ],
+                      ),
+                      SizedBox(height: 10,)
+                    ],
+                  )
+                  : SizedBox.shrink(),
       ],
     );
   }
