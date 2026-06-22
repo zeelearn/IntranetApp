@@ -434,7 +434,10 @@ class _MyPjpListState extends State<MyPjpListScreen>
                         ),
                       ),
                     ),
-                    (pjpInfo.isSelfPJP != '1')
+                    (pjpInfo.isSelfPJP != '1' &&
+                            pjpInfo.ApprovalStatus == 'Rejected' &&
+                            Utility.convertDate(pjpInfo.toDate)
+                                .isAfter(DateTime.now()))
                         ? SizedBox.shrink()
                         : ElevatedButton(
                             style: const ButtonStyle(
@@ -463,7 +466,7 @@ class _MyPjpListState extends State<MyPjpListScreen>
                                   builder: (context) => Dialog(
                                         child: AddAdvanceRequisitionPage(
                                           e_id: employeeCode,
-                                          //pjpId: pjpInfo.PJP_Id,
+                                          pjpId: pjpInfo.PJP_Id,
                                         ),
                                       ));
                             },

@@ -72,6 +72,7 @@ class MagicLinkHandler {
 
           FirebaseAnalyticsUtils.sendEvent(info.userName);
           hive.put(LocalConstant.KEY_LOGIN_RESPONSE, jsonEncode(value));
+          hive.put(LocalConstant.KEY_AUTH_TOKEN, info.token);
 
           Navigator.pop(context); // close loader
           Navigator.pushReplacement(
