@@ -82,11 +82,9 @@ class ApiAuthRepository implements AuthRepository {
     try {
       return await APIService().getBpmsStats(request);
     } on DioException catch (e) {
-      print(e.message);
       throw LoginException(message: 'Unable to ProjectStatsResponse');
       //return null;
     } catch (e) {
-      print(e.toString());
       throw Exception('Unable to login');
       //return null;
     }
@@ -98,11 +96,9 @@ class ApiAuthRepository implements AuthRepository {
     try {
       return await APIService().getAllProject(request);
     } on DioException catch (e) {
-      print(e.message);
       throw LoginException(message: 'Unable to ProjectStatsResponse');
       //return null;
     } catch (e) {
-      print(e.toString());
       throw Exception('Unable to login');
       //return null;
     }
@@ -114,11 +110,9 @@ class ApiAuthRepository implements AuthRepository {
     try {
       return await APIService().getProjectByStatus(request);
     } on DioException catch (e) {
-      print(e.message);
       throw LoginException(message: 'Unable to ProjectStatsResponse');
       //return null;
     } catch (e) {
-      print(e.toString());
       throw Exception('Unable to login');
       //return null;
     }
@@ -130,11 +124,9 @@ class ApiAuthRepository implements AuthRepository {
     try {
       return await APIService().getAllProjectTask(request);
     } on DioException catch (e) {
-      print(e.message);
       throw LoginException(message: 'Unable to ProjectStatsResponse');
       //return null;
     } catch (e) {
-      print(e.toString());
       throw Exception('Unable to login');
       //return null;
     }
@@ -146,11 +138,9 @@ class ApiAuthRepository implements AuthRepository {
     try {
       return await APIService().getCommunication(GetCommunicationRequest(BusinessId: /*AppFlavor == 'mlzs' ? 2 :*/ 1, FranchiseeId: franchiseeId));
     } on DioException catch (e) {
-      print(e.message);
       throw LoginException(message: 'Unable to login');
       //return null;
     } catch (e) {
-      print(e.toString());
       throw Exception('Unable to login');
       //return null;
     }
@@ -161,10 +151,8 @@ class ApiAuthRepository implements AuthRepository {
     try {
       return await APIService().getBPMSTaskDetails(GetTaskDetailsRequest(projectID: projectId,UserId: userId));
     } on DioException catch (e) {
-      print(e.message);
       throw LoginException(message: 'Unable to login');
     } catch (e) {
-      print(e.toString());
       throw Exception('Unable to login');
     }
   }
@@ -173,15 +161,12 @@ class ApiAuthRepository implements AuthRepository {
   Future<GetFranchiseeDetailsResponse> getFranchiseeInfo(
       {required String franchiseeId}) async {
     try {
-      print('getFranchiseeInfo 74');
       GetFranchiseeDetailsRequest request = GetFranchiseeDetailsRequest(franchiseeId: franchiseeId);
       GetFranchiseeDetailsResponse response = await APIService().getFranDetailInfo(request);
       return response;
     } on DioException catch (e) {
-      print(e.message);
       throw LoginException(message: 'Unable to login');
     } catch (e) {
-      print(e.toString());
       throw Exception('Unable to login');
     }
   }

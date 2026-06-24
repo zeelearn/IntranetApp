@@ -123,13 +123,11 @@ class _ChatPageState extends ConsumerState<ChatPage>
       GetCommentResponse response = GetCommentResponse.fromJson(
         json.decode(data!),
       );
-      //print(response.toJson());
       messages.addAll(response.commentModelList);
       setState(() {});
       setState(() {});
       isLoad = true;
     } catch (e) {
-      print(e);
       isLoad = false;
     }
     return isLoad;
@@ -205,8 +203,7 @@ class _ChatPageState extends ConsumerState<ChatPage>
     /*MessageModel messageModel = MessageModel(
         type: type,
         message: message,
-        time: DateTime.now().toString().substring(10, 16));
-    print(messages);*/
+        time: DateTime.now().toString().substring(10, 16));*/
     isAnyChange = true;
     List<CommentModel> temp = [messageModel];
     temp.addAll(messages);
@@ -1111,9 +1108,7 @@ class _ChatPageState extends ConsumerState<ChatPage>
       }
       String savejson = jsonEncode(response);
       saveTaskDetails(savejson, franchiseeId);
-    } catch (e) {
-      print(e);
-    }
+    } catch (_) {}
   }
 
   saveTaskDetails(String json, String franchiseeId) async {

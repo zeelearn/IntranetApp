@@ -72,7 +72,6 @@ class DashboardState extends State {
     } else {
       filterData!.employeeList!.clear();
     }
-    //print(sample_data.toString());
     kpilist = KPIInfo.fromJson(jsonDecode(SampleData.list.toString()));
     filterData!.kpiInfo = kpilist;
     Map<String, String> franchisee = Map<String, String>();
@@ -186,7 +185,6 @@ class DashboardState extends State {
     //   }else if(filterRequest.employee==kpilist!.data![index].tM || filterRequest.employee==kpilist!.data![index].zM ||
     //       filterRequest.franchisee == kpilist!.data![index].franchiseCodeName
     //   ){
-    //     print('generatting kpis 115');
     //       totalACKTarget += toInt(kpilist!.data![index].targetACK!);
     //       actualACKTarget += toInt(kpilist!.data![index].aCKACT!);
     //       totalENTarget += toInt(kpilist!.data![index].targetEN!);
@@ -236,7 +234,6 @@ class DashboardState extends State {
                         setState(() {
                           selectedDate = date;
                           filterRequest.month = Utility.getShortMonth(date);
-                          print('Date Picker ${selectedDate}');
                           insertFilters();
                         });
                       }
@@ -267,7 +264,6 @@ class DashboardState extends State {
                         ),
                       ),
                     ).then((value) {
-                      debugPrint('back to Dashboard....${value}');
                       if (value == null) {
                         //clear Filter
                       } else {
@@ -307,10 +303,6 @@ class DashboardState extends State {
   }
 
   enrollmentChart() {
-    print(
-        'actual 303 ${totalACKTarget.toDouble()} ${actualACKTarget.toDouble()}');
-    print(
-        'Target 304 ${totalENTarget.toDouble()} ${actualENTarget.toDouble()}');
     return Card(
       margin: const EdgeInsets.only(left: 20, right: 20, top: 10),
       child: Container(

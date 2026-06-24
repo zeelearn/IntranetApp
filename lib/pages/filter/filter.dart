@@ -63,7 +63,6 @@ class _FiltersScreenState extends State<FiltersAppScreen> {
 
   bool isFilterMatch(KPIModel model){
     bool isFilterMatched = false;
-    print('selected zone ${widget.mFilterRequest!.zone}');
     if(widget.mFilterRequest!.isEmpty()){
       isFilterMatched = true;
     }else if(widget.mFilterRequest!.franchisee==model.franchiseCodeName){
@@ -79,7 +78,6 @@ class _FiltersScreenState extends State<FiltersAppScreen> {
   }
 
   updateFilter(){
-    print('update Filter ');
     Map<String,String> franchisee = Map<String,String>();
     Map<String, String> zoneMap = Map<String, String>();
     Map<String, String> employee = Map<String, String>();
@@ -89,7 +87,6 @@ class _FiltersScreenState extends State<FiltersAppScreen> {
       widget.filterData.employeeList!.clear();
       widget.filterData.zoneList!.clear();
       for (int index = 0; index < kpilist.length; index++) {
-          print('update Filter MatchFilter');
           if (isFilterMatch(kpilist[index]) && !franchisee.containsKey(kpilist[index].franchiseCodeName)) {
             widget.filterData.franchinseeList!.add(kpilist[index].franchiseCodeName!);
             franchisee.putIfAbsent(kpilist[index].franchiseCodeName!, () => kpilist[index].franchiseCodeName!);
@@ -250,12 +247,10 @@ class _FiltersScreenState extends State<FiltersAppScreen> {
       widget.filterData.selectedAttributes[attribute] = [];
     }
     if (widget.filterData.selectedAttributes[attribute]!.contains(value)) {
-      debugPrint('remove value ${value}');
       setState(() {
         widget.filterData.selectedAttributes[attribute]!.remove(value);
       });
     } else {
-      debugPrint('add value ${value}');
       setState(() {
         widget.filterData.selectedAttributes[attribute]!.clear();
         widget.filterData.selectedAttributes[attribute]!.add(value);

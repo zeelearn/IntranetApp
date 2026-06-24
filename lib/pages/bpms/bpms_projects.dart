@@ -52,7 +52,6 @@ class _BPMSProjects extends  ConsumerState<BPMSProjects> with WidgetsBindingObse
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      //print('resume');
       loadProjects();
     }
   }
@@ -63,9 +62,7 @@ class _BPMSProjects extends  ConsumerState<BPMSProjects> with WidgetsBindingObse
       String uid = box.get(LocalConstant.KEY_EMPLOYEE_ID) as String;
       frichiseeId = box.get(LocalConstant.KEY_FRANCHISEE_ID) as int;
       displayName = '${box.get(LocalConstant.KEY_FIRST_NAME) as String} ${box.get(LocalConstant.KEY_LAST_NAME) as String}';
-      print('last sync');
       String lastSync = box.containsKey(LocalConstant.PROJ_LAST_SYNC+'${widget.status}') ?  box.get(LocalConstant.PROJ_LAST_SYNC+'${widget.status}') as String : '';
-      print(lastSync);
       if(widget.status==100 || widget.status==0) {
         await ref.read(authNotifierProvider.notifier).getAllProjects(frichiseeId.toString(),lastSync);
       }else{
@@ -77,10 +74,8 @@ class _BPMSProjects extends  ConsumerState<BPMSProjects> with WidgetsBindingObse
   refreshProjects() async{
     var box = await Utility.openBox();
     if(box.get(LocalConstant.KEY_EMPLOYEE_ID)!=null) {
-      print('in if emoloyee found');
       String uid = box.get(LocalConstant.KEY_EMPLOYEE_ID) as String;
       int frid = box.get(LocalConstant.KEY_FRANCHISEE_ID) as int;
-      print('in if emoloyee found ${uid}');
       await ref.read(authNotifierProvider.notifier).refreshProjectList(frid.toString(),widget.status);
     }
   }
@@ -125,7 +120,6 @@ class _BPMSProjects extends  ConsumerState<BPMSProjects> with WidgetsBindingObse
           }
         }
       }
-    //print('Sorted list ${mSortedProjectList.length}');
     setState(() {
       //isLoading=false;
     });
@@ -314,7 +308,6 @@ class _BPMSProjects extends  ConsumerState<BPMSProjects> with WidgetsBindingObse
                                             BPMSProjectTask(
                                               project: mSortedProjectList[index], status: widget.status,)));
                               }else{
-                                print('list not found....');
                               }
                             },
                             child: widget.status ==100 || widget.status ==0 ? getView(mSortedProjectList![index],isLastElement) :  getTaskView(mSortedProjectList![index],isLastElement),
@@ -869,14 +862,11 @@ getView(ProjectModel model,bool isLastElement){
     Utility.showLoaderDialog(context);
     apiService.deleteTask(DeleteTaskRequest(taskId: currentTask!.id)).then((value) {
       Navigator.of(context).pop();
-      print('response ---');
-      print(value);
       if (value != null) {
         if (value == null ) {
           Utility.showMessage(context, 'data not found');
         } else if (value is CommonResponse) {
           CommonResponse response = value;
-          //print(response.toJson());
           if(response.data[0].msg.toLowerCase().contains('sucess')){
             Utility.getConfirmationDialog(context, 'Task Deleted Successfully', response.data[0].msg,this);
           }else

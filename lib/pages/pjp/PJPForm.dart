@@ -175,18 +175,15 @@ class _AddNewPjp extends State<AddNewPjp> {
     DBHelper helper = DBHelper();
     mPjpList.clear();
     List<PJPModel> pjpListModels = await helper.getPjpList();
-    debugPrint('pjp list ${pjpListModels.length}');
     if (pjpListModels != null) {
       mPjpList.addAll(pjpListModels);
     }
     List<FranchiseeInfo> franchiseeList = await helper.getFranchiseeList(businessId);
     mFrianchiseeList.clear();
     if (franchiseeList == null || franchiseeList.length == 0) {
-      debugPrint('data load ssss');
       loadCenterList();
     } else {
       mFrianchiseeList.addAll(franchiseeList);
-      debugPrint('data ssss');
     }
     setState(() {});
 
@@ -208,7 +205,6 @@ class _AddNewPjp extends State<AddNewPjp> {
         CentersRequestModel(EmployeeId: employeeId, Brand: businessId);
     APIService apiService = APIService();
     apiService.getCVFCenters(requestModel).then((value) {
-      debugPrint(value.toString());
       if (value != null) {
         if (value == null || value.responseData == null) {
           Utility.showMessage(context, 'data not found');
@@ -219,7 +215,6 @@ class _AddNewPjp extends State<AddNewPjp> {
             addCentersinDB();
             setState(() {});
           }
-          debugPrint('summery list ${response.responseData.length}');
         } else {
           Utility.showMessage(context, 'data not found');
         }
@@ -230,18 +225,15 @@ class _AddNewPjp extends State<AddNewPjp> {
   }
 
   getCategoryList() async {
-    debugPrint('fetch category----');
     fetchCategory();
   }
 
   fetchCategory() {
     Utility.showLoaderDialog(context);
     mCategoryList.clear();
-    debugPrint('categoty');
     CVFCategoryRequest request = CVFCategoryRequest(Category_Id: "0", Business_id: businessId);
     APIService apiService = APIService();
     apiService.getCVFCategoties(request).then((value) {
-      debugPrint(value.toString());
       if (value != null) {
         if (value == null || value.responseData == null) {
           Utility.showMessage(context, 'data not found');
@@ -251,7 +243,6 @@ class _AddNewPjp extends State<AddNewPjp> {
             mCategoryList.addAll(response.responseData);
           }
           setState(() {});
-          debugPrint('category list ${response.responseData.length}');
         } else {
           Utility.showMessage(context, 'data not found');
         }
@@ -264,16 +255,13 @@ class _AddNewPjp extends State<AddNewPjp> {
   addNewPjp() {
     Utility.showLoaderDialog(context);
     //mCategoryList.clear();
-    //debugPrint('categoty');
     AddPJPRequest request = AddPJPRequest(
         FromDate: Utility.convertShortDate(mPjpModel.fromDate),
         ToDate: Utility.convertShortDate(mPjpModel.toDate),
         ByEmployee_Id: employeeId.toString(),
         remarks: _remarkController.text.toString(), Business_Id: businessId);
-    debugPrint(request.toJson().toString());
     APIService apiService = APIService();
     apiService.addNewPJP(request).then((value) {
-      debugPrint(value.toString());
       if (value != null) {
         if (value == null || value.responseData == null) {
           Utility.showMessage(context, 'data not found');
@@ -286,8 +274,6 @@ class _AddNewPjp extends State<AddNewPjp> {
           mPjpModel.isSync = true;
           //mPjpModel.isActive = true;
           mPjpModel.remark = _remarkController.text.toString();
-          debugPrint('New PJP ID ${mPjpModel.pjpId} ');
-
           addPJPinDB(1);
 
           onsetp2();
@@ -304,17 +290,14 @@ class _AddNewPjp extends State<AddNewPjp> {
 
   addNewPjpModel(PJPModel model) {
     Utility.showLoaderDialog(context);
-    debugPrint('categoty');
     AddPJPRequest request = AddPJPRequest(
         Business_Id: businessId,
         FromDate: Utility.convertShortDate(model.fromDate),
         ToDate: Utility.convertShortDate(model.toDate),
         ByEmployee_Id: employeeId.toString(),
         remarks: model.remark.toString());
-    debugPrint(request.toJson().toString());
     APIService apiService = APIService();
     apiService.addNewPJP(request).then((value) {
-      debugPrint(value.toString());
       Navigator.of(context).pop();
       if (value != null) {
         if (value == null || value.responseData == null) {
@@ -327,7 +310,6 @@ class _AddNewPjp extends State<AddNewPjp> {
           model.isSync = true;
           //mPjpModel.isActive = true;
           onsetp2();
-          debugPrint('New PJP ID ${mPjpModel.pjpId} ');
           setState(){};
         } else {
           addPJPinDB(0);
@@ -341,7 +323,6 @@ class _AddNewPjp extends State<AddNewPjp> {
   }
 
   onsetp2() {
-    debugPrint('step2 push');
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -359,20 +340,17 @@ class _AddNewPjp extends State<AddNewPjp> {
         AddCVFRequest(PJP_Id: mPjpModel.pjpId, DocXml: xml, UserId: employeeId);
     APIService apiService = APIService();
     apiService.saveCVF(request).then((value) {
-      debugPrint(value.toString());
       if (value != null) {
         if (value == null || value.responseData == null) {
           Utility.showMessage(context, 'data not found');
         } else if (value is NewCVFResponse) {
           NewCVFResponse response = value;
-          debugPrint(response.toString());
           if (response != null) {
             //mPjpModel.pjpId=response.responseData;
           }
 
           Utility.showMessage(context, 'CVF Saved in server');
           setState(() {});
-          //debugPrint('category list ${response.responseData.length}');
         } else {
           Utility.showMessage(context, 'data not found');
         }
@@ -435,7 +413,6 @@ class _AddNewPjp extends State<AddNewPjp> {
   getPjpListWidget() {
     double width = MediaQuery.of(context).size.width;
     if (mPjpList == null || mPjpList.length <= 0) {
-      debugPrint('data not found');
       return Text('');
     } else {
       return Flexible(
@@ -548,7 +525,6 @@ class _AddNewPjp extends State<AddNewPjp> {
                                     if(!model.isSync)
                                       addNewPjpModel(model);
                                     else if(!model.isCheckIn) {
-                                      debugPrint('check in');
                                       DBHelper().updatePJP(1, model.pjpId, 1,
                                           model.isCheckOut ? 1 : 0,
                                           model.pjpId);
@@ -658,7 +634,6 @@ class _AddNewPjp extends State<AddNewPjp> {
     if (mCategoryList == null || mCategoryList.length == 0) {
       fetchCategory();
     } else {
-      debugPrint('category length ${mCategoryList.length}');
     }
 
     // a list of selectable items

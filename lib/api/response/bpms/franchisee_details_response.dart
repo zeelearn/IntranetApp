@@ -159,7 +159,6 @@ class FranchiseeIndentModel {
   late final String CreatedBy;
 
   FranchiseeIndentModel.fromJson(Map<String, dynamic> json){
-    print('FranchiseeIndentModel started....');
     IndentId = json['Indent_Id'] ?? 0;
     AcademicyearId = json['Academicyear_Id'] ?? 0;
     IndentType = json['Indent_Type'] ?? '';
@@ -170,7 +169,6 @@ class FranchiseeIndentModel {
     DocketNo = json['DocketNo'] ?? '';
     IndentStatus = json['Indent_Status'] ?? '';
     CreatedBy = json['Created_By'] ?? '';
-    print('FranchiseeIndentModel completed....');
   }
 
   Map<String, dynamic> toJson() {

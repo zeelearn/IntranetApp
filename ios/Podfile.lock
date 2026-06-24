@@ -1189,6 +1189,7 @@ PODS:
     - abseil/xcprivacy
   - abseil/xcprivacy (1.20240722.0)
   - app_links (7.0.0):
+  - app_links (7.0.0):
     - Flutter
   - AppCheckCore (11.2.0):
     - GoogleUtilities/Environment (~> 8.0)
@@ -1208,7 +1209,7 @@ PODS:
   - BoringSSL-GRPC/Interface (0.0.37)
   - camera_avfoundation (0.0.1):
     - Flutter
-  - cloud_firestore (6.5.0):
+  - cloud_firestore (6.4.1):
     - Firebase/Firestore (= 12.13.0)
     - firebase_core
     - Flutter
@@ -1850,12 +1851,13 @@ EXTERNAL SOURCES:
 SPEC CHECKSUMS:
   abseil: a05cc83bf02079535e17169a73c5be5ba47f714b
   app_links: a754cbec3c255bd4bbb4d236ecc06f28cd9a7ce8
+  app_links: a754cbec3c255bd4bbb4d236ecc06f28cd9a7ce8
   AppCheckCore: cc8fd0a3a230ddd401f326489c99990b013f0c4f
   audioplayers_darwin: 835ced6edd4c9fc8ebb0a7cc9e294a91d99917d5
   awesome_notifications: 0f432b28098d193920b11a44cfa9d2d9313a3888
   BoringSSL-GRPC: dded2a44897e45f28f08ae87a55ee4bcd19bc508
   camera_avfoundation: 968a9a5323c79a99c166ad9d7866bfd2047b5a9b
-  cloud_firestore: 264d955b6f3551937d3622cffa90f153cc9affd5
+  cloud_firestore: 95c2f2d0a75b8ca7ca9f629fc903ad4dbd030c2a
   device_info_plus: 71ffc6ab7634ade6267c7a93088ed7e4f74e5896
   DKImagePickerController: 946cec48c7873164274ecc4624d19e3da4c1ef3c
   DKPhotoGallery: b3834fecb755ee09a593d7c9e389d8b5d6deed60

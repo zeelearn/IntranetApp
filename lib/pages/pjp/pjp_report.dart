@@ -94,9 +94,7 @@ class _MyPjpReportListState extends State<MyPjpReportScreen>
 
     if (pickedDate != null) {
       setState(() {
-        //debugPrint(pickedDate); //pickedDate output format => 2021-03-10 00:00:00.000
         String formattedDate = DateFormat('dd-MMM-yyyy').format(pickedDate);
-        //debugPrint(formattedDate); //formatted date output using intl package =>  2021-03-16
         controller.text = formattedDate;
       });
     } else {}
@@ -148,7 +146,6 @@ class _MyPjpReportListState extends State<MyPjpReportScreen>
     try {
       var attendanceList = hiveBox.get(getId());
       isLoading = false;
-      //debugPrint(attendanceList.toString());
       PjpListResponse response = PjpListResponse.fromJson(
         json.decode(attendanceList!),
       );
@@ -262,8 +259,6 @@ class _MyPjpReportListState extends State<MyPjpReportScreen>
                 currentDate: DateTime.now(),
               )),
     );
-    //debugPrint('Response Received');
-
     loadPjpReport();
   }
 
@@ -286,10 +281,8 @@ class _MyPjpReportListState extends State<MyPjpReportScreen>
       for (int index = 0; index < filter.filters.length; index++) {
         if (filter.filters[index].isSelected) {
           widget.mFilterSelection.filters.add(filter.filters[index]);
-          //debugPrint('--${filter.filters[index].name}');
         }
       }
-      //debugPrint(filter.filters.toList());
       loadPjpReport();
     }
     //Scaffold.of(context).showSnackBar(SnackBar(content: Text("$result"),duration: Duration(seconds: 3),));
@@ -344,7 +337,6 @@ class _MyPjpReportListState extends State<MyPjpReportScreen>
         ),
       );
     } else if (mPjpList.isEmpty) {
-      //debugPrint('PJP List not avaliable');
       return Utility.emptyDataSet(
           context, "your PJP list is Empty, Please plan your journey");
     } else if (mPjpList.isEmpty && isInternet) {
@@ -494,7 +486,7 @@ class _MyPjpReportListState extends State<MyPjpReportScreen>
                                     'Approve',
                                     'Reject',
                                     'PJP : ${pjpInfo.PJP_Id}',
-                                    'Are you sure to approve the PJP, created by ${pjpInfo.displayName}',
+                                    'Are you sure to approve the PJP Report, created by ${pjpInfo.displayName}',
                                     pjpInfo,
                                     this);
                               } else {
@@ -690,13 +682,10 @@ class _MyPjpReportListState extends State<MyPjpReportScreen>
       for (int index = 0; index < filter.filters.length; index++) {
         if (filter.filters[index].isSelected) {
           widget.mFilterSelection.filters.add(filter.filters[index]);
-          //debugPrint(filter.filters[index].name);
         }
       }
-      //debugPrint(filter.filters.toList());
       loadPjpReport();
     } else {
-      //debugPrint('Object not found ${result}');
     }
   }
 
@@ -846,7 +835,6 @@ class _MyPjpReportListState extends State<MyPjpReportScreen>
   void onSuccess(value) {
     Navigator.of(context).pop();
     isLoading = false;
-    debugPrint('PJP List onSuccess ');
     if (value is String) {
       PJPReportRequest request = PJPReportRequest(
           employeeCode: employeeCode,
@@ -856,7 +844,6 @@ class _MyPjpReportListState extends State<MyPjpReportScreen>
       IntranetServiceHandler.loadPjpReport(request, this);
     } else if (value is UpdatePJPStatusResponse) {
       UpdatePJPStatusResponse val = value;
-      //debugPrint(val.toJson());
       if (val.responseData == 0) {
         //rejected
         Utility.getRejectionDialog(
@@ -865,40 +852,32 @@ class _MyPjpReportListState extends State<MyPjpReportScreen>
         Utility.getConfirmationDialogPJP(context, this);
       }
     } else if (value is PjpListResponse) {
-      debugPrint('PJP List onSuccess PjpListResponse');
       PjpListResponse response = value;
-      //debugPrint(response.toString());
       String json = jsonEncode(response);
       savePJPLocally(json);
-      //debugPrint('onResponse in if ${widget.mFilterSelection.type}');
       isLoading = false;
       mPjpList.clear();
-      debugPrint('PJP List onSuccess ${response.responseData.toString()}');
       if (response.responseData != null && response.responseData.length > 0) {
         if (response != null && response.responseData != null) {
           if (widget.mFilterSelection == null ||
               widget.mFilterSelection.type == FILTERStatus.MYTEAM) {
-            debugPrint('FOR MY TEAM');
             //mPjpList.addAll(response.responseData);
             for (int index = 0; index < response.responseData.length; index++) {
               mPjpList.addAll(response.responseData);
             }
           } else if (widget.mFilterSelection.type == FILTERStatus.MYSELF) {
-            debugPrint('FOR MY SELF');
             for (int index = 0; index < response.responseData.length; index++) {
               if (response.responseData[index].isSelfPJP == '1') {
                 mPjpList.add(response.responseData[index]);
               }
             }
           } else if (widget.mFilterSelection.type == FILTERStatus.NONE) {
-            debugPrint('FOR MY CUSTOM TEAM');
             for (int index = 0; index < response.responseData.length; index++) {
               if (response.responseData[index].isSelfPJP == '0') {
                 mPjpList.add(response.responseData[index]);
               }
             }
           } else {
-            //debugPrint('In else');
             for (int index = 0; index < response.responseData.length; index++) {
               for (int jIndex = 0;
                   jIndex < widget.mFilterSelection.filters.length;
@@ -917,12 +896,9 @@ class _MyPjpReportListState extends State<MyPjpReportScreen>
             return -bdate.compareTo(adate);
           });
           //mPjpList.addAll(response.responseData);
-          debugPrint('========================${mPjpList.length}');
-          //debugPrint(response.toJson());
           //mPjpList = mPjpList.reversed.toList();
         }
       } else {
-        debugPrint('onResponse in if else');
       }
     }
     setState(() {
@@ -940,7 +916,6 @@ class _MyPjpReportListState extends State<MyPjpReportScreen>
 
   @override
   void onClick(int action, value) {
-    //debugPrint('onClick called ${value}');
     if (value is PJPInfo) {
       PJPInfo pjpInfo = value;
       if (action == Utility.ACTION_OK) {

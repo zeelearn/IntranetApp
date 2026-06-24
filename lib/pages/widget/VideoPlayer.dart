@@ -44,7 +44,6 @@ class _VideoPlayerState extends State<VideoPlayer> {
     super.initState();
 
     initializePlayer();
-    //print(widget.filePath);
   }
 
   @override
@@ -63,11 +62,7 @@ class _VideoPlayerState extends State<VideoPlayer> {
     var filePath =
         join(dir.path, '${widget.path.split('/').last.split('.').first}.mp4');
 
-    debugPrint(
-        'File Path is - $filePath and does file exists - ${File(filePath).existsSync()}');
     if (File(filePath).existsSync()) {
-      debugPrint(
-          'File Path for offline is - $filePath and does file exists - ${File(filePath).existsSync()}');
       _videoPlayerController1 = VideoPlayerController.file(File(filePath))
         ..initialize().then((_) {
           isLoading = false;
@@ -185,7 +180,6 @@ class _VideoPlayerState extends State<VideoPlayer> {
   int currPlayIndex = 0;
 
   Future<void> toggleVideo() async {
-    print('toggleVideo ===================');
     await _videoPlayerController1!.pause();
     currPlayIndex = 0;
     await initializePlayer();

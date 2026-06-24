@@ -489,7 +489,6 @@ class _LoginPage extends State<LoginPage> {
       APIService apiService = APIService();
       apiService.login(loginRequestModel).then((value) async {
         Navigator.pop(context);
-        debugPrint(value.toString());
         // if (value != null) {
         setState(() {
           isApiCallProcess = false;
@@ -538,7 +537,6 @@ class _LoginPage extends State<LoginPage> {
 
             FirebaseAnalyticsUtils.sendEvent(info.userName);
             hive.put(LocalConstant.KEY_LOGIN_RESPONSE, jsonEncode(value));
-            debugPrint('========Login Form ====== ${jsonEncode(value)}');
             List<BusinessApplications> businessapplications =
                   value.responseData.businessApplications;
             // if (businessapplications.isEmpty) {
@@ -558,7 +556,6 @@ class _LoginPage extends State<LoginPage> {
         // } else {
         //   Navigator.pop(context);
         //   Utility.showMessage(context, "Invalid User Name and Password");
-        //   debugPrint("null value");
         // }
       });
     } else {

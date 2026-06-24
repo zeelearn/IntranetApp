@@ -220,7 +220,6 @@ class CommunicationCard extends StatelessWidget {
               color: Colors.transparent,
               child: InkWell(
                 onTap: () {
-                  print(' tap width ${MediaQuery.of(context).size.width}');
                   //MyWebsiteView(title: '', url: Uri.dataFromString(model.EmailBody, mimeType: 'text/html').toString());
                   Navigator.of(context).push(MaterialPageRoute(
                       builder: (BuildContext context) => MyWebsiteView(

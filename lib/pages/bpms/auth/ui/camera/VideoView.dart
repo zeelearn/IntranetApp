@@ -17,7 +17,6 @@ class _VideoViewPageState extends State<VideoViewPage> {
   @override
   void initState() {
     super.initState();
-    debugPrint('Videoplayer path is - ${widget.path}');
     _controller = VideoPlayerController.file(File(widget.path))
       ..initialize().then((_) {
         // Ensure the first frame is shown after the video is initialized, even before the play button has been pressed.

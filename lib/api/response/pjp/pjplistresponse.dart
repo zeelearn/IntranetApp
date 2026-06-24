@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/cupertino.dart';
 
 class PjpListResponse {
@@ -26,7 +28,7 @@ class PjpListResponse {
           for (var v in data) {
             try {
               responseData.add(PJPInfo.fromJson(v));
-            } catch (e) {}
+            } catch (_) {}
           }
         } else if (data is Map<String, dynamic>) {
           // Case 2: responseData is an object (ResponseData structure)
@@ -34,27 +36,25 @@ class PjpListResponse {
             for (var v in data['PJP']) {
               try {
                 responseData.add(PJPInfo.fromJson(v));
-              } catch (e) {}
+              } catch (_) {}
             }
           }
           if (data.containsKey('MYTEAM') && data['MYTEAM'] is List) {
             for (var v in data['MYTEAM']) {
               try {
                 myTeamData.add(MYTEAM.fromJson(v));
-              } catch (e) {}
+              } catch (_) {}
             }
           }
           // Fallback: If it's a Map but not the wrapper, treat as single PJPInfo
           if (!data.containsKey('PJP') && !data.containsKey('MYTEAM')) {
             try {
               responseData.add(PJPInfo.fromJson(data));
-            } catch (e) {}
+            } catch (_) {}
           }
         }
       }
-    } catch (e) {
-      print('error ${e.toString()}');
-    }
+    } catch (_) {}
   }
 
   Map<String, dynamic> toJson() {
@@ -149,14 +149,20 @@ class PJPInfo {
         if (detailedData is List) {
           for (var v in detailedData) {
             if (v != null && v is Map<String, dynamic>) {
-              getDetailedPJP!.add(GetDetailedPJP.fromJson(v));
+              var item = GetDetailedPJP.fromJson(v);
+              item.pjpFromDate = fromDate;
+              item.pjpToDate = toDate;
+              getDetailedPJP!.add(item);
             }
           }
         } else if (detailedData is Map<String, dynamic>) {
-          getDetailedPJP!.add(GetDetailedPJP.fromJson(detailedData));
+          var item = GetDetailedPJP.fromJson(detailedData);
+          item.pjpFromDate = fromDate;
+          item.pjpToDate = toDate;
+          getDetailedPJP!.add(item);
         }
       }
-    } catch (e) {}
+    } catch (_) {}
   }
 
   Map<String, dynamic> toJson() {
@@ -244,10 +250,13 @@ class PJP {
 
 class GetDetailedPJP implements Comparable<GetDetailedPJP> {
   late String PJPCVF_Id = '';
+  String? PJP_Id;
 
   late String visitDate = '';
+
   late String visitTime = '';
   late String franchiseeCode = '';
+  late String franchiseeId = '';
   late String franchiseeName = '';
   late double Latitude = 0.0;
   late double Longitude = 0.0;
@@ -264,7 +273,12 @@ class GetDetailedPJP implements Comparable<GetDetailedPJP> {
   late double LongitudeOut = 0.0;
   late String AddressOut = '';
   late String Status = '';
+  late String remarks = '';
   late List<Purpose>? purpose = [];
+  List<CVFHistory>? cvfHistory = [];
+
+  String? pjpFromDate;
+  String? pjpToDate;
 
   late bool isSync = false;
   late bool isNotify = false;
@@ -273,13 +287,19 @@ class GetDetailedPJP implements Comparable<GetDetailedPJP> {
   late bool isCheckIn = false;
   late bool isCheckOut = false;
   late bool isCompleted = false;
+  late bool IsCancelled = false;
+
   late String approvalStatus = 'Pending';
 
   GetDetailedPJP(
       {required this.PJPCVF_Id,
+      this.PJP_Id,
       required this.visitDate,
+      this.pjpFromDate,
+      this.pjpToDate,
       required this.visitTime,
       required this.franchiseeCode,
+      required this.franchiseeId,
       required this.franchiseeName,
       required this.Latitude,
       required this.Longitude,
@@ -295,6 +315,7 @@ class GetDetailedPJP implements Comparable<GetDetailedPJP> {
       required this.LongitudeOut,
       required this.AddressOut,
       required this.Status,
+      required this.remarks,
       required this.ActivityTitle,
       required this.purpose,
       required this.isActive,
@@ -303,7 +324,15 @@ class GetDetailedPJP implements Comparable<GetDetailedPJP> {
       required this.isCheckOut,
       required this.isSync,
       required this.isCompleted,
-      required this.approvalStatus});
+      required this.IsCancelled,
+      required this.approvalStatus,
+      this.cvfHistory});
+
+  bool get hasPjpRange =>
+      pjpFromDate != null &&
+      pjpToDate != null &&
+      pjpFromDate != 'NA' &&
+      pjpToDate != 'NA';
 
   @override
   int compareTo(GetDetailedPJP other) {
@@ -317,6 +346,7 @@ class GetDetailedPJP implements Comparable<GetDetailedPJP> {
   GetDetailedPJP.fromJson(Map<String, dynamic> json) {
     try {
       PJPCVF_Id = (json['PJPCVF_Id'] ?? json['pJPCVF_Id'] ?? '0').toString();
+      PJP_Id = json['PJP_Id'];
       visitDate =
           (json['Visit_Date'] ?? json['visit_Date']) == "1900-01-01T00:00:00"
               ? 'NA'
@@ -328,6 +358,7 @@ class GetDetailedPJP implements Comparable<GetDetailedPJP> {
       Status = json['Status'] ?? (json['status'] ?? 'Check In');
       franchiseeCode =
           json['Franchisee_Code'] ?? json['franchisee_Code'] ?? 'NA';
+      franchiseeId = json['Franchisee_Id'] ?? json['franchisee_Id'] ?? 'NA';
       franchiseeName =
           json['Franchisee_Name'] ?? json['franchisee_Name'] ?? 'NA';
       Address = json['Address'] ?? json['address'] ?? 'NA';
@@ -342,6 +373,8 @@ class GetDetailedPJP implements Comparable<GetDetailedPJP> {
           (json['DateTimeIn'] ?? json['dateTimeIn']) == "1900-01-01T00:00:00"
               ? 'NA'
               : (json['DateTimeIn'] ?? json['dateTimeIn'] ?? 'NA').toString();
+      pjpFromDate = json['FromDate'] /* ?? json['FromDate'] */;
+      pjpToDate = json['ToDate'] /*  ?? ['ToDate'] */;
       Latitude = double.tryParse(json['Latitude']?.toString() ?? "") ?? 0.0;
       Longitude = double.tryParse(json['Longitude']?.toString() ?? "") ?? 0.0;
       LatitudeIn = double.tryParse(json['LatitudeIn']?.toString() ?? "") ?? 0.0;
@@ -360,6 +393,8 @@ class GetDetailedPJP implements Comparable<GetDetailedPJP> {
               json['ApprovalStatus'] ??
               'Pending')
           .toString();
+      remarks = (json['Remarks'] ?? json['remarks'] ?? '').toString();
+
       purpose = <Purpose>[];
       final purposeData = json['Purpose'] ?? json['purpose'];
       if (purposeData != null && purposeData != 'NA') {
@@ -385,18 +420,32 @@ class GetDetailedPJP implements Comparable<GetDetailedPJP> {
           purpose!.add(Purpose.fromJson(purposeData));
         }
       }
-    } catch (e) {
-      debugPrint(e.toString());
-    }
+      IsCancelled =
+          (json['IsCancelled'] ?? '0').toString() == '1' ? true : false;
+      // log('CVF id - ${PJPCVF_Id} - ${json['IsCancelled']}  - $IsCancelled');
+      final historyData = json['cvf_history'];
+      cvfHistory = <CVFHistory>[];
+      if (historyData != null && historyData != 'NA') {
+        if (historyData is List) {
+          for (var v in historyData) {
+            if (v != null && v is Map<String, dynamic>) {
+              cvfHistory!.add(CVFHistory.fromJson(v));
+            }
+          }
+        } else if (historyData is Map<String, dynamic>) {
+          cvfHistory!.add(CVFHistory.fromJson(historyData));
+        }
+      }
+    } catch (_) {}
   }
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = <String, dynamic>{};
     data['PJPCVF_Id'] = PJPCVF_Id;
-    //data['pjpId'] = this.pjpId;
+    data['PJP_Id'] = PJP_Id;
     data['Visit_Date'] = visitDate;
     data['Visit_Time'] = visitTime;
-    data['Franchisee_Code'] = franchiseeCode;
+    data['Franchisee_Id'] = franchiseeId;
     data['Franchisee_Name'] = franchiseeName;
     data['Status'] = Status;
     data['Latitude'] = Latitude;
@@ -413,12 +462,71 @@ class GetDetailedPJP implements Comparable<GetDetailedPJP> {
     data['LongitudeOut'] = LongitudeOut;
     data['AddressOut'] = AddressOut;
     data['ActivityTitle'] = ActivityTitle;
+    data['Remarks'] = remarks;
     data['approvalStatus'] = approvalStatus;
+    data['IsCancelled'] = IsCancelled ? '1' : '0';
     if (purpose != null) {
       data['Purpose'] = purpose!.map((v) => v.toJson()).toList();
     } else {
       data['Purpose'] = [];
     }
+    if (cvfHistory != null) {
+      data['cvf_history'] = cvfHistory!.map((v) => v.toJson()).toList();
+    }
+    return data;
+  }
+}
+
+class CVFHistory {
+  late String visitDate;
+  late String visitTime;
+  late String franchiseeId;
+  late String franchiseeCode;
+  late String franchiseeName;
+  late String latitude;
+  late String longitude;
+  late String address;
+  late String remarks;
+  String? activityTitle;
+
+  CVFHistory({
+    required this.visitDate,
+    required this.visitTime,
+    required this.franchiseeId,
+    required this.franchiseeCode,
+    required this.franchiseeName,
+    required this.latitude,
+    required this.longitude,
+    required this.address,
+    required this.remarks,
+    this.activityTitle,
+  });
+
+  CVFHistory.fromJson(Map<String, dynamic> json) {
+    visitDate = json['Visit_Date'] ?? '';
+    visitTime = json['Visit_Time'] ?? '';
+    franchiseeId = (json['Franchisee_Id'] ?? '').toString();
+    franchiseeCode = json['Franchisee_Code'] ?? '';
+    franchiseeName = json['Franchisee_Name'] ?? '';
+    latitude = (json['Latitude'] ?? '0').toString();
+    longitude = (json['Longitude'] ?? '0').toString();
+    address = json['Address'] ?? '';
+    remarks = json['Remarks'] ?? '';
+    activityTitle = json['ActivityTitle'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['Visit_Date'] = visitDate;
+    data['Visit_Time'] = visitTime;
+    data['Franchisee_Id'] = franchiseeId;
+    data['Franchisee_Code'] = franchiseeCode;
+    data['Franchisee_Name'] = franchiseeName;
+    data['Latitude'] = latitude;
+    data['Longitude'] = longitude;
+    data['Address'] = address;
+    data['ActivityTitle'] = activityTitle;
+    data['Remarks'] = remarks;
     return data;
   }
 }

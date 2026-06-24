@@ -44,24 +44,15 @@ class ResponseData {
       employeeRoles = List.from(json['employeeRoles'])
           .map((e) => EmployeeRoles.fromJson(e))
           .toList();
-    } catch (e) {
-      debugPrint(e.toString());
-    }
+    } catch (_) {}
     businessApplications = [];
     if (json['businessApplications'] is List) {
-      debugPrint('at line 21');
       json['businessApplications'].forEach((v) {
         try {
           businessApplications.add(new BusinessApplications.fromJson(v));
-          debugPrint(
-              'Business applications length is - ${businessApplications.length}');
-        } catch (e) {
-          debugPrint('at line 21 ${v.toString()}');
-          debugPrint(e.toString());
-        }
+        } catch (_) {}
       });
     } else {
-      debugPrint('at line 30');
       businessApplications
           .add(BusinessApplications.fromJson(json['businessApplications']));
     }
@@ -195,15 +186,12 @@ class EmployeeDetails {
     companyId = json['companyId'] ?? 0.0;
     employeeDateOfMarriage = json['employee_DateOfMarriage'] ?? "";
     gender = json['gender'] ?? "";
-    debugPrint('gender');
     employeeMiddleName = json['employeeMiddleName'] ?? "";
     employeeDateOfBirthActual = json['employeeDateOfBirthActual'] ?? "";
     employeeWorkRoleId = json['employee_WorkRoleId'] ?? "";
     employeeLocation = json['employee_Location'] ?? "";
-    debugPrint('location');
     employeeQualification = json['employeeQualification'] ?? "";
     employeeMaritalStatus = json['employee_MaritalStatus'] ?? '';
-    debugPrint('marritial status');
     landingPage = json['landingPage'] ?? "";
     companyName = json['companyName'] ?? "";
     managerName = json['managerName'] ?? "";

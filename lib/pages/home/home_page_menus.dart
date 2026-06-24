@@ -2,11 +2,15 @@ import 'dart:typed_data';
 
 import 'package:Intranet/pages/helper/LocalConstant.dart';
 import 'package:Intranet/pages/pjp/cvf/mycvf.dart';
+import 'package:Intranet/pages/pjp/cvf/v2/cvf.dart';
 import 'package:Intranet/pages/summary%20dashboard/summary_dashboard.dart';
 import 'package:Intranet/pages/widget/MyWebSiteView.dart';
 import 'package:expensestracker/app/hiveDatabase/hive_database.dart';
 import 'package:expensestracker/presentation/app.dart';
+import 'package:expensestracker/presentation/controllers/dashboard/dashboard_binding.dart';
+import 'package:expensestracker/presentation/controllers/dashboard/dashboard_page_controller.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:hive/hive.dart';
 import 'package:saathi/models/getStaticDashboardModel.dart';
 import 'package:saathi/zllsaathi.dart';
@@ -48,6 +52,11 @@ class _HomePageMenuState extends State<HomePageMenu> {
   @override
   void initState() {
     super.initState();
+
+    if (!Get.isRegistered<DashboardPageController>()) {
+      DashboardBinding().dependencies();
+    }
+    
   }
 
   Text subheading(String title) {
@@ -153,7 +162,7 @@ class _HomePageMenuState extends State<HomePageMenu> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => MyCVFListScreen(),
+                    builder: (context) => MyCVFListScreenV2(),
                   ),
                 );
               },
@@ -499,7 +508,6 @@ class _HomePageMenuState extends State<HomePageMenu> {
     //         builder: (context) => ZllSaathiScreenWidget(username: mUserName)));
     //
     // String _url = 'https://intranet-9fda2.web.app/dashboard?u_name=${mUserName}';
-    // print('opening zeeSarthi...................');
     // if(kIsWeb){
     //   final Uri url = Uri.parse(_url);
     //   if (!await launchUrl(url)) {

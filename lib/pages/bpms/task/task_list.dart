@@ -101,9 +101,7 @@ class _BPMSTaskScreenState extends ConsumerState<BPMSTaskScreen> {
   }
 
   getSortedTaskList(int taskType){
-    print('Filter ${mFilter}');
     final auth = ref.watch(authNotifierProvider);
-    print(auth.taskModelList!.length);
     List<ProjectTaskModel> mList=[];
       for(int index=0;index<auth.taskModelList!.length;index++){
         if(taskType == ACTION_ALL){
@@ -124,7 +122,6 @@ class _BPMSTaskScreenState extends ConsumerState<BPMSTaskScreen> {
   @override
   Widget build(BuildContext context) {
     final auth = ref.watch(authNotifierProvider);
-    //print('task list size ${auth.taskModelList}');
     final GlobalKey<RefreshIndicatorState> refreshIndicatorKey =
         GlobalKey<RefreshIndicatorState>();
     return SafeArea(
@@ -136,11 +133,8 @@ class _BPMSTaskScreenState extends ConsumerState<BPMSTaskScreen> {
           onRefresh: () async {
             // Replace this delay with the code to be executed during refresh
             try {
-              print('task refresh...');
               ref.read(authNotifierProvider.notifier).refreshTask();
-            }catch(e){
-              print(e.toString());
-            }
+            }catch (_) {}
             return Future<void>.delayed(const Duration(seconds: 3));
           },
           // Pull from top to show refresh indicator.
@@ -327,9 +321,7 @@ class _BPMSTaskScreenState extends ConsumerState<BPMSTaskScreen> {
     var result = await Navigator.push(context, MaterialPageRoute(builder: (context) {
       return ChatPage(taskModel: taskModel, isEdit: true,franchiseeName: taskModel.title);
     }));
-    print('showChatScreen ------notifier-----------${result}');
     ref.read(authNotifierProvider.notifier).refreshTask();
-    print('showChatScreen ------notifier---END--------');
   }
 
   emptyView(ProjectTaskModel model) {

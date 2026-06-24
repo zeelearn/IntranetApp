@@ -82,7 +82,6 @@ class AwsS3FileUpload {
       onProgress: (bytes, totalBytes) async {
         await progress(bytes, totalBytes);
 
-        //print('progress: $progress ($bytes/$totalBytes)');
       },
     );
     final multipartFile = http.MultipartFile('file', stream, length,
@@ -127,12 +126,9 @@ class AwsS3FileUpload {
 
       // res.stream.listen((value) async {
       //   await progress(value.last / res.contentLength!);
-      //   print(
-      //       'response  and total length is - ${res.contentLength}  and progress in percent is ${value.last / res.contentLength!}');
       // });
       // final respStr = await res.stream.bytesToString();
 
-      print('$endpoint/$uploadKey');
       Metadata meta = Metadata(fieldName: '');
       UploadImageModel model = UploadImageModel(
           fieldname: '',
@@ -152,8 +148,6 @@ class AwsS3FileUpload {
           message: 'Image Successfully uploaded..', imageModel: [model]);
       if (res.statusCode == 204) return response;
     } catch (e) {
-      print('Failed to upload to AWS, with exception:');
-      print(e);
       return null;
     }
   }

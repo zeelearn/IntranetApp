@@ -51,7 +51,6 @@ mixin ListScrollMixin<T extends StatefulWidget> on State<T>
 
   // and implement fetch method 
   // void fetch([int offset]) {
-    // print('Fetching items, starting at ${offset ?? dummyWinesData.data.length}');
     // ...
     // Here can be a direct api call something like api.fetchWines(...)
     // or you can dispatch some redux actions --> store.dispatch(FetchWinesAction())

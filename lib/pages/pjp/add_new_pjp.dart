@@ -158,7 +158,7 @@ class _AddNewPJPState extends State<AddNewPJPScreen>
             ),
             TableCalendar(
               firstDay:
-                  DateTime(DateTime.now().year, DateTime.now().month - 3, 1),
+                  DateTime(DateTime.now().year, DateTime.now().month - 1, 1),
               lastDay: DateTime.now().add(const Duration(days: 30)),
               focusedDay: _focusedDay,
               rangeStartDay: _fromDate,
@@ -325,6 +325,9 @@ class _AddNewPJPState extends State<AddNewPJPScreen>
     if (_remarkController.text.isEmpty) {
       Utility.showMessages(context, "Please Enter Remark and submit again");
       return false;
+    }else if (_remarkController.text.trim().isEmpty) {
+      Utility.showMessages(context, "Please Enter Remark and submit again");
+      return false;
     } else if (!await Utility.isInternet()) {
       Utility.noInternetConnection(context);
       return false;
@@ -336,10 +339,8 @@ class _AddNewPJPState extends State<AddNewPJPScreen>
   AddPJPRequest? request;
   addNewPjp() async {
     if (await isValidate()) {
-      print('addNew PJP validate');
       Utility.showLoaderDialog(context);
       //mCategoryList.clear();
-      //debugPrint('categoty');
       mPjpModel.fromDate = _fromDate;
       mPjpModel.toDate = _toDate;
       request = AddPJPRequest(
@@ -348,14 +349,20 @@ class _AddNewPJPState extends State<AddNewPJPScreen>
           ToDate: Utility.convertShortDate(mPjpModel.toDate),
           ByEmployee_Id: widget.employeeId.toString(),
           remarks: _remarkController.text.toString());
-      debugPrint(request!.toJson().toString());
+      mPjpModel.remark = _remarkController.text.toString();
       APIService apiService = APIService();
       apiService.addNewPJP(request!).then((value) {
-        debugPrint(value.toString());
         Navigator.of(context).pop();
         if (value != null) {
           if (value == null || value.responseData == null) {
-            Utility.showMessage(context, 'data not found');
+            //Utility.showMessage(context, 'data not found');
+            Utility().showPJPStatusDialog(
+              pageContext: context,
+              pjp: mPjpModel,
+              listener: this,
+              isSuccess: false,
+              message:"Something went wrong. Please try again"
+            );
           } else if (value is NewPJPResponse) {
             NewPJPResponse response = value;
             //DBHelper().updatePJP(1, mPjpModel.pjpId, response.responseData);
@@ -366,29 +373,51 @@ class _AddNewPJPState extends State<AddNewPJPScreen>
             //mPjpModel.isActive = true;
             mPjpModel.remark = _remarkController.text.toString();
 
-            debugPrint('New PJP ID ${mPjpModel.pjpId} ');
-
             addPJPinDB(1);
-            Utility.showMessageSingleButton(
-                context, "PJP Added successfully", this,
-                object: mPjpModel);
+            String message = response.responseMessage ?? "Your PJP has been created successfully.";
+            
+            // Utility.showMessageSingleButton(
+            //     context, "PJP Added successfully", this,
+            //     object: mPjpModel);
+
+            Utility().showPJPStatusDialog(
+              pageContext: context,
+              pjp: mPjpModel,
+              listener: this,
+              isSuccess: true,
+              message: message
+            );
+           
             // Utility.showMessageMultiButton(context, "Done", "Add CVF",
             //     "Success", "PJP Added successfully", mPjpModel, this);
 
             //IntranetServiceHandler.loadPjpSummery(widget.employeeId, mPjpModel.pjpId,this);
           } else {
             addPJPinDB(0);
-            Utility.showMessage(context, 'Unable to Add New PJP Details');
+            Utility().showPJPStatusDialog(
+              pageContext: context,
+              pjp: mPjpModel,
+              listener: this,
+              isSuccess: false,
+              message:"Something went wrong. Please try again"
+            );
           }
+        }else{
+          Utility().showPJPStatusDialog(
+              pageContext: context,
+              pjp: mPjpModel,
+              listener: this,
+              isSuccess: false,
+              message:"Something went wrong. Please try again"
+            );
         }
-
         setState(() {});
       });
     }
   }
 
+  
   onsetp2(PJPInfo infoModel) {
-    debugPrint('onStep 2');
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
@@ -417,7 +446,6 @@ class _AddNewPJPState extends State<AddNewPJPScreen>
       DBConstant.CREATED_DATE: Utility.parseDate(DateTime.now()),
     };
     dbHelper.insert(LocalConstant.TABLE_PJP_INFO, data);
-    debugPrint('db update');
   }
 
   @override
@@ -432,24 +460,20 @@ class _AddNewPJPState extends State<AddNewPJPScreen>
 
   @override
   void onSuccess(value) {
-    debugPrint('onResponse');
     Navigator.of(context).pop();
     if (value is PjpListResponse) {
       PjpListResponse response = value;
-      debugPrint('onResponse in if ');
       if (response.responseData != null && response.responseData.length > 0) {
-        debugPrint('onResponse ${response.responseData.length}');
         onsetp2(response.responseData[0]);
       } else {
-        debugPrint('onResponse in if else');
       }
     } else {
-      debugPrint('onResponse in else');
     }
   }
 
   @override
   void onClick(int action, value) {
+    print("onClick action: $action, value: $value");
     if (action == Utility.ACTION_OK) {
       Navigator.of(context).pop(value);
     } else if (action == Utility.ACTION_CCNCEL) {
@@ -472,7 +496,8 @@ class _AddNewPJPState extends State<AddNewPJPScreen>
                   )),
         );
       }
-    } else
+    } else {
       Navigator.pop(context, 'DONE');
+    }
   }
 }

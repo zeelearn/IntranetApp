@@ -28,7 +28,7 @@ import '../iface/onResponse.dart';
 import '../model/filter.dart';
 import '../utils/theme/colors/light_colors.dart';
 import 'add_new_pjp.dart';
-import 'cvf/pjpcvf.dart';
+import 'cvf/v2/cvf.dart';
 import 'filters.dart';
 
 class MyPjpListScreen extends StatefulWidget {
@@ -68,10 +68,7 @@ class _MyPjpListState extends State<MyPjpListScreen>
     if (location != null) {
       double latitude = location.latitude!;
       double longitude = location.longitude!;
-      print('Location is ${latitude} ${longitude}');
-      print('Address is ${Utility.getAddress(latitude, longitude)}');
     } else {
-      print('location data not found');
     }
   }
 
@@ -143,7 +140,7 @@ class _MyPjpListState extends State<MyPjpListScreen>
             //IconButton
             IconButton(
               icon: const Icon(Icons.add_box),
-              tooltip: 'Filter',
+              tooltip: 'Create PJP',
               onPressed: () {
                 openNewPjp();
               },
@@ -165,7 +162,6 @@ class _MyPjpListState extends State<MyPjpListScreen>
 
                   String employeeCode =
                       hiveBox.get(LocalConstant.KEY_EMPLOYEE_CODE) as String;
-                  debugPrint('Employee code is - $employeeCode');
                   Utils.isExternal = true;
                   Get.put(AddClaimController(
                       addClaimUsecase: AddClaimUsecase(
@@ -366,9 +362,9 @@ class _MyPjpListState extends State<MyPjpListScreen>
           Navigator.push(
               context,
               MaterialPageRoute(
-                  builder: (context) => CVFListScreen(
-                        mPjpInfo: pjpInfo,
-                        isView: false,
+                  builder: (context) => PJPCVFListScreenV2(
+                        pjpInfo: pjpInfo,
+                        isViewOnly: false,
                       )));
         } else if (pjpInfo.isSelfPJP == '1' &&
             pjpInfo.ApprovalStatus == 'Rejected') {
@@ -379,9 +375,7 @@ class _MyPjpListState extends State<MyPjpListScreen>
               context,
               MaterialPageRoute(
                   builder: (context) =>
-                      CVFListScreen(mPjpInfo: pjpInfo, isView: true)));
-          // Utility.showMessageSingleButton(
-          //     context,
+                      PJPCVFListScreenV2(pjpInfo: pjpInfo, isViewOnly: false)));
           //     'This pjp is not approved yet, Please connect with your manager',
           //     this);
         }
@@ -450,7 +444,6 @@ class _MyPjpListState extends State<MyPjpListScreen>
                               String employeeCode =
                                   hiveBox.get(LocalConstant.KEY_EMPLOYEE_CODE)
                                       as String;
-                              debugPrint('Employee code is - $employeeCode');
                               Utils.isExternal = true;
                               Get.put(AddClaimController(
                                   addClaimUsecase: AddClaimUsecase(
@@ -797,7 +790,6 @@ class _MyPjpListState extends State<MyPjpListScreen>
     } else if (value is PjpListResponse) {
       PjpListResponse response = value;
       String json = jsonEncode(response);
-      print(json);
       savePJPLocally(json);
       isLoading = false;
       mPjpList.clear();
@@ -805,7 +797,6 @@ class _MyPjpListState extends State<MyPjpListScreen>
         if (response != null && response.responseData != null) {
           if (widget.mFilterSelection == null ||
               widget.mFilterSelection.type == FILTERStatus.MYTEAM) {
-            debugPrint('FOR MY TEAM');
             for (int index = 0; index < response.responseData.length; index++) {
               if (response.responseData[index].isSelfPJP == '0') {
                 for (int jIndex = 0;
@@ -820,21 +811,18 @@ class _MyPjpListState extends State<MyPjpListScreen>
               }
             }
           } else if (widget.mFilterSelection.type == FILTERStatus.MYSELF) {
-            debugPrint('FOR MY SELF');
             for (int index = 0; index < response.responseData.length; index++) {
               if (response.responseData[index].isSelfPJP == '1') {
                 mPjpList.add(response.responseData[index]);
               }
             }
           } else if (widget.mFilterSelection.type == FILTERStatus.NONE) {
-            debugPrint('FOR MY CUSTOM TEAM');
             for (int index = 0; index < response.responseData.length; index++) {
               if (response.responseData[index].isSelfPJP == '0') {
                 mPjpList.add(response.responseData[index]);
               }
             }
           } else {
-            debugPrint('In else');
             for (int index = 0; index < response.responseData.length; index++) {
               for (int jIndex = 0;
                   jIndex < widget.mFilterSelection.filters.length;
@@ -856,7 +844,6 @@ class _MyPjpListState extends State<MyPjpListScreen>
         }
       }
     }
-    print(mPjpList.length);
     setState(() {
       isLoading = false;
     });
@@ -883,7 +870,6 @@ class _MyPjpListState extends State<MyPjpListScreen>
 
   @override
   void onClick(int action, value) {
-    //debugPrint('onClick called ${value}');
     if (value is PJPInfo) {
       PJPInfo pjpInfo = value;
       if (action == Utility.ACTION_OK) {

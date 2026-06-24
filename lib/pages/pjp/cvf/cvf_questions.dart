@@ -173,9 +173,7 @@ class _QuestionListScreenState extends State<QuestionListScreen>
             pendingQuestion =
                 " Please Fill ${widget.cvfView.purpose![jkIndex].categoryName} and try again";
           }
-        } catch (e) {
-          debugPrint(e.toString());
-        }
+        } catch (_) {}
       }
     }
     return isCompleted;
@@ -186,27 +184,21 @@ class _QuestionListScreenState extends State<QuestionListScreen>
     businessId = hiveBox.get(LocalConstant.KEY_BUSINESS_ID);
     await Hive.openBox(LocalConstant.KidzeeDB);
 
-    //debugPrint('in pref questions');
     try {
       var cvfQuestions = hiveBox.get(widget.PJPCVF_Id.toString() +
           categoryid +
           LocalConstant.KEY_CVF_QUESTIONS);
-      //debugPrint('cvfQES --- ${widget.PJPCVF_Id.toString() + categoryid + LocalConstant.KEY_CVF_QUESTIONS}');
       /*if (cvfQuestions is QuestionResponse) {
-        debugPrint('localdata');
         QuestionResponse response = cvfQuestions as QuestionResponse;
         loadData();
       } else */
       if (cvfQuestions.toString().isEmpty) {
-        //debugPrint('empty');
         loadData();
       } else {
-        debugPrint('in else');
         try {
           QuestionResponse cvfQuestionsModel = QuestionResponse.fromJson(
             json.decode(cvfQuestions.toString()),
           );
-          debugPrint('Data from the Preference ${cvfQuestionsModel}');
           mQuestionMaster.addAll(cvfQuestionsModel.responseData);
           questionResponse = QuestionResponse(
               responseMessage: '',
@@ -215,7 +207,6 @@ class _QuestionListScreenState extends State<QuestionListScreen>
           isLoading = false;
           setState(() {});
         } catch (e) {
-          debugPrint('captured in catch $e');
           loadData();
         }
       }
@@ -247,8 +238,6 @@ class _QuestionListScreenState extends State<QuestionListScreen>
     DBHelper helper = DBHelper();
     questionResponse = await helper.getQuestions(
         widget.PJPCVF_Id.toString(), widget.mCategory, widget.mCategoryId);
-
-    //print('offline ${questionResponse!.toJson()}');
 
     bool isInternet = await Utility.isInternet();
 
@@ -369,33 +358,26 @@ class _QuestionListScreenState extends State<QuestionListScreen>
       List<Answers> answerList, String answerType, String answer) {
     String answerId = answer;
     if (answerType == 'YesNo') {
-      //print('Answer YesNo...${answer}');
       for (int index = 0; index < answerList.length; index++) {
         if (answer == answerList[index].answerName) {
           answerId = answerList[index].answerId;
-          //    print('Answer AnswerId...${answerId}');
         }
       }
     } else {
       answerId = answerList[0].answerId;
-      //print('Answer AnswerId...else');
     }
-    //print('Answer is ${answerId}');
     return answerId;
   }
 
   String getRating(List<Answers> answerList, String answerType, String answer) {
     String rating = '';
     if (answerType == 'YesNo') {
-      //print('Answer YesNo...${answer}');
       for (int index = 0; index < answerList.length; index++) {
         if (answer == answerList[index].answerId) {
           rating = answerList[index].rating;
-          //  print('Answer AnswerId...${rating}');
         }
       }
     }
-    //print('Answer is ${rating}');
     return rating;
   }
 
@@ -432,9 +414,7 @@ class _QuestionListScreenState extends State<QuestionListScreen>
   saveAnswers(String cvfId) async {
     bool isInternet = await Utility.isInternet();
     if (isFileUpload()) {
-      debugPrint('isFile upload');
     } else if (isInternet) {
-      debugPrint('saving data');
       Utility.showLoaderDialog(context);
       isOffline = false;
       String docXml = '<root>';
@@ -458,14 +438,12 @@ class _QuestionListScreenState extends State<QuestionListScreen>
                           .allquestion[jIndex]
                           .files
                           .isNotEmpty)) {
-            //print('===========IF YESNO ${mQuestionMaster[index].allquestion[jIndex].Question_Id} uid-${mQuestionMaster[index].allquestion[jIndex].userAnswers},${userAnswerMap[mQuestionMaster[index].allquestion[jIndex].Question_Id]}');
             docXml =
                 '${docXml}<tblPJPCVF_Answer><SubmissionDate>${Utility.convertShortDate(DateTime.now())}</SubmissionDate><Question_Id>${mQuestionMaster[index].allquestion[jIndex].Question_Id}</Question_Id><AnswerId>${getAnswerId(mQuestionMaster[index].allquestion[jIndex].answers, mQuestionMaster[index].allquestion[jIndex].answers[0].answerType, mQuestionMaster[index].allquestion[jIndex].userAnswers.isNotEmpty ? mQuestionMaster[index].allquestion[jIndex].userAnswers : userAnswerMap[mQuestionMaster[index].allquestion[jIndex].Question_Id].toString())
                 /* mQuestionMaster[index].allquestion[jIndex].answers[0].answerType == 'YesNo' ?
                   mQuestionMaster[index].allquestion[jIndex].userAnswers : ''*/
                 }</AnswerId>'
                 '${mQuestionMaster[index].allquestion[jIndex].toStartDateXml()}${mQuestionMaster[index].allquestion[jIndex].toEndDateXml()}<Rating>${getRating(mQuestionMaster[index].allquestion[jIndex].answers, mQuestionMaster[index].allquestion[jIndex].answers[0].answerType, mQuestionMaster[index].allquestion[jIndex].SelectedAnswer.isNotEmpty ? mQuestionMaster[index].allquestion[jIndex].SelectedAnswer : userAnswerMap[mQuestionMaster[index].allquestion[jIndex].Question_Id].toString())}</Rating><Files>${encodeFile(mQuestionMaster[index].allquestion[jIndex].files)}</Files><Remarks>${mQuestionMaster[index].allquestion[jIndex].Remarks.isNotEmpty ? mQuestionMaster[index].allquestion[jIndex].Remarks : mQuestionMaster[index].allquestion[jIndex].answers[0].answerType == 'YesNo' ? '' : mQuestionMaster[index].allquestion[jIndex].userAnswers.isNotEmpty ? mQuestionMaster[index].allquestion[jIndex].userAnswers : ''}</Remarks></tblPJPCVF_Answer>';
-            print(docXml);
           } else if (/*mQuestionMaster[index]
                       .allquestion[jIndex]
                       .answers[0]
@@ -484,7 +462,6 @@ class _QuestionListScreenState extends State<QuestionListScreen>
                       .allquestion[jIndex]
                       .files
                       .isNotEmpty)) {
-            //print('===========ELSE YESNO  ${mQuestionMaster[index].allquestion[jIndex].userAnswers},${userAnswerMap[mQuestionMaster[index].allquestion[jIndex].Question_Id]},${getAnswerId(mQuestionMaster[index].allquestion[jIndex].answers, mQuestionMaster[index].allquestion[jIndex].answers[0].answerType, userAnswerMap[mQuestionMaster[index].allquestion[jIndex].Question_Id].toString().isNotEmpty  ? userAnswerMap[mQuestionMaster[index].allquestion[jIndex].Question_Id].toString() : mQuestionMaster[index].allquestion[jIndex].SelectedAnswer)}');
             docXml =
                 '${docXml}<tblPJPCVF_Answer><SubmissionDate>${Utility.convertShortDate(DateTime.now())}</SubmissionDate><Question_Id>${mQuestionMaster[index].allquestion[jIndex].Question_Id}</Question_Id><Files>${encodeFile(mQuestionMaster[index].allquestion[jIndex].files)}</Files><AnswerId>${getAnswerId(mQuestionMaster[index].allquestion[jIndex].answers, mQuestionMaster[index].allquestion[jIndex].answers[0].answerType, userAnswerMap[mQuestionMaster[index].allquestion[jIndex].Question_Id].toString().isNotEmpty ? userAnswerMap[mQuestionMaster[index].allquestion[jIndex].Question_Id].toString() : userAnswerMap[mQuestionMaster[index].allquestion[jIndex].Question_Id].toString())}</AnswerId>'
                 '<Remarks>${mQuestionMaster[index].allquestion[jIndex].answers[0].answerType == 'YesNo' ? '' : userAnswerMap[mQuestionMaster[index].allquestion[jIndex].Question_Id].toString().isEmpty || userAnswerMap[mQuestionMaster[index].allquestion[jIndex].Question_Id].toString() == 'null' ? mQuestionMaster[index].allquestion[jIndex].Remarks : userAnswerMap[mQuestionMaster[index].allquestion[jIndex].Question_Id].toString()}</Remarks></tblPJPCVF_Answer>';
@@ -492,8 +469,6 @@ class _QuestionListScreenState extends State<QuestionListScreen>
         }
       }
       docXml = '${docXml} </root>';
-      print(docXml);
-      debugPrint('API Is Calling....');
       SaveCVFAnswers request = SaveCVFAnswers(
           PJPCVF_Id: widget.PJPCVF_Id,
           DocXml: docXml,
@@ -546,19 +521,45 @@ class _QuestionListScreenState extends State<QuestionListScreen>
           title: const Text('Questions'),
           actions: !widget.isViewOnly
               ? [
-                  IconButton(
-                    icon: const Icon(Icons.refresh),
-                    tooltip: 'Refresh',
+                  TextButton(
+                    style: ButtonStyle(
+                      backgroundColor: WidgetStateProperty.all(
+                        LightColors.kLightGreen,
+                      ),
+                      foregroundColor: WidgetStateProperty.all(Colors.white),
+                    ),
+                    child: const Text(
+                      'Refresh',
+                      style: TextStyle(color: Colors.black),
+                    ),
+                    // icon: const Icon(Icons.refresh),
+                    // tooltip: 'Refresh',
                     onPressed: () {
                       loadData();
                     },
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.done),
-                    tooltip: 'Save Answers',
+                  SizedBox(
+                    width: 10,
+                  ),
+                  TextButton(
+                    style: ButtonStyle(
+                      backgroundColor: WidgetStateProperty.all(
+                        LightColors.kLightGreen,
+                      ),
+                      foregroundColor: WidgetStateProperty.all(Colors.white),
+                    ),
+                    child: const Text(
+                      'Save',
+                      style: TextStyle(color: Colors.black),
+                    ),
+                    //icon: const Icon(Icons.done),
+                    //tooltip: 'Save Answers',
                     onPressed: () {
                       saveAnswers('');
                     },
+                  ),
+                   SizedBox(
+                    width: 10,
                   ),
                 ]
               : null,
@@ -1003,7 +1004,6 @@ class _QuestionListScreenState extends State<QuestionListScreen>
             questions.Question_Id) {
           mQuestionMaster[index].allquestion[jIndex].SelectedAnswer = answers;
           mQuestionMaster[index].allquestion[jIndex].userAnswers = answers;
-          //debugPrint('Answer updated for ${questions.Question_Id} ${answers}');
           DBHelper helper = DBHelper();
           helper.updateUserAnswer(
               widget.PJPCVF_Id,
@@ -1074,7 +1074,6 @@ class _QuestionListScreenState extends State<QuestionListScreen>
 
                 GestureDetector(
                   onTap: () {
-                    print('in 1027');
                     if (widget.isViewOnly) {
                       if (questions.files.isNotEmpty) {
                         if (questions.files.contains('.png') ||
@@ -1120,8 +1119,8 @@ class _QuestionListScreenState extends State<QuestionListScreen>
                                 questions.files.contains('data/user')
                             ? Image.file(
                                 File(questions.files),
-                                height: 30,
-                                width: 30,
+                                height: 48,
+                                width: 48,
                               )
                             : isImage(questions.files)
                                 ? getIcon(questions.files)
@@ -1136,8 +1135,8 @@ class _QuestionListScreenState extends State<QuestionListScreen>
                                     fit: BoxFit.fill)
                             : questions.files.isEmpty
                                 ? Icon(
-                                    Icons.photo,
-                                    size: 20,
+                                    Icons.upload_file,
+                                    size: 38,
                                   )
                                 : Image.network(getImageUrl(questions.files),
                                     // width: 300,
@@ -1180,7 +1179,6 @@ class _QuestionListScreenState extends State<QuestionListScreen>
   }
 
   getRemark(Allquestion questions) {
-    //print(questions.toJson());
     return Container(
       color: LightColors.kLightGrayM,
       margin: EdgeInsets.only(top: 10),
@@ -1208,7 +1206,6 @@ class _QuestionListScreenState extends State<QuestionListScreen>
         questions.files = path;
         updateImage(questions, path);
       }
-      //debugPrint('${questions.Question_Id}  : SelectedAnswer ${questions.SelectedAnswer} map ${userAnswerMap[questions.Question_Id]}');
       return Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
@@ -1365,7 +1362,6 @@ class _QuestionListScreenState extends State<QuestionListScreen>
   }
 
   getIcon(String file) {
-    //debugPrint('file is ${file}');
     if (file.contains('.xls') || file.contains('.xlsx')) {
       return Image.asset(
         'assets/icons/sheets.png',
@@ -1390,7 +1386,6 @@ class _QuestionListScreenState extends State<QuestionListScreen>
       questions.files = path;
       updateImage(questions, path);
     }
-    //debugPrint(getImageUrl(questions.files));
     final size = MediaQuery.of(context).size;
     List<Widget> _rowWidget = [];
     for (int index = 0; index < questions.answers.length; index++) {
@@ -1430,7 +1425,6 @@ class _QuestionListScreenState extends State<QuestionListScreen>
         ),
         trailing: GestureDetector(
           onTap: () {
-            print('onTap 1352');
             if (widget.isViewOnly) {
               if (questions.files.isNotEmpty) {
                 if (questions.files.contains('.jpg') ||
@@ -1500,7 +1494,6 @@ class _QuestionListScreenState extends State<QuestionListScreen>
     String weburl = url /*.replaceAll('___', '&')*/;
     weburl = weburl;
     if (weburl.contains('%')) weburl = weburl;
-    debugPrint('ImageUrl ' + weburl);
     return weburl;
   }
 
@@ -1579,7 +1572,6 @@ class _QuestionListScreenState extends State<QuestionListScreen>
   }
 
   _generateDynamicYesNo(Allquestion questions) {
-    //print('_generate yesno=====================');
     List<Widget> list = [];
     for (int index = 0; index < questions.answers.length; index++) {
       list.add(Expanded(
@@ -1634,7 +1626,6 @@ class _QuestionListScreenState extends State<QuestionListScreen>
     }
     questionResponse!.responseData.clear();
     questionResponse!.responseData.addAll(mQuestionMaster);
-    //print(questionResponse!.toJson());
     saveCvfQuestionsPref(widget.mCategoryId, questionResponse!.toJson());
     DBHelper dbHelper = DBHelper();
     await dbHelper.updateCVFQuestions(widget.PJPCVF_Id.toString(),
@@ -1763,11 +1754,9 @@ class _QuestionListScreenState extends State<QuestionListScreen>
         }
       }
     }
-    //print(questionResponse);
     questionResponse!.responseData.clear();
     questionResponse!.responseData.addAll(mQuestionMaster);
     saveCvfQuestionsPref(widget.mCategoryId, questionResponse!.toJson());
-    //print('save -- ${questionResponse!.toJson()}');
   }
 
   _showDatePicker(BuildContext context, String questionId, String label,
@@ -1853,7 +1842,6 @@ class _QuestionListScreenState extends State<QuestionListScreen>
         break;
       }
     }
-    //debugPrint('counter is ${counter}');
     return counter;
   }
 
@@ -1893,12 +1881,10 @@ class _QuestionListScreenState extends State<QuestionListScreen>
             (mQuestionMaster[index].allquestion[jIndex].Remarks.isEmpty ||
                 mQuestionMaster[index].allquestion[jIndex].startDate == 'NA' ||
                 mQuestionMaster[index].allquestion[jIndex].endDate == 'NA')) {
-          //print('${mQuestionMaster[index].allquestion[jIndex].Question_Id} ${mQuestionMaster[index].allquestion[jIndex].SelectedAnswer} ${mQuestionMaster[index].allquestion[jIndex].Remarks} ${mQuestionMaster[index].allquestion[jIndex].startDate} ${mQuestionMaster[index].allquestion[jIndex].endDate}');
           pendingQuestion = 'Please submit the below observation \n\n - ' +
               mQuestionMaster[index].allquestion[jIndex].categoryName +
               ',  Ques No : ' +
               mQuestionMaster[index].allquestion[jIndex].question;
-          //debugPrint('isComplete ${pendingQuestion}');
           token = ',';
           inCompleteCounts = inCompleteCounts + 1;
           isCompleted = false;
@@ -1919,15 +1905,11 @@ class _QuestionListScreenState extends State<QuestionListScreen>
                 ' \n - ' +
                 mQuestionMaster[index].allquestion[jIndex].categoryName;
           }
-          //debugPrint(pendingQuestion);
           token = ',';
           inCompleteCounts = inCompleteCounts + 1;
           isCompleted = false;
           break;
         } /*else {
-          debugPrint(mQuestionMaster[index].allquestion[jIndex].Question_Id +
-              ' NC ' +
-              mQuestionMaster[index].allquestion[jIndex].SelectedAnswer);
         }*/
       }
     }
@@ -1960,7 +1942,6 @@ class _QuestionListScreenState extends State<QuestionListScreen>
     //ischeck[getCheckboxIndex(player.question)] = false;
     //player.userAnswers = '1';
     setState() {
-      //debugPrint('data updated');
       //player.userAnswers = '1';
     }
   }
@@ -2014,7 +1995,6 @@ class _QuestionListScreenState extends State<QuestionListScreen>
   }
 
   showImagePicker(int action, Allquestion question) async {
-    debugPrint('image action ${action}');
     if (action != 3) {
       if (action == 0) {
         pickImage(question, ImageSource.gallery);
@@ -2043,7 +2023,6 @@ class _QuestionListScreenState extends State<QuestionListScreen>
     if (question.files.contains('.pdf')) {
       File file = File(decodeUrl(question.files));
       var filePath = file.path.split('?');
-      //debugPrint('FilePath : ${filePath[0]}');
       var fileExt = filePath[0].split('/');
       String title = fileExt[fileExt.length - 1].toString();
 
@@ -2064,16 +2043,12 @@ class _QuestionListScreenState extends State<QuestionListScreen>
       var filePath = file.path.split('?');
       var fileExt = filePath[0].split('/');
       String fileName = fileExt[fileExt.length - 1].toString();
-      print('file name is ${fileName}');
       Utility.downloadXFile(context, url, decodeUrl(fileName));
-      // print('file download started...');
       // File file = File(decodeUrl(question.files));
       // var filePath = file.path.split('?');
       // //debugPrint('FilePath : ${filePath[0]}');
       // var fileExt = filePath[0].split('/');
       // String fileName = fileExt[fileExt.length - 1].toString();
-      // debugPrint('fileExt : ${fileName}');
-
       // (await Utility.isFileExists(fileName))
       //     ? Utility.shareFile(fileName)
       //     : setState(() {
@@ -2095,7 +2070,6 @@ class _QuestionListScreenState extends State<QuestionListScreen>
     if (url.contains('%2F')) {
       url = Uri.decodeFull(url);
     }
-    debugPrint('decoe file ${url}');
     return url;
   }
 
@@ -2110,7 +2084,6 @@ class _QuestionListScreenState extends State<QuestionListScreen>
     try {
       final XFile? pickedFileList = await _picker.pickImage(
           source: source, maxHeight: 800, imageQuality: 100);
-      debugPrint('File upload gallery');
       _imageFileList = pickedFileList;
       updateImage(player, player.files);
       String name = widget.employeeId.toString() +
@@ -2125,9 +2098,7 @@ class _QuestionListScreenState extends State<QuestionListScreen>
         updateImage(player, _imageFileList!.path);
       }
       setState(() {});
-    } catch (e) {
-      debugPrint(e.toString());
-    }
+    } catch (_) {}
   }
 
   void pickFile(Allquestion player) async {
@@ -2137,8 +2108,6 @@ class _QuestionListScreenState extends State<QuestionListScreen>
       if (result != null) {
         if (kIsWeb) {
           PlatformFile file = result.files.first;
-          debugPrint('File path ${file.name}');
-
           updateImage(player, player.files);
 
           FirebaseStorageUtil().uploadAnyFile(player, '', file.name, this,
@@ -2146,21 +2115,17 @@ class _QuestionListScreenState extends State<QuestionListScreen>
         } else {
           File file = File(result.files.single.path!);
           var fileExt = file.path.split('/');
-          debugPrint('File path ${fileExt[fileExt.length - 1]}');
           updateImage(player, player.files);
           if (await Utility.isInternet()) {
             FirebaseStorageUtil().uploadAnyFile(
                 player, file!.path, fileExt[fileExt.length - 1], this);
           } else {
-            debugPrint(file!.path);
             updateImage(player, file!.path);
           }
         }
         setState(() {});
       }
-    } catch (e) {
-      debugPrint(e.toString());
-    }
+    } catch (_) {}
   }
 
   updateImage(Allquestion questions, String path) {
@@ -2190,7 +2155,6 @@ class _QuestionListScreenState extends State<QuestionListScreen>
 
   @override
   void onUploadProgress(int value) {
-    debugPrint(value.toString());
   }
 
   @override
@@ -2226,7 +2190,6 @@ class _QuestionListScreenState extends State<QuestionListScreen>
 
   @override
   void onClick(int action, value) {
-    //debugPrint('onclick called ${action}');
     if (action == ACTION_ADD_NEW_IMAGE) {
       showImageOption(value);
     } else if (action == ACTION_DELETE_IMAGE) {
@@ -2279,7 +2242,6 @@ class DetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    debugPrint(imageUrl);
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
@@ -2299,7 +2261,7 @@ class DetailScreen extends StatelessWidget {
                     padding: const EdgeInsets.all(8.0),
                     child: Icon(
                       Icons.add,
-                      size: 20,
+                      size: 28,
                     ),
                   ),
                 ),
@@ -2314,10 +2276,8 @@ class DetailScreen extends StatelessWidget {
           //resetDuration: const Duration(milliseconds: 100),
           maxScale: 2.5,
           onZoomStart: () {
-            debugPrint('Start zooming');
           },
           onZoomEnd: () {
-            debugPrint('Stop zooming');
           },
         ),
         onTap: () {

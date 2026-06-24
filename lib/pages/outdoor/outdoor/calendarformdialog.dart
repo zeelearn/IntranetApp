@@ -57,17 +57,13 @@ class _CalendarFormDialogState extends State<CalendarFormDialog> {
       urlTextController.text = widget.event?.url?.data?.contentText ?? '';
       // locationValue = widget.event!.location ?? '';
     }
-    debugPrint(
-        'calendar id is - ${widget.calendarId} and selected date is - ${widget.datetime}');
     super.initState();
   }
 
   getCurrentTimeZone() async {
     /*try {
       timezone = await FlutterNativeTimezone.getLocalTimezone();
-    } catch (e) {
-      debugPrint('Could not get the local timezone');
-    }*/
+    } catch (_) {}*/
 
     currentLocation = timeZoneDatabase.locations[timezone];
   }
@@ -143,7 +139,6 @@ class _CalendarFormDialogState extends State<CalendarFormDialog> {
                         },
                       ),
                       onChanged: (value) {
-                        debugPrint('onChanged value is - $value');
                         franchiseeInfo = value;
                       },
                       selectedItems: const [],
@@ -189,8 +184,6 @@ class _CalendarFormDialogState extends State<CalendarFormDialog> {
                               is GetplandetailsLoadingState
                           ? null
                           : () async {
-                              debugPrint(
-                                  'Location of time zone is - $currentLocation and location date is - ${DateFormat('yyyy-MM-dd').format(TZDateTime(currentLocation!, widget.datetime.year, widget.datetime.month, widget.datetime.day))}');
                               xmlRequest.clear();
                               if (franchiseeInfo.isNotEmpty) {
                                 for (var franchiseeData in franchiseeInfo) {
@@ -248,13 +241,9 @@ class _CalendarFormDialogState extends State<CalendarFormDialog> {
                                         await _deviceCalendarPlugin
                                             .createOrUpdateEvent(eventToCreate);
                                     if (createEventResult!.isSuccess) {
-                                      debugPrint(
-                                          'event inserted in calendar is - ${createEventResult.data}  and date is - ${TZDateTime(currentLocation!, widget.datetime.year, widget.datetime.month, widget.datetime.day)} and event is - ${eventTextController.text}');
                                     } else {
                                       for (var element
                                           in createEventResult.errors) {
-                                        debugPrint(
-                                            'event inserted error for loop is - ${element.errorMessage}');
                                       }
                                     }
                                   }

@@ -101,9 +101,7 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
   getCurrentTimeZone() async {
     /*try {
       timezone = await FlutterNativeTimezone.getLocalTimezone();
-    } catch (e) {
-      debugPrint('Could not get the local timezone');
-    }*/
+    } catch (_) {}*/
 
     currentLocation = timeZoneDatabase.locations[timezone];
   }
@@ -124,7 +122,6 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
         calendarColor: null,
         localAccountName: 'Local Intranet',
       );
-      debugPrint('response from create calendar is - ${result.data}');
       if (result.isSuccess) {
         calendarId = result.data;
       }
@@ -155,9 +152,7 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
           return;
         }
       }
-    } on PlatformException catch (e, s) {
-      debugPrint('RETRIEVE_CALENDARS: $e, $s');
-    }
+    } on PlatformException catch (_) {}
   }
 
   Future<void> getUserInfo() async {
@@ -166,7 +161,6 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
     employeeId =
         int.parse(hiveBox.get(LocalConstant.KEY_EMPLOYEE_ID) as String);
     businessId = hiveBox.get(LocalConstant.KEY_BUSINESS_ID);
-    debugPrint('Business Id $businessId');
     PackageInfo.fromPlatform().then((PackageInfo packageInfo) {
       String appName = packageInfo.appName;
       String packageName = packageInfo.packageName;
@@ -182,12 +176,10 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
   fetchCategory() {
     Utility.showLoaderDialog(context);
     mCategoryList.clear();
-    debugPrint('categoty');
     CVFCategoryRequest request =
         CVFCategoryRequest(Category_Id: "0", Business_id: businessId);
     APIService apiService = APIService();
     apiService.getCVFCategoties(request).then((value) {
-      debugPrint(value.toString());
       if (value != null) {
         if (value == null || value.responseData == null) {
           Utility.showMessage(context, 'data not found');
@@ -195,7 +187,6 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
           CVFCategoryResponse response = value;
           mCategoryList.addAll(response.responseData);
           setState(() {});
-          debugPrint('category list ${response.responseData.length}');
         } else {
           Utility.showMessage(context, 'data not found');
         }
@@ -212,12 +203,10 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
         await helper.getFranchiseeList(businessId);
 
     if (await Utility.isInternet() && franchiseeList.isEmpty) {
-      debugPrint('data load ssss');
       loadCenterList();
     } else {
       mFrianchiseeList.clear();
       mFrianchiseeList.addAll(franchiseeList);
-      debugPrint('data ssss');
     }
   }
 
@@ -230,7 +219,6 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
         CentersRequestModel(EmployeeId: employeeId, Brand: businessId);
     APIService apiService = APIService();
     apiService.getCVFCenters(requestModel).then((value) {
-      debugPrint(value.toString());
       if (value != null) {
         if (value == null || value.responseData == null) {
           Utility.showMessage(context, 'data not found');
@@ -239,7 +227,6 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
           mFrianchiseeList.addAll(response.responseData);
           addCentersinDB(businessId);
           setState(() {});
-          debugPrint('summery list ${response.responseData.length}');
         } else {
           Utility.showMessage(context, 'data not found');
         }
@@ -277,7 +264,6 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
     _retrieveCalendarEvents();
     getCurrentTimeZone();
     super.initState();
-    debugPrint('cvf list ');
     // BlocProvider.of<GetvisitplannercvfCubit>(context).getPlanDetails(
     //     DateFormat('yyyy-MM-dd')
     //         .format(DateTime.parse(widget.mPjpModel.fromDate)),
@@ -287,7 +273,6 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
     employeeID = hive.get(LocalConstant.KEY_EMPLOYEE_ID);
     businessID = hive.get(LocalConstant.KEY_BUSINESS_ID);
     employeeCode = hive.get(LocalConstant.KEY_EMPLOYEE_CODE) as String;
-    debugPrint('Business id is - $businessID');
     BlocProvider.of<GetplandetailsCubit>(context)
         .getFranchiseeLastVisit(int.parse(employeeID), businessID);
     Future.delayed(Duration.zero, () {
@@ -329,16 +314,12 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
 
   List<GetDetailedPJP> _getEventsForDay(DateTime day) {
     // Implementation example
-    debugPrint('day is ${day.day}');
     return getCurrentEvents(day); //kEvents[day] ?? [];
   }
 
   getCurrentEvents(DateTime date) {
     List<GetDetailedPJP> list = [];
-    debugPrint('getEvent----${mCVFList.length}');
     for (int index = 0; index < mCVFList.length; index++) {
-      debugPrint(
-          '${Utility.shortDate(date)}  -- ${Utility.shortDate(Utility.convertDate(mCVFList[index].visitDate))}');
       if (Utility.shortDate(date) ==
           Utility.shortDate(Utility.convertDate(mCVFList[index].visitDate))) {
         list.add(mCVFList[index]);
@@ -795,10 +776,7 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
   }
 
   Future<bool> validate() async {
-    //debugPrint("Validating the CVF Form");
     String purpose = getCategoryList();
-    //debugPrint('Purpose $_purposeMultiSelect');
-    //debugPrint(_dateController.text);
     if (_categoryController.text.isEmpty ||
         _categoryController.text == 'Select Purpose') {
       Utility.showMessages(context, "Please Select Purpose");
@@ -837,7 +815,6 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
       if (!await Utility.isInternet()) {
         Utility.noInternetConnection(context);
       } else {
-        print('categoty');
         Utility.showLoaderDialog(context);
         LocationData? deviceLocation =
             await LocationHelper.getLocation(context);
@@ -847,7 +824,6 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
           //     context, 'Unable to fetch location, Please try again');
           return;
         }
-        print('location $deviceLocation');
         latitude = deviceLocation.latitude!;
         longitude = deviceLocation.longitude!;
 
@@ -862,21 +838,19 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
             PJP_Id: int.parse(widget.mPjpModel.PJP_Id),
             DocXml: xml,
             UserId: employeeId);
-        debugPrint(request.toJson().toString());
-
         APIService apiService = APIService();
         apiService.saveCVF(request).then((value) async {
-          print(value);
           Navigator.of(context).pop();
           if (value != null) {
             if (value == null || value.responseData == null) {
               Utility.showMessage(context, 'data not found');
             } else if (value is NewCVFResponse) {
               NewCVFResponse response = value;
-              debugPrint(response.toString());
-
               // Construct the detailed visit object locally to update the UI without an API call
               final newVisit = GetDetailedPJP(
+                IsCancelled: false,
+                remarks: '',
+                franchiseeId: getFrichanseeId().toString(),
                 PJPCVF_Id: response.responseData.toString(),
                 visitDate: Utility.convertShortDate(cvfDate),
                 visitTime: "${vistitDateTime?.hour}:${vistitDateTime?.minute}",
@@ -935,20 +909,15 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
                 final createEventResult = await _deviceCalendarPlugin
                     .createOrUpdateEvent(eventToCreate);
                 if (createEventResult!.isSuccess) {
-                  debugPrint(
-                      'event inserted in calendar is - ${createEventResult.data}  and date is - ${TZDateTime(currentLocation!, cvfDate.year, cvfDate.month, cvfDate.day)} and event is - ${_activityNameController.text}');
                 } else {
                   for (var element in createEventResult.errors) {
-                    debugPrint(
-                        'event inserted error for loop is - ${element.errorMessage}');
                   }
                 }
-              } catch (e) {}
+              } catch (_) {}
               Navigator.of(context).pop(
                   true); // Return true to signal SummaryDashboard to refresh
               //Utility.showMessage(context, 'CVF Saved in server');
               setState(() {});
-              //debugPrint('category list ${response.responseData.length}');
             } else {
               Utility.showMessage(context, 'data not found');
             }
@@ -958,7 +927,6 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
         });
       }
     } else {
-      debugPrint("unable to Validate");
     }
   }
 
@@ -989,11 +957,10 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
                 value: _CenterName.isNotEmpty ? _CenterName : null,
                 underline: const SizedBox(),
                 onChanged: (String? value) {
-                  debugPrint(value);
                   setState(() {
                     try {
                       _CenterName = value!.split('--')[1];
-                    } catch (e) {}
+                    } catch (_) {}
                   });
                 },
                 alignment: Alignment.centerLeft,
@@ -1127,9 +1094,7 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
   }
 
   Future<List<FranchiseeInfo>> getData(filter) async {
-    print('in filter');
     List<FranchiseeInfo> list = [];
-    print('Filter $filter');
     for (int index = 0; index < mFrianchiseeList.length; index++) {
       if (filter == '' || mFrianchiseeList[index].isContain(filter)) {
         list.add(mFrianchiseeList[index]);
@@ -1237,7 +1202,6 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
               components: [Component(Component.country, 'in')],
               //google_map_webservice package
               onError: (err) {
-                debugPrint(err.toString());
               });
 
           if (place != null) {
@@ -1349,8 +1313,7 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
       ),
       components: [Component(Component.country, "in")],
     );
-    debugPrint('p is ${p!.description!}');
-    displayPrediction(p);
+    displayPrediction(p!);
   }
 
   Future<void> displayPrediction(Prediction p) async {
@@ -1436,7 +1399,6 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
     if (mCategoryList.isEmpty) {
       fetchCategory();
     } else {
-      debugPrint('category length ${mCategoryList.length}');
     }
 
     // a list of selectable items
@@ -1627,35 +1589,28 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
 
   getCategory() {
     int id = 0;
-    debugPrint(_categoryController.text.toString());
     for (int index = 0; index < mCategoryList.length; index++) {
-      debugPrint(mCategoryList[index].categoryName);
       if (_categoryController.text.toString() ==
           mCategoryList[index].categoryName) {
         id = mCategoryList[index].categoryId;
       }
     }
-    debugPrint('Category is $id');
     return id;
   }
 
   getCategoryList() {
     String id = '';
     String token = '';
-    debugPrint('controller is ${_categoryController.text.toString()}');
-    debugPrint(_categoryController.text.toString());
     var category = _categoryController.text.toString().split(',');
     for (int index = 0; index < mCategoryList.length; index++) {
       for (int jIndex = 0; jIndex < category.length; jIndex++) {
         if (category[jIndex].toString().trim() ==
             mCategoryList[index].categoryName.trim()) {
-          debugPrint(mCategoryList[index].categoryName);
           id = id + token + mCategoryList[index].categoryId.toString();
           token = ',';
         }
       }
     }
-    debugPrint('Category is $id');
     return id;
   }
 
@@ -1692,7 +1647,6 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
           QuestionResponse questionResponse = value;
 
           DBHelper dbHelper = DBHelper();
-          debugPrint('data saved ....');
           dbHelper.insertCVFQuestions(cvfId.toString(), categotyId,
               json.encode(questionResponse.toJson()), 0);
           setState(() {});
@@ -1729,7 +1683,6 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
 
           //mQuestionMaster.addAll(questionResponse.responseData);
           DBHelper dbHelper = DBHelper();
-          debugPrint('data saved ....');
           dbHelper.insertCVFQuestions(cvfId.toString(), category,
               json.encode(questionResponse.toJson()), 0);
           //insertQuestions();

@@ -67,7 +67,6 @@ class AttendanceSummeryModel {
   late  String lateMark;
 
   AttendanceSummeryModel.fromJson(Map<String, dynamic> json){
-    print('in nFrom Json');
     employeeId = json['employee_Id'];
     day = json['day'] != null ? json['day'] : "";
     date = json['date'] != null ? json['date'] : "";
@@ -77,7 +76,6 @@ class AttendanceSummeryModel {
     odTo = json['odTo'] != null ? json['odTo'] : "";
     leave = json['leave'] != null ? json['leave'] : "";
     status = json['status'] != null ? json['status'] : "";
-    print('in nStatus');
     totWorkingTime =  json['totWorkingTime'] != null ? json['totWorkingTime'] : "";
     isHoliday = json['isHoliday'] != null ? json['isHoliday'] : "";
     isVacation = json['isVacation'] != null ? json['isVacation'] : "";
@@ -87,7 +85,6 @@ class AttendanceSummeryModel {
     reqDateOut = json['reqDateOut'] != null ? json['reqDateOut'] : "";
     reqDateOutApp =  json['reqDateOutApp'] != null ? json['reqDateOutApp'] : "";
     lateMark = json['lateMark'] != null ? json['lateMark'] : "";
-    print('in nLate Mark');
   }
 
   Map<String, dynamic> toJson() {

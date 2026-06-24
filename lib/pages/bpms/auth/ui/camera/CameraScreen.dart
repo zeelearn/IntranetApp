@@ -38,8 +38,6 @@ class _CameraScreenState extends State<CameraScreen> {
       recordingTime =
           '${diff.inHours < 60 ? diff.inHours : 0}:${diff.inMinutes < 60 ? diff.inMinutes : 0}:${diff.inSeconds < 60 ? diff.inSeconds : 0}';
 
-      print(recordingTime);
-
       if (!isRecoring) {
         t.cancel(); //cancel function calling
       }
@@ -174,9 +172,6 @@ class _CameraScreenState extends State<CameraScreen> {
                                       File(xFilevideopath.path),
                                       widget.taskName);
 
-                                  debugPrint(
-                                      'New video name is - ${videopath.path}');
-
                                   // timerReset();
                                   setState(() {
                                     isRecoring = false;
@@ -195,8 +190,6 @@ class _CameraScreenState extends State<CameraScreen> {
                                   setState(() {
                                     isRecoring = false;
                                   });
-                                  debugPrint(
-                                      'Error while stopping camera is - $e');
                                 }
 
                                 /* Navigator.push(

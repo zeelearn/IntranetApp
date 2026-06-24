@@ -87,12 +87,10 @@ class _PjpState extends State<NewPJP> {
   fetchCategory() {
     Utility.showLoaderDialog(context);
     mCategoryList.clear();
-    debugPrint('categoty');
     CVFCategoryRequest request =
         CVFCategoryRequest(Category_Id: "0", Business_id: businessId);
     APIService apiService = APIService();
     apiService.getCVFCategoties(request).then((value) {
-      debugPrint(value.toString());
       if (value != null) {
         if (value == null || value.responseData == null) {
           Utility.showMessage(context, 'data not found');
@@ -102,7 +100,6 @@ class _PjpState extends State<NewPJP> {
             mCategoryList.addAll(response.responseData);
           }
           setState(() {});
-          debugPrint('category list ${response.responseData.length}');
         } else {
           Utility.showMessage(context, 'data not found');
         }
@@ -119,11 +116,9 @@ class _PjpState extends State<NewPJP> {
         await helper.getFranchiseeList(businessId);
 
     if (franchiseeList == null || franchiseeList.length == 0) {
-      debugPrint('data load ssss');
       loadCenterList();
     } else {
       mFrianchiseeList.addAll(franchiseeList);
-      debugPrint('data ssss');
     }
   }
 
@@ -136,7 +131,6 @@ class _PjpState extends State<NewPJP> {
         CentersRequestModel(EmployeeId: employeeId, Brand: businessId);
     APIService apiService = APIService();
     apiService.getCVFCenters(requestModel).then((value) {
-      debugPrint(value.toString());
       if (value != null) {
         if (value == null || value.responseData == null) {
           Utility.showMessage(context, 'data not found');
@@ -147,7 +141,6 @@ class _PjpState extends State<NewPJP> {
             addCentersinDB(businessId);
             setState(() {});
           }
-          debugPrint('summery list ${response.responseData.length}');
         } else {
           Utility.showMessage(context, 'data not found');
         }
@@ -178,7 +171,6 @@ class _PjpState extends State<NewPJP> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    debugPrint('cvf list ');
     Future.delayed(Duration.zero, () {
       this.loadUserData();
     });
@@ -218,16 +210,12 @@ class _PjpState extends State<NewPJP> {
 
   List<PJPCentersInfo> _getEventsForDay(DateTime day) {
     // Implementation example
-    debugPrint('day is ' + day.day.toString());
     return getCurrentEvents(day); //kEvents[day] ?? [];
   }
 
   getCurrentEvents(DateTime date) {
     List<PJPCentersInfo> list = [];
-    debugPrint('getEvent----${mCVFList.length}');
     for (int index = 0; index < mCVFList.length; index++) {
-      debugPrint(
-          '${Utility.shortDate(date)}  -- ${Utility.shortDate(mCVFList[index].dateTime as DateTime)}');
       if (Utility.shortDate(date) ==
           Utility.shortDate(mCVFList[index].dateTime as DateTime)) {
         list.add(mCVFList[index]);
@@ -251,7 +239,6 @@ class _PjpState extends State<NewPJP> {
       }
       //mCVFList.addAll(cvfList);
     }
-    debugPrint('length of CVF List is ${mCVFList.length}');
     setState(() {
       mCVFList = mCVFList;
     });*/
@@ -348,28 +335,23 @@ class _PjpState extends State<NewPJP> {
     } else {
       Utility.showLoaderDialog(context);
       mCategoryList.clear();
-      debugPrint('categoty');
       String xml =
           '<root><tblPJPCVF><Business_Id>${businessId}</Business_Id><Employee_Id>${employeeId}</Employee_Id><Franchisee_Id>${getFrichanseeId()}</Franchisee_Id><Visit_Date>${Utility.convertShortDate(cvfDate)}</Visit_Date><Visit_Time>${vistitDateTime?.hour}:${vistitDateTime?.minute}</Visit_Time><Category_Id>1</Category_Id></tblPJPCVF></root>';
       AddCVFRequest request = AddCVFRequest(
           PJP_Id: widget.mPjpModel.pjpId, DocXml: xml, UserId: employeeId);
-      debugPrint(request.toJson().toString());
       APIService apiService = APIService();
       apiService.saveCVF(request).then((value) {
-        debugPrint(value.toString());
         if (value != null) {
           if (value == null || value.responseData == null) {
             Utility.showMessage(context, 'data not found');
           } else if (value is NewCVFResponse) {
             NewCVFResponse response = value;
-            debugPrint(response.toString());
             if (response != null) {
               //mPjpModel.pjpId=response.responseData;
             }
 
             Utility.showMessage(context, 'CVF Saved in server');
             setState(() {});
-            //debugPrint('category list ${response.responseData.length}');
           } else {
             Utility.showMessage(context, 'data not found');
           }
@@ -477,8 +459,6 @@ class _PjpState extends State<NewPJP> {
               cvfDate = pickedDate;
               String formattedDate =
                   DateFormat('dd-MMM-yyyy').format(pickedDate);
-              debugPrint(
-                  formattedDate); //formatted date output using intl package =>  2021-03-16
             } else {}
           },
         )));
@@ -534,7 +514,6 @@ class _PjpState extends State<NewPJP> {
     if (mCategoryList == null || mCategoryList.length == 0) {
       fetchCategory();
     } else {
-      debugPrint('category length ${mCategoryList.length}');
     }
 
     // a list of selectable items
@@ -635,7 +614,6 @@ class _PjpState extends State<NewPJP> {
               },
               onPageChanged: (focusedDay) {
                 _focusedDay = focusedDay;
-                debugPrint('page changes');
               },
             ),
             Row(
@@ -755,7 +733,6 @@ class _PjpState extends State<NewPJP> {
   loadCVFList() {
     double width = MediaQuery.of(context).size.width;
     if (mCVFList == null || mCVFList.length <= 0) {
-      debugPrint('CVF LIST not added ');
       return Text('');
     } else {
       return Flexible(
@@ -861,7 +838,6 @@ class _PjpState extends State<NewPJP> {
     start = widget.mPjpModel.fromDate;
     end = widget.mPjpModel.toDate;
     final days = daysInRange(start, end);
-    debugPrint('_getEventsForRange');
     return [
       for (final d in days) ..._getEventsForDay(d),
     ];
@@ -876,7 +852,6 @@ class _PjpState extends State<NewPJP> {
         _rangeEnd = null;
         _rangeSelectionMode = RangeSelectionMode.toggledOff;
       });
-      debugPrint('_onDaySelected');
       _selectedEvents.value = _getEventsForDay(selectedDay);
     }
   }
@@ -891,7 +866,6 @@ class _PjpState extends State<NewPJP> {
       _rangeEnd = end;
       _rangeSelectionMode = RangeSelectionMode.toggledOn;
     });
-    debugPrint('_onRangeSelected');
     // `start` or `end` could be null
     if (start != null && end != null) {
       _selectedEvents.value = _getEventsForRange(start, end);

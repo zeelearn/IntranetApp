@@ -41,15 +41,12 @@ class FirebaseStorageUtil {
         case TaskState.running:
           final progress =
               100.0 * (taskSnapshot.bytesTransferred / taskSnapshot.totalBytes);
-          debugPrint("Upload is $progress% complete.");
           response.onUploadProgress(progress.toInt());
           break;
         case TaskState.paused:
-          debugPrint("Upload is paused.");
           response.onUploadError('Upload Paused');
           break;
         case TaskState.canceled:
-          debugPrint("Upload was canceled");
           response.onUploadError('Upload canceled');
           break;
         case TaskState.error:
@@ -61,7 +58,6 @@ class FirebaseStorageUtil {
           dynamic imageUrl = await taskSnapshot.ref.getDownloadURL();
           player.files = imageUrl as String;
           //player.files = player.files.replaceAll('&', '___');
-          debugPrint('FILEUPLOAD---- ${player.files}');
           response.onUploadSuccess(player);
           break;
       }
@@ -99,7 +95,7 @@ class FirebaseStorageUtil {
       try {
         var extention = fileName.split('.');
         contentType = "application/${extention[1]}";
-      } catch (e) {}
+      } catch (_) {}
     }
     return contentType;
   }
@@ -127,15 +123,12 @@ class FirebaseStorageUtil {
         case TaskState.running:
           final progress =
               100.0 * (taskSnapshot.bytesTransferred / taskSnapshot.totalBytes);
-          debugPrint("Upload is $progress% complete.");
           response.onUploadProgress(progress.toInt());
           break;
         case TaskState.paused:
-          debugPrint("Upload is paused.");
           response.onUploadError('Upload Paused');
           break;
         case TaskState.canceled:
-          debugPrint("Upload was canceled");
           response.onUploadError('Upload canceled');
           break;
         case TaskState.error:
@@ -147,7 +140,6 @@ class FirebaseStorageUtil {
           dynamic imageUrl = await taskSnapshot.ref.getDownloadURL();
           player.files = imageUrl as String;
           //player.files = player.files.replaceAll('&', '___');
-          debugPrint(player.files);
           response.onUploadSuccess(player);
           break;
       }
@@ -162,7 +154,7 @@ class FirebaseStorageUtil {
     imageUploadRef
         .getData(10000000)
         .then((data) => response.onUploadSuccess(data))
-        .catchError((e) => debugPrint('error'));
+        .catchError((_) {});
   }
 
   uploadAvtar(
@@ -186,15 +178,12 @@ class FirebaseStorageUtil {
         case TaskState.running:
           final progress =
               100.0 * (taskSnapshot.bytesTransferred / taskSnapshot.totalBytes);
-          debugPrint("Upload is $progress% complete.");
           response.onUploadProgress(progress.toInt());
           break;
         case TaskState.paused:
-          debugPrint("Upload is paused.");
           response.onUploadError('Upload Paused');
           break;
         case TaskState.canceled:
-          debugPrint("Upload was canceled");
           response.onUploadError('Upload canceled');
           break;
         case TaskState.error:
@@ -207,8 +196,6 @@ class FirebaseStorageUtil {
           imageUrl = Uri.encodeFull(imageUrl as String);
           imageUrl = imageUrl.replaceAll('&', '___');
 
-          debugPrint('-----------------------------');
-          debugPrint(imageUrl);
           response.onUploadSuccess(imageUrl);
           break;
       }

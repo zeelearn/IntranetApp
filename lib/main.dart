@@ -67,10 +67,8 @@ part 'main.g.dart';
   try {
     await Firebase.initializeApp(
         name: "Intranet", options: DefaultFirebaseOptions.currentPlatform);
-    debugPrint('Handling a background message');
     DBHelper helper = new DBHelper();
     if (message.data != null) {
-      debugPrint(message.data.toString());
       String type = "";
       String title = "";
       String imageUrl = "";
@@ -98,7 +96,6 @@ part 'main.g.dart';
           helper.insertNotification(message.messageId as String,
               json.decode(mData), type, '', json.decode(mData), 0, imageUrl);
         } else {
-          debugPrint('in else data ${mData}');
           NotificationDataModel model = NotificationDataModel.fromJson(
             json.decode(mData),
           );
@@ -110,12 +107,9 @@ part 'main.g.dart';
               json.decode(mData), type, '', json.decode(mData), 0, imageUrl);
         }
         _showNotificationWithDefaultSound(message, title, body);
-      } catch (e) {
-        debugPrint(e.toString());
-      }
+      } catch (_) {}
     }
     if (message.notification != null) {
-      debugPrint(message.notification.toString());
       helper.insertNotification(
           message.messageId as String,
           message.notification!.title as String,
@@ -129,15 +123,13 @@ part 'main.g.dart';
           message.notification!.title as String,
           message.notification!.body as String);
     }
-  } catch (e) {}
+  } catch (_) {}
 }*/
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
-  print(
-      'A new onMessageOpenedApp event was published! main 125 ${message.data.toString()}');
   NotificationService().parseNotification(message);
 }
 
@@ -149,7 +141,6 @@ showNotification(RemoteMessage message) async {
   String title = "";
   String imageUrl = "";
   String body = "";
-  debugPrint(message.data.toString());
   try {
     String mData = message.data.toString();
     if (!message.data.containsKey("URL")) {
@@ -171,7 +162,6 @@ showNotification(RemoteMessage message) async {
       imageUrl = model.image;
       body = model.message;
     } else {
-      debugPrint('in else data $mData');
       NotificationDataModel model = NotificationDataModel.fromJson(
         json.decode(mData),
       );
@@ -181,9 +171,7 @@ showNotification(RemoteMessage message) async {
       body = model.message;
     }
     _showNotificationWithDefaultSound(message, title, body);
-  } catch (e) {
-    debugPrint(e.toString());
-  }
+  } catch (_) {}
   data.putIfAbsent('title',
       () => title.isNotEmpty ? title : message.data['title'] as String);
   data.putIfAbsent(
@@ -266,6 +254,9 @@ final localhostServer =
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  if (kReleaseMode) {
+    debugPrint = (String? message, {int? wrapWidth}) {};
+  }
   // await dotenv.load(fileName: ".env");
 
   pdfrxFlutterInitialize();
@@ -303,11 +294,9 @@ Future<void> main() async {
     await NotificationController.initializeIsolateReceivePort();
     // messaging = FirebaseMessaging.instance;
 
-    print('saathi topic subscribed');
     // Set the background messaging handler early on, as a named top-level function
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-      print('A new onMessageOpenedApp event was published!');
       Navigator.push(MyApp.navigatorKey.currentState!.context,
           MaterialPageRoute(builder: (context) => const UserNotification()));
     });
@@ -523,7 +512,6 @@ Future<void> leaveService(int action) async {
 
 @pragma('vm:entry-point')
 Future<bool> onIosBackground(ServiceInstance service) async {
-
   DartPluginRegistrant.ensureInitialized();
 
   return true;
@@ -532,14 +520,12 @@ Future<bool> onIosBackground(ServiceInstance service) async {
 @pragma('vm:entry-point')
 void onStart(ServiceInstance service) async {
   // Only available for flutter 3.0.0 and later
-  debugPrint('onStart Service');
   //DartPluginRegistrant.ensureInitialized();
   mService = service;
   // For flutter prior to version 3.0.0
   final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
   service.on('stopService').listen((event) {
-    debugPrint('onStart Service onStop');
     service.stopSelf();
   });
 
@@ -625,49 +611,40 @@ syncLeaveApproval(ApproveLeaveRequestManager model) {
   if (request.xml.contains('[]')) {
     if (model.index != null) {
       DBHelper helper = DBHelper();
-      //debugPrint('DELTE ID ${model.index!.toString()}');
       helper.delete(LocalConstant.TABLE_DATA_SYNC, model.index!.toString());
     }
     checkPendingLeaveApprovals(2);
   } else if (model.actionType.isNotEmpty &&
       model.actionType == 'ATTENDANCE_MAN') {
-    //debugPrint('ATTENDANCE_MAN request');
     APIService apiService = APIService();
     apiService.approveAttendance(request).then((value) {
-      //debugPrint('approveAttendance response ${value}');
       if (value != null) {
         if (value == null || value.responseData == null) {
-          //debugPrint('Serviceclosed NULL....................');
           mService.stopSelf();
         } else if (value is ApproveAttendanceResponse) {
           ApproveAttendanceResponse response = value;
           if (response.statusCode == 200) {
             if (model.index != null) {
               DBHelper helper = DBHelper();
-              //debugPrint('DELTE ID ${model.index!.toString()}');
               helper.delete(
                   LocalConstant.TABLE_DATA_SYNC, model.index!.toString());
             }
           } else {
             if (model.index != null) {
               DBHelper helper = DBHelper();
-              //debugPrint('DELTE ID ${model.index!.toString()}');
               helper.delete(
                   LocalConstant.TABLE_DATA_SYNC, model.index!.toString());
             }
           }
           checkPendingLeaveApprovals(2);
         } else if (value.toString().contains('Failed host lookup')) {
-          //debugPrint('Serviceclosed....................');
           mService.stopSelf();
         } else {
-          //debugPrint('Serviceclosed NULL.ELSE...................');
           mService.stopSelf();
         }
       }
     });
   } else {
-    //debugPrint('approveLeaveManager request');
     APIService apiService = APIService();
     apiService.approveLeaveManager(request).then((value) {
       if (value != null) {
@@ -675,12 +652,8 @@ syncLeaveApproval(ApproveLeaveRequestManager model) {
           mService.stopSelf();
         } else if (value is ApplyLeaveResponse) {
           ApplyLeaveResponse response = value;
-          //debugPrint(response.responseMessage);
-          //debugPrint('Serviceclosed NULL....523...........');
-          debugPrint(response.responseMessage);
           if (model.index != null) {
             DBHelper helper = DBHelper();
-            //debugPrint('DELTE ID ${model.index!.toString()}');
             helper.delete(
                 LocalConstant.TABLE_DATA_SYNC, model.index!.toString());
           }
@@ -692,27 +665,17 @@ syncLeaveApproval(ApproveLeaveRequestManager model) {
 }
 
 apicall(List<CheckInModel> list) async {
-  //debugPrint('api calling...');
-
-  //debugPrint('Offline Data found ${list.length}');
   if (list.isNotEmpty) {
-    debugPrint('Offline Data found ${list.length}');
-    debugPrint(list[0].body);
     UpdateCVFStatusRequest request = UpdateCVFStatusRequest.fromJson(
       json.decode(list[0].body),
     );
-    //debugPrint('json decode ');
-    //debugPrint(request.toString());
     APIService apiService = APIService();
     apiService.updateCVFStatus(request).then((value) {
-      //debugPrint('response received...');
-      //debugPrint(value.toString());
       if (value != null) {
         if (value == null || value.responseData == null) {
           //onResponse.onError('Unable to update the status');
         } else if (value is UpdateCVFStatusResponse) {
           UpdateCVFStatusResponse response = value;
-          //debugPrint(response.toString());
           //onResponse.onSuccess(response);
           DBHelper helper = DBHelper();
           helper.updateCheckInStatus(list[0].id, 1);
@@ -738,9 +701,7 @@ Future<void> setup() async {
 
   // #3
   await flutterLocalNotificationsPlugin?.initialize(initSettings).then((_) {
-    debugPrint('setupPlugin: setup success');
   }).catchError((Object error) {
-    debugPrint('Error: $error');
   });
 }
 
@@ -752,13 +713,11 @@ Future _showNotificationWithDefaultSound(
             considerWhiteSpaceAsEmpty: true) ||
         !AwesomeStringUtils.isNullOrEmpty(messageData,
             considerWhiteSpaceAsEmpty: true)) {
-      debugPrint('message also contained a notification: $message');
-
       String? imageUrl;
       try {
         imageUrl ??= message.notification!.android?.imageUrl;
         imageUrl ??= message.notification!.apple?.imageUrl;
-      } catch (e) {}
+      } catch (_) {}
 
       Map<String, dynamic> notificationAdapter = {
         NOTIFICATION_CHANNEL_KEY: 'basic_channel',
@@ -786,7 +745,6 @@ Future _showNotificationWithDefaultSound(
     NotificationService notificationService = NotificationService();
     notificationService.showNotification(12, title, messageData, messageData);
   }
-  debugPrint('Send Notification');
 }
 
 class MyApp extends StatefulWidget {
@@ -974,7 +932,6 @@ class NotificationController {
 
   static Future<void> onActionReceivedImplementationMethod(
       ReceivedAction receivedAction) async {
-    print('onActionReceivedImplementationMethod 1192');
     Navigator.push(MyApp.navigatorKey.currentState!.context,
         MaterialPageRoute(builder: (context) => const UserNotification()));
   }
@@ -1024,13 +981,9 @@ class NotificationController {
   @pragma('vm:entry-point')
   static Future<void> onActionReceivedMethod(
       ReceivedAction receivedAction) async {
-    debugPrint('Received action is - ${receivedAction.actionType}');
-    debugPrint('Received payload - ${receivedAction.payload}');
     if (receivedAction.actionType == ActionType.SilentAction ||
         receivedAction.actionType == ActionType.SilentBackgroundAction) {
       // For background actions, you must hold the execution until the end
-      print(
-          'Message sent via notification input: "${receivedAction.buttonKeyInput}"');
       // await executeLongTaskInBackground();
     } else if (receivedAction.payload != null &&
         receivedAction.payload!['type'] != null &&
@@ -1039,9 +992,6 @@ class NotificationController {
     } else if (receivedAction.payload != null &&
         receivedAction.payload!['type'] != null &&
         receivedAction.payload!['type'] == 'td') {
-      print(
-          'SAATHI Message sent via notification input: "${receivedAction.buttonKeyInput}"');
-      print('SAATHI payload - ${receivedAction.payload}');
       Util.openSaathiNotification(receivedAction);
     } else if (receivedAction.payload != null &&
         receivedAction.payload!['Video_path'] != null) {

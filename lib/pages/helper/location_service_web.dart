@@ -19,7 +19,6 @@ class LocationServiceImpl {
       // The browser will manage the permission prompt if needed.
       return await location.getLocation();
     } catch (e) {
-      print('Error getting location: $e');
       _showMessage(context);
       return null;
     }

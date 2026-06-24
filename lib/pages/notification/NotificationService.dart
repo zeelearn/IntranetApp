@@ -116,8 +116,6 @@ class NotificationService {
   showSimpleNotification(String title, String body,
       [RemoteMessage? message]) async {
     String channel = LocalConstant.NOTIFICATION_CHANNEL;
-    print('showSimpleNotification Kidzee $channel');
-    debugPrint('Remote message for simple message is - $message');
     AwesomeNotifications().createNotification(
         content: NotificationContent(
       id: -1,
@@ -134,14 +132,12 @@ class NotificationService {
             message != null ? (message.data['employee_code'] ?? '') : ''
       },
     ));
-    print('showSimpleNotification');
   }
 
   showBigNotification(String title, String body, String logo, String imageUrl,
       bool showBigTextNotification,
       [RemoteMessage? message]) async {
     String channel = LocalConstant.NOTIFICATION_CHANNEL;
-    print('showBigNotification kid $channel');
     if (showBigTextNotification) {
       await AwesomeNotifications().createNotification(
         content: NotificationContent(

@@ -58,22 +58,17 @@ class _EmplyeeFilterState extends State<EmplyeeFilter> {
         EmployeeListRequest(SuperiorId: int.parse(employeeId.toString()));
     APIService apiService = APIService();
     apiService.getEmployeeListPJP(request).then((value) {
-      debugPrint(' value is ${value.toString()}');
       if (value != null) {
         if (value == null || value.responseData == null) {
-          debugPrint('value is nill');
           Utility.showMessage(context, 'data not found');
         } else if (value is EmployeeListPJPResponse) {
-          debugPrint('value is in object');
           EmployeeListPJPResponse response = value;
           allEmployeeList.clear();
           allEmployeeList.addAll(response.responseData);
           foundEmployeeList.clear();
           foundEmployeeList.addAll(response.responseData);
           setState(() {});
-          debugPrint('summery list ${_selection.filters.length}');
         } else {
-          debugPrint('value is null');
           Utility.showMessage(context, 'data not found');
         }
       }
@@ -157,7 +152,6 @@ class _EmplyeeFilterState extends State<EmplyeeFilter> {
 
   getFilterListView() {
     if (foundEmployeeList.isEmpty) {
-      debugPrint('PJP List not available');
       return Utility.emptyDataSet(context, "Filters are not avaliable");
     } else {
       return getListView();
