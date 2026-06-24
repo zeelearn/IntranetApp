@@ -46,8 +46,6 @@ class _RandomizedRadialChartExampleState extends State<RandomizedRadialChartExam
 
   List<CircularStackEntry> _generateRandomData() {
     //int stackCount = random.nextInt(20);
-    print('actual Enrollment ${widget.actualEnrollment}');
-    print('target ${widget.targetEnrollment}');
     List<CircularStackEntry> data=[];
     // List<CircularStackEntry> data = new List.generate(stackCount, (i) {
     //   int segCount = random.nextInt(20);

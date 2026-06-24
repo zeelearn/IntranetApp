@@ -81,28 +81,23 @@ class AuthStateNotifier extends StateNotifier<AuthState> {
       state = state.copyWith(
         status: AuthStatus.loading,
       );
-      print('getAll Projects....');
       List<ProjectModel> modelList = await BpmsDB.getAllProjects();
       bool isOfflineEligble = await Utility.isOfflineEligble(lastSync);
       if (isOfflineEligble && modelList.isNotEmpty) {
-        print('offline.....');
         try {
           modelList.sort((a, b) => b.approvedDate.compareTo(a.approvedDate));
           modelList = modelList.reversed.toList();
-        } catch (e) {}
+        } catch (_) {}
         state = state.copyWith(
             status: AuthStatus.authenticated, projectList: modelList);
       } else {
-        print('online.....');
         final response = await _repo.getAllProject(
             request: BpmsStatRequest(userId: userId, status: 0));
         await BpmsDB.addAllProjects(response.data, 100);
         state = state.copyWith(
             status: AuthStatus.authenticated, projectList: response.data);
       }
-    } catch (e) {
-      print(e.toString());
-    }
+    } catch (_) {}
   }
 
   getProjectByStatus(String userId, int status, String lastSync) async {
@@ -112,15 +107,13 @@ class AuthStateNotifier extends StateNotifier<AuthState> {
     List<ProjectModel> modelList = await BpmsDB.getAllProjectByStatus(status);
     bool isOfflineEligble = await Utility.isOfflineEligble(lastSync);
     if (isOfflineEligble && modelList.isNotEmpty) {
-      print('load offline');
       try {
         modelList.sort((b, a) => a.approvedDate.compareTo(b.approvedDate));
         modelList = modelList.reversed.toList();
-      } catch (e) {}
+      } catch (_) {}
       state = state.copyWith(
           status: AuthStatus.authenticated, projectList: modelList);
     } else {
-      print('load online');
       final response = await _repo.getProjectByStatus(
           request: BpmsStatRequest(userId: userId, status: status));
 
@@ -155,7 +148,6 @@ class AuthStateNotifier extends StateNotifier<AuthState> {
     );
     ProjectTaskResponse response = await _repo.getAllProjectTask(
         request: BpmsTaskRequest(userId: userId, projectID: projectId));
-    print(response.data);
     await BpmsDB.addProjectsTask(response.data[0]);
     state =
         state.copyWith(status: AuthStatus.authenticated, projectTask: response);
@@ -167,7 +159,6 @@ class AuthStateNotifier extends StateNotifier<AuthState> {
     );
     List<ProjectTaskModel> modelList = await BpmsDB.getProjectsTask();
     if (false && modelList.isNotEmpty) {
-      print(modelList);
       //await BpmsDB.addProjectsTask(modelList);
       state = state.copyWith(
           status: AuthStatus.authenticated,
@@ -175,46 +166,36 @@ class AuthStateNotifier extends StateNotifier<AuthState> {
     } else {
       ProjectTaskResponse response = await _repo.getAllProjectTask(
           request: BpmsTaskRequest(userId: userId, projectID: projectId));
-      print(response.data);
       await BpmsDB.addProjectsTask(response.data[0]);
       state = state.copyWith(
           status: AuthStatus.authenticated, projectTask: response);
     }
-    print('Response');
   }
 
   getStatus() async {
-    print('getStatus');
     /*state = state.copyWith(status: AuthStatus.loading,
     );*/
-    print('getStatus');
     ProjectStatusResponse taskResponse = await _repo.getStatus();
-    print(taskResponse.toString());
     state = state.copyWith(
         status: AuthStatus.authenticated, statusList: taskResponse.data[0]);
 
-    print('Response');
   }
 
   addNewTask(NewTaskRequest request) async {
-    print('getStatus');
     state = state.copyWith(
       status: AuthStatus.loading,
     );
-    print('getStatus');
     AddNewTaskResponse taskResponse = await _repo.addNewTask(request: request);
 
     state = state.copyWith(
       status: AuthStatus.authenticated,
     );
 
-    print('Response');
   }
 
   Future<List<ProjectTaskModel>> getTaskDetails(
       String projectId, String userId) async {
     List<ProjectTaskModel> taskList = await BpmsDB.getTaskList();
-    //print('task Details are ${taskList.length}');
     if (taskList.isEmpty || await Utility.isInternet()) {
       final taskResponse =
           await _repo.getTask(projectId: projectId, userId: userId);
@@ -245,10 +226,8 @@ class AuthStateNotifier extends StateNotifier<AuthState> {
   }
 
   Future<void> refreshTask() async {
-    print('task refresh...refreshTask');
     FranchiseeInfoModel? franshiseeInfo = await BpmsDB.getFranchiseeInfo();
     if (franshiseeInfo != null) {
-      print('task refresh...Franc not null');
       state = state.copyWith(status: AuthStatus.loading, loading: true);
       final taskResponse = await _repo.getTask(
           projectId: franshiseeInfo.leadId,
@@ -259,9 +238,7 @@ class AuthStateNotifier extends StateNotifier<AuthState> {
           taskModelList: taskResponse.taskDetail,
           loading: false);
     } else {
-      print('task refresh...Franc is NULL');
     }
-    print('task refresh...DONE');
     return;
   }
 
@@ -275,9 +252,7 @@ class AuthStateNotifier extends StateNotifier<AuthState> {
     // check storage for existing token/user
     /*String franchiseeId = await getFranchiseeInfo();
     FranchiseeInfoModel? franshiseeInfo = await BpmsDB.getFranchiseeInfo();
-    print('checkAuthStatus');
     if(await Utility.isInternet()){
-      print('internet avaliable');
       state = state.copyWith(
           status: AuthStatus.loading,
           user: null
@@ -304,7 +279,6 @@ class AuthStateNotifier extends StateNotifier<AuthState> {
   }
 
   Future<void> getFranchiseeDetailInfo({required String franchiseeId}) async {
-    print('getFranchiseeDetailInfo');
     try {
       state = state.copyWith(
         loading: true,
@@ -312,17 +286,13 @@ class AuthStateNotifier extends StateNotifier<AuthState> {
       );
       final franchiseeResponse =
           await _repo.getFranchiseeInfo(franchiseeId: franchiseeId);
-      print('getFranchiseeDetailInfo franchiseeResponse');
       List<CommunicationModel> communicationist = await getCommunication(
           franchiseeResponse.franchiseeInfoModel[0].FranchiseeId);
-      print('getFranchiseeDetailInfo communicationist');
       GetFranchiseeDetailsResponse franchiseeResponseModel =
           GetFranchiseeDetailsResponse.fromJson(
               json.decode(franchiseeResponse.toJsonValue()));
-      print('getFranchiseeDetailInfo franchiseeResponseModel');
       List<ProjectTaskModel> taskList = await getTaskDetails(
           franchiseeResponseModel.franchiseeInfoModel[0].leadId, '1');
-      print('getFranchiseeDetailInfo taskList');
       state = state.copyWith(
         loading: false,
         user: franchiseeResponseModel.franchiseeInfoModel[0],
@@ -332,7 +302,6 @@ class AuthStateNotifier extends StateNotifier<AuthState> {
         status: AuthStatus.authenticated,
         errorMessage: '',
       );
-      print('getFranchiseeDetailInfo taskList state change');
       if (state.user != null) {
         await BpmsDB.addFranchiseeInfo(state.user!);
       }
@@ -340,13 +309,11 @@ class AuthStateNotifier extends StateNotifier<AuthState> {
         await BpmsDB.addIndent(franchiseeResponse.indentList);
       }
     } on DioException catch (e) {
-      print('DioException 87...');
       final exc = LoginException.fromDioError(e);
       state = state.copyWith(
         errorMessage: exc.message,
       );
     } catch (e) {
-      print('DioException 93...${e.toString()}');
       state = state.copyWith(
         errorMessage: e.toString(),
       );
@@ -399,7 +366,6 @@ class AuthStateNotifier extends StateNotifier<AuthState> {
       action: page,
       loading: true
     );*/
-    print(page);
     await Future.delayed(const Duration(milliseconds: 50));
     state = state.copyWith(
         user: null,

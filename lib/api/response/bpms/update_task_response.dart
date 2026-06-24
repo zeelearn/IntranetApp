@@ -12,7 +12,7 @@ class UpdateBpmsTaskResponse {
       data = List.from(json['data'])
           .map((e) => UpdateBpmsTaskModel.fromJson(e))
           .toList();
-    }catch(e){}
+    }catch (_) {}
   }
 
   Map<String, dynamic> toJson() {

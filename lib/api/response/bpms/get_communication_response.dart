@@ -61,11 +61,9 @@ class CommunicationModel {
   late final String ModifiedDate;
 
   CommunicationModel.fromJson(Map<String, dynamic> json){
-    print('CommunicationModel 64');
     RowID = json['RowID'] ?? '';
     ID = json['ID'] ?? '';
     MsgType = json['Msg_Type'] ?? '';
-    print('CommunicationModel 68');
     BatchId = json['Batch_Id'] ?? 0;
     ToAddress = json['To_Address']  ?? '';;
     CCAddress = json['CC_Address']  ?? '';

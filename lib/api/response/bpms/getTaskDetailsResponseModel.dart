@@ -75,7 +75,6 @@ class ProjectTaskModel {
     taskcreateduser = json['taskcreateduser'] ?? '';
     latestComment = json['latest_comment'] ?? '';
     files = json['files'] ?? '';
-    //print('File is ${files}');
   }
 
   Map<String, dynamic> toMap(ProjectTaskModel model) {

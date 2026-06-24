@@ -1,8 +1,9 @@
 import 'dart:convert';
 import 'dart:async';
-import 'package:Intranet/pages/widget/MyWebSiteView.dart';
+import 'package:Intranet/api/APIService.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hive/hive.dart';
@@ -89,7 +90,6 @@ class _MyCVFListScreen extends State<CVFListScreen>
 
   getLocalData() {
     bool isLoad = false;
-    print('in local data 89-------------------');
     try {
       var attendanceList = hiveBox.get(getId());
       isLoading = false;
@@ -216,7 +216,7 @@ class _MyCVFListScreen extends State<CVFListScreen>
       List<GetDetailedPJP> list = [];
       list.addAll(mCvfList);
 
-      if (mFilterSelection == FILTER_COMPLETED) {
+      if (mFilterSelection = FILTER_COMPLETED) {
         list.clear();
         for (int index = 0; index < mCvfList.length; index++) {
           if (mCvfList[index].Status == 'Completed') {
@@ -472,13 +472,22 @@ class _MyCVFListScreen extends State<CVFListScreen>
     }
     return GestureDetector(
       onTap: () {
-        print(
-            'in 456 ${widget.isView} status ${widget.mPjpInfo.ApprovalStatus}');
-        if (widget.isView && widget.mPjpInfo.ApprovalStatus == 'Pending') {
-          Utility.showMessageSingleButton(
-              context,
-              'This pjp is not approved yet, Please connect with your manager',
-              this);
+        if (cvfView.IsCancelled || cvfView.Status == 'Cancelled') {
+          Utility.showMessage(context, 'This CVF is cancelled');
+        } else if (widget.mPjpInfo.ApprovalStatus != 'Approved' &&
+            (cvfView.Status == 'Check In' ||
+                cvfView.Status == ' Check In' ||
+                cvfView.Status == 'NA')) {
+          if (widget.mPjpInfo.ApprovalStatus == 'Rejected') {
+            Utility.showMessage(
+                context, 'This PJP is rejected by your manager');
+          } else {
+            Utility.showMessageSingleButton(
+                context,
+                'This pjp is not approved yet, Please connect with your manager',
+                this);
+          }
+          return;
         } else if (widget.mPjpInfo.isSelfPJP == '0') {
           selectCategory(context, cvfView);
         } else if (cvfView.Status == 'Check In' ||
@@ -624,37 +633,142 @@ class _MyCVFListScreen extends State<CVFListScreen>
                     fontWeight: FontWeight.normal,
                   ),
                 ),
-                trailing: widget.isView
+                trailing: (widget.isView || widget.mPjpInfo.isSelfPJP == '0')
                     ? null
-                    : cvfView.Status == 'Check Out'
-                        ? OutlinedButton(
-                            onPressed: () {
-                              selectCategory(context, cvfView);
-                            },
-                            child: Text(
-                              cvfView.Status,
-                              style: TextStyle(
-                                fontFamily: 'Lexend Deca',
-                                color: Color(0xFF4B39EF),
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                              ),
+                    : (cvfView.IsCancelled || cvfView.Status == 'Cancelled')
+                        ? const Text(
+                            'Cancelled',
+                            style: TextStyle(
+                              color: Colors.red,
+                              fontWeight: FontWeight.bold,
                             ),
                           )
-                        : cvfView.Status == 'Completed'
-                            ? Image.asset(
-                                'assets/icons/ic_checked.png',
-                                height: 50,
+                        : (cvfView.Status == 'Check In' ||
+                                cvfView.Status == 'NA')
+                            ? Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  if (widget.mPjpInfo.ApprovalStatus
+                                      .toLowerCase()
+                                      .contains('approv'))
+                                    IconButton(
+                                      icon: const Icon(Icons.edit_calendar,
+                                          color: Colors.blue),
+                                      tooltip: 'Reschedule',
+                                      onPressed: () {
+                                        _showRescheduleDialog(cvfView);
+                                      },
+                                    ),
+                                  IconButton(
+                                    icon: const Icon(Icons.cancel,
+                                        color: Colors.red),
+                                    tooltip: 'Cancel',
+                                    onPressed: () {
+                                      _showCancelConfirmation(cvfView);
+                                    },
+                                  ),
+                                ],
                               )
-                            : Text(
-                                cvfView.Status,
-                                style: TextStyle(
-                                  fontFamily: 'Lexend Deca',
-                                  color: LightColors.kRed,
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
+                            : cvfView.Status == 'Check Out'
+                                ? OutlinedButton(
+                                    onPressed: () {
+                                      selectCategory(context, cvfView);
+                                    },
+                                    child: Text(
+                                      cvfView.Status,
+                                      style: TextStyle(
+                                        fontFamily: 'Lexend Deca',
+                                        color: Color(0xFF4B39EF),
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  )
+                                : cvfView.Status == 'Completed'
+                                    ? Image.asset(
+                                        'assets/icons/ic_checked.png',
+                                        height: 50,
+                                      )
+                                    : Text(
+                                        cvfView.Status,
+                                        style: TextStyle(
+                                          fontFamily: 'Lexend Deca',
+                                          color: LightColors.kRed,
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+              ),
+              if (cvfView.cvfHistory != null && cvfView.cvfHistory!.isNotEmpty)
+                Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.shade50,
+                      borderRadius: BorderRadius.circular(4),
+                      border: Border.all(color: Colors.blue.shade100),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Rescheduled From:',
+                          style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.blue),
+                        ),
+                        ...cvfView.cvfHistory!
+                            .map((history) => Padding(
+                                  padding: const EdgeInsets.only(top: 4.0),
+                                  child: Text(
+                                    '${Utility.shortDate(Utility.convertServerDate(history.visitDate))} at ${Utility.shortTime(Utility.convertTime(history.visitTime))} ${Utility.shortTimeAMPM(Utility.convertTime(history.visitTime))}',
+                                    style: const TextStyle(
+                                        fontSize: 12, color: Colors.black87),
+                                  ),
+                                ))
+                            .toList(),
+                      ],
+                    ),
+                  ),
+                ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if ((cvfView.IsCancelled || cvfView.Status == 'Cancelled') &&
+                      cvfView.remarks.isNotEmpty &&
+                      cvfView.remarks != 'NA')
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 4),
+                      child: Text(
+                        'Cancel Remark: ${cvfView.remarks}',
+                        style: const TextStyle(
+                            color: Colors.red,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500),
+                      ),
+                    ),
+                  if (!(cvfView.IsCancelled || cvfView.Status == 'Cancelled') &&
+                      cvfView.cvfHistory != null &&
+                      cvfView.cvfHistory!.isNotEmpty &&
+                      cvfView.remarks.isNotEmpty &&
+                      cvfView.remarks != 'NA')
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 4),
+                      child: Text(
+                        'Reschedule Remark: ${cvfView.remarks}',
+                        style: const TextStyle(
+                            color: Colors.blue,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500),
+                      ),
+                    ),
+                ],
               ),
               Container(
                 color: LightColors.kLightGray,
@@ -1089,6 +1203,7 @@ class _MyCVFListScreen extends State<CVFListScreen>
   }
 
   updateCVF(GetDetailedPJP cvfView) async {
+    print('Updating CVF Status pjpcfv.dart for PJPCVF_Id: ${cvfView.PJPCVF_Id}, Current Status: ${cvfView.Status}');
     isInternet = await Utility.isInternet();
     if (isInternet) {
       //online
@@ -1142,9 +1257,7 @@ class _MyCVFListScreen extends State<CVFListScreen>
       latitude = location.latitude!;
       longitude = location.longitude!;
     }
-    print('pjpcvf ');
     String address = ''; //await Utility.getAddress(latitude, longitude);
-    print('pjpcvf ${address}');
     UpdateCVFStatusRequest request = UpdateCVFStatusRequest(
         PJPCVF_id: cvfView.PJPCVF_Id,
         DateTime: Utility.getDateTime(),
@@ -1212,6 +1325,84 @@ class _MyCVFListScreen extends State<CVFListScreen>
     );
   }
 
+  void _showCancelConfirmation(GetDetailedPJP cvfView) {
+    final TextEditingController _remarkController = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("Cancel CVF"),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text("Are you sure you want to cancel this CVF?"),
+              const SizedBox(height: 10),
+              TextField(
+                controller: _remarkController,
+                decoration: const InputDecoration(
+                  labelText: "Remark",
+                  hintText: "Enter cancellation reason",
+                  border: OutlineInputBorder(),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              child: const Text("No"),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+            TextButton(
+              child: const Text("Yes"),
+              onPressed: () {
+                if (_remarkController.text.trim().isEmpty) {
+                  Utility.showMessage(context, 'Please enter a remark');
+                } else {
+                  Navigator.of(context).pop();
+                  _cancelCVF(cvfView, _remarkController.text.trim());
+                }
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _cancelCVF(GetDetailedPJP cvfView, String remark) async {
+    Utility.showLoaderDialog(context);
+    String categoryId = cvfView.purpose != null && cvfView.purpose!.isNotEmpty
+        ? cvfView.purpose![0].categoryId
+        : "0";
+
+    String docXml = '<root><tblPJPCVF>'
+        '<CVF_Id>${cvfView.PJPCVF_Id}</CVF_Id>'
+        '<Business_Id>$businessId</Business_Id>'
+        '<Employee_Id>$employeeId</Employee_Id>'
+        '<Franchisee_Id>${cvfView.franchiseeId}</Franchisee_Id>'
+        '<Visit_Date>${cvfView.visitDate}</Visit_Date>'
+        '<Visit_Time>${cvfView.visitTime}</Visit_Time>'
+        '<Category_Id>$categoryId</Category_Id>'
+        '<Latitude>${cvfView.Latitude}</Latitude>'
+        '<Longitude>${cvfView.Longitude}</Longitude>'
+        '<ActivityTitle>${cvfView.ActivityTitle}</ActivityTitle>'
+        '<Address>${cvfView.Address}</Address>'
+        '<Remarks>$remark</Remarks>'
+        '</tblPJPCVF></root>';
+
+    APIService apiService = APIService();
+    var response = await apiService.cancelCVF(
+        int.parse(widget.mPjpInfo.PJP_Id), docXml, employeeId, true);
+    Navigator.of(context).pop();
+
+    if (response != null) {
+      Utility.showMessage(context, 'CVF Cancelled successfully');
+      loadAllCVF();
+    } else {
+      Utility.showMessage(context, 'Failed to cancel CVF');
+    }
+  }
+
   String getNextStatus(String key) {
     String value = 'Check In';
     if (key != null)
@@ -1252,6 +1443,7 @@ class _MyCVFListScreen extends State<CVFListScreen>
 
   @override
   void onSuccess(value) {
+    print('onSuccess called in pjpcvf.dart with value: $value');
     Navigator.of(context).pop();
     if (value is UpdateCVFStatusResponse) {
       UpdateCVFStatusResponse response = value;
@@ -1301,6 +1493,247 @@ class _MyCVFListScreen extends State<CVFListScreen>
       if (action == Utility.ACTION_OK) {
         updateCVF(cvfView);
       } else if (action == Utility.ACTION_CCNCEL) {}
+    }
+  }
+
+  /* void _showCancelConfirmation(GetDetailedPJP cvfView) {
+    final TextEditingController _remarkController = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("Cancel CVF"),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text("Are you sure you want to cancel this CVF?"),
+              const SizedBox(height: 10),
+              TextField(
+                controller: _remarkController,
+                decoration: const InputDecoration(
+                  labelText: "Remark",
+                  hintText: "Enter cancellation reason",
+                  border: OutlineInputBorder(),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              child: const Text("No"),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+            TextButton(
+              child: const Text("Yes"),
+              onPressed: () {
+                if (_remarkController.text.trim().isEmpty) {
+                  Utility.showMessage(context, 'Please enter a remark');
+                } else {
+                  Navigator.of(context).pop();
+                  _cancelCVF(cvfView, _remarkController.text.trim());
+                }
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _cancelCVF(GetDetailedPJP cvfView, String remark) async {
+    Utility.showLoaderDialog(context);
+    String categoryId = cvfView.purpose != null && cvfView.purpose!.isNotEmpty
+        ? cvfView.purpose![0].categoryId
+        : "0";
+
+    String docXml = '<root><tblPJPCVF>'
+        '<CVF_Id>${cvfView.PJPCVF_Id}</CVF_Id>'
+        '<Business_Id>$businessId</Business_Id>'
+        '<Employee_Id>$employeeId</Employee_Id>'
+        '<Franchisee_Id>${cvfView.franchiseeId}</Franchisee_Id>'
+        '<Visit_Date>${cvfView.visitDate}</Visit_Date>'
+        '<Visit_Time>${cvfView.visitTime}</Visit_Time>'
+        '<Category_Id>$categoryId</Category_Id>'
+        '<Latitude>${cvfView.Latitude}</Latitude>'
+        '<Longitude>${cvfView.Longitude}</Longitude>'
+        '<ActivityTitle>${cvfView.ActivityTitle}</ActivityTitle>'
+        '<Address>${cvfView.Address}</Address>'
+        '<Remarks>$remark</Remarks>'
+        '</tblPJPCVF></root>';
+
+    APIService apiService = APIService();
+    var response = await apiService.cancelCVF(
+        int.parse(widget.mPjpInfo.PJP_Id), docXml, employeeId, true);
+    Navigator.of(context).pop();
+
+    if (response != null) {
+      Utility.showMessage(context, 'CVF Cancelled successfully');
+      loadAllCVF();
+    } else {
+      Utility.showMessage(context, 'Failed to cancel CVF');
+    }
+  } */
+
+  void _showRescheduleDialog(GetDetailedPJP cvfView) {
+    DateTime selectedDate = Utility.convertServerDate(cvfView.visitDate);
+    DateTime visitTimeDt = Utility.convertTime(cvfView.visitTime);
+    TimeOfDay selectedTime =
+        TimeOfDay(hour: visitTimeDt.hour, minute: visitTimeDt.minute);
+
+    final TextEditingController _remarkController = TextEditingController();
+    final TextEditingController _dateController = TextEditingController(
+      text: DateFormat('dd-MMM-yyyy').format(selectedDate),
+    );
+    final TextEditingController _timeController = TextEditingController(
+      text: DateFormat('hh:mm a').format(visitTimeDt),
+    );
+
+    DateTime? firstDate = Utility.convertDate(widget.mPjpInfo.fromDate);
+    DateTime? lastDate = Utility.convertDate(widget.mPjpInfo.toDate);
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: const Text("Reschedule CVF"),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text("Update date and time for this visit."),
+                  const SizedBox(height: 15),
+                  TextField(
+                    controller: _dateController,
+                    readOnly: true,
+                    decoration: const InputDecoration(
+                      labelText: "Visit Date",
+                      suffixIcon: Icon(Icons.calendar_today),
+                      border: OutlineInputBorder(),
+                    ),
+                    onTap: () async {
+                      final DateTime? picked = await showDatePicker(
+                        context: context,
+                        initialDate: (firstDate != null &&
+                                selectedDate.isBefore(firstDate))
+                            ? firstDate
+                            : ((lastDate != null &&
+                                    selectedDate.isAfter(lastDate))
+                                ? lastDate
+                                : selectedDate),
+                        firstDate: firstDate ?? DateTime.now(),
+                        lastDate: lastDate ?? DateTime(2101),
+                      );
+                      if (picked != null) {
+                        setDialogState(() {
+                          selectedDate = picked;
+                          _dateController.text =
+                              DateFormat('dd-MMM-yyyy').format(selectedDate);
+                        });
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 15),
+                  TextField(
+                    controller: _timeController,
+                    readOnly: true,
+                    decoration: const InputDecoration(
+                      labelText: "Visit Time",
+                      suffixIcon: Icon(Icons.access_time),
+                      border: OutlineInputBorder(),
+                    ),
+                    onTap: () async {
+                      final TimeOfDay? picked = await showTimePicker(
+                        context: context,
+                        initialTime: selectedTime,
+                      );
+                      if (picked != null) {
+                        setDialogState(() {
+                          selectedTime = picked;
+                          final dt = DateTime(
+                              DateTime.now().year,
+                              DateTime.now().month,
+                              DateTime.now().day,
+                              selectedTime.hour,
+                              selectedTime.minute);
+                          _timeController.text =
+                              DateFormat('hh:mm a').format(dt);
+                        });
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 15),
+                  TextField(
+                    controller: _remarkController,
+                    decoration: const InputDecoration(
+                      labelText: "Reason for Rescheduling",
+                      hintText: "Enter mandatory reason",
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  child: const Text("Cancel"),
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+                TextButton(
+                  child: const Text("Reschedule"),
+                  onPressed: () {
+                    if (_remarkController.text.trim().isEmpty) {
+                      Utility.showMessage(
+                          context, 'Please enter a reason for rescheduling');
+                    } else {
+                      Navigator.of(context).pop();
+                      _rescheduleCVF(cvfView, selectedDate, selectedTime,
+                          _remarkController.text.trim());
+                    }
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _rescheduleCVF(GetDetailedPJP cvfView, DateTime newDate,
+      TimeOfDay newTime, String remark) async {
+    Utility.showLoaderDialog(context);
+    String categoryId = cvfView.purpose != null && cvfView.purpose!.isNotEmpty
+        ? cvfView.purpose![0].categoryId
+        : "0";
+
+    String visitDateFormatted = Utility.convertShortDate(newDate);
+    String visitTimeFormatted = "${newTime.hour}:${newTime.minute}";
+
+    String docXml = '<root><tblPJPCVF>'
+        '<CVF_Id>${cvfView.PJPCVF_Id}</CVF_Id>'
+        '<Business_Id>$businessId</Business_Id>'
+        '<Employee_Id>$employeeId</Employee_Id>'
+        '<Franchisee_Id>${cvfView.franchiseeId}</Franchisee_Id>'
+        '<Visit_Date>$visitDateFormatted</Visit_Date>'
+        '<Visit_Time>$visitTimeFormatted</Visit_Time>'
+        '<Category_Id>$categoryId</Category_Id>'
+        '<Latitude>${cvfView.Latitude}</Latitude>'
+        '<Longitude>${cvfView.Longitude}</Longitude>'
+        '<ActivityTitle>${cvfView.ActivityTitle}</ActivityTitle>'
+        '<Address>${cvfView.Address}</Address>'
+        '<Remarks>$remark</Remarks>'
+        '</tblPJPCVF></root>';
+
+    APIService apiService = APIService();
+    var response = await apiService.cancelCVF(
+        int.parse(widget.mPjpInfo.PJP_Id), docXml, employeeId, false);
+    Navigator.of(context).pop();
+
+    if (response != null) {
+      Utility.showMessage(context, 'CVF Rescheduled successfully');
+      loadAllCVF();
+    } else {
+      Utility.showMessage(context, 'Failed to reschedule CVF');
     }
   }
 }

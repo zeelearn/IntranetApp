@@ -29,7 +29,6 @@
 //   @override
 //   Widget build(BuildContext context) {
 
-//     print('-----------------URL ${widget.url}');
 //     return MaterialApp(
 //       title: "ZllSaathi",
 //       theme: ThemeData(
@@ -53,7 +52,6 @@
 //           javascriptMode: JavascriptMode.unrestricted,
 //           onWebViewCreated: (c) {
 //             _webviewController = c;
-//             print("cleaning the cache");
 //             _webviewController.clearCache();
 //           },
 //           onPageFinished: (String page) async {

@@ -63,34 +63,6 @@ class _WebViewXPageState extends State<WebViewXPage> {
       width: min(screenSize.width * 0.9, 1024),
       onWebViewCreated: (controller) => webviewController = controller,
       onPageStarted: (src) =>
-          debugPrint('Page loading: $src\n'),
-      onPageFinished: (src) =>
-          debugPrint('page finished loading: $src\n'),
-      jsContent: const {
-        EmbeddedJsContent(
-          js: "function testPlatformIndependentMethod() { console.log('Hi from JS') }",
-        ),
-        EmbeddedJsContent(
-          webJs:
-          "function testPlatformSpecificMethod(msg) { TestDartCallback('Web callback says: ' + msg) }",
-          mobileJs:
-          "function testPlatformSpecificMethod(msg) { TestDartCallback.postMessage('Mobile callback says: ' + msg) }",
-        ),
-      },
-      dartCallBacks: {
-        DartCallback(
-          name: 'TestDartCallback',
-          callBack: (msg) => {},
-        )
-      },
-      webSpecificParams: const WebSpecificParams(
-        printDebugInfo: true,
-      ),
-      mobileSpecificParams: const MobileSpecificParams(
-        androidEnableHybridComposition: true,
-      ),
-      navigationDelegate: (navigation) {
-        debugPrint(navigation.content.sourceType.toString());
         return NavigationDecision.navigate;
       },
       );

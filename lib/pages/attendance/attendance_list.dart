@@ -67,9 +67,7 @@ class _AttendanceSummeryState extends State<AttendanceSummeryScreen> {
     }else{
       try {
         isLoading = false;
-        debugPrint(attendanceList.toString());
         Map<String,dynamic> jsonObject  = json.decode(attendanceList.toString());
-        debugPrint('json decode');
         AttendanceSummeryResponse response = AttendanceSummeryResponse.fromJson(
           json.decode(attendanceList),
         );
@@ -87,9 +85,7 @@ class _AttendanceSummeryState extends State<AttendanceSummeryScreen> {
     try {
       var attendanceList = hiveBox.get(getId());
       isLoading = false;
-      debugPrint(attendanceList.toString());
       Map<String,dynamic> jsonObject  = json.decode(attendanceList.toString());
-      debugPrint('json decode');
       AttendanceSummeryResponse response = AttendanceSummeryResponse.fromJson(
         json.decode(attendanceList!),
       );
@@ -151,7 +147,6 @@ class _AttendanceSummeryState extends State<AttendanceSummeryScreen> {
             saveAttendanceLocally(json);
             if (response != null && response.responseData != null)
               summeryModleList.addAll(response.responseData);
-            debugPrint('summery list ${response.responseData.length}');
           } else {
             Utility.showMessage(context, 'data not found');
           }
@@ -316,7 +311,6 @@ class _AttendanceSummeryState extends State<AttendanceSummeryScreen> {
     }else if(!isInternet && summeryModleList.isEmpty){
       return Utility.noInternetDataSet(context);
     } else if (summeryModleList == null || summeryModleList.length <= 0) {
-      debugPrint('data not found');
       return Utility.emptyDataSet(context,
           "Attendence Requisition not avaliable, Please try again later");
     } else {

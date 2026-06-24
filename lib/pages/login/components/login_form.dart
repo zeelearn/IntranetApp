@@ -251,8 +251,6 @@ class _LoginFormState extends State<LoginForm>
               hiveBox.put(LocalConstant.KEY_BUSINESS_USERID,
                   firstBusiness.business_UserID);
 
-              debugPrint('-------------------------LOGINFORM');
-              debugPrint(jsonEncode(value.responseData));
               Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -264,7 +262,6 @@ class _LoginFormState extends State<LoginForm>
         } else {
           Navigator.pop(context);
           Utility.showMessage(context, "Invalid User Name and Password 235");
-          debugPrint("null value");
         }
       });
     } else {

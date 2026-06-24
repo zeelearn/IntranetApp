@@ -37,12 +37,8 @@ class _ListPageState extends State<UserNotification> {
   void loadData() async {
     List<Map<String, dynamic>> list =
         await DBHelper().getData(LocalConstant.TABLE_NOTIFICATION);
-    //print('----${list.length}');
     for (int index = 0; index < list.length; index++) {
-      print(list[index]);
       Map<String, dynamic> map = list[index];
-      //print('----${map['title']}');
-      print(map.toString());
       if (index > 60) break;
       lessons.add(NotificationModel(
           notificationId: map['id'] ?? index,
@@ -62,7 +58,6 @@ class _ListPageState extends State<UserNotification> {
   }
 
   deleteNotification(int id) {
-    print('delete the notification ${id}');
     DBHelper().deleteNotification(LocalConstant.TABLE_NOTIFICATION, id);
   }
 
@@ -74,7 +69,6 @@ class _ListPageState extends State<UserNotification> {
 
   @override
   Widget build(BuildContext context) {
-    print('in notification build');
     ListTile makeListTile(NotificationModel notificationModel) => ListTile(
           contentPadding:
               const EdgeInsets.symmetric(horizontal: 5.0, vertical: 10.0),
@@ -168,7 +162,6 @@ class _ListPageState extends State<UserNotification> {
           margin: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 10.0),
           child: makeListTile(model),
         );
-    print('in lessons length ${lessons.length}');
     final makeBody = lessons.isNotEmpty
         ? ListView.builder(
             scrollDirection: Axis.vertical,
@@ -177,7 +170,6 @@ class _ListPageState extends State<UserNotification> {
             itemCount: lessons.length,
             itemBuilder: (BuildContext context, int index) {
               if (lessons[index].notificationtype == 'BPMS') {
-                print(lessons[index].message.toString());
                 BpmsNotificationModelList bpmsList =
                     BpmsNotificationModelList.fromJson(
                   json.decode(

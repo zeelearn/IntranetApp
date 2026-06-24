@@ -25,7 +25,6 @@ class MagicLinkHandler {
     }
     _lastHandledToken = token;
 
-    debugPrint('Magic link detected with token: $token');
     Utility.showLoaderDialog(context);
 
     try {
@@ -89,7 +88,6 @@ class MagicLinkHandler {
     } catch (e) {
       Navigator.pop(context);
       Utility.showMessage(context, "Error verifying magic link");
-      debugPrint("Magic link error: $e");
     }
   }
 

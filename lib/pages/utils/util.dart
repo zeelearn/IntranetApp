@@ -60,9 +60,6 @@ class Util {
       String mUserName = hiveBox.get(LocalConstant.KEY_USER_NAME) as String;
       if (receivedAction.payload?['url'] != null) {
         Uri uri = Uri.parse(receivedAction.payload!['url']!);
-        debugPrint(
-            'Query Parameter is - ${uri.queryParameters} ${MyApp.navigatorKey.currentContext}');
-
         Navigator.push(
           // ignore: use_build_context_synchronously
           MyApp.navigatorKey.currentState!.context,
@@ -78,9 +75,6 @@ class Util {
           ),
         );
       }
-    } catch (e) {
-      print('SAATHI exception $e');
-      print(e);
-    }
+    } catch (_) {}
   }
 }

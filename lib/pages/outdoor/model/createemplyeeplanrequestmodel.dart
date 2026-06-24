@@ -24,9 +24,7 @@ class CreateEmployeeRequestModel {
 
       businessuserID =
           response.responseData.businessApplications[0].business_UserID;
-    } catch (e) {
-      debugPrint("error - $e");
-    } */
+    } catch (_) {} */
   }
 
   @override
@@ -40,7 +38,6 @@ class CreateEmployeeRequestModel {
       "date": "$date",
       "xml": $listObjectEncoded
     }''';
-    debugPrint("request for createplan api is - $request");
     return request;
   }
 }

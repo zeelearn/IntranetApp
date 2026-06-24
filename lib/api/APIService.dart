@@ -120,7 +120,6 @@ class APIService {
 
   Future<dynamic> login(LoginRequestModel requestModel) async {
     try {
-      print('Login Request ${requestModel.toJson().toString()}');
       var body = jsonEncode({
         'userName': requestModel.userName,
         'password': requestModel.password,
@@ -134,16 +133,11 @@ class APIService {
                     ? 'IOS'
                     : 'unknown'
       });
-      debugPrint('URL ${url + LocalStrings.GET_LOGIN}');
-      debugPrint(
-          'URL PARSE ${Uri.parse(url + LocalStrings.GET_LOGIN).toString()}');
       try {
         final response = await http.post(
             Uri.parse(url + LocalStrings.GET_LOGIN),
             headers: commonHeaders,
             body: body);
-        print('Response ${response.body}');
-        debugPrint(Uri.parse(url + LocalStrings.GET_LOGIN).toString());
         if (response.statusCode == 200 || response.statusCode == 400) {
           if (response.body is LoginResponseInvalid) {
             return LoginResponseInvalid.fromJson(
@@ -157,10 +151,7 @@ class APIService {
         } else {
           return null; //LoginResponseModel(token:"",Status:"Invalid/Wrong Login Details");
         }
-      } catch (e) {
-        print('Error 155');
-        print(e.toString());
-      }
+      } catch (_) {}
     } catch (e) {
       e.toString();
     }
@@ -176,7 +167,6 @@ class APIService {
           Uri.parse(url + LocalStrings.GET_EMPLOYEE_VISIT_DETAILS),
           headers: commonHeaders,
           body: body);
-      debugPrint('Response in getVisitdetailsapi - ${response.body}');
       if (response.statusCode == 200) {
         if (jsonDecode(response.body)['responseData'] is List) {
           return Right(List<GetPlanData>.from(
@@ -190,8 +180,6 @@ class APIService {
         return Left(response.body.toString());
       }
     } catch (e) {
-      debugPrint('Exception in getVisitdetailsapi - $e');
-
       return Left(e.toString());
     }
   }
@@ -208,7 +196,6 @@ class APIService {
           Uri.parse(url + LocalStrings.GET_FRANCHISEE_LAST_VISIT),
           headers: commonHeaders,
           body: body);
-      debugPrint('Response in getVisitdetailsapi - ${response.body} ');
       if (response.statusCode == 200) {
         if (jsonDecode(response.body)['responseData'] is List) {
           return Right(
@@ -224,8 +211,6 @@ class APIService {
         return Left(response.body.toString());
       }
     } catch (e) {
-      debugPrint('Exception in getVisitdetailsapi - $e');
-
       return Left(e.toString());
     }
   }
@@ -236,13 +221,11 @@ class APIService {
       CreateEmployeeRequestModel request =
           CreateEmployeeRequestModel(date: date, xmlrequest: xmlRequest);
 
-      debugPrint('Request  in create event - $request');
       final response = await http.post(
           Uri.parse(url + LocalStrings.CREATE_EMPLYEE_VISIT_PLANNER),
           headers: commonHeaders,
           body: request.toString());
 
-      debugPrint('response from create event - ${response.body.toString()}');
       if (response.statusCode == 200) {
         return Right(List<GetPlanData>.from(
             jsonDecode(response.body)['responseData'].map((e) {
@@ -252,8 +235,6 @@ class APIService {
         return Left(response.body.toString());
       }
     } catch (e) {
-      debugPrint('Exception in create event - $e');
-
       return Left(e.toString());
     }
   }
@@ -265,7 +246,6 @@ class APIService {
 
       var employeeId = hive.get(LocalConstant.KEY_EMPLOYEE_ID);
 
-      debugPrint('Request  in getplanvisidatevise event - $employeeId');
       final response = await http.post(
           Uri.parse(url + LocalStrings.GET_VISIT_PLANNER_DATEWISE),
           headers: commonHeaders,
@@ -275,8 +255,6 @@ class APIService {
             "to_date": toDate
           }));
 
-      debugPrint(
-          'response from getplanvisidatevise - ${response.body.toString()}');
       if (response.statusCode == 200) {
         return Right(List<VisitPlanDateWise>.from(
             jsonDecode(response.body)['responseData'].map((e) {
@@ -286,8 +264,6 @@ class APIService {
         return Left(response.body.toString());
       }
     } catch (e) {
-      debugPrint('Exception in getplanvisidatevise - $e');
-
       return Left(e.toString());
     }
   }
@@ -300,15 +276,12 @@ class APIService {
           headers: commonHeaders,
           body: jsonEncode({"id": id}));
 
-      debugPrint('response from delete event - ${response.body.toString()}');
       if (response.statusCode == 200) {
         return Right(jsonDecode(response.body)['responseMessage']);
       } else {
         return Left(response.body.toString());
       }
     } catch (e) {
-      debugPrint('Exception in delete event - $e');
-
       return Left(e.toString());
     }
   }
@@ -384,14 +357,12 @@ class APIService {
         return null; //LoginResponseModel(token:"",Status:"Invalid/Wrong Login Details");
       }
     } catch (e) {
-      debugPrint(e.toString());
       e.toString();
     }
   }
 
   Future<dynamic> LeaveRequisition(LeaveListRequest requestModel) async {
     try {
-      debugPrint(requestModel.toJson().toString());
       var body = jsonEncode({
         'device': requestModel.device,
         'Employee_ID': requestModel.Employee_ID,
@@ -408,13 +379,10 @@ class APIService {
                     ? 'IOS'
                     : 'unknown'
       });
-      debugPrint(
-          Uri.parse(url + LocalStrings.GET_LEAVE_REQUISITION).toString());
       final response = await http.post(
           Uri.parse(url + LocalStrings.GET_LEAVE_REQUISITION),
           headers: commonHeaders,
           body: body);
-      debugPrint(response.body);
       if (response.statusCode == 200 || response.statusCode == 400) {
         if (response.body is AttendanceSummeryResponse) {
           return LeaveRequisitionResponse.fromJson(
@@ -429,7 +397,6 @@ class APIService {
         return null; //LoginResponseModel(token:"",Status:"Invalid/Wrong Login Details");
       }
     } catch (e) {
-      debugPrint(e.toString());
       e.toString();
     }
   }
@@ -437,7 +404,6 @@ class APIService {
   Future<dynamic> leaveRequisitionManager(
       ApplyLeaveManRequest requestModel) async {
     try {
-      debugPrint(requestModel.toJson().toString());
       var body = jsonEncode({
         'Employee_Id': requestModel.Employee_Id,
         'device': requestModel.device,
@@ -453,13 +419,10 @@ class APIService {
                     ? 'IOS'
                     : 'unknown'
       });
-      debugPrint(Uri.parse(url + LocalStrings.GET_LEAVE_REQUISITION_MANAGER)
-          .toString());
       final response = await http.post(
           Uri.parse(url + LocalStrings.GET_LEAVE_REQUISITION_MANAGER),
           headers: commonHeaders,
           body: body);
-      debugPrint(response.body);
       if (response.statusCode == 200 || response.statusCode == 400) {
         if (response.body is AttendanceSummeryResponse) {
           return LeaveListManagerResponse.fromJson(
@@ -474,14 +437,12 @@ class APIService {
         return null; //LoginResponseModel(token:"",Status:"Invalid/Wrong Login Details");
       }
     } catch (e) {
-      debugPrint(e.toString());
       e.toString();
     }
   }
 
   Future<dynamic> approveLeave(ApproveLeaveRequest requestModel) async {
     try {
-      debugPrint(requestModel.toJson().toString());
       var body = jsonEncode({
         'User_Id': requestModel.User_Id,
         'RequisitionTypeCode': requestModel.RequisitionTypeCode,
@@ -499,13 +460,10 @@ class APIService {
                     ? 'IOS'
                     : 'unknown'
       });
-      debugPrint(Uri.parse(url + LocalStrings.GET_APPROVE_LEAVE_REQUISITION)
-          .toString());
       final response = await http.post(
           Uri.parse(url + LocalStrings.GET_APPROVE_LEAVE_REQUISITION),
           headers: commonHeaders,
           body: body);
-      debugPrint(response.body);
       if (response.statusCode == 200 || response.statusCode == 400) {
         if (response.body is AttendanceSummeryResponse) {
           return ApplyLeaveResponse.fromJson(
@@ -520,7 +478,6 @@ class APIService {
         return null; //LoginResponseModel(token:"",Status:"Invalid/Wrong Login Details");
       }
     } catch (e) {
-      debugPrint(e.toString());
       e.toString();
     }
   }
@@ -528,7 +485,6 @@ class APIService {
   Future<dynamic> approveLeaveManager(
       ApproveLeaveRequestManager request) async {
     try {
-      debugPrint(request.toJson().toString());
       var body = jsonEncode({
         'xml': request.xml,
         'User_Id': request.userId,
@@ -540,16 +496,10 @@ class APIService {
                     ? 'IOS'
                     : 'unknown'
       });
-      debugPrint('request body');
-      debugPrint(body);
-      debugPrint(
-          Uri.parse(url + LocalStrings.GET_APPROVE_LEAVE_REQUISITION_MULTIPLE)
-              .toString());
       final response = await http.post(
           Uri.parse(url + LocalStrings.GET_APPROVE_LEAVE_REQUISITION_MULTIPLE),
           headers: commonHeaders,
           body: body);
-      debugPrint(response.body);
       if (response.statusCode == 200) {
         if (response.body is ApplyLeaveResponse) {
           return ApplyLeaveResponse.fromJson(
@@ -564,15 +514,12 @@ class APIService {
         return null; //LoginResponseModel(token:"",Status:"Invalid/Wrong Login Details");
       }
     } catch (e) {
-      debugPrint(e.toString());
       e.toString();
     }
   }
 
   Future<dynamic> applyLeave(ApplyLeaveRequest requestModel) async {
     try {
-      debugPrint(requestModel.toJson().toString());
-
       var body = jsonEncode({
         'Employee_Id': requestModel.Employee_Id,
         'End_Date': requestModel.End_Date,
@@ -594,13 +541,10 @@ class APIService {
                     ? 'IOS'
                     : 'unknown'
       });
-      debugPrint(body);
-      debugPrint(Uri.parse(url + LocalStrings.GET_APPLY_LEAVE).toString());
       final response = await http.post(
           Uri.parse(url + LocalStrings.GET_APPLY_LEAVE),
           headers: commonHeaders,
           body: body);
-      debugPrint(response.body);
       if (response.statusCode == 200 || response.statusCode == 400) {
         if (response.body is AttendanceSummeryResponse) {
           return ApplyLeaveResponse.fromJson(
@@ -615,7 +559,6 @@ class APIService {
         return null; //LoginResponseModel(token:"",Status:"Invalid/Wrong Login Details");
       }
     } catch (e) {
-      debugPrint(e.toString());
       e.toString();
     }
   }
@@ -623,15 +566,10 @@ class APIService {
   Future<dynamic> attendanceMarking(
       AttendanceMarkingRequest requestModel) async {
     try {
-      debugPrint(requestModel.getJson());
-      debugPrint(
-          Uri.parse(url + LocalStrings.GET_ATTENDANCE_MARKING).toString());
       final response = await http.post(
           Uri.parse(url + LocalStrings.GET_ATTENDANCE_MARKING),
           headers: commonHeaders,
           body: requestModel.getJson());
-      debugPrint(response.body);
-      debugPrint(requestModel.getJson());
       if (response.statusCode == 200 || response.statusCode == 400) {
         if (response.body is AttendanceSummeryResponse) {
           return AttendanceMarkingResponse.fromJson(
@@ -646,22 +584,16 @@ class APIService {
         return null; //LoginResponseModel(token:"",Status:"Invalid/Wrong Login Details");
       }
     } catch (e) {
-      debugPrint(e.toString());
       e.toString();
     }
   }
 
   Future<dynamic> outdoorRequisition(OutdoorRequest requestModel) async {
     try {
-      debugPrint(requestModel.toJson().toString());
-
-      debugPrint(
-          Uri.parse(url + LocalStrings.GET_OUTDOOR_REQUISITION).toString());
       final response = await http.post(
           Uri.parse(url + LocalStrings.GET_OUTDOOR_REQUISITION),
           headers: commonHeaders,
           body: requestModel.getJson());
-      debugPrint(response.body);
       if (response.statusCode == 200 || response.statusCode == 400) {
         if (response.body is AttendanceSummeryResponse) {
           return OutdoorResponse.fromJson(
@@ -676,7 +608,6 @@ class APIService {
         return null; //LoginResponseModel(token:"",Status:"Invalid/Wrong Login Details");
       }
     } catch (e) {
-      debugPrint(e.toString());
       e.toString();
     }
   }
@@ -684,14 +615,10 @@ class APIService {
   Future<dynamic> getAttendanceRequisitionMan(
       AttendanceMarkingManRequest requestModel) async {
     try {
-      debugPrint(requestModel.toJson().toString());
-      debugPrint(Uri.parse(url + LocalStrings.GET_ATTENDANCE_REQUISITION_MAN)
-          .toString());
       final response = await http.post(
           Uri.parse(url + LocalStrings.GET_ATTENDANCE_REQUISITION_MAN),
           headers: commonHeaders,
           body: requestModel.getJson());
-      debugPrint(response.body);
       if (response.statusCode == 200 || response.statusCode == 400) {
         if (response.body is AttendanceSummeryResponse) {
           return AttendanceMarkingManResponse.fromJson(
@@ -706,7 +633,6 @@ class APIService {
         return null; //LoginResponseModel(token:"",Status:"Invalid/Wrong Login Details");
       }
     } catch (e) {
-      debugPrint(e.toString());
       e.toString();
     }
   }
@@ -725,17 +651,10 @@ class APIService {
                     ? 'IOS'
                     : 'unknown'
       });
-      debugPrint('request body');
-      debugPrint(body);
-      debugPrint(
-          Uri.parse(url + LocalStrings.GET_APPROVE_ATTENDANCE_REQUISITION_NEW)
-              .toString());
       final response = await http.post(
           Uri.parse(url + LocalStrings.GET_APPROVE_ATTENDANCE_REQUISITION_NEW),
           headers: commonHeaders,
           body: body);
-      debugPrint(response.body);
-      debugPrint(response.statusCode.toString());
       if (response.statusCode == 200) {
         if (response.body is AttendanceSummeryResponse) {
           return ApproveAttendanceResponse.fromJson(
@@ -747,23 +666,19 @@ class APIService {
           );
         }
       } else {
-        debugPrint('NULL Response....');
         return null; //LoginResponseModel(token:"",Status:"Invalid/Wrong Login Details");
       }
     } catch (e) {
-      debugPrint(e.toString());
       e.toString();
     }
   }
 
   Future<dynamic> getEmployeeList() async {
     try {
-      debugPrint(Uri.parse(url + LocalStrings.GET_EMPLOYEE_LIST).toString());
       final response = await http.get(
         Uri.parse(url + LocalStrings.GET_EMPLOYEE_LIST),
         headers: commonHeaders,
       );
-      debugPrint(response.body);
       if (response.statusCode == 200 || response.statusCode == 400) {
         if (response.body is EmployeeListResponse) {
           return EmployeeListResponse.fromJson(
@@ -778,20 +693,16 @@ class APIService {
         return null; //LoginResponseModel(token:"",Status:"Invalid/Wrong Login Details");
       }
     } catch (e) {
-      debugPrint(e.toString());
       e.toString();
     }
   }
 
   Future<dynamic> getCVFCategoties(CVFCategoryRequest requestModel) async {
     try {
-      debugPrint(Uri.parse(url + LocalStrings.GET_CVF_CATEGORY).toString());
       final response = await http.post(
           Uri.parse(url + LocalStrings.GET_CVF_CATEGORY),
           headers: commonHeaders,
           body: requestModel.getJson());
-      debugPrint(requestModel.getJson());
-      debugPrint(response.body);
       if (response.statusCode == 200 || response.statusCode == 400) {
         if (response.body is CVFCategoryResponse) {
           return CVFCategoryResponse.fromJson(
@@ -806,20 +717,16 @@ class APIService {
         return null; //LoginResponseModel(token:"",Status:"Invalid/Wrong Login Details");
       }
     } catch (e) {
-      debugPrint(e.toString());
       e.toString();
     }
   }
 
   Future<dynamic> getCVFCenters(CentersRequestModel requestModel) async {
     try {
-      debugPrint(Uri.parse(url + LocalStrings.GET_CVF_CENTER_LIST).toString());
       final response = await http.post(
           Uri.parse(url + LocalStrings.GET_CVF_CENTER_LIST),
           headers: commonHeaders,
           body: requestModel.getJson());
-      debugPrint(requestModel.getJson());
-      debugPrint(response.body);
       if (response.statusCode == 200 || response.statusCode == 400) {
         if (response.body is CentersResponse) {
           return CentersResponse.fromJson(
@@ -834,19 +741,16 @@ class APIService {
         return null; //LoginResponseModel(token:"",Status:"Invalid/Wrong Login Details");
       }
     } catch (e) {
-      debugPrint(e.toString());
       e.toString();
     }
   }
 
   Future<dynamic> addNewPJP(AddPJPRequest requestModel) async {
     try {
-      debugPrint(Uri.parse(url + LocalStrings.SAVE_NEW_PJP).toString());
       final response = await http.post(
           Uri.parse(url + LocalStrings.SAVE_NEW_PJP),
           headers: commonHeaders,
           body: requestModel.getJson());
-      debugPrint(response.body);
       if (response.statusCode == 200 || response.statusCode == 400) {
         if (response.body is NewPJPResponse) {
           return NewPJPResponse.fromJson(
@@ -861,20 +765,17 @@ class APIService {
         return null; //LoginResponseModel(token:"",Status:"Invalid/Wrong Login Details");
       }
     } catch (e) {
-      debugPrint(e.toString());
       e.toString();
+      return null;
     }
   }
 
   Future<dynamic> saveCVF(AddCVFRequest requestModel) async {
     try {
-      debugPrint(Uri.parse(url + LocalStrings.SAVE_CVF_PJP).toString());
       final response = await http.post(
           Uri.parse(url + LocalStrings.SAVE_CVF_PJP),
           headers: commonHeaders,
           body: requestModel.getJson());
-      debugPrint(response.statusCode.toString());
-      debugPrint(response.body);
       if (response.statusCode == 200 || response.statusCode == 400) {
         if (response.body is NewCVFResponse) {
           return NewCVFResponse.fromJson(
@@ -889,20 +790,16 @@ class APIService {
         return null; //LoginResponseModel(token:"",Status:"Invalid/Wrong Login Details");
       }
     } catch (e) {
-      debugPrint(e.toString());
       e.toString();
     }
   }
 
   Future<dynamic> getCVFQuestions(QuestionsRequest requestModel) async {
     try {
-      debugPrint(Uri.parse(url + LocalStrings.GET_CVF_QUESTIONS).toString());
       final response = await http.post(
           Uri.parse(url + LocalStrings.GET_CVF_QUESTIONS),
           headers: commonHeaders,
           body: requestModel.getJson());
-      debugPrint(requestModel.toJson().toString());
-      //debugPrint(response.body);
       if (response.statusCode == 200 || response.statusCode == 400) {
         if (response.body is QuestionResponse) {
           return QuestionResponse.fromJson(
@@ -917,24 +814,21 @@ class APIService {
         return null; //LoginResponseModel(token:"",Status:"Invalid/Wrong Login Details");
       }
     } catch (e) {
-      debugPrint(e.toString());
       e.toString();
     }
   }
 
   Future<dynamic> getPJPList(PJPListRequest requestModel) async {
     try {
-      print('pjp list ');
+      
       final response = await http.post(
           Uri.parse(url + LocalStrings.GET_PJP_LIST),
           headers: commonHeaders,
           body: requestModel.getJson());
-      print('RRR ${response.body.toString()}');
-      print('status ${response.statusCode}');
-      print('url ${Uri.parse(url + LocalStrings.GET_PJP_LIST)}');
+      
       if (response.statusCode == 200 || response.statusCode == 400) {
         String data = response.body.replaceAll('null', '"NA"');
-        print('data $data');
+      
         return PjpListResponse.fromJson(
           json.decode(data),
         );
@@ -942,7 +836,6 @@ class APIService {
         return null; //LoginResponseModel(token:"",Status:"Invalid/Wrong Login Details");
       }
     } catch (e) {
-      debugPrint(e.toString());
       e.toString();
     }
   }
@@ -950,13 +843,12 @@ class APIService {
   Future<dynamic> getPJPExceptionalList(
       PJPExceptionalRequest requestModel) async {
     try {
-      print('pjp list ');
+      
       final response = await http.post(
           Uri.parse(url + LocalStrings.GET_PJP_EXCEPTIONAL_LIST),
           headers: commonHeaders,
           body: requestModel.getJson());
-      print('RRR ${response.body.toString()}');
-      print('status ${response.statusCode}');
+      
       if (response.statusCode == 200 || response.statusCode == 400) {
         return PjpExceptionalResponse.fromJson(
           json.decode(response.body),
@@ -965,24 +857,20 @@ class APIService {
         return null;
       }
     } catch (e) {
-      debugPrint(e.toString());
       e.toString();
     }
   }
 
   Future<dynamic> getPJPReport(PJPReportRequest requestModel) async {
     try {
-      //debugPrint('in getPJP list ');
-      debugPrint(Uri.parse(url + LocalStrings.GET_PJP_REPORT).toString());
       final response = await http.post(
           Uri.parse(url + LocalStrings.GET_PJP_REPORT),
           headers: commonHeaders,
           body: requestModel.getJson());
-      print(response.body);
-      print(response.statusCode);
+      
       if (response.statusCode == 200 || response.statusCode == 400) {
         String data = response.body.replaceAll('null', '"NA"');
-        print(data);
+      
         return PjpListResponse.fromJson(
           json.decode(data),
         );
@@ -990,16 +878,12 @@ class APIService {
         return null;
       }
     } catch (e) {
-      debugPrint(e.toString());
       e.toString();
     }
   }
 
   Future<dynamic> getPJPMYTEAMReport(PJPReportRequest requestModel) async {
     try {
-      //debugPrint('in getPJP list ');
-      debugPrint(
-          Uri.parse(url + LocalStrings.GET_PJP_MYTEAM_REPORT).toString());
       final response = await http.post(
           Uri.parse(url + LocalStrings.GET_PJP_MYTEAM_REPORT),
           headers: commonHeaders,
@@ -1009,7 +893,6 @@ class APIService {
 
       if (response.statusCode == 200 || response.statusCode == 400) {
         String data = response.body.replaceAll('null', '"NA"');
-        // print(data);
         return PjpListResponse.fromJson(
           json.decode(data),
         );
@@ -1017,20 +900,16 @@ class APIService {
         return null;
       }
     } catch (e) {
-      debugPrint(e.toString());
       e.toString();
     }
   }
 
   Future<dynamic> getEmployeeListPJP(EmployeeListRequest requestModel) async {
     try {
-      debugPrint(Uri.parse(url + LocalStrings.GET_PJP_EMPLOYEELIST).toString());
       final response = await http.post(
           Uri.parse(url + LocalStrings.GET_PJP_EMPLOYEELIST),
           headers: commonHeaders,
           body: requestModel.getJson());
-      debugPrint(requestModel.getJson());
-      debugPrint(response.body);
       if (response.statusCode == 200 || response.statusCode == 400) {
         if (response.body is EmployeeListPJPResponse) {
           return EmployeeListPJPResponse.fromJson(
@@ -1045,7 +924,6 @@ class APIService {
         return null; //LoginResponseModel(token:"",Status:"Invalid/Wrong Login Details");
       }
     } catch (e) {
-      debugPrint(e.toString());
       e.toString();
     }
   }
@@ -1056,11 +934,8 @@ class APIService {
           Uri.parse(url + LocalStrings.GET_ALL_CVF),
           headers: commonHeaders,
           body: requestModel.getJson());
-      debugPrint(LocalStrings.GET_ALL_CVF);
-      debugPrint(response.body);
       if (response.statusCode == 200 || response.statusCode == 400) {
         String data = response.body.replaceAll('null', 'NA');
-        debugPrint(data);
         if (response.body is GetAllCVFResponse) {
           return GetAllCVFResponse.fromJson(
             json.decode(data),
@@ -1074,20 +949,16 @@ class APIService {
         return null; //LoginResponseModel(token:"",Status:"Invalid/Wrong Login Details");
       }
     } catch (e) {
-      debugPrint(e.toString());
       e.toString();
     }
   }
 
   Future<dynamic> saveCVFAnswers(SaveCVFAnswers requestModel) async {
     try {
-      debugPrint(Uri.parse(url + LocalStrings.GET_SAVE_CVF_ANSWERS).toString());
       final response = await http.post(
           Uri.parse(url + LocalStrings.GET_SAVE_CVF_ANSWERS),
           headers: commonHeaders,
           body: requestModel.getJson());
-      debugPrint(requestModel.getJson());
-      //debugPrint(response.body);
       if (response.statusCode == 200 || response.statusCode == 400) {
         if (response.body is CVFAnswersResponse) {
           return CVFAnswersResponse.fromJson(
@@ -1102,21 +973,16 @@ class APIService {
         return null; //LoginResponseModel(token:"",Status:"Invalid/Wrong Login Details");
       }
     } catch (e) {
-      debugPrint(e.toString());
       e.toString();
     }
   }
 
   Future<dynamic> updateCVFStatus(UpdateCVFStatusRequest requestModel) async {
     try {
-      debugPrint(
-          Uri.parse(url + LocalStrings.GET_UPDATE_CVF_STATUS).toString());
       final response = await http.post(
           Uri.parse(url + LocalStrings.GET_UPDATE_CVF_STATUS),
           headers: commonHeaders,
           body: requestModel.getJson());
-      //debugPrint(requestModel.toJson());
-      //debugPrint(response.body);
       if (response.statusCode == 200 || response.statusCode == 400) {
         if (response.body is UpdateCVFStatusResponse) {
           return UpdateCVFStatusResponse.fromJson(
@@ -1131,19 +997,42 @@ class APIService {
         return null; //LoginResponseModel(token:"",Status:"Invalid/Wrong Login Details");
       }
     } catch (e) {
-      debugPrint(e.toString());
       e.toString();
     }
   }
 
+  Future<dynamic> cancelCVF(
+      int pjpId, String docXml, int userId, bool isCancel) async {
+    try {
+      var body = jsonEncode({
+        'PJP_Id': pjpId,
+        'DocXml': docXml,
+        'UserId': userId,
+        'IsCancelled': isCancel ? 1 : 0,
+        'AppType': kIsWeb
+            ? 'Web'
+            : Platform.isAndroid
+                ? 'Android'
+                : Platform.isIOS
+                    ? 'IOS'
+                    : 'unknown'
+      });
+      final response = await http.post(
+          Uri.parse(url + LocalStrings.UPDATE_PJPCVF),
+          headers: commonHeaders,
+          body: body);
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      }
+    } catch (_) {}
+  }
+
   Future<dynamic> getMyReports(MyReportRequest requestModel) async {
     try {
-      debugPrint(Uri.parse(url + LocalStrings.GET_GETPJPREPORT).toString());
       final response = await http.post(
           Uri.parse(url + LocalStrings.GET_GETPJPREPORT),
           headers: commonHeaders,
           body: requestModel.getJson());
-      debugPrint(response.body);
       if (response.statusCode == 200 || response.statusCode == 400) {
         if (response.body is MyReportResponse) {
           return MyReportResponse.fromJson(
@@ -1158,19 +1047,16 @@ class APIService {
         return null; //LoginResponseModel(token:"",Status:"Invalid/Wrong Login Details");
       }
     } catch (e) {
-      debugPrint(e.toString());
       e.toString();
     }
   }
 
   Future<dynamic> updatePjpStatus(UpdatePJPStatusRequest requestModel) async {
     try {
-      debugPrint(Uri.parse(url + LocalStrings.UPDATE_MODIFY_STATUS).toString());
       final response = await http.post(
           Uri.parse(url + LocalStrings.UPDATE_MODIFY_STATUS),
           headers: commonHeaders,
           body: requestModel.getJson());
-      debugPrint(response.body);
       if (response.statusCode == 200 || response.statusCode == 400) {
         if (response.body is UpdatePJPStatusResponse) {
           return UpdatePJPStatusResponse.fromJson(
@@ -1185,7 +1071,6 @@ class APIService {
         return null; //LoginResponseModel(token:"",Status:"Invalid/Wrong Login Details");
       }
     } catch (e) {
-      debugPrint(e.toString());
       e.toString();
     }
   }
@@ -1193,13 +1078,10 @@ class APIService {
   Future<dynamic> updatePjpStatusList(
       UpdatePJPStatusListRequest requestModel) async {
     try {
-      debugPrint(Uri.parse(url + LocalStrings.UPDATE_MODIFY_STATUS_MULTIPLE)
-          .toString());
       final response = await http.post(
           Uri.parse(url + LocalStrings.UPDATE_MODIFY_STATUS_MULTIPLE),
           headers: commonHeaders,
           body: requestModel.getJson());
-      debugPrint(response.body);
       if (response.statusCode == 200 || response.statusCode == 400) {
         if (response.body is GeneralResponse) {
           return GeneralResponse.fromJson(
@@ -1214,7 +1096,6 @@ class APIService {
         return null; //LoginResponseModel(token:"",Status:"Invalid/Wrong Login Details");
       }
     } catch (e) {
-      debugPrint(e.toString());
       e.toString();
     }
   }
@@ -1222,14 +1103,10 @@ class APIService {
   Future<dynamic> updatePjpStatusExceptionalList(
       UpdatePJPStatusListRequest requestModel) async {
     try {
-      print(
-          Uri.parse(url + LocalStrings.UPDATE_PJP_EXCEPTIONAL_LIST).toString());
       final response = await http.post(
           Uri.parse(url + LocalStrings.UPDATE_PJP_EXCEPTIONAL_LIST),
           headers: commonHeaders,
           body: requestModel.getExJson());
-      print(requestModel.getExJson());
-      print(response.body);
       if (response.statusCode == 200 || response.statusCode == 400) {
         if (response.body is GeneralResponse) {
           return GeneralResponse.fromJson(
@@ -1244,21 +1121,14 @@ class APIService {
         return null; //LoginResponseModel(token:"",Status:"Invalid/Wrong Login Details");
       }
     } catch (e) {
-      debugPrint(e.toString());
       e.toString();
     }
   }
 
   Future<dynamic> updateFCM(FcmRequestModel requestModel) async {
     try {
-      debugPrint(Uri.parse(url + LocalStrings.UPDATE_FCM).toString());
-      debugPrint(requestModel.getJson());
       final response = await http.post(Uri.parse(url + LocalStrings.UPDATE_FCM),
           headers: commonHeaders, body: requestModel.getJson());
-      print('FCM--Updatting fcm token');
-      print('FCM--${response.body}');
-      print('FCM--${response.request!.url}');
-      print('FCM--${requestModel.toJson()}');
       if (response.statusCode == 200 || response.statusCode == 400) {
         if (response.body is FcmResponse) {
           return FcmResponse.fromJson(
@@ -1273,20 +1143,16 @@ class APIService {
         return null; //LoginResponseModel(token:"",Status:"Invalid/Wrong Login Details");
       }
     } catch (e) {
-      debugPrint(e.toString());
       e.toString();
     }
   }
 
   Future<dynamic> getPhpByDate(CheckPhpRequest requestModel) async {
     try {
-      debugPrint(Uri.parse(url + LocalStrings.GET_PHPSTATUSBYEMPID).toString());
-      debugPrint(requestModel.toJson());
       final response = await http.post(
           Uri.parse(url + LocalStrings.GET_PHPSTATUSBYEMPID),
           headers: commonHeaders,
           body: requestModel.toJson());
-      debugPrint(response.body);
       if (response.statusCode == 200 || response.statusCode == 400) {
         if (response.body is PJPListResponse) {
           return PJPListResponse.fromJson(
@@ -1301,7 +1167,6 @@ class APIService {
         return null; //LoginResponseModel(token:"",Status:"Invalid/Wrong Login Details");
       }
     } catch (e) {
-      debugPrint(e.toString());
       e.toString();
     }
   }
@@ -1312,8 +1177,6 @@ class APIService {
     File? targetFile;
     if (!isVideoFile) {
       File file = File(filepath);
-      print('start compresition....');
-      print('befour ${file.lengthSync()}');
       String dir = (await getTemporaryDirectory()).path;
 
       targetFile = File('$dir/${DateTime.now().millisecondsSinceEpoch}.jpeg');
@@ -1328,12 +1191,9 @@ class APIService {
           // await progress(bytes, totalBytes);
         },
       );
-      print('after compression ${await fileResult?.length() as int}');
-
       if (awsFileUpload is UploadImageResponse) {
         return Right(awsFileUpload);
       } else {
-        print('in else awes');
         String? result = await AwsS3.uploadFile(
           accessKey: "AKIAU6ELV2UB4Z6KRIHM",
           secretKey: "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",
@@ -1346,8 +1206,6 @@ class APIService {
           metadata: {"accept-encoding": "gzip"},
         );
         targetFile.deleteSync();
-        print('completed....');
-        print(result);
         UploadImageResponse response = UploadImageResponse.fromJson(
           json.decode(result!) as Map<String, dynamic>,
         );
@@ -1375,19 +1233,15 @@ class APIService {
             // 'Content-Type': 'multipart/form-data',
           }),
           onReceiveProgress: (count, total) async {
-            debugPrint(
-                'onReceiveProgress is getting called - $count and $total');
             // await progress(count, total);
           },
           onSendProgress: (count, total) async {
-            //debugPrint('onSendProgress is getting called - $count and $total');
             await progress(count, total);
           },
         );
 
         if (dynFileUpload.statusCode == 200) {
           try {
-            //debugPrint('Response from dyntube api is - $dynFileUpload');
             final fileID = dynFileUpload.data['videoId'];
             // Future.delayed(const Duration(seconds: 2));
             var fileLocation =
@@ -1398,22 +1252,18 @@ class APIService {
                     }));
             if (fileLocation.statusCode == 200) {
               log('Response from Location api is - ${fileLocation.data}');
-              //debugPrint('Response from Location is - ${fileLocation.data['hlsLink']}');
               return Right(
                   'https://api.dyntube.com/v1/apps/hls/${fileLocation.data['hlsLink']}.m3u8');
             } else {
               return Left(fileLocation.toString());
             }
           } catch (e) {
-            debugPrint(
-                'error while getting location of  file - ${e.toString()}');
             return Left(e.toString());
           }
         } else {
           return Left(dynFileUpload.toString());
         }
       } catch (e) {
-        debugPrint('error while uploading file - ${e.toString()}');
         return Left(e.toString());
       }
     }
@@ -1424,7 +1274,6 @@ class APIService {
       {onClickListener? listener,
       bool isVideoFile = false,
       Function(int bytes, int totalBytes)? progress}) async {
-    print('uploading images ...');
     isVideoFile = image.contains('.mp4') ? true : false;
     var result = await uploadFileDYNTube(
       image,
@@ -1503,7 +1352,6 @@ class APIService {
           try {
             var responseData = await response.stream.toBytes();
             var responseString = String.fromCharCodes(responseData);
-            print('Response OK');
             listener?.onClick(
                 Utility.ACTION_IMAGE_UPLOAD_RESPONSE_OK,
                 UploadImageResponse.fromJson(
@@ -1514,15 +1362,12 @@ class APIService {
               json.decode(responseString) as Map<String, dynamic>,
             ));
           } catch (e) {
-            print('error');
-            print(e.toString());
             listener?.onClick(
                 Utility.ACTION_IMAGE_UPLOAD_RESPONSE_ERROR, e.toString());
             eitherReturn = Left(e.toString());
           }
         });
       }, (right) {
-        print('Response OK Right');
         listener?.onClick(Utility.ACTION_IMAGE_UPLOAD_RESPONSE_OK, right);
         eitherReturn = Right(right);
       });
@@ -1532,59 +1377,42 @@ class APIService {
 
   Future<dynamic> updateTaskDetails(UpdateBpmsTaskRequest requestModel) async {
     try {
-      //print(getHeader(''));
       final response = await http.post(
           Uri.parse(bpms_url + LocalStrings.API_UPDATE_TASKDETAILS),
           headers: getHeader(''),
           body: requestModel.toJson());
-      print(requestModel.toJson());
-      print(response.request!.url);
-      print(response.statusCode);
-      //print(response.body);
       if (response.statusCode == 200) {
         return UpdateBpmsTaskResponse.fromJson(
           json.decode(response.body) as Map<String, dynamic>,
         );
       } else {
-        print('statusCode null');
         return null;
       }
     } catch (e) {
-      print('error e');
-      print(e.toString());
       e.toString();
     }
   }
 
   Future<dynamic> sendCredentials(SendCredentialsRequest requestModel) async {
     try {
-      //print(getHeader(''));
       final response = await http.post(
           Uri.parse(bpms_url + LocalStrings.API_SEND_CREDENTIALS),
           headers: getHeader(''),
           body: requestModel.toJson());
-      print(requestModel.toJson());
-      print(response.request!.url);
-      print(response.statusCode);
-      //print(response.body);
       if (response.statusCode == 200) {
         return CommonResponse.fromJson(
           json.decode(response.body) as Map<String, dynamic>,
         );
       } else {
-        print('SendCredentialResponse null');
         return null;
       }
     } catch (e) {
-      print('SendCredentialResponse error e');
-      print(e.toString());
       e.toString();
     }
   }
 
   Future<dynamic> changePassword(ChangePasswordRequest requestModel) async {
     try {
-      //print(getHeader(''));
       final response = await http.post(
           Uri.parse(url + LocalStrings.API_CHANGE_PASSWORD),
           headers: getHeader(''),
@@ -1595,12 +1423,9 @@ class APIService {
           json.decode(response.body) as Map<String, dynamic>,
         );
       } else {
-        print('SendCredentialResponse null');
         return null;
       }
     } catch (e) {
-      print('SendCredentialResponse error e');
-      print(e.toString());
       e.toString();
     }
   }
@@ -1608,26 +1433,18 @@ class APIService {
   Future<dynamic> insertTaskAttachment(
       InsertTaskAttachmentRequest requestModel) async {
     try {
-      print(getHeader(''));
       final response = await http.post(
           Uri.parse(bpms_url + LocalStrings.API_INSERT_ATTACHMENT),
           headers: getHeader(''),
           body: requestModel.toJson());
-      print(requestModel.toJson());
-      print(response.request!.url);
-      print(response.statusCode);
-      //print(response.body);
       if (response.statusCode == 200) {
         return InsertTaskAttachmentResponse.fromJson(
           json.decode(response.body) as Map<String, dynamic>,
         );
       } else {
-        print('statusCode null');
         return null;
       }
     } catch (e) {
-      print('statusCode null error');
-      print(e.toString());
       e.toString();
       return null;
     }
@@ -1656,25 +1473,18 @@ class APIService {
 
   dynamic getCommunication(GetCommunicationRequest requestModel) async {
     try {
-      print('Header -- ${getHeader('')}');
       final response = await http.post(
           Uri.parse(bpms_url + LocalStrings.API_GET_COMMUNICATION),
           headers: getHeader(''),
           body: requestModel.toJson());
-      print(requestModel.toJson());
-      print(response.request!.url);
-      print(response.statusCode);
-      print('2914 response ${response.body}');
       if (response.statusCode == 200) {
         return GetCommunicationResponse.fromJson(
           json.decode(response.body) as Map<String, dynamic>,
         );
       } else {
-        print('statusCode null');
         return null;
       }
     } catch (e) {
-      print(e.toString());
       e.toString();
     }
     return null;
@@ -1682,25 +1492,18 @@ class APIService {
 
   Future<dynamic> getTaskComments(GetTaskCommentRequest requestModel) async {
     try {
-      print(getHeader(''));
       final response = await http.post(
           Uri.parse(bpms_url + LocalStrings.API_GET_COMMENTS),
           headers: getHeader(''),
           body: requestModel.toJson());
-      print(requestModel.toJson());
-      //print(response.request!.url);
-      //print(response.statusCode);
-      //print(response.body);
       if (response.statusCode == 200) {
         return GetCommentResponse.fromJson(
           json.decode(response.body) as Map<String, dynamic>,
         );
       } else {
-        print('statusCode null');
         return null;
       }
     } catch (e) {
-      print(e.toString());
       e.toString();
     }
   }
@@ -1708,15 +1511,10 @@ class APIService {
   Future<GetTaskDetailsResponseModel> getBPMSTaskDetails(
       GetTaskDetailsRequest requestModel) async {
     try {
-      print(getHeader(''));
       final response = await http.post(
           Uri.parse(bpms_url + LocalStrings.API_GET_TASKDETAILS),
           headers: getHeader(''),
           body: requestModel.toJson());
-      print(requestModel.toJson());
-      print(response.request!.url);
-      print(response.statusCode);
-      //print(response.body);
       if (response.statusCode == 200) {
         return GetTaskDetailsResponseModel.fromJson(
           json.decode(response.body) as Map<String, dynamic>,
@@ -1725,7 +1523,6 @@ class APIService {
         return GetTaskDetailsResponseModel(success: 400, taskDetail: []);
       }
     } catch (e) {
-      print(e.toString());
       e.toString();
       return GetTaskDetailsResponseModel(success: 401, taskDetail: []);
     }
@@ -1733,7 +1530,6 @@ class APIService {
 
   dynamic getFranDetailInfo(GetFranchiseeDetailsRequest requestModel) async {
     try {
-      print('getFranDetails ....');
       final response = await http.post(
           Uri.parse(bpms_url + LocalStrings.API_GET_FRANCHISEEDETAILS),
           headers: getHeader(''),
@@ -1744,18 +1540,15 @@ class APIService {
           json.decode(response.body) as Map<String, dynamic>,
         );
       } else {
-        print('statusCode null');
         return 500;
       }
     } catch (e) {
-      print(e.toString());
       e.toString();
     }
   }
 
   dynamic getBpmsStats(BpmsStatRequest requestModel) async {
     try {
-      print('Header -- ${getHeader('')}');
       final response = await http.post(
           Uri.parse(bpms_url + LocalStrings.API_GET_BPMS_COUNTS),
           headers: getHeader(''),
@@ -1766,11 +1559,9 @@ class APIService {
           json.decode(response.body) as Map<String, dynamic>,
         );
       } else {
-        print('ProjectStatsResponse null');
         return null;
       }
     } catch (e) {
-      print(e.toString());
       e.toString();
     }
     return null;
@@ -1778,7 +1569,6 @@ class APIService {
 
   dynamic getAllProject(BpmsStatRequest requestModel) async {
     try {
-      print('Header -- ${getHeader('')}');
       final response = await http.post(
           Uri.parse(bpms_url + LocalStrings.API_GET_BPMS_ALL_PROJECTS),
           headers: getHeader(''),
@@ -1789,11 +1579,9 @@ class APIService {
           json.decode(response.body) as Map<String, dynamic>,
         );
       } else {
-        print('ProjectResponse null');
         return null;
       }
     } catch (e) {
-      print(e.toString());
       e.toString();
     }
     return null;
@@ -1801,15 +1589,10 @@ class APIService {
 
   dynamic getProjectByStatus(BpmsStatRequest requestModel) async {
     try {
-      print('Header -- ${getHeader('')}');
       final response = await http.post(
           Uri.parse(bpms_url + LocalStrings.API_GET_BPMS_PROJECTS_BYSTATUS),
           headers: getHeader(''),
           body: requestModel.toStatusJson());
-      print(bpms_url + LocalStrings.API_GET_BPMS_PROJECTS_BYSTATUS);
-      print(requestModel.toStatusJson());
-      print(response.body.toString());
-      print(response.statusCode);
       if (response.statusCode == 200) {
         try {
           if (requestModel.status == 0) {
@@ -1821,15 +1604,11 @@ class APIService {
               json.decode(response.body) as Map<String, dynamic>,
             );
           }
-        } catch (e) {
-          print(e.toString());
-        }
+        } catch (_) {}
       } else {
-        print('ProjectResponse null');
         return null;
       }
     } catch (e) {
-      print(e.toString());
       e.toString();
     }
     return null;
@@ -1837,7 +1616,6 @@ class APIService {
 
   dynamic getAllProjectTask(BpmsTaskRequest requestModel) async {
     try {
-      print('Header -- ${getHeader('')}');
       final response = await http.post(
           Uri.parse(bpms_url + LocalStrings.API_GET_BPMS_ALL_PROJECTTASK),
           headers: getHeader(''),
@@ -1848,11 +1626,9 @@ class APIService {
           json.decode(response.body) as Map<String, dynamic>,
         );
       } else {
-        print('ProjectResponse null');
         return null;
       }
     } catch (e) {
-      print(e.toString());
       e.toString();
     }
     return null;
@@ -1863,17 +1639,14 @@ class APIService {
       final response = await http.post(
           Uri.parse(bpms_url + LocalStrings.API_INSERT_BPMS_STATUS),
           headers: getHeader(''));
-      print('getBPMSStatus $response');
       if (response.statusCode == 200) {
         return ProjectStatusResponse.fromJson(
           json.decode(response.body) as Map<String, dynamic>,
         );
       } else {
-        print('getBPMSStatus null');
         return null;
       }
     } catch (e) {
-      print(e.toString());
       e.toString();
     }
     return null;
@@ -1885,18 +1658,14 @@ class APIService {
           Uri.parse(bpms_url + LocalStrings.API_INSERT_BPMS_NEW_TASK),
           headers: getHeader(''),
           body: request.toJson());
-      print('addNewTask request ${request.toJson()}');
-      print('addNewTask $response');
       if (response.statusCode == 200) {
         return AddNewTaskResponse.fromJson(
           json.decode(response.body) as Map<String, dynamic>,
         );
       } else {
-        print('addNewTask null');
         return null;
       }
     } catch (e) {
-      print(e.toString());
       e.toString();
     }
     return null;
@@ -1908,18 +1677,14 @@ class APIService {
           Uri.parse(bpms_url + LocalStrings.API_BPMS_DELETETASK),
           headers: getHeader(''),
           body: request.toJson());
-      print('delte request ${request.toJson()}');
-      print('deleteTask ${response.toString()}');
       if (response.statusCode == 200) {
         return CommonResponse.fromJson1(
           json.decode(response.body) as Map<String, dynamic>,
         );
       } else {
-        print('addNewTask null');
         return null;
       }
     } catch (e) {
-      print(e.toString());
       e.toString();
     }
     return null;
@@ -1937,8 +1702,6 @@ class APIService {
           headers: {"content-type": "application/json", "dbid": "1"},
           body: body);
 
-      debugPrint('getRecipientList response: ${response.body}');
-
       if (response.statusCode == 200) {
         final Map<String, dynamic> responseBody = json.decode(response.body);
         if (responseBody['success'] == 200 || responseBody['success'] == true) {
@@ -1950,7 +1713,6 @@ class APIService {
         return ZohoRequestModel.setError('Something went wrong.');
       }
     } catch (e) {
-      debugPrint('Exception in getRecipientList - ${e.toString()}');
       return ZohoRequestModel.setError('Something went wrong.');
     }
   }
@@ -1995,7 +1757,6 @@ class APIService {
         // final response = await http.Response.fromStream(streamedResponse);
 
         if (response.statusCode == 200 || response.statusCode == 201) {
-          debugPrint('Zoho response body - ${response.body}');
           final decodedBody = jsonDecode(response.body);
           if (decodedBody['data'] != null &&
               decodedBody['data']['output'] != null) {
@@ -2012,8 +1773,6 @@ class APIService {
 
             if (batchModel.requests != null &&
                 batchModel.requests!.isNotEmpty) {
-              print(
-                  'BatchModel Requests length - ${batchModel.requests!.length}');
               allRequests.addAll(batchModel.requests!);
             } else {
               // break;
@@ -2024,11 +1783,9 @@ class APIService {
               break;
             }
           } else {
-            debugPrint('No output in response details');
             break;
           }
         } else {
-          debugPrint('Error in batch - ${response.body}');
           if (allRequests.isEmpty) {
             return ZohoRequestModel.setError('Something went wrong.');
           }
@@ -2038,7 +1795,6 @@ class APIService {
 
       return ZohoRequestModel(requests: allRequests, totalCount: totalCount);
     } catch (e) {
-      debugPrint('Exception in getRecipientList - ${e.toString()}');
       return ZohoRequestModel.setError('Something went wrong.');
     }
   } */
@@ -2072,7 +1828,6 @@ class APIService {
         final response = await http.Response.fromStream(streamedResponse);
 
         if (response.statusCode == 200) {
-          debugPrint('Zoho response body - ${response.body}');
           final decodedBody = jsonDecode(response.body);
           if (decodedBody['details'] != null &&
               decodedBody['details']['output'] != null) {
@@ -2089,8 +1844,6 @@ class APIService {
 
             if (batchModel.requests != null &&
                 batchModel.requests!.isNotEmpty) {
-              print(
-                  'BatchModel Requests length - ${batchModel.requests!.length}');
               allRequests.addAll(batchModel.requests!);
             } else {
               // break;
@@ -2101,11 +1854,9 @@ class APIService {
               break;
             }
           } else {
-            debugPrint('No output in response details');
             break;
           }
         } else {
-          debugPrint('Error in batch - ${response.body}');
           if (allRequests.isEmpty) {
             return ZohoRequestModel.setError('Something went wrong.');
           }
@@ -2115,7 +1866,6 @@ class APIService {
 
       return ZohoRequestModel(requests: allRequests, totalCount: totalCount);
     } catch (e) {
-      debugPrint('Exception in getRecipientList - ${e.toString()}');
       return ZohoRequestModel.setError('Something went wrong.');
     }
   } */
@@ -2133,18 +1883,12 @@ class APIService {
       var response = await request.send();
       var responseData = await response.stream.toBytes();
       var responseString = String.fromCharCodes(responseData);
-      debugPrint(
-          'Zoho View Detail response body - $responseString $requestId $actionId  ${response.statusCode}');
-
       if (response.statusCode == 200) {
         return Right(responseString);
       } else {
-        debugPrint('Error - $responseString');
         return Left(jsonDecode(responseString)['message'] ?? responseString);
       }
     } catch (e) {
-      debugPrint('Exception - ${e.toString()}');
-
       return Left(e.toString());
     }
   }

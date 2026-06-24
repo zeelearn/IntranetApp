@@ -33,13 +33,10 @@ class _BPMSDashboard extends  ConsumerState<BPMSDashboard> {
   loadCounts() async{
     var box = await Utility.openBox();
     if(box.get(LocalConstant.KEY_EMPLOYEE_ID)!=null) {
-      print('in if emoloyee found');
       String uid = box.get(LocalConstant.KEY_EMPLOYEE_ID) as String;
       int frid = box.get(LocalConstant.KEY_FRANCHISEE_ID) as int;
       displayName = '${box.get(LocalConstant.KEY_FIRST_NAME) as String} ${box.get(LocalConstant.KEY_LAST_NAME) as String}';
-      print('in if emoloyee found ${frid}');
       ProjectStatsModel response = await ref.read(authNotifierProvider.notifier).getStats(frid.toString());
-      print('in if response ${response}');
       setState(() {
         isLoading=false;
       });
@@ -103,7 +100,6 @@ class _BPMSDashboard extends  ConsumerState<BPMSDashboard> {
   @override
   Widget build(BuildContext context) {
     final auth = ref.watch(authNotifierProvider);
-    print('isLoading ${auth.loading}');
     return Scaffold(
         extendBodyBehindAppBar: true,
         backgroundColor: Colors.white,

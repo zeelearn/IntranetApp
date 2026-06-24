@@ -14,7 +14,6 @@ class PasswordBloc extends Bloc<PasswordEvent, PasswordState> {
 
   @override
   Stream<PasswordState> mapEventToState(PasswordEvent event) async* {
-    debugPrint("Map event ==============");
     if (event is ChangePasswordEvent) {
       if (event.currentPassword.isEmpty) {
         yield EmptyCurrentPasswordState();

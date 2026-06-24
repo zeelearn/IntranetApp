@@ -12,6 +12,7 @@ import 'package:Intranet/pages/home/change_password_request.dart';
 import 'package:Intranet/pages/leave/leave_list.dart';
 import 'package:Intranet/pages/notification/UserNotification.dart';
 import 'package:Intranet/pages/outdoor/outdoor_list.dart';
+import 'package:Intranet/pages/pjp/cvf/v2/cvf.dart';
 import 'package:Intranet/pages/pjp/models/PjpModel.dart';
 import 'package:Intranet/pages/pjp/mypjp.dart';
 import 'package:Intranet/pages/userinfo/employee_list.dart';
@@ -19,8 +20,11 @@ import 'package:app_links/app_links.dart';
 import 'package:app_version_update/app_version_update.dart';
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:device_info_plus/device_info_plus.dart';
+import 'package:expensestracker/presentation/controllers/dashboard/dashboard_binding.dart';
+import 'package:expensestracker/presentation/controllers/dashboard/dashboard_page_controller.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -261,7 +265,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
     hiveBox = await Utility.openBox();
     await Hive.openBox(LocalConstant.KidzeeDB);
     var loginresponse = hiveBox.get(LocalConstant.KEY_LOGIN_RESPONSE);
-    debugPrint('login Response is : ' + loginresponse);
+    
     try {
       LoginResponseModel response = LoginResponseModel.fromJson(
         json.decode(loginresponse),
@@ -274,7 +278,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
       //   Utility().showBusinessNotMappedDialog(context);
       //   return;
       // }
-      debugPrint('response received.....');
+      
       businessApplications.addAll(response.responseData.businessApplications);
       if (_currentBusinessName.isNotEmpty && businessApplications.isNotEmpty) {
         _currentBusinessName = businessApplications[0].businessName;
@@ -346,7 +350,11 @@ class _IntranetHomePageState extends State<IntranetHomePage>
   void initState() {
     WidgetsBinding.instance.addObserver(this);
     super.initState();
-    debugPrint('initstate ======================');
+    
+    if (!Get.isRegistered<DashboardPageController>()) {
+      DashboardBinding().dependencies();
+    }
+    
     _selectedDay = _focusedDay;
     //_selectedEvents = ValueNotifier(_getEventsForDay(_selectedDay!));
     //addEvent();
@@ -1239,6 +1247,8 @@ class _IntranetHomePageState extends State<IntranetHomePage>
 
   @override
   Widget build(BuildContext context) {
+    final controller = Get.find<DashboardPageController>();
+    controller.getMaxAdvanceLimit(employeeCode.toString());
     EasyLoading.init();
     FirebaseAnalyticsUtils().enableAnytics();
     FirebaseAnalyticsUtils().sendAnalyticsEvent('HomeScreen');
@@ -1434,7 +1444,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
       case MENU_PJP:
         return MyPjpListScreen(mFilterSelection: widget.mPjpFilters);
       case MENU_CVF:
-        return MyCVFListScreen();
+        return MyCVFListScreenV2();
         break;
       default:
         return _homeScreen(context);
@@ -1503,7 +1513,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
             onTap: () {
               debugPrint('CVF CLICKED');
               Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => MyCVFListScreen()));
+                  MaterialPageRoute(builder: (context) => MyCVFListScreenV2()));
             },
             child: /*Expanded(
                   child:*/
@@ -1771,10 +1781,8 @@ class _IntranetHomePageState extends State<IntranetHomePage>
                   }
                 : () {
                     Navigator.pop(context);
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => MyCVFListScreen()));
+                    Navigator.push(context,
+                        MaterialPageRoute(builder: (context) => MyCVFListScreenV2()));
                   },
           ),
         ),

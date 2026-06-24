@@ -95,7 +95,6 @@ class _SelectedMonthPlannerState extends State<SelectedMonthPlanner> {
         calendarColor: null,
         localAccountName: 'Local Intranet',
       );
-      debugPrint('response from create calendar is - ${result.data}');
       if (result.isSuccess) {
         calendarId = result.data;
       }
@@ -126,9 +125,7 @@ class _SelectedMonthPlannerState extends State<SelectedMonthPlanner> {
           return;
         }
       }
-    } on PlatformException catch (e, s) {
-      debugPrint('RETRIEVE_CALENDARS: $e, $s');
-    }
+    } on PlatformException catch (_) {}
   }
 
   getCVFCenters() async {
@@ -140,8 +137,6 @@ class _SelectedMonthPlannerState extends State<SelectedMonthPlanner> {
 
     empolyeeId = employeeID;
 
-    debugPrint(
-        'Selected empid -  ${widget.selectedEmplyee} and current emp is $empolyeeId');
     Utility.showLoaderDialog(context);
     CentersRequestModel requestModel = CentersRequestModel(
         EmployeeId: int.parse(employeeID), Brand: businessID);
@@ -149,7 +144,6 @@ class _SelectedMonthPlannerState extends State<SelectedMonthPlanner> {
       Navigator.pop(context);
       if (value != null) {
         if (value is CentersResponse) {
-          debugPrint('Response from CVF api is - $value');
           centerResponse = value;
 
           setState(() {});
@@ -198,7 +192,6 @@ class _SelectedMonthPlannerState extends State<SelectedMonthPlanner> {
   }
 
   Color getColor(String? type) {
-    debugPrint('type is - $type');
     if (type == "FILL CVF") {
       return const Color(0xFFFFBF00);
     } else if (type == 'Pending') {
@@ -216,8 +209,6 @@ class _SelectedMonthPlannerState extends State<SelectedMonthPlanner> {
       listener: (context, state) {
         if (state is DeleteEmplyeePlanSuccessState) {
           widget.highlightDate.removeWhere((element) {
-            debugPrint(
-                'highlight date id is - ${element.id} and - deleted id is - ${state.id}');
             return element.id == int.parse(state.id);
           });
 
@@ -327,7 +318,6 @@ class _SelectedMonthPlannerState extends State<SelectedMonthPlanner> {
                         MonthAppointmentDisplayMode.indicator,
                     appointmentDisplayCount: allMeetings.length),
                 onSelectionChanged: (calendarSelectionDetails) {
-                  debugPrint('Is this getting clicked');
                 },
               ), */
               const SizedBox(
@@ -530,9 +520,6 @@ class _SelectedMonthPlannerState extends State<SelectedMonthPlanner> {
                     IconButton(
                       icon: const Icon(Icons.edit, color: Colors.black),
                       onPressed: () {
-                        debugPrint(
-                            'Getplandata in month planner update button is - ${meetings[index].toJson()}');
-
                         showDialog(
                           context: context,
                           builder: (context) => CalendarFormUpdateDialog(

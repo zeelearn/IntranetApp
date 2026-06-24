@@ -49,7 +49,6 @@ class _UpdateTaskState extends ConsumerState<UpdateBPMSTask> implements onClickL
   void initState() {
     super.initState();
     loadData();
-    print(widget.taskModel.toJson());
     _startDate = Utility.convertShortDate(Utility.parseStringDate(widget.taskModel.startDate));
     _endDate = Utility.convertShortDate(Utility.parseStringDate(widget.taskModel.endDate));
     _title = widget.taskModel.title;
@@ -129,7 +128,6 @@ class _UpdateTaskState extends ConsumerState<UpdateBPMSTask> implements onClickL
                 children: _buildForm(context),
                 onChanged: (value) {
                   // ignore: avoid_print
-                  print('Form changed: ${value.toString()}');
                 },
               ),
             ),
@@ -177,7 +175,6 @@ class _UpdateTaskState extends ConsumerState<UpdateBPMSTask> implements onClickL
           buildTextField(_title, Icons.title, false, size, (value) => null, false,
             onChanged: (value){
               _title = value!;
-              print('title changed ${value}');
             },),
 
           getStatusNames(auth.statusList).length>0 ? FastDropdown<String>(
@@ -199,7 +196,6 @@ class _UpdateTaskState extends ConsumerState<UpdateBPMSTask> implements onClickL
             initialValue: _status,
             onChanged: (value){
               _status = value!;
-              print('status changed ${value}');
             },
           ) : SizedBox(height: 0,),
           FastDatePicker(
@@ -221,7 +217,6 @@ class _UpdateTaskState extends ConsumerState<UpdateBPMSTask> implements onClickL
                 fillColor: Color(0xffF7F8F8)
             ),
             onChanged: (value){
-              print('date changed ${value}');
               _startDate = Utility.convertShortDate(value!);
             },
           ),
@@ -244,7 +239,6 @@ class _UpdateTaskState extends ConsumerState<UpdateBPMSTask> implements onClickL
                 fillColor: Color(0xffF7F8F8)
             ),
             onChanged: (value){
-              print('date changed ${value}');
               _endDate = Utility.convertShortDate(value!);
             },
           ),
@@ -252,7 +246,6 @@ class _UpdateTaskState extends ConsumerState<UpdateBPMSTask> implements onClickL
           buildTextField(_comments, Icons.messenger_outline, false, size, (value) => null, false,
             onChanged: (value){
               _comments = value!;
-              print('title changed ${value}');
             },),
         ],
       ),
@@ -304,7 +297,6 @@ class _UpdateTaskState extends ConsumerState<UpdateBPMSTask> implements onClickL
     Utility.showLoaderDialog(context);
     APIService apiService = APIService();
     apiService.addNewTask(request).then((value) {
-      debugPrint(value.toString());
       Navigator.of(context).pop();
       if (value != null) {
         if (value == null) {
@@ -439,8 +431,6 @@ class _UpdateTaskState extends ConsumerState<UpdateBPMSTask> implements onClickL
     if (value is UpdateBpmsTaskResponse) {
       UpdateBpmsTaskResponse responseModel = value;
       widget.taskModel.statusname = _status;
-      print(_status);
-      print(responseModel.toJson());
       ref.read(authNotifierProvider.notifier)
           .updateMessage(widget.taskModel, _comments.toString());
       Navigator.of(context).pop();

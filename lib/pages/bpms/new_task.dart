@@ -115,7 +115,6 @@ class _NewTaskState extends ConsumerState<InsertNewTask> implements onClickListe
                 children: _buildForm(context),
                 /*onChanged: (value) {
                   // ignore: avoid_print
-                  print('Form changed: ${value.toString()}');
                 },*/
               ),
             ),
@@ -165,7 +164,6 @@ class _NewTaskState extends ConsumerState<InsertNewTask> implements onClickListe
           buildTextField('Enter Title', Icons.title, false, size, (value) => null, false,
             onChanged: (value){
               _title = value!;
-              print('title changed ${value}');
             },),
 
           getStatusNames(auth.statusList).length>0 ? FastDropdown<String>(
@@ -187,7 +185,6 @@ class _NewTaskState extends ConsumerState<InsertNewTask> implements onClickListe
             initialValue: _status,
             onChanged: (value){
               _status = value!;
-              print('status changed ${value}');
             },
           ) : SizedBox(height: 0,),
           FastDatePicker(
@@ -208,7 +205,6 @@ class _NewTaskState extends ConsumerState<InsertNewTask> implements onClickListe
                 fillColor: Color(0xffF7F8F8)
             ),
             onChanged: (value){
-              print('date changed ${value}');
               _startDate = Utility.convertShortDate(value!);
             },
           ),
@@ -231,7 +227,6 @@ class _NewTaskState extends ConsumerState<InsertNewTask> implements onClickListe
                 fillColor: Color(0xffF7F8F8)
             ),
             onChanged: (value){
-              print('date changed ${value}');
               _endDate = Utility.convertShortDate(value!);
             },
           ),
@@ -254,7 +249,6 @@ class _NewTaskState extends ConsumerState<InsertNewTask> implements onClickListe
                   'Field must contain at least $minLength characters')
             ]),
             onChanged: (value){
-              print('comments changed ${value}');
               _comments = value!;
             },
           ),
@@ -270,7 +264,6 @@ class _NewTaskState extends ConsumerState<InsertNewTask> implements onClickListe
               Colors.white,
             ],
             onPressed: () async {
-              print('Status Name ${_status}');
               if(_title.isEmpty){
                 Utility.showMessage(context, 'Please Select the Title');
               }else if(_status.isEmpty || _status=='Select Status'){
@@ -319,7 +312,6 @@ class _NewTaskState extends ConsumerState<InsertNewTask> implements onClickListe
     Utility.showLoaderDialog(context);
     APIService apiService = APIService();
     apiService.addNewTask(request).then((value) {
-      debugPrint(value.toString());
       Navigator.of(context).pop();
       if (value != null) {
         if (value == null) {

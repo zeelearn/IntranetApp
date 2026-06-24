@@ -19,7 +19,6 @@ Color? isHighlightedDate(
   for (var element in highlightedDates) {
     if (date.isAtSameMomentAs(DateTime(
         element.dateTime.year, element.dateTime.month, element.dateTime.day))) {
-      debugPrint('date is - $date and color is - ${element.color}');
       return element.color;
     } else {
       // return 1;

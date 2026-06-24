@@ -27,7 +27,7 @@ if (flutterVersionName == null) {
 
 android {
     namespace = "com.zeelearn.intranet"
-    compileSdkVersion 36
+    compileSdk 36
     ndkVersion flutter.ndkVersion
 
     compileOptions {
