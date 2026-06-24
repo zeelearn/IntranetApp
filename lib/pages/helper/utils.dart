@@ -595,7 +595,7 @@ class Utility {
             ElevatedButton(
               onPressed: () {
                 Navigator.of(context).pop();
-                closeAppWindow();
+                // closeAppWindow();
               },
               child: const Text('OK'),
             ),

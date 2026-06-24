@@ -152,6 +152,7 @@ class EmployeeDetails {
   late final String companyName;
   late final String managerName;
   late final int passwordExpired;
+  late final String token;
 
   EmployeeDetails.fromJson(Map<String, dynamic> json) {
     employeeId = json['employee_Id'];
@@ -195,6 +196,7 @@ class EmployeeDetails {
     companyName = json['companyName'] ?? "";
     managerName = json['managerName'] ?? "";
     passwordExpired = json['isPasswordExpired'] ?? "";
+    token = json['token'] ?? "";
   }
 
   Map<String, dynamic> toJson() {
@@ -240,6 +242,7 @@ class EmployeeDetails {
     _data['companyName'] = companyName;
     _data['managerName'] = managerName;
     _data['isPasswordExpired'] = passwordExpired;
+    _data['token'] = token;
     return _data;
   }
 }

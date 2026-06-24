@@ -1,5 +1,6 @@
-//import 'dart:html' as html;
+// import 'dart:html' as html;
 
-void closeAppWindow() {
-  //html.window.close();
-}
+// void closeAppWindow() {
+//   print('closeAppWindow called - closing browser window html');
+//   html.window.close();
+// }

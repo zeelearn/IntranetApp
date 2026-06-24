@@ -2531,11 +2531,9 @@ packages:
   saathi:
     dependency: "direct main"
     description:
-      path: "."
-      ref: uat
-      resolved-ref: ddec6f19630dfec216b2c20ef366dca0d9cdceaf
-      url: "https://github.com/ZeeLearnLtd/ZeeSathi.git"
-    source: git
+      path: "../ZeeSathi"
+      relative: true
+    source: path
     version: "1.0.12+14"
   sanitize_html:
     dependency: transitive
