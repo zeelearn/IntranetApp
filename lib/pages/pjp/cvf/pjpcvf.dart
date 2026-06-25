@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:async';
 import 'package:Intranet/api/APIService.dart';
+import 'package:Intranet/pages/widget/MyWebSiteView.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
@@ -216,7 +217,7 @@ class _MyCVFListScreen extends State<CVFListScreen>
       List<GetDetailedPJP> list = [];
       list.addAll(mCvfList);
 
-      if (mFilterSelection = FILTER_COMPLETED) {
+      if (mFilterSelection == FILTER_COMPLETED) {
         list.clear();
         for (int index = 0; index < mCvfList.length; index++) {
           if (mCvfList[index].Status == 'Completed') {
