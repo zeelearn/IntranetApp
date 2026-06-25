@@ -1277,8 +1277,8 @@ class _IntranetHomePageState extends State<IntranetHomePage>
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.find<DashboardPageController>();
-    controller.getMaxAdvanceLimit(employeeCode.toString());
+    //final controller = Get.find<DashboardPageController>();
+    //controller.getMaxAdvanceLimit(employeeCode.toString());
     EasyLoading.init();
     FirebaseAnalyticsUtils().enableAnytics();
     FirebaseAnalyticsUtils().sendAnalyticsEvent('HomeScreen');
