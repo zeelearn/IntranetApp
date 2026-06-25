@@ -428,7 +428,10 @@ class _MyPjpListState extends State<MyPjpListScreen>
                         ),
                       ),
                     ),
-                    (pjpInfo.isSelfPJP != '1')
+                    (pjpInfo.isSelfPJP != '1' &&
+                            pjpInfo.ApprovalStatus == 'Rejected' &&
+                            Utility.convertDate(pjpInfo.toDate)
+                                .isAfter(DateTime.now()))
                         ? SizedBox.shrink()
                         : ElevatedButton(
                             style: const ButtonStyle(

@@ -1,4 +1,6 @@
 
+
+
 importScripts("https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js");
 importScripts("https://www.gstatic.com/firebasejs/9.23.0/firebase-messaging-compat.js");
 
@@ -39,24 +41,118 @@ self.addEventListener("notificationclick", function (event) {
 
 
 messaging.onBackgroundMessage(async function (payload) {
-  console.log("Message receiving in firebase-messaging-sw.js file -", payload);
-  const notificationTitle = payload.data.title;
 
+
+  console.log("Message receiving in firebase-messaging-sw.js file -", payload);
+
+  const notificationTitle = payload.data.title;
 
   console.log('Notification title is - ', notificationTitle);
 
-  const notificationOptions = {
-    body: payload.data.body,
-    icon: payload.data.logo || '/icons/Icon-192.png',
-    data: {
-      url: payload.data.url || '/'
-    },
-    image: payload.data.bigimage || undefined
+  const notificationOptions = { body: payload.data.body, icon: 'https://zeelearn.com/wp-content/uploads/zeelearnlogo_new171.png', data: { url: payload.data.url }, };
+
+
+  let dbUserRequest = indexedDB.open('kidzeepref');
+
+  dbUserRequest.onerror = function (event) {
+    console.error("logindetails Failed to open database:", event.target.errorCode);
   };
+
+  dbUserRequest.onsuccess = function (dbvent) {
+
+    let db = dbvent.target.result;
+
+    let transaction = db.transaction(['box'], 'readwrite');
+    let objectStore = transaction.objectStore('box');
+
+    let getRequest = objectStore.get('kidzeepref');
+    getRequest.onsuccess = function (successevent) {
+      let userData = successevent.target.result;
+
+      let exists = Object.values(userData).includes("success");
+      if (exists != null) {
+        let parsedOfflineUserData = JSON.parse(userData);
+
+        console.log('Kidzee data after parsed  is - ', parsedOfflineUserData.empid);
+        console.log('Notification data after parsed  is - ', payload.data.empid);
+
+        if (payload.data.empid == parsedOfflineUserData.empid) {
+
+          e.waitUntil(self.registration.showNotification(notificationTitle, notificationOptions));
+        }
+        else {
+          console.log('User id not matching');
+
+        }
+      }
+    };
+    getRequest.onerror = function (event) {
+      console.log("Error retrieving notifications:", event.target.error);
+
+    };
+  };
+
+  let dbUserRequestsaathi = indexedDB.open('logindetails');
+
+  dbUserRequestsaathi.onerror = function (event) {
+    console.error("logindetails Failed to open database:", event.target.errorCode);
+  };
+
+  dbUserRequestsaathi.onsuccess = function (dbvent) {
+
+    console.log("logindetails Database opened successfully");
+
+    let db = dbvent.target.result;
+
+    let transaction = db.transaction(['box'], 'readwrite');
+    let objectStore = transaction.objectStore('box');
+
+    let getRequest = objectStore.get('userData');
+    getRequest.onsuccess = function (successevent) {
+      let userData = successevent.target.result;
+
+      let exists = Object.values(userData).includes("success");
+      if (exists != null) {
+        let parsedOfflineUserData = JSON.parse(userData);
+
+        console.log('UserSSO data after parsed  is - ', parsedOfflineUserData.data.user_info[0].user_id);
+        console.log('Notification data after parsed  is - ', payload.data.user_id);
+
+        if (payload.data.user_id == parsedOfflineUserData.data.user_info[0].user_id) {
+
+          e.waitUntil(self.registration.showNotification(notificationTitle, notificationOptions));
+        }
+        else {
+          console.log('User id not matching');
+
+        }
+      }
+    };
+    getRequest.onerror = function (event) {
+      console.log("Error retrieving notifications:", event.target.error);
+
+    };
+  };
+
+
+  // console.log("Message receiving in firebase-messaging-sw.js file -", payload);
+  // const notificationTitle = payload.data.title;
+
+
+  // console.log('Notification title is - ', notificationTitle);
+
+  // const notificationOptions = {
+  //   body: payload.data.body,
+  //   icon: payload.data.logo || '/icons/Icon-192.png',
+  //   data: {
+  //     url: payload.data.url || '/'
+  //   },
+  //   image: payload.data.bigimage || undefined
+  // };
 
   // const notificationOptions = { body: payload.data.body, icon: 'https://zeelearn.com/wp-content/uploads/zeelearnlogo_new171.png', data: { url: payload.data.url }, };
 
-  self.registration.showNotification(notificationTitle, notificationOptions);
+  // self.registration.showNotification(notificationTitle, notificationOptions);
 
 
 });

@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:Intranet/pages/helper/LocalConstant.dart';
+import 'package:Intranet/pages/helper/constants.dart';
+import 'package:Intranet/pages/utils/theme/colors/light_colors.dart';
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
@@ -218,7 +220,11 @@ class NotificationService {
     await flutterLocalNotificationsPlugin.cancelAll();
   }
 
-  void parseNotification(RemoteMessage message) {
+  void parseNotification(
+    RemoteMessage message, {
+    BuildContext? context,
+  }) async {
+    print('parse Notification 217');
     String cdate = DateFormat("yyyy-MM-dd hh:mm a").format(DateTime.now());
     String? imsageUrl = '';
     if (kIsWeb) {
@@ -320,7 +326,8 @@ class NotificationService {
   }
 }
 
-void identifySaathiNotification(RemoteMessage message, [WidgetRef? ref]) async {
+void identifySaathiNotification(RemoteMessage message,
+    [WidgetRef? ref, BuildContext? context]) async {
   var hiveBox = await Utility.openBox();
   var hive = Hive.box(LocalConstant.KidzeeDB);
   String employeeCode = hiveBox.get(LocalConstant.KEY_EMPLOYEE_CODE) as String;
@@ -355,8 +362,43 @@ void identifySaathiNotification(RemoteMessage message, [WidgetRef? ref]) async {
             message.data.containsKey('id') ? message.data['id'] as String : '');
     helper.insert(LocalConstant.TABLE_NOTIFICATION, data);
     NotificationService notificationService = NotificationService();
-    notificationService.showSimpleNotification(
-        message.data['title'], message.data['body'], message);
+    if (kIsWeb) {
+      if (context == null || !context.mounted) return;
+      ScaffoldMessenger.maybeOf(context)?.showSnackBar(SnackBar(
+          duration: Duration(seconds: 20),
+          showCloseIcon: false,
+          closeIconColor: Colors.redAccent,
+          backgroundColor: /* item.colorCode?.toColor() ?? */
+              kPrimaryLightColor,
+          margin: EdgeInsets.only(
+              left: MediaQuery.of(context).size.width / 2,
+              right: 10,
+              bottom: 20),
+          behavior: SnackBarBehavior.floating,
+          content: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              Text(
+                message.data['title'],
+                style: LightColors.subTextStyle.copyWith(color: Colors.white),
+              ),
+              SizedBox(
+                height: 5,
+              ),
+              Text(
+                message.data['body'],
+                style: LightColors.subTextStyle.copyWith(color: Colors.white),
+              ),
+              SizedBox(
+                height: 5,
+              ),
+            ],
+          )));
+    } else {
+      notificationService.showSimpleNotification(
+          message.data['title'], message.data['body'], message);
+    }
   }
 }
 
