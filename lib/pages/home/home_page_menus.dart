@@ -487,12 +487,22 @@ class _HomePageMenuState extends State<HomePageMenu> {
     var empCode = int.tryParse(
             hiveBox.get(LocalConstant.KEY_EMPLOYEE_CODE)?.toString() ?? '0') ??
         0;
-    await HiveDatabase.clear();
+    //await HiveDatabase.clear();
     // The host (Intranet) app is already a GetMaterialApp. Pushing the expense
     // module's own GetMaterialApp as a route registers a second global
-    // navigator key and crashes ("Duplicate GlobalKey detected" /
+    // navigator keys and crashes ("Duplicate GlobalKey detected" /
     // DefaultSelectionStyle assertion). Embed it on the existing navigator.
     await openExpenseTracker(eCode: empCode.toString());
+    //  Navigator.push(
+    //     context,
+    //     MaterialPageRoute(
+    //         builder: (context) => MyApp(
+    //           key: UniqueKey(),
+    //               eCode: empCode.toString(),
+
+    //               isExternal: true,
+    //               buildContext: context,
+    //             ))); 
   }
 
   openSaarthi(BuildContext context) async {

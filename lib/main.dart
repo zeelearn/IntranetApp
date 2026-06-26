@@ -794,6 +794,7 @@ class _MyAppState extends State<MyApp> {
     // snackbars and reactive state) while remaining a drop-in replacement
     // for MaterialApp.
     return GetMaterialApp(
+      key: UniqueKey(),
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,

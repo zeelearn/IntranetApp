@@ -5,9 +5,13 @@ import 'package:Intranet/api/request/bpms/projects.dart';
 import 'package:Intranet/api/response/bpms/bpms_stats.dart';
 import 'package:Intranet/pages/login/login_screen.dart';
 import 'package:dio/dio.dart';
+import 'package:expensestracker/app/hiveDatabase/hive_database.dart';
+import 'package:expensestracker/presentation/controllers/dashboard/dashboard_page_controller.dart';
+import 'package:expensestracker/presentation/app.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
+import 'package:get/get.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -178,7 +182,6 @@ class AuthStateNotifier extends StateNotifier<AuthState> {
     ProjectStatusResponse taskResponse = await _repo.getStatus();
     state = state.copyWith(
         status: AuthStatus.authenticated, statusList: taskResponse.data[0]);
-
   }
 
   addNewTask(NewTaskRequest request) async {
@@ -190,7 +193,6 @@ class AuthStateNotifier extends StateNotifier<AuthState> {
     state = state.copyWith(
       status: AuthStatus.authenticated,
     );
-
   }
 
   Future<List<ProjectTaskModel>> getTaskDetails(
@@ -237,8 +239,7 @@ class AuthStateNotifier extends StateNotifier<AuthState> {
           status: AuthStatus.authenticated,
           taskModelList: taskResponse.taskDetail,
           loading: false);
-    } else {
-    }
+    } else {}
     return;
   }
 
@@ -337,6 +338,8 @@ class AuthStateNotifier extends StateNotifier<AuthState> {
     final box = Hive.box(LocalConstant.authStorageKey);
     await box.delete('token');
     await box.delete('user');
+    await HiveDatabase.clear();
+    clearAllExpenseControllers();
 
     /*state = state.copyWith(
       user: null,

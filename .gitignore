@@ -55,3 +55,5 @@ app.*.map.json
 .env
 ios/Podfile.lock
 ios/.derived-data-log-0CA5RPJ1
+
+web.config

@@ -20,8 +20,10 @@ import 'package:app_links/app_links.dart';
 import 'package:app_version_update/app_version_update.dart';
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:device_info_plus/device_info_plus.dart';
+import 'package:expensestracker/app/hiveDatabase/hive_database.dart';
 import 'package:expensestracker/presentation/controllers/dashboard/dashboard_binding.dart';
 import 'package:expensestracker/presentation/controllers/dashboard/dashboard_page_controller.dart';
+import 'package:expensestracker/presentation/app.dart' as expensePlacholder;
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:get/get.dart';
@@ -265,7 +267,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
     hiveBox = await Utility.openBox();
     await Hive.openBox(LocalConstant.KidzeeDB);
     var loginresponse = hiveBox.get(LocalConstant.KEY_LOGIN_RESPONSE);
-    
+
     try {
       LoginResponseModel response = LoginResponseModel.fromJson(
         json.decode(loginresponse),
@@ -278,7 +280,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
       //   Utility().showBusinessNotMappedDialog(context);
       //   return;
       // }
-      
+
       businessApplications.addAll(response.responseData.businessApplications);
       if (_currentBusinessName.isNotEmpty && businessApplications.isNotEmpty) {
         _currentBusinessName = businessApplications[0].businessName;
@@ -350,11 +352,11 @@ class _IntranetHomePageState extends State<IntranetHomePage>
   void initState() {
     WidgetsBinding.instance.addObserver(this);
     super.initState();
-    
+
     if (!Get.isRegistered<DashboardPageController>()) {
       DashboardBinding().dependencies();
     }
-    
+
     _selectedDay = _focusedDay;
     //_selectedEvents = ValueNotifier(_getEventsForDay(_selectedDay!));
     //addEvent();
@@ -1781,8 +1783,10 @@ class _IntranetHomePageState extends State<IntranetHomePage>
                   }
                 : () {
                     Navigator.pop(context);
-                    Navigator.push(context,
-                        MaterialPageRoute(builder: (context) => MyCVFListScreenV2()));
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => MyCVFListScreenV2()));
                   },
           ),
         ),
@@ -1949,7 +1953,10 @@ class _IntranetHomePageState extends State<IntranetHomePage>
     hiveBox.close();
     DBHelper helper = DBHelper();
     helper.deleteAllData();
+    await HiveDatabase.clear();
+   expensePlacholder.clearAllExpenseControllers();
     await Future.delayed(const Duration(seconds: 1));
+
     Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(
