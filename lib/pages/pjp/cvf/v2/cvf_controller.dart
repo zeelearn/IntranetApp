@@ -29,7 +29,7 @@ import 'package:hive/hive.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-enum CvfFilter { all, completed, checkIn, fillCvf }
+enum CvfFilter { all, completed, checkIn, fillCvf, cancelled }
 
 /// Left-bar status colors for CVF cards.
 class CvfStatusColor {
@@ -76,6 +76,8 @@ class CVFController extends GetxController {
         return 'Completed';
       case CvfFilter.checkIn:
         return 'Check In';
+      case CvfFilter.cancelled:
+        return 'Cancelled';
       case CvfFilter.fillCvf:
         return 'FILL CVF';
       case CvfFilter.all:
@@ -220,14 +222,16 @@ class CVFController extends GetxController {
     switch (filter.value) {
       case CvfFilter.completed:
         return list.where((c) => c.Status == 'Completed').toList().reversed.toList();
+      case CvfFilter.cancelled:
+        return list.where((c) => c.IsCancelled == true).toList().reversed.toList();
       case CvfFilter.checkIn:
         return list
-            .where((c) => c.Status.trim() == 'Check In' || c.Status == 'NA')
+            .where((c) => !c.IsCancelled && c.Status.trim() == 'Check In' || c.Status == 'NA')
             .toList()
             .reversed
             .toList();
       case CvfFilter.fillCvf:
-        return list.where((c) => c.Status == 'FILL CVF').toList().reversed.toList();
+        return list.where((c) => !c.IsCancelled  && c.Status == 'FILL CVF').toList().reversed.toList();
       case CvfFilter.all:
         return list.reversed.toList();
     }
@@ -633,6 +637,7 @@ class CVFController extends GetxController {
           _filterTile(ctx, CvfFilter.completed, Icons.check, 'Completed'),
           _filterTile(ctx, CvfFilter.checkIn, Icons.login, 'Check In'),
           _filterTile(ctx, CvfFilter.fillCvf, Icons.pending_actions, 'FILL CVF'),
+          _filterTile(ctx, CvfFilter.cancelled, Icons.cancel, 'Cancelled'),
         ],
       ),
     );

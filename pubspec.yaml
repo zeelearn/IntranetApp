@@ -130,10 +130,10 @@ dependencies:
   #flutter_background_service: ^2.4.3
   #flutter_slidable: ^2.0.0
   saathi:
-    # git:
-    #   url: https://github.com/ZeeLearnLtd/ZeeSathi.git
-    #   ref: uat
-    path: ../ZeeSathi
+    git:
+      url: https://github.com/ZeeLearnLtd/ZeeSathi.git
+      ref: uat
+    #path: ../ZeeSathi
 
   expensestracker:
     # path: D:/vishwan/expensestracker
