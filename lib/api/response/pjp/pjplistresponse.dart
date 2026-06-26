@@ -465,6 +465,7 @@ class GetDetailedPJP implements Comparable<GetDetailedPJP> {
     data['Remarks'] = remarks;
     data['approvalStatus'] = approvalStatus;
     data['IsCancelled'] = IsCancelled ? '1' : '0';
+    
     if (purpose != null) {
       data['Purpose'] = purpose!.map((v) => v.toJson()).toList();
     } else {
