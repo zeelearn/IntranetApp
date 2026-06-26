@@ -727,9 +727,10 @@ class _MyPjpListState extends State<MyPjpManPListScreen>
   @override
   void onSuccess(value) {
     //Navigator.of(context).pop();
+    print('onSuccess called in mymanagers $value');
     isLoading = false;
     if (value is String) {
-      if (value == 'SUCCESS') Navigator.of(context).pop();
+      //if (value == 'SUCCESS') Navigator.of(context).pop();
       IntranetServiceHandler.loadPjpSummery(employeeId, 0, businessId, this);
     } else if (value is UpdatePJPStatusResponse) {
       UpdatePJPStatusResponse val = value;
