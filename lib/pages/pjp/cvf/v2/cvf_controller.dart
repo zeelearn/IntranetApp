@@ -226,7 +226,7 @@ class CVFController extends GetxController {
         return list.where((c) => c.IsCancelled == true).toList().reversed.toList();
       case CvfFilter.checkIn:
         return list
-            .where((c) => !c.IsCancelled && c.Status.trim() == 'Check In' || c.Status == 'NA')
+            .where((c) => c.approvalStatus.toLowerCase().contains('appro') && !c.IsCancelled && c.Status.trim() == 'Check In')
             .toList()
             .reversed
             .toList();
