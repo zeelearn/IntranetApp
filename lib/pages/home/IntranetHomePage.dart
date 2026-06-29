@@ -87,6 +87,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
     with WidgetsBindingObserver
     implements onUploadResponse, onClickListener {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  StreamSubscription<RemoteMessage>? firebaseStreamMessaging;
 
   Uri? _initialURI;
   Uri? _currentURI;
@@ -823,8 +824,11 @@ class _IntranetHomePageState extends State<IntranetHomePage>
     //         event, employeeId.toString(), id ?? '0', useragent);
     //   },
     // );
-
-    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+    if (firebaseStreamMessaging != null) {
+      await firebaseStreamMessaging?.cancel();
+    }
+    firebaseStreamMessaging =
+        FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       log('Notification data is - ${message.toMap()}');
 
       NotificationService().parseNotification(message);
@@ -1954,7 +1958,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
     DBHelper helper = DBHelper();
     helper.deleteAllData();
     await HiveDatabase.clear();
-   expensePlacholder.clearAllExpenseControllers();
+    expensePlacholder.clearAllExpenseControllers();
     await Future.delayed(const Duration(seconds: 1));
 
     Navigator.pushAndRemoveUntil(

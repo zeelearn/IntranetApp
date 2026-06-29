@@ -173,10 +173,10 @@ packages:
     dependency: "direct main"
     description:
       name: awesome_notifications
-      sha256: "0d5fa4457f2ba4e536adc3ef6af709cdcecf4a05a1f3035981e9afa2f899b2a8"
+      sha256: b5b8a9a9bc1728dfde63f2f3b68429817e0d8288c051d12a61e78f53b339d31e
       url: "https://pub.dev"
     source: hosted
-    version: "0.10.1"
+    version: "0.12.0"
   aws_s3_upload:
     dependency: "direct main"
     description:
@@ -613,11 +613,9 @@ packages:
   expensestracker:
     dependency: "direct main"
     description:
-      path: "."
-      ref: ui_enhancement
-      resolved-ref: "2c557caaf32d7d26ca552654cefd42658b7043d2"
-      url: "https://github.com/ZeeLearnLtd/excepsesmanagement.git"
-    source: git
+      path: "../excepsesmanagement"
+      relative: true
+    source: path
     version: "1.0.2+11"
   fake_async:
     dependency: transitive
@@ -828,7 +826,7 @@ packages:
     source: hosted
     version: "0.2.7+10"
   firebase_messaging:
-    dependency: "direct main"
+    dependency: "direct overridden"
     description:
       name: firebase_messaging
       sha256: ce21a510e5a9aed67a0404476981e19ec0361a0301eeba547dc93dc2e7dec99a
