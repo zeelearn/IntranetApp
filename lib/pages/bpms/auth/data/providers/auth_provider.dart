@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:Intranet/api/request/bpms/bpms_stats.dart';
 import 'package:Intranet/api/request/bpms/projects.dart';
 import 'package:Intranet/api/response/bpms/bpms_stats.dart';
+import 'package:Intranet/pages/helper/web_helper.dart';
 import 'package:Intranet/pages/login/login_screen.dart';
 import 'package:dio/dio.dart';
 import 'package:expensestracker/app/hiveDatabase/hive_database.dart';
@@ -348,12 +349,8 @@ class AuthStateNotifier extends StateNotifier<AuthState> {
     );*/
 
     if (mounted) {
-      Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const LoginScreen(),
-          ),
-          (route) => false);
+      resetWebUrl();
+      Get.offAll(() => const LoginScreen(), routeName: '/');
     }
     /*  if (Platform.isAndroid) {
       Future.delayed(const Duration(milliseconds: 100), () {
