@@ -33,11 +33,7 @@ class HomePageMenu extends StatefulWidget {
   int businessId;
 
   HomePageMenu(
-      this.isBpms,
-      this.mUserName,
-      this.name,
-      this.profileAvtar,
-      this.empID,
+      this.isBpms, this.mUserName, this.name, this.profileAvtar, this.empID,
       {this.businessId = 0, super.key});
 
   @override
@@ -56,7 +52,6 @@ class _HomePageMenuState extends State<HomePageMenu> {
     if (!Get.isRegistered<DashboardPageController>()) {
       DashboardBinding().dependencies();
     }
-    
   }
 
   Text subheading(String title) {
@@ -89,7 +84,7 @@ class _HomePageMenuState extends State<HomePageMenu> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                if (widget.businessId == 0) _buildBusinessNotMappedCard(),
+                // if (widget.businessId == 0) _buildBusinessNotMappedCard(),
                 _buildMenuGrid(),
               ],
             ),
@@ -99,9 +94,25 @@ class _HomePageMenuState extends State<HomePageMenu> {
     );
   }
 
-  Widget _buildMenuGrid() {
-    final bool isBusinessMapped = widget.businessId != 0;
+  List<String> businsesRequiredMenu = [
+    'My PJP',
+    'My CVF',
+    'PJP-CVF Approval (Exp)',
+    'PJP Dashboard',
+    'ZllSaathi'
+  ];
 
+  bool validateBusiness(String businessName) {
+    if (businsesRequiredMenu.contains(businessName) && !isBusinessMapped) {
+      Utility.showMessage(
+          context, 'Business not mapped. Please connect with your manager.');
+      return false;
+    }
+    return true;
+  }
+
+  get isBusinessMapped => widget.businessId != 0;
+  Widget _buildMenuGrid() {
     return LayoutBuilder(
       builder: (context, constraints) {
         int crossAxisCount;
@@ -134,12 +145,13 @@ class _HomePageMenuState extends State<HomePageMenu> {
           mainAxisSpacing: 16,
           childAspectRatio: childAspectRatio,
           children: [
-            if(isBusinessMapped)
             _buildMenuCard(
               title: 'My PJP',
               icon: Icons.electric_car,
-              disabled: !isBusinessMapped,
+              // disabled: !isBusinessMapped,
               onTap: () {
+                if (!validateBusiness('My PJP')) return;
+
                 Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -153,12 +165,12 @@ class _HomePageMenuState extends State<HomePageMenu> {
                 );
               },
             ),
-            if(isBusinessMapped)
             _buildMenuCard(
               title: 'My CVF',
               icon: Icons.calendar_today,
-              disabled: !isBusinessMapped,
+              // disabled: !isBusinessMapped,
               onTap: () {
+                if (!validateBusiness('My CVF')) return;
                 Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -179,12 +191,14 @@ class _HomePageMenuState extends State<HomePageMenu> {
                 );
               },
             ),
-            if (!isBpms && isBusinessMapped)
+            if (!isBpms)
               _buildMenuCard(
                 title: 'PJP-CVF Approval (Exp)',
                 icon: Icons.approval,
-                disabled: !isBusinessMapped,
+                // disabled: !isBusinessMapped,
                 onTap: () {
+                  if (!validateBusiness('PJP-CVF Approval (Exp)')) return;
+
                   Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -219,6 +233,8 @@ class _HomePageMenuState extends State<HomePageMenu> {
               title: 'ZllSaathi',
               icon: Icons.ac_unit,
               onTap: () {
+                if (!validateBusiness('ZllSaathi')) return;
+
                 openSaarthi(context);
               },
             ),
@@ -272,12 +288,14 @@ class _HomePageMenuState extends State<HomePageMenu> {
                       );
                     },
                   ), */
-            if (isBpms && isBusinessMapped)
+            if (isBpms)
               _buildMenuCard(
                 title: 'PJP-CVF Approval (Exp)',
                 icon: Icons.approval,
-                disabled: !isBusinessMapped,
+                // disabled: !isBusinessMapped,
                 onTap: () {
+                  if (!validateBusiness('PJP-CVF Approval (Exp)')) return;
+
                   Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -310,12 +328,14 @@ class _HomePageMenuState extends State<HomePageMenu> {
                       );
                     },
                   ), */
-                  if (isBusinessMapped)
+
             _buildMenuCard(
               title: 'PJP Dashboard',
               icon: Icons.group,
-              disabled: !isBusinessMapped,
+              // disabled: !isBusinessMapped,
               onTap: () {
+                if (!validateBusiness('PJP Dashboard')) return;
+
                 Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -502,7 +522,7 @@ class _HomePageMenuState extends State<HomePageMenu> {
 
     //               isExternal: true,
     //               buildContext: context,
-    //             ))); 
+    //             )));
   }
 
   openSaarthi(BuildContext context) async {
@@ -580,9 +600,7 @@ class _HomePageMenuState extends State<HomePageMenu> {
     required VoidCallback onTap,
     bool disabled = false,
   }) {
-    final Color backgroundColor = disabled
-        ? Colors.grey.shade300
-        : Colors.blue;
+    final Color backgroundColor = disabled ? Colors.grey.shade300 : Colors.blue;
     final Color iconColor = disabled ? Colors.grey.shade600 : Colors.white;
     final Color textColor = disabled ? Colors.grey.shade700 : Colors.white;
 
