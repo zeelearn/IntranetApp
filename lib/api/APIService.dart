@@ -165,7 +165,7 @@ class APIService {
         /* https://7d7d75ce2c46.ngrok-free.app/subscribe?projectName=kidzee&topicname=kidzee&token=ePR0819hT_S00y2XLkHRT0:APA91bH_07X2_M5LsvsPa9NUVXikbbe-9UT2U7Y3VdEMqTdXL1Oe0ZaItsFQjrLCkDSLF7TywUkxpT5Va1lK9ZT8OEI0gGR0UVYZuQ4zlwmqLxoyIzkHjis */
         var response = await http.get(
           Uri.parse(
-              '$bpms_url/api/subscription/subscribe?projectName=litrahub&topicname=$topic&token=$token'),
+              '$bpms_url/api/subscription/subscribe?projectName=intranet&topicname=$topic&token=$token'),
           headers: {
             'Content-Type': 'application/json',
           },
@@ -187,7 +187,7 @@ class APIService {
       try {
         var response = await http.get(
           Uri.parse(
-              '$bpms_url/api/subscription/unsubscribe?projectName=litrahub&topicname=$topic&token=$token'),
+              '$bpms_url/api/subscription/unsubscribe?projectName=intranet&topicname=$topic&token=$token'),
           headers: {
             'Content-Type': 'application/json',
           },
