@@ -64,7 +64,7 @@ class FCM {
               APIService().subscribeToTopicForWeb(token, 'intranet');
               APIService().subscribeToTopicForWeb(token, 'saathi');
             }
-            print('Response from getToken is - ${token}');
+            // print('Response from getToken is - ${token}');
             sendFcm(token!, employeeId, deviceId, userAgent);
           }
         } catch (_) {}

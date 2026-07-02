@@ -254,7 +254,7 @@ class _MyPjpListState extends State<MyPjpManPListScreen>
       context,
       getSelectedPjpList(),
     );
-    print('Result from dialog: $result');
+    // print('Result from dialog: $result');
     if (result != null) {
       UpdatePJPStatusListRequest request = UpdatePJPStatusListRequest(DocXML: result, Workflow_user: employeeId.toString());
       IntranetServiceHandler.updatePJPStatusList(request, this);
@@ -727,7 +727,7 @@ class _MyPjpListState extends State<MyPjpManPListScreen>
   @override
   void onSuccess(value) {
     //Navigator.of(context).pop();
-    print('onSuccess called in mymanagers $value');
+    // print('onSuccess called in mymanagers $value');
     isLoading = false;
     if (value is String) {
       //if (value == 'SUCCESS') Navigator.of(context).pop();

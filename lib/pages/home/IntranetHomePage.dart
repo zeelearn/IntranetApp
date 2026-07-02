@@ -273,9 +273,9 @@ class _IntranetHomePageState extends State<IntranetHomePage>
       LoginResponseModel response = LoginResponseModel.fromJson(
         json.decode(loginresponse),
       );
-      print('login response decoded successfully');
-      print(
-          'Business Applications: ${response.responseData.businessApplications.length}');
+      // print('login response decoded successfully');
+      // print(
+      //     'Business Applications: ${response.responseData.businessApplications.length}');
       // if (response.responseData.businessApplications.isEmpty) {
       //   print('No business applications found for the user');
       //   Utility().showBusinessNotMappedDialog(context);
@@ -369,9 +369,9 @@ class _IntranetHomePageState extends State<IntranetHomePage>
       if (widget.receivedAction?.payload != null &&
           widget.receivedAction?.payload!['type'] != null &&
           widget.receivedAction?.payload!['type'] == 'td') {
-        print(
-            'SAATHI Message sent via notification input: "${widget.receivedAction?.buttonKeyInput}"');
-        print('SAATHI payload - ${widget.receivedAction?.payload}');
+        // print(
+        //     'SAATHI Message sent via notification input: "${widget.receivedAction?.buttonKeyInput}"');
+        // print('SAATHI payload - ${widget.receivedAction?.payload}');
         Util.openSaathiNotification(widget.receivedAction!);
       } else if (widget.receivedAction?.payload != null &&
           widget.receivedAction?.payload!['Video_path'] != null) {
@@ -394,7 +394,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
     });
 
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-      print('A new onMessageOpenedApp event was published123!');
+      // print('A new onMessageOpenedApp event was published123!');
       Navigator.push(context,
           MaterialPageRoute(builder: (context) => const UserNotification()));
     });
@@ -486,9 +486,9 @@ class _IntranetHomePageState extends State<IntranetHomePage>
     debugPrint('udid ${initialURI.queryParameters['id']}');
     if (initialURI.toString().contains('zllsaathi.zeelearn.com/ticketDetail')) {
       //Saathi Ticket Details
-      print('ticket ID ${initialURI.queryParameters['id']!}');
-      print('BID ${initialURI.queryParameters['b_id']!}');
-      print('BUID ${initialURI.queryParameters['bu_id']!}');
+      // print('ticket ID ${initialURI.queryParameters['id']!}');
+      // print('BID ${initialURI.queryParameters['b_id']!}');
+      // print('BUID ${initialURI.queryParameters['bu_id']!}');
 
       ZllTicket(
           context,
@@ -592,15 +592,15 @@ class _IntranetHomePageState extends State<IntranetHomePage>
       sound: true,
     );
 
-    print('User granted permission: ${settings.authorizationStatus}');
+    // print('User granted permission: ${settings.authorizationStatus}');
   }
 
   late String token;
   getToken() async {
-    print('app token is ');
+    // print('app token is ');
     token = (await FirebaseMessaging.instance.getToken())!;
-    print('Notification Token..$token');
-    print(token);
+    // print('Notification Token..$token');
+    // print(token);
   }
 
   @override

@@ -403,7 +403,7 @@ class CVFController extends GetxController {
   }
 
   Future<void> checkIn(GetDetailedPJP cvf) async {
-    print('checkIn called from cvf_controller.dart for PJPCVF_Id: ${cvf.PJPCVF_Id}, Current Status: ${cvf.Status}');
+    // print('checkIn called from cvf_controller.dart for PJPCVF_Id: ${cvf.PJPCVF_Id}, Current Status: ${cvf.Status}');
     final context = Get.context;
     if (!_isMounted(context)) return;
 
@@ -443,7 +443,7 @@ class CVFController extends GetxController {
   Future<void> _updateCvfStatusOnline(GetDetailedPJP cvf) async {
     final nextStatus = _nextStatus(cvf.Status);
     final completer = Completer<void>();
-    print('Updating CVF Status Online _updateCvfStatusOnline for PJPCVF_Id: ${cvf.PJPCVF_Id}, Current Status: ${cvf.Status}, Next Status: $nextStatus');
+    // print('Updating CVF Status Online _updateCvfStatusOnline for PJPCVF_Id: ${cvf.PJPCVF_Id}, Current Status: ${cvf.Status}, Next Status: $nextStatus');
     IntranetServiceHandler.updateCVFStatus(
       employeeId,
       cvf,

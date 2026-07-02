@@ -473,7 +473,7 @@ class _AddNewPJPState extends State<AddNewPJPScreen>
 
   @override
   void onClick(int action, value) {
-    print("onClick action: $action, value: $value");
+    // print("onClick action: $action, value: $value");
     if (action == Utility.ACTION_OK) {
       Navigator.of(context).pop(value);
     } else if (action == Utility.ACTION_CCNCEL) {

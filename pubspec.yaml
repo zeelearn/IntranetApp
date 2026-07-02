@@ -201,6 +201,7 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
+  lints: ^6.1.0
   # firebase_messaging_platform_interface: 4.6.9
 
 flutter_icons:
