@@ -65,50 +65,103 @@ self.addEventListener('push', function (event) {
   };
 
   const showPromise = new Promise((resolve) => {
-    let dbUserRequest = indexedDB.open('kidzeepref');
-
-    dbUserRequest.onerror = function (err) {
-      console.error("logindetails Failed to open database:", err);
-      resolve();
-    };
-
-    dbUserRequest.onsuccess = function (dbvent) {
-      let db = dbvent.target.result;
-      if (!db.objectStoreNames.contains('box')) return resolve();
-
-      let transaction = db.transaction(['box'], 'readonly');
-      let objectStore = transaction.objectStore('box');
-      
-      const getFromStore = (key) => new Promise((res) => {
-        let req = objectStore.get(key);
-        req.onsuccess = (e) => res(e.target.result);
-        req.onerror = () => res(null);
-      });
-      
-      Promise.all([getFromStore('empid'), getFromStore('employee_Code')]).then(([localEmpid, localEmpCode]) => {
-        let shouldShow = false;
-        
-        if (payload.data.employee_code && payload.data.employee_code == localEmpCode) {
-          console.log('User id matching on employee_code - ', payload.data.employee_code);
-          shouldShow = true;
-        } else if (payload.data.empid && payload.data.empid == localEmpid) {
-          console.log('User id matching on empid - ', payload.data.empid);
-          shouldShow = true;
-        }
-        
-        if (shouldShow) {
-          self.registration.showNotification(notificationTitle, notificationOptions)
-            .then(() => resolve())
-            .catch((e) => {
-              console.log('Error in showing notification - ', e);
-              resolve();
-            });
-        } else {
-          console.log('User id not matching or not found. Payload empid:', payload.data.empid, 'Payload empCode:', payload.data.employee_code, 'Local empid:', localEmpid, 'Local empCode:', localEmpCode);
+    const showNotification = () => {
+      self.registration.showNotification(notificationTitle, notificationOptions)
+        .then(() => resolve())
+        .catch((e) => {
+          console.log('Error in showing notification - ', e);
           resolve();
-        }
-      });
+        });
     };
+
+    if (payload.data.user_id && !payload.data.employee_code) {
+      // Check logindetails
+      let dbUserRequest = indexedDB.open('logindetails');
+      dbUserRequest.onerror = function (err) {
+        console.error("logindetails Failed to open database:", err);
+        resolve();
+      };
+      dbUserRequest.onsuccess = function (dbvent) {
+        let db = dbvent.target.result;
+        if (!db.objectStoreNames.contains('box')) return resolve();
+
+        let transaction = db.transaction(['box'], 'readonly');
+        let objectStore = transaction.objectStore('box');
+        
+        const getFromStore = (key) => new Promise((res) => {
+          let req = objectStore.get(key);
+          req.onsuccess = (e) => res(e.target.result);
+          req.onerror = () => res(null);
+        });
+
+        Promise.all([getFromStore('userId'), getFromStore('userData')]).then(([localUserId, localUserData]) => {
+          let matched = false;
+          
+          if (localUserId && payload.data.user_id == localUserId) {
+            console.log('User id matching on userId - ', payload.data.user_id);
+            matched = true;
+          } else if (localUserData) {
+            try {
+              let parsedOfflineUserData = JSON.parse(localUserData);
+              if (parsedOfflineUserData && parsedOfflineUserData.data && parsedOfflineUserData.data.user_info && parsedOfflineUserData.data.user_info[0]) {
+                if (payload.data.user_id == parsedOfflineUserData.data.user_info[0].user_id) {
+                  console.log('User id matching on parsed userData - ', payload.data.user_id);
+                  matched = true;
+                }
+              }
+            } catch (e) {
+              console.log('Failed to parse userData', e);
+            }
+          }
+          
+          if (matched) {
+            showNotification();
+          } else {
+            console.log('User id not matching or not found in logindetails.');
+            resolve();
+          }
+        });
+      };
+    } else {
+      // Check kidzeepref
+      let dbUserRequest = indexedDB.open('kidzeepref');
+      dbUserRequest.onerror = function (err) {
+        console.error("kidzeepref Failed to open database:", err);
+        resolve();
+      };
+      dbUserRequest.onsuccess = function (dbvent) {
+        let db = dbvent.target.result;
+        if (!db.objectStoreNames.contains('box')) return resolve();
+
+        let transaction = db.transaction(['box'], 'readonly');
+        let objectStore = transaction.objectStore('box');
+        
+        const getFromStore = (key) => new Promise((res) => {
+          let req = objectStore.get(key);
+          req.onsuccess = (e) => res(e.target.result);
+          req.onerror = () => res(null);
+        });
+        
+        Promise.all([getFromStore('empid'), getFromStore('employee_Code')]).then(([localEmpid, localEmpCode]) => {
+          let shouldShow = false;
+          
+          if (payload.data.employee_code && payload.data.employee_code == localEmpCode) {
+            console.log('User id matching on employee_code - ', payload.data.employee_code);
+            shouldShow = true;
+          } else if (payload.data.empid && payload.data.empid == localEmpid) {
+            console.log('User id matching on empid - ', payload.data.empid);
+            shouldShow = true;
+          }
+          
+          if (shouldShow) {
+            showNotification();
+          } else {
+            console.log('User id not matching or not found in kidzeepref. Payload empid:', payload.data.empid, 'Payload empCode:', payload.data.employee_code, 'Local empid:', localEmpid, 'Local empCode:', localEmpCode);
+            resolve();
+          }
+        });
+      };
+    }
   });
 
   event.waitUntil(showPromise);
