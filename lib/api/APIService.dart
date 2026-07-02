@@ -157,6 +157,51 @@ class APIService {
     }
   }
 
+   Future<void> subscribeToTopicForWeb(String token, String topic) async {
+    debugPrint('Messaging token is - $token');
+    if (kIsWeb) {
+      /* Below code subscribes to topic for web as normal way does not works. */
+      try {
+        /* https://7d7d75ce2c46.ngrok-free.app/subscribe?projectName=kidzee&topicname=kidzee&token=ePR0819hT_S00y2XLkHRT0:APA91bH_07X2_M5LsvsPa9NUVXikbbe-9UT2U7Y3VdEMqTdXL1Oe0ZaItsFQjrLCkDSLF7TywUkxpT5Va1lK9ZT8OEI0gGR0UVYZuQ4zlwmqLxoyIzkHjis */
+        var response = await http.get(
+          Uri.parse(
+              '$bpms_url/api/subscription/subscribe?projectName=litrahub&topicname=$topic&token=$token'),
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        );
+
+        debugPrint(
+            'Response from subscribe to topic api is Api Service - ${response.body} and status is - ${response.statusCode} ');
+      } catch (e) {
+        debugPrint('Exception while subscribing for web - $e');
+      }
+    }
+  }
+
+   Future<void> unsubscribeToTopicForWeb(String topic,String? token) async {
+   
+
+    if (token != null && token.isNotEmpty) {
+      /* Below code unsubscribes to topic for web as normal way does not works. */
+      try {
+        var response = await http.get(
+          Uri.parse(
+              '$bpms_url/api/subscription/unsubscribe?projectName=litrahub&topicname=$topic&token=$token'),
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        );
+        debugPrint(
+            'Response from unsubscribe to topic api is - ${response.body} and status is - ${response.statusCode} ');
+      } catch (e) {
+        debugPrint('Exception while subscribing for web - $e');
+      }
+    } else {
+      debugPrint('FcmToken is null');
+    }
+  }
+
   Future<Either<String, List<GetPlanData>>> getEmployeeVisitDetails(
       int employeeID, int businessId) async {
     try {

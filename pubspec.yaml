@@ -116,7 +116,8 @@ dependencies:
   # device_calendar: ^4.3.2
 
   # syncfusion_flutter_calendar: ^30.2.6
-  fluttertoast: ^9.0.0
+  # fluttertoast: ^9.0.0
+  toastification: ^3.2.0
   grouped_list: ^6.0.0
   collection: ^1.18.0
   app_links: ^7.0.0

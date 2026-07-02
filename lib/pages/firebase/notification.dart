@@ -60,6 +60,9 @@ class FCM {
               await FirebaseMessaging.instance.subscribeToTopic("intranet");
               await Future.delayed(Duration(seconds: 1));
               await FirebaseMessaging.instance.subscribeToTopic("saathi");
+            } else if (kIsWeb) {
+              APIService().subscribeToTopicForWeb(token, 'intranet');
+              APIService().subscribeToTopicForWeb(token, 'saathi');
             }
             print('Response from getToken is - ${token}');
             sendFcm(token!, employeeId, deviceId, userAgent);
@@ -83,8 +86,7 @@ class FCM {
           Device_ID: deviceId,
           User_Agent: userAgent);
       service.updateFCM(model);
-    } else {
-    }
+    } else {}
   }
 
   dispose() {

@@ -10,9 +10,9 @@
             "type": "dart",
             "noDebug": true,
             "args": [
-                "-v",
-                "--web-browser-flag",
-                "--disable-web-security",
+                // "-v",
+                // "--web-browser-flag",
+                // "--disable-web-security",
                 "--dart-define=IS_STAGING=true",
 
             ]
