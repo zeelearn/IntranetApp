@@ -1954,11 +1954,11 @@ class _IntranetHomePageState extends State<IntranetHomePage>
     var hiveBox = await Utility.openBox();
     await Hive.openBox(LocalConstant.KidzeeDB);
     hiveBox.clear();
-    hiveBox.close();
     DBHelper helper = DBHelper();
     helper.deleteAllData();
     await HiveDatabase.clear();
     expensePlacholder.clearAllExpenseControllers();
+    hiveBox.close();
     await Future.delayed(const Duration(seconds: 1));
 
     Navigator.pushAndRemoveUntil(
