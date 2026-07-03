@@ -62,7 +62,7 @@
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "--dart-define=IS_STAGING=true"
+            argument = "--dart-define=IS_STAGING=false"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>
