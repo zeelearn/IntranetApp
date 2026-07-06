@@ -1,1 +1,3 @@
 String getBrowserUrl() => '';
+
+void resetWebUrl() {}

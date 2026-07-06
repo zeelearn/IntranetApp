@@ -8,6 +8,7 @@ import 'package:Intranet/api/response/login_response.dart';
 import 'package:Intranet/main.dart';
 import 'package:Intranet/pages/helper/LocalConstant.dart';
 import 'package:Intranet/pages/helper/utils.dart';
+import 'package:Intranet/pages/helper/web_helper.dart';
 import 'package:Intranet/pages/home/change_password_request.dart';
 import 'package:Intranet/pages/leave/leave_list.dart';
 import 'package:Intranet/pages/notification/UserNotification.dart';
@@ -1960,11 +1961,12 @@ class _IntranetHomePageState extends State<IntranetHomePage>
     expensePlacholder.clearAllExpenseControllers();
     hiveBox.close();
     await Future.delayed(const Duration(seconds: 1));
-
+    resetWebUrl();
     Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(
           builder: (context) => IntroPage(),
+          settings: const RouteSettings(name: '/'),
         ),
         (route) => false);
     /* if (Platform.isAndroid) {
