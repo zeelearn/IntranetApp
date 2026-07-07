@@ -116,7 +116,8 @@ dependencies:
   # device_calendar: ^4.3.2
 
   # syncfusion_flutter_calendar: ^30.2.6
-  fluttertoast: ^9.0.0
+  # fluttertoast: ^9.0.0
+  toastification: ^3.2.0
   grouped_list: ^6.0.0
   collection: ^1.18.0
   app_links: ^7.0.0
@@ -200,6 +201,7 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
+  lints: ^6.1.0
   # firebase_messaging_platform_interface: 4.6.9
 
 flutter_icons:

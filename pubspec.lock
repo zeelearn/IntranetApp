@@ -1382,7 +1382,7 @@ packages:
     source: hosted
     version: "0.17.2"
   fluttertoast:
-    dependency: "direct main"
+    dependency: "direct overridden"
     description:
       name: fluttertoast
       sha256: "7903c9d5339173497bfecbc23bc4212f5a87e0edfac2e1693fb74465ea67da7e"
@@ -1862,7 +1862,7 @@ packages:
     source: hosted
     version: "1.10.0"
   lints:
-    dependency: transitive
+    dependency: "direct dev"
     description:
       name: lints
       sha256: "12f842a479589fea194fe5c5a3095abc7be0c1f2ddfa9a0e76aed1dbd26a87df"
@@ -2206,6 +2206,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.3.0"
+  pausable_timer:
+    dependency: transitive
+    description:
+      name: pausable_timer
+      sha256: "6ef1a95441ec3439de6fb63f39a011b67e693198e7dae14e20675c3c00e86074"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.1.0+3"
   pdfium_dart:
     dependency: transitive
     description:
@@ -2908,6 +2916,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.10.1"
+  toastification:
+    dependency: "direct main"
+    description:
+      name: toastification
+      sha256: "66c96678e3dece8ba24de3ea31634bd65a80aaecb8105f9bafe946e5f0d7590a"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.2.0"
   typed_data:
     dependency: transitive
     description:
