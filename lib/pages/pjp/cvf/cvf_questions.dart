@@ -558,7 +558,7 @@ class _QuestionListScreenState extends State<QuestionListScreen>
                       saveAnswers('');
                     },
                   ),
-                   SizedBox(
+                  SizedBox(
                     width: 10,
                   ),
                 ]
@@ -1074,10 +1074,12 @@ class _QuestionListScreenState extends State<QuestionListScreen>
 
                 GestureDetector(
                   onTap: () {
-                    if(questions.files.isEmpty && _Status=='Completed'){
-                      Utility.showMessages(context, LocalConstant.CVF_ALREADY_SUBMITTED);
-                    }else 
-                    if (widget.isViewOnly || (questions.files.isNotEmpty && _Status == 'Completed')) {
+                    if (questions.files.isEmpty && _Status == 'Completed') {
+                      Utility.showMessages(
+                          context, LocalConstant.CVF_ALREADY_SUBMITTED);
+                    } else if (widget.isViewOnly ||
+                        (questions.files.isNotEmpty &&
+                            _Status == 'Completed')) {
                       if (questions.files.isNotEmpty) {
                         if (questions.files.contains('.png') ||
                             questions.files.contains('.jpg') ||
@@ -1276,7 +1278,8 @@ class _QuestionListScreenState extends State<QuestionListScreen>
           ),*/
           GestureDetector(
             onTap: () {
-              if (widget.isViewOnly || (questions.files.isNotEmpty && _Status == 'Completed')) {
+              if (widget.isViewOnly ||
+                  (questions.files.isNotEmpty && _Status == 'Completed')) {
                 if (questions.files.isNotEmpty) {
                   if (questions.files.contains('.png') ||
                       questions.files.contains('.jpg') ||
@@ -2022,20 +2025,21 @@ class _QuestionListScreenState extends State<QuestionListScreen>
     }
   }
 
-  isCompletedImageClick(){
-    if(_Status=='Completed'){
+  isCompletedImageClick() {
+    if (_Status == 'Completed') {
       return true;
-    }else{
+    } else {
       return false;
     }
   }
 
   openFile(Allquestion question) async {
-    if(question.files.isEmpty && _Status=='Completed'){
+    if (question.files.isEmpty && _Status == 'Completed') {
       Utility.showMessages(context, LocalConstant.CVF_ALREADY_SUBMITTED);
-    }else if(question.files.isNotEmpty &&  question.files.contains('.jpg') || question.files.contains('png')){
-      showImagePicker(_Status=='Completed' ? 3 : 0,question);
-    }else if (question.files.contains('.pdf')) {
+    } else if (question.files.isNotEmpty && question.files.contains('.jpg') ||
+        question.files.contains('png')) {
+      showImagePicker(_Status == 'Completed' ? 3 : 0, question);
+    } else if (question.files.contains('.pdf')) {
       File file = File(decodeUrl(question.files));
       var filePath = file.path.split('?');
       var fileExt = filePath[0].split('/');
@@ -2049,6 +2053,8 @@ class _QuestionListScreenState extends State<QuestionListScreen>
             title: title,
             filename: title,
             module: '',
+            listener: this,
+            question: question,
           ),
         ),
       );
@@ -2155,8 +2161,7 @@ class _QuestionListScreenState extends State<QuestionListScreen>
   }
 
   @override
-  void onUploadProgress(int value) {
-  }
+  void onUploadProgress(int value) {}
 
   @override
   void onUploadSuccess(value) {
@@ -2276,10 +2281,8 @@ class DetailScreen extends StatelessWidget {
               : Image.network(imageUrl),
           //resetDuration: const Duration(milliseconds: 100),
           maxScale: 2.5,
-          onZoomStart: () {
-          },
-          onZoomEnd: () {
-          },
+          onZoomStart: () {},
+          onZoomEnd: () {},
         ),
         onTap: () {
           Navigator.pop(context);

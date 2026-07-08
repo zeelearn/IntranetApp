@@ -1,4 +1,7 @@
 import 'dart:io';
+import 'package:Intranet/api/response/cvf/QuestionResponse.dart';
+import 'package:Intranet/pages/helper/constants.dart';
+import 'package:Intranet/pages/iface/onClick.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdfrx/pdfrx.dart';
@@ -10,11 +13,15 @@ class MyPdfApp extends StatefulWidget {
   String title;
   String module;
   String filename;
+  onClickListener listener;
+  Allquestion question;
 
   MyPdfApp(
       {required this.title,
       required this.filename,
       required this.module,
+      required this.listener,
+      required this.question,
       required this.worksheetUrl});
 
   @override
@@ -71,6 +78,21 @@ class _HomePage extends State<MyPdfApp> {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
+        actions: [
+          InkWell(
+            onTap: () {
+              Navigator.of(context).pop();
+              widget.listener.onClick(ACTION_ADD_NEW_IMAGE, widget.question);
+            },
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Icon(
+                Icons.add,
+                size: 28,
+              ),
+            ),
+          ),
+        ],
       ),
       body: isLoading
           ? Utility.showLoader()

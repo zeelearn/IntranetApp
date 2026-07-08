@@ -448,8 +448,7 @@ class Utility {
     } else {
       try {
         final result = await InternetAddress.lookup('example.com');
-        if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
-        }
+        if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {}
       } on SocketException catch (_) {
         isConnected = false;
       }
@@ -579,7 +578,6 @@ class Utility {
       },
     );
   }
-
 
   void showBusinessNotMappedDialog(BuildContext context) {
     showDialog(
@@ -1312,7 +1310,6 @@ class Utility {
     // }
   }
 
-
   Future<void> showPJPStatusDialog({
     required BuildContext pageContext,
     required PJPModel pjp,
@@ -1320,7 +1317,6 @@ class Utility {
     required bool isSuccess,
     String? message,
   }) {
-
     return showDialog(
       context: pageContext,
       barrierDismissible: false,
@@ -1353,19 +1349,13 @@ class Utility {
                     height: 72,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: (isSuccess
-                              ? Colors.green
-                              : Colors.red)
+                      color: (isSuccess ? Colors.green : Colors.red)
                           .withOpacity(0.1),
                     ),
                     child: Icon(
-                      isSuccess
-                          ? Icons.check_circle
-                          : Icons.cancel,
+                      isSuccess ? Icons.check_circle : Icons.cancel,
                       size: 42,
-                      color: isSuccess
-                          ? Colors.green
-                          : Colors.red,
+                      color: isSuccess ? Colors.green : Colors.red,
                     ),
                   ),
 
@@ -1402,7 +1392,7 @@ class Utility {
                   _infoCard(
                     Icons.calendar_today_outlined,
                     "From Date",
-                    DateFormat('MMM dd').format(pjp.fromDate)  ?? "-",
+                    DateFormat('MMM dd').format(pjp.fromDate) ?? "-",
                     isSuccess,
                   ),
 
@@ -1411,7 +1401,7 @@ class Utility {
                   _infoCard(
                     Icons.calendar_today_outlined,
                     "To Date",
-                    DateFormat('MMM dd').format(pjp.toDate)  ?? "-",
+                    DateFormat('MMM dd').format(pjp.toDate) ?? "-",
                     isSuccess,
                   ),
 
@@ -1426,7 +1416,6 @@ class Utility {
 
                   if (!isSuccess) ...[
                     const SizedBox(height: 16),
-
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
@@ -1437,8 +1426,7 @@ class Utility {
                         ),
                       ),
                       child: Row(
-                        crossAxisAlignment:
-                            CrossAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const Icon(
                             Icons.warning_amber_rounded,
@@ -1474,14 +1462,11 @@ class Utility {
                         //listener.onClick(Utility.ACTION_OK, pjp);
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: isSuccess
-                            ? Colors.green
-                            : Colors.red,
+                        backgroundColor: isSuccess ? Colors.green : Colors.red,
                         foregroundColor: Colors.white,
                         elevation: 0,
                         shape: RoundedRectangleBorder(
-                          borderRadius:
-                              BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(12),
                         ),
                       ),
                       child: Text(
@@ -1504,8 +1489,7 @@ class Utility {
     String value,
     bool isSuccess,
   ) {
-    final color =
-        isSuccess ? Colors.green : Colors.red;
+    final color = isSuccess ? Colors.green : Colors.red;
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -1530,8 +1514,7 @@ class Utility {
           const SizedBox(width: 12),
           Expanded(
             child: Column(
-              crossAxisAlignment:
-                  CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   title,
@@ -1559,10 +1542,11 @@ class Utility {
    * Create a Dialog on Fri 19th Jun 2026, to show the confirmation message to Managers before approving or rejecting the PJP. This dialog will display the PJP details and provide options for approval or rejection.
    * 
    */
-  String generatePJPApprovalMessage(List<PJPInfo> pjps,isApprove) {
+  String generatePJPApprovalMessage(List<PJPInfo> pjps, isApprove) {
     StringBuffer DocXML = new StringBuffer("<root>");
     for (int index = 0; index < pjps.length; index++) {
-        DocXML.write("<subroot><PJP_id>${pjps[index].PJP_Id}</PJP_id><Is_Approved>${isApprove}</Is_Approved></subroot>");
+      DocXML.write(
+          "<subroot><PJP_id>${pjps[index].PJP_Id}</PJP_id><Is_Approved>${isApprove}</Is_Approved></subroot>");
     }
     DocXML.write("</root>");
     return DocXML.toString();
@@ -1655,9 +1639,7 @@ class Utility {
                       alignment: Alignment.centerLeft,
                       child: Text(
                         'Selected PJP(s)',
-                        style: Theme.of(context)
-                            .textTheme
-                            .titleMedium,
+                        style: Theme.of(context).textTheme.titleMedium,
                       ),
                     ),
 
@@ -1666,8 +1648,7 @@ class Utility {
                     Expanded(
                       child: ListView.separated(
                         itemCount: pjps.length,
-                        separatorBuilder: (_, __) =>
-                            const SizedBox(height: 8),
+                        separatorBuilder: (_, __) => const SizedBox(height: 8),
                         itemBuilder: (context, index) {
                           final pjp = pjps[index];
 
@@ -1675,36 +1656,30 @@ class Utility {
                             padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
                               color: Colors.grey.shade50,
-                              borderRadius:
-                                  BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(12),
                             ),
                             child: Column(
-                              crossAxisAlignment:
-                                  CrossAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
                                   pjp.displayName ?? '-',
                                   style: const TextStyle(
-                                    fontWeight:
-                                        FontWeight.w600,
+                                    fontWeight: FontWeight.w600,
                                   ),
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
-                                  '${pjp.fromDate} - ${pjp.toDate}',
+                                  '${DateFormat('yyyy-MMM-dd').format(DateFormat('yyyy-MM-ddThh:mm:ss').parse(pjp.fromDate))} to ${DateFormat('yyyy-MMM-dd').format(DateFormat('yyyy-MM-ddThh:mm:ss').parse(pjp.toDate))}',
                                 ),
-                                if ((pjp.remarks ?? '')
-                                    .isNotEmpty)
+                                if ((pjp.remarks ?? '').isNotEmpty)
                                   Padding(
-                                    padding:
-                                        const EdgeInsets.only(
+                                    padding: const EdgeInsets.only(
                                       top: 4,
                                     ),
                                     child: Text(
                                       pjp.remarks!,
                                       maxLines: 2,
-                                      overflow:
-                                          TextOverflow.ellipsis,
+                                      overflow: TextOverflow.ellipsis,
                                     ),
                                   ),
                               ],
@@ -1736,8 +1711,7 @@ class Utility {
                       children: [
                         Expanded(
                           child: OutlinedButton(
-                            onPressed: () =>
-                                Navigator.pop(context),
+                            onPressed: () => Navigator.pop(context),
                             child: const Text('Cancel'),
                           ),
                         ),
@@ -1755,7 +1729,8 @@ class Utility {
                               ),
                             ),
                             onPressed: () {
-                              String requestXML = generatePJPApprovalMessage(pjps,false);
+                              String requestXML =
+                                  generatePJPApprovalMessage(pjps, false);
                               Navigator.pop(
                                 context,
                                 requestXML,
@@ -1773,15 +1748,13 @@ class Utility {
                             label: const Text(
                               'Approve',
                             ),
-                            style:
-                                ElevatedButton.styleFrom(
-                              backgroundColor:
-                                  Colors.green,
-                              foregroundColor:
-                                  Colors.white,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.green,
+                              foregroundColor: Colors.white,
                             ),
                             onPressed: () {
-                              String requestXML = generatePJPApprovalMessage(pjps,true);
+                              String requestXML =
+                                  generatePJPApprovalMessage(pjps, true);
                               Navigator.pop(
                                 context,
                                 requestXML,
