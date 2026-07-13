@@ -21,6 +21,7 @@ import 'package:hive/hive.dart';
 import 'package:intl/intl.dart';
 import 'package:location/location.dart';
 import 'package:order_tracker_zen/order_tracker_zen.dart';
+import 'package:Intranet/pages/widget/intranet_order_tracker.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:timezone/src/location.dart' as timezonelocation;
 
@@ -710,7 +711,7 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
                     ),
                   ),
                   const SizedBox(height: 5),
-                  OrderTrackerZen(
+                  IntranetOrderTrackerZen(
                     isShrinked: true,
                     tracker_data: getTrakcerList(
                         filteredlistofplandata[index].lastCheckIn,

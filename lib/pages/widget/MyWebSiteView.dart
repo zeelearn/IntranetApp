@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'dart:io';
 import 'package:Intranet/pages/helper/constants.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -7,6 +9,7 @@ import 'package:lottie/lottie.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+import 'local_pdf_viewer.dart';
 // #docregion platform_imports
 // Import for Android features.
 import 'package:webview_flutter_android/webview_flutter_android.dart';
@@ -231,6 +234,75 @@ class MyWebsiteViewState extends State<MyWebsiteView> {
                     return null;
                   },
                 );
+                webViewController?.addJavaScriptHandler(
+                  handlerName: 'blobDownloaded',
+                  callback: (args) async {
+                    if (args.isEmpty) return;
+                    final String base64Data = args[0] as String;
+                    final String suggestedFilename = args[1] as String;
+                    final String mimeType = args[2] as String;
+
+                    try {
+                      final String base64String = base64Data.split(',').last;
+                      final Uint8List bytes = base64Decode(base64String);
+
+                      final Directory directory = Platform.isIOS
+                          ? await getApplicationDocumentsDirectory()
+                          : (await getExternalStorageDirectory() ??
+                              await getApplicationDocumentsDirectory());
+
+                      final String filePath = '${directory.path}/$suggestedFilename';
+                      final File file = File(filePath);
+                      await file.writeAsBytes(bytes);
+
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('File downloaded: $suggestedFilename'),
+                            action: SnackBarAction(
+                              label: 'View',
+                              onPressed: () {
+                                if (mimeType == 'application/pdf' ||
+                                    suggestedFilename.endsWith('.pdf')) {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => LocalPdfViewerPage(
+                                        filePath: filePath,
+                                        title: suggestedFilename,
+                                      ),
+                                    ),
+                                  );
+                                }
+                              },
+                            ),
+                          ),
+                        );
+
+                        if (mimeType == 'application/pdf' ||
+                            suggestedFilename.endsWith('.pdf')) {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => LocalPdfViewerPage(
+                                filePath: filePath,
+                                title: suggestedFilename,
+                              ),
+                            ),
+                          );
+                        }
+                      }
+                    } catch (e) {
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Failed to save download: $e'),
+                          ),
+                        );
+                      }
+                    }
+                  },
+                );
               }
             },
             onLoadStart: (controller, url) {
@@ -259,7 +331,8 @@ class MyWebsiteViewState extends State<MyWebsiteView> {
                 "chrome",
                 "data",
                 "javascript",
-                "about"
+                "about",
+                "blob"
               ].contains(uri.scheme)) {
                 if (await canLaunchUrl(uri)) {
                   // Launch the App
@@ -314,17 +387,40 @@ class MyWebsiteViewState extends State<MyWebsiteView> {
               }
             },
             onDownloadStartRequest: (controller, downloadStartRequest) async {
-              final taskId = await FlutterDownloader.enqueue(
-                url: downloadStartRequest.url.toString(),
-                savedDir: (await getExternalStorageDirectory())!.path,
-                showNotification:
-                    true, // show download progress in status bar (for Android)
-                openFileFromNotification:
-                    true, // click on notification to open downloaded file (for Android)
-              );
-              /* await canLaunchUrl(downloadStartRequest.url)
-                  ? await launchUrl(downloadStartRequest.url)
-                  : throw 'Could not launch ${downloadStartRequest.url}'; */
+              final url = downloadStartRequest.url;
+              if (url.scheme == 'blob') {
+                final String jsCode = """
+                  (async function() {
+                    try {
+                      const response = await fetch('${url.toString()}');
+                      const blob = await response.blob();
+                      const reader = new FileReader();
+                      reader.onloadend = function() {
+                        const base64data = reader.result;
+                        window.flutter_inappwebview.callHandler(
+                          'blobDownloaded',
+                          base64data,
+                          '${downloadStartRequest.suggestedFilename ?? 'download.pdf'}',
+                          '${downloadStartRequest.mimeType ?? 'application/octet-stream'}'
+                        );
+                      };
+                      reader.readAsDataURL(blob);
+                    } catch (e) {
+                      console.error('Blob download failed:', e);
+                    }
+                  })();
+                """;
+                await controller.evaluateJavascript(source: jsCode);
+              } else {
+                await FlutterDownloader.enqueue(
+                  url: url.toString(),
+                  savedDir: (await getExternalStorageDirectory())!.path,
+                  showNotification:
+                      true, // show download progress in status bar (for Android)
+                  openFileFromNotification:
+                      true, // click on notification to open downloaded file (for Android)
+                );
+              }
             },
           ),
         ) /* WebViewWidget(controller: _controller) */,

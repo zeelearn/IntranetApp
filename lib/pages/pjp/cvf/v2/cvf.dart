@@ -11,6 +11,7 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:lottie/lottie.dart';
 import 'package:order_tracker_zen/order_tracker_zen.dart';
+import 'package:Intranet/pages/widget/intranet_order_tracker.dart';
 
 /// CVF v2 accent — date/time, category, ref id.
 const Color _cvfAccent = Color(0xFF4B39EF);
@@ -228,37 +229,32 @@ class _CvfListBody extends StatelessWidget {
             );
           }
 
-          return RefreshIndicator(
-            onRefresh: controller.refresh,
-            color: Colors.white,
-            backgroundColor: kPrimaryLightColor,
-            child: ListView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.fromLTRB(0, 12, 0, 24),
-              children: [
-                if (activeFilter != CvfFilter.all)
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
-                    child: Align(
-                      alignment: Alignment.centerLeft,
-                      child: Chip(
-                        avatar: Icon(Icons.filter_alt,
-                            size: 18, color: kPrimaryLightColor),
-                        label: Text('Filter: ${controller.filterLabel}'),
-                        deleteIconColor: kPrimaryLightColor,
-                        onDeleted: () =>
-                            controller.filter.value = CvfFilter.all,
-                      ),
+          return ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.fromLTRB(0, 12, 0, 24),
+            children: [
+              if (activeFilter != CvfFilter.all)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Chip(
+                      avatar: Icon(Icons.filter_alt,
+                          size: 18, color: kPrimaryLightColor),
+                      label: Text('Filter: ${controller.filterLabel}'),
+                      deleteIconColor: kPrimaryLightColor,
+                      onDeleted: () =>
+                          controller.filter.value = CvfFilter.all,
                     ),
                   ),
-                ...List.generate(items.length, (index) {
-                  return _CvfCard(
-                    controller: controller,
-                    cvf: controller.normalizeCvf(items[index]),
-                  );
-                }),
-              ],
-            ),
+                ),
+              ...List.generate(items.length, (index) {
+                return _CvfCard(
+                  controller: controller,
+                  cvf: controller.normalizeCvf(items[index]),
+                );
+              }),
+            ],
           );
         });
       },
@@ -831,7 +827,7 @@ class _CvfTimeline extends StatelessWidget {
       width: double.infinity,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
-        child: OrderTrackerZen(tracker_data: trackerData),
+        child: IntranetOrderTrackerZen(tracker_data: trackerData),
       ),
     );
   }

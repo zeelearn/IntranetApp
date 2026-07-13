@@ -1482,7 +1482,7 @@ class _QuestionListScreenState extends State<QuestionListScreen>
                             fit: BoxFit.fill)
                     : questions.files.isEmpty
                         ? Icon(
-                            Icons.photo,
+                            Icons.upload_file,
                             size: 20,
                           )
                         : Image.network(getImageUrl(questions.files),

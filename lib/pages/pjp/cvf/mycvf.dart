@@ -12,6 +12,7 @@ import 'package:hive/hive.dart';
 import 'package:intl/intl.dart';
 import 'package:location/location.dart';
 import 'package:order_tracker_zen/order_tracker_zen.dart';
+import 'package:Intranet/pages/widget/intranet_order_tracker.dart';
 
 import '../../../api/APIService.dart';
 import '../../../api/ServiceHandler.dart';
@@ -146,8 +147,7 @@ class _MyCVFListScreen extends State<MyCVFListScreen>
         });
 
         Navigator.of(context).pop();
-      } else {
-      }
+      } else {}
     });
   }
 
@@ -418,7 +418,8 @@ class _MyCVFListScreen extends State<MyCVFListScreen>
                                         if (cvfView.hasPjpRange) {
                                           _showRescheduleDialog(cvfView);
                                         } else {
-                                          Utility.showMessage(context,"Cannot reschedule: PJP range not available.");
+                                          Utility.showMessage(context,
+                                              "Cannot reschedule: PJP range not available.");
                                         }
                                       },
                                     ),
@@ -551,42 +552,44 @@ class _MyCVFListScreen extends State<MyCVFListScreen>
               getTimeLine(cvfView),
               cvfView.Status == 'Completed'
                   ? Column(
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: [
-                          Container(
-                            // width: 200,
-                            alignment: Alignment.centerLeft,
-                            margin: EdgeInsets.only(left: 20),
-                                padding: EdgeInsets.only(left: 20, right: 20),
-                                color: kPrimaryLightColor.withOpacity(0.4),
-                                child: InkWell(
-                                  onTap: () {
-                                    Navigator.of(context).push(MaterialPageRoute(
-                                        builder: (BuildContext context) =>
-                                            MyWebsiteView(
-                                              title:
-                                                  'CVF Report - ${cvfView.PJPCVF_Id}',
-                                              url:
-                                                  'https://intranet.zeelearn.com/cvfreport.html?cid=${cvfView.PJPCVF_Id}',
-                                            )));
-                                  },
-                                  child: Text(
-                                    'View Report',
-                                    style: GoogleFonts.lato(
-                                      fontSize: 14,
-                                      color: Colors.black87,
-                                      fontWeight: FontWeight.normal,
-                                    ),
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            Container(
+                              // width: 200,
+                              alignment: Alignment.centerLeft,
+                              margin: EdgeInsets.only(left: 20),
+                              padding: EdgeInsets.only(left: 20, right: 20),
+                              color: kPrimaryLightColor.withOpacity(0.4),
+                              child: InkWell(
+                                onTap: () {
+                                  Navigator.of(context).push(MaterialPageRoute(
+                                      builder: (BuildContext context) =>
+                                          MyWebsiteView(
+                                            title:
+                                                'CVF Report - ${cvfView.PJPCVF_Id}',
+                                            url:
+                                                'https://intranet.zeelearn.com/cvfreport.html?cid=${cvfView.PJPCVF_Id}',
+                                          )));
+                                },
+                                child: Text(
+                                  'View Report',
+                                  style: GoogleFonts.lato(
+                                    fontSize: 14,
+                                    color: Colors.black87,
+                                    fontWeight: FontWeight.normal,
                                   ),
                                 ),
                               ),
-                        ],
-                      ),
-                      SizedBox(height: 10,)
-                    ],
-                  )
+                            ),
+                          ],
+                        ),
+                        SizedBox(
+                          height: 10,
+                        )
+                      ],
+                    )
                   : SizedBox.shrink(),
             ],
           ),
@@ -636,7 +639,7 @@ class _MyCVFListScreen extends State<MyCVFListScreen>
           Padding(
             padding: EdgeInsets.symmetric(horizontal: 20, vertical: 30),
             // OrderTrackerZen is the main widget of the package which displays the order tracking information.
-            child: OrderTrackerZen(
+            child: IntranetOrderTrackerZen(
               // Provide an array of TrackerData objects to display the order tracking information.
               tracker_data: getCheckInCheckOut(cvfInfo),
             ),
@@ -649,7 +652,9 @@ class _MyCVFListScreen extends State<MyCVFListScreen>
   getTextCategory(GetDetailedPJP cvfView, String categoryname, bool isfirst) {
     return GestureDetector(
       onTap: () {
-        if (cvfView.Status == 'Check In' ||
+        if (cvfView.IsCancelled || cvfView.Status == 'Cancelled') {
+          Utility.showMessage(context, 'This CVF is cancelled');
+        } else if (cvfView.Status == 'Check In' ||
             cvfView.Status == ' Check In' ||
             cvfView.Status == 'NA') {
           Utility.showMessage(context, 'Please Click on Check In button');
@@ -1028,8 +1033,7 @@ class _MyCVFListScreen extends State<MyCVFListScreen>
       if (response.responseData != null && response.responseData.length > 0) {
         saveDataOffline(McvfView);
         loadData();
-      } else {
-      }
+      } else {}
     } else if (value is String) {
       // loadData();
     }
@@ -1045,8 +1049,7 @@ class _MyCVFListScreen extends State<MyCVFListScreen>
       if (action == Utility.ACTION_OK) {
         updateCVF(cvfView);
       } else if (action == Utility.ACTION_CCNCEL) {}
-    } else {
-    }
+    } else {}
   }
 
   void _showCancelConfirmation(GetDetailedPJP cvfView) {

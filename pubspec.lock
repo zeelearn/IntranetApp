@@ -2231,7 +2231,7 @@ packages:
     source: hosted
     version: "0.2.2"
   pdfrx:
-    dependency: "direct overridden"
+    dependency: "direct main"
     description:
       name: pdfrx
       sha256: e0ca318004c3f32144db8e74fa612abb80ebe79004677293af74ed9af119f47f
