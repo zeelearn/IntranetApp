@@ -1009,6 +1009,74 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
           ),
         ),*/
         getCenterList(),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+          child: Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.blue.shade50,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.blue.shade100, width: 1),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(Icons.info_outline, color: Colors.blue.shade700, size: 18),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'If the searched franchisee is not found in the list, please click below to refresh the centers.',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.blue.shade900,
+                          height: 1.4,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: ElevatedButton.icon(
+                    onPressed: () async {
+                      final hasInternet = await Utility.isInternet();
+                      if (!mounted) return;
+                      if (hasInternet) {
+                        setState(() {
+                          franchiseeInfo = null;
+                          _CenterName = '';
+                        });
+                        loadCenterList();
+                      } else {
+                        Utility.showMessages(
+                            context, 'Please check your Internet Connection and try again');
+                      }
+                    },
+                    icon: const Icon(Icons.refresh, size: 16),
+                    label: const Text(
+                      'Refresh Centers',
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      foregroundColor: Colors.white,
+                      backgroundColor: LightColor.brighter,
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      elevation: 1,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
         //getCenterDropdown(context),
         //getCenterListDropDown(),
         const SizedBox(
