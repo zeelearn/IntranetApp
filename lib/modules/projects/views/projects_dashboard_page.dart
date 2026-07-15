@@ -152,7 +152,8 @@ class ProjectsDashboardPage extends StatelessWidget {
   }
 
   Widget _buildBody(DashboardController controller) {
-    if (controller.isLoading.value && controller.cards.isEmpty) {
+    // Always show shimmer while the first/server load is in flight.
+    if (controller.isLoading.value) {
       return const DashboardShimmer(fillHeight: true);
     }
 
@@ -163,8 +164,7 @@ class ProjectsDashboardPage extends StatelessWidget {
       );
     }
 
-    if (!controller.isLoading.value &&
-        controller.cards.isEmpty &&
+    if (controller.cards.isEmpty &&
         controller.failureType.value == DashboardFailureType.empty) {
       return DashboardEmptyWidget(onRetry: controller.refreshDashboard);
     }

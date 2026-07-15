@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:Intranet/modules/projects/models/add_task_request.dart';
+import 'package:Intranet/modules/projects/models/dashboard_colors.dart';
 import 'package:Intranet/modules/projects/models/dashboard_failure.dart';
 import 'package:Intranet/modules/projects/models/hierarchy_task.dart';
 import 'package:Intranet/modules/projects/repositories/task_repository.dart';
@@ -182,7 +183,7 @@ class AddTaskController extends GetxController {
       }
     }
 
-    if (responsiblePerson.value.trim().isEmpty) {
+    if (!isEditMode && responsiblePerson.value.trim().isEmpty) {
       formError.value = 'Please select a responsible person';
       ok = false;
     }
@@ -221,30 +222,66 @@ class AddTaskController extends GetxController {
       status: statusId.value,
       parentTaskId: parent,
       dependentTaskId: dependentTaskId.value,
-      contributionId: args.contributionId,
+      contributionId: 3,
       userId: args.userId,
     );
   }
 
-  Future<bool> saveTask() async {
-    if (isSaving.value) return false;
-    if (!validateForm()) return false;
+  Future<AddTaskResult?> saveTask() async {
+    if (isSaving.value) return null;
+    if (!validateForm()) return null;
+
+    final confirmed = await Get.dialog<bool>(
+      AlertDialog(
+        title: Text(isEditMode ? 'Update task?' : 'Add task?'),
+        content: Text(
+          isEditMode
+              ? 'Are you sure you want to update this task?'
+              : 'Are you sure you want to add this task?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(result: false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            style: DashboardColors.primaryFilledButton(),
+            onPressed: () => Get.back(result: true),
+            child: Text(isEditMode ? 'Update' : 'Add'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return null;
 
     isSaving.value = true;
     formError.value = null;
     try {
-      final result = await _repository.addTask(buildRequest());
-      Get.snackbar(
-        result.savedOffline ? 'Saved Offline' : 'Success',
-        result.message,
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: result.savedOffline
-            ? const Color(0xFFFFF3E0)
-            : const Color(0xFFE8F5E9),
-        colorText: const Color(0xFF1A237E),
-        margin: const EdgeInsets.all(12),
-      );
-      return true;
+      final AddTaskResult result;
+      if (isEditMode) {
+        result = await _repository.updateTaskStatus(
+          request: buildUpdateRequest(),
+          projectId: args.projectId,
+        );
+      } else {
+        result = await _repository.addTask(buildRequest());
+      }
+      // Ensure creator is set on newly returned tasks for local edit/delete.
+      final withCreator = result.task != null &&
+              result.task!.taskCreatedUser.trim().isEmpty
+          ? result.task!.copyWith(taskCreatedUser: args.userId.toString())
+          : result.task;
+      final finalResult = withCreator == result.task
+          ? result
+          : AddTaskResult(
+              success: result.success,
+              message: result.message,
+              savedOffline: result.savedOffline,
+              task: withCreator,
+            );
+      // Snackbar is shown on the listing after navigation — avoid Get.snackbar
+      // here so Get.back is not consumed by the snackbar overlay.
+      return finalResult;
     } on DashboardFailure catch (e) {
       formError.value = e.message;
       Get.snackbar(
@@ -255,13 +292,43 @@ class AddTaskController extends GetxController {
         colorText: const Color(0xFFB71C1C),
         margin: const EdgeInsets.all(12),
       );
-      return false;
+      return null;
     } catch (e) {
       formError.value = e.toString();
-      return false;
+      Get.snackbar(
+        'Error',
+        e.toString(),
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: const Color(0xFFFFEBEE),
+        colorText: const Color(0xFFB71C1C),
+        margin: const EdgeInsets.all(12),
+      );
+      return null;
     } finally {
       isSaving.value = false;
     }
+  }
+
+  UpdateTaskStatusRequest buildUpdateRequest() {
+    final taskId = args.taskId > 0
+        ? args.taskId.toString()
+        : (args.seedTask?.id ?? '0');
+    final start = actualStart.value ?? planStart.value;
+    final end = actualEnd.value ?? planEnd.value;
+    if (start == null || end == null) {
+      throw const DashboardFailure(
+        type: DashboardFailureType.unknown,
+        message: 'Start and end dates are required.',
+      );
+    }
+    return UpdateTaskStatusRequest(
+      taskId: taskId,
+      status: TaskFormStatusOption.labelForId(statusId.value),
+      remark: noteController.text.trim(),
+      startDate: ProjectDateUtils.formatApi(start),
+      endDate: ProjectDateUtils.formatApi(end),
+      userId: args.userId,
+    );
   }
 
   void clearForm() {

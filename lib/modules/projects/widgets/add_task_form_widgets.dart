@@ -52,6 +52,8 @@ class TaskTextField extends StatelessWidget {
     this.errorText,
     this.suffix,
     this.onChanged,
+    this.enabled = true,
+    this.readOnly = false,
   });
 
   final TextEditingController controller;
@@ -61,9 +63,12 @@ class TaskTextField extends StatelessWidget {
   final String? errorText;
   final Widget? suffix;
   final ValueChanged<String>? onChanged;
+  final bool enabled;
+  final bool readOnly;
 
   @override
   Widget build(BuildContext context) {
+    final editable = enabled && !readOnly;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -71,8 +76,15 @@ class TaskTextField extends StatelessWidget {
           controller: controller,
           maxLines: maxLines,
           maxLength: maxLength,
-          onChanged: onChanged,
-          style: GoogleFonts.poppins(fontSize: 14),
+          onChanged: editable ? onChanged : null,
+          enabled: enabled,
+          readOnly: readOnly,
+          style: GoogleFonts.poppins(
+            fontSize: 14,
+            color: editable
+                ? DashboardColors.textDark
+                : DashboardColors.textMuted,
+          ),
           decoration: InputDecoration(
             hintText: hint,
             hintStyle: GoogleFonts.poppins(
@@ -80,7 +92,7 @@ class TaskTextField extends StatelessWidget {
               color: DashboardColors.textMuted,
             ),
             filled: true,
-            fillColor: Colors.white,
+            fillColor: editable ? Colors.white : const Color(0xFFF0F2F5),
             suffixIcon: suffix,
             counterText: maxLength == null ? '' : null,
             contentPadding: const EdgeInsets.symmetric(
@@ -645,8 +657,7 @@ class TaskBottomActionBar extends StatelessWidget {
               height: 48,
               child: FilledButton(
                 onPressed: busy ? null : onPrimary,
-                style: FilledButton.styleFrom(
-                  backgroundColor: DashboardColors.primary,
+                style: DashboardColors.primaryFilledButton(
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -665,6 +676,7 @@ class TaskBottomActionBar extends StatelessWidget {
                         style: GoogleFonts.poppins(
                           fontWeight: FontWeight.w600,
                           fontSize: 15,
+                          color: Colors.white,
                         ),
                       ),
               ),

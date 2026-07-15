@@ -31,6 +31,31 @@ void main() {
     });
   });
 
+  group('UpdateTaskStatusRequest', () {
+    test('serializes UpdateTaskStatus payload', () {
+      const request = UpdateTaskStatusRequest(
+        taskId: '120973',
+        status: 'Pending',
+        remark: 'Test',
+        startDate: '2026-07-15',
+        endDate: '2026-07-15',
+        userId: 34254,
+      );
+      final json = request.toJson();
+      expect(json['taskid'], '120973');
+      expect(json['status'], 'Pending');
+      expect(json['remark'], 'Test');
+      expect(json['user_id'], 34254);
+    });
+  });
+
+  group('TaskFormStatusOption', () {
+    test('maps id to UpdateTaskStatus label', () {
+      expect(TaskFormStatusOption.labelForId(1), 'Pending');
+      expect(TaskFormStatusOption.labelForId(2), 'In Progress');
+    });
+  });
+
   group('ProjectDateUtils.formatApi', () {
     test('formats yyyy-MM-dd', () {
       expect(

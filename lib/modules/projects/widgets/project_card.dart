@@ -5,15 +5,15 @@ import 'package:Intranet/modules/projects/models/project_item.dart';
 import 'package:Intranet/modules/projects/utils/project_date_utils.dart';
 import 'package:Intranet/modules/projects/widgets/task_summary_widget.dart';
 
-class ProjectCard extends StatefulWidget {
+class ProjectCard extends StatelessWidget {
   const ProjectCard({
     super.key,
     required this.project,
     required this.statusLabel,
     required this.statusColor,
-    required this.onDetails,
-    required this.onNotes,
-    required this.onEdit,
+    required this.onCommunication,
+    required this.onIndentDetails,
+    required this.onDocuments,
     this.index = 0,
     this.showMissedDeadline = false,
   });
@@ -21,64 +21,34 @@ class ProjectCard extends StatefulWidget {
   final ProjectItem project;
   final String statusLabel;
   final Color statusColor;
-  final VoidCallback onDetails;
-  final VoidCallback onNotes;
-  final VoidCallback onEdit;
+  final VoidCallback onCommunication;
+  final VoidCallback onIndentDetails;
+  final VoidCallback onDocuments;
   final int index;
   final bool showMissedDeadline;
 
   @override
-  State<ProjectCard> createState() => _ProjectCardState();
-}
-
-class _ProjectCardState extends State<ProjectCard>
-    with SingleTickerProviderStateMixin {
-  static const double _actionWidth = 186;
-  late final AnimationController _swipeController;
-
-  @override
-  void initState() {
-    super.initState();
-    _swipeController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 220),
-    );
-  }
-
-  @override
-  void dispose() {
-    _swipeController.dispose();
-    super.dispose();
-  }
-
-  void _toggleActions() {
-    if (_swipeController.isCompleted) {
-      _swipeController.reverse();
-    } else {
-      _swipeController.forward();
-    }
-  }
-
-  void _closeActions() {
-    if (_swipeController.value > 0) {
-      _swipeController.reverse();
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final p = widget.project;
-    final chip = widget.statusLabel.length > 3
-        ? widget.statusLabel.substring(0, 1).toUpperCase()
-        : widget.statusLabel;
+    final p = project;
+    final chip = statusLabel.length > 3
+        ? statusLabel.substring(0, 1).toUpperCase()
+        : statusLabel;
     final approved = ProjectDateUtils.formatReadable(p.approvedDate);
     final deadline = ProjectDateUtils.formatReadable(p.deadline);
-    final missed = widget.showMissedDeadline &&
-        ProjectDateUtils.isMissed(p.deadline);
+    final missed =
+        showMissedDeadline && ProjectDateUtils.isMissed(p.deadline);
+    final displayName = p.franchiseeName.isNotEmpty
+        ? p.franchiseeName
+        : (p.title.isNotEmpty ? p.title : '—');
+    final responsible = p.createdBy.isNotEmpty
+        ? p.createdBy
+        : (p.responsiblePerson.isNotEmpty ? p.responsiblePerson : '—');
+    final showTier = p.tierName.trim().isNotEmpty;
+    final showFee = p.feeType.trim().isNotEmpty;
 
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0, end: 1),
-      duration: Duration(milliseconds: 280 + (widget.index * 40).clamp(0, 400)),
+      duration: Duration(milliseconds: 280 + (index * 40).clamp(0, 400)),
       curve: Curves.easeOutCubic,
       builder: (context, value, child) => Opacity(
         opacity: value,
@@ -89,200 +59,191 @@ class _ProjectCardState extends State<ProjectCard>
       ),
       child: Padding(
         padding: const EdgeInsets.only(bottom: 12),
-        child: ClipRRect(
+        child: Material(
+          color: Colors.white,
+          elevation: 2,
+          shadowColor: const Color(0x14000000),
           borderRadius: BorderRadius.circular(16),
-          child: AnimatedBuilder(
-            animation: _swipeController,
-            builder: (context, _) {
-              final offset = -_actionWidth * _swipeController.value;
-              return Stack(
-                children: [
-                  Positioned.fill(
-                    child: Row(
-                      children: [
-                        const Spacer(),
-                        _SwipeAction(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(12, 12, 12, 10),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        p.crmId.isEmpty ? '—' : p.crmId,
+                        style: GoogleFonts.poppins(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
                           color: DashboardColors.primary,
-                          icon: Icons.folder_open_rounded,
-                          label: 'Details',
-                          onTap: () {
-                            _closeActions();
-                            widget.onDetails();
-                          },
                         ),
-                        _SwipeAction(
-                          color: DashboardColors.success,
-                          icon: Icons.chat_bubble_outline_rounded,
-                          label: 'Notes',
-                          onTap: () {
-                            _closeActions();
-                            widget.onNotes();
-                          },
-                        ),
-                        _SwipeAction(
-                          color: DashboardColors.purple,
-                          icon: Icons.edit_outlined,
-                          label: 'Edit',
-                          onTap: () {
-                            _closeActions();
-                            widget.onEdit();
-                          },
-                        ),
-                      ],
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
+                    StatusBadge(label: chip, color: statusColor),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  displayName,
+                  style: GoogleFonts.poppins(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: const Color(0xFF263238),
                   ),
-                  Transform.translate(
-                    offset: Offset(offset, 0),
-                    child: Material(
-                      color: Colors.white,
-                      elevation: 2,
-                      shadowColor: const Color(0x14000000),
-                      borderRadius: BorderRadius.circular(16),
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(16),
-                        onTap: () {
-                          if (_swipeController.value > 0) {
-                            _closeActions();
-                          } else {
-                            widget.onDetails();
-                          }
-                        },
-                        child: Padding(
-                          padding: const EdgeInsets.fromLTRB(12, 10, 8, 10),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: Text(
-                                      p.crmId.isEmpty ? '—' : p.crmId,
-                                      style: GoogleFonts.poppins(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.w700,
-                                        color: DashboardColors.textDark,
-                                      ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                  StatusBadge(
-                                    label: chip,
-                                    color: widget.statusColor,
-                                  ),
-                                  IconButton(
-                                    visualDensity: VisualDensity.compact,
-                                    padding: EdgeInsets.zero,
-                                    constraints: const BoxConstraints(
-                                      minWidth: 32,
-                                      minHeight: 32,
-                                    ),
-                                    tooltip: 'More actions',
-                                    onPressed: _toggleActions,
-                                    icon: Icon(
-                                      _swipeController.value > 0.5
-                                          ? Icons.close_rounded
-                                          : Icons.more_vert_rounded,
-                                      color: DashboardColors.textMuted,
-                                      size: 20,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              Text(
-                                p.franchiseeName.isNotEmpty
-                                    ? p.franchiseeName
-                                    : (p.title.isNotEmpty ? p.title : '—'),
-                                style: GoogleFonts.poppins(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                  color: const Color(0xFF37474F),
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              const SizedBox(height: 6),
-                              _InfoRow(
-                                icon: Icons.location_on_outlined,
-                                text: p.catchmentArea.isNotEmpty
-                                    ? p.catchmentArea
-                                    : '—',
-                              ),
-                              const SizedBox(height: 3),
-                              _InfoRow(
-                                icon: Icons.person_outline_rounded,
-                                text: p.createdBy.isNotEmpty
-                                    ? p.createdBy
-                                    : (p.responsiblePerson.isNotEmpty
-                                        ? p.responsiblePerson
-                                        : '—'),
-                              ),
-                              const SizedBox(height: 3),
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: _MetaChip(
-                                      icon: Icons.layers_outlined,
-                                      label: p.tierName.isNotEmpty
-                                          ? p.tierName
-                                          : 'Tier —',
-                                    ),
-                                  ),
-                                  const SizedBox(width: 6),
-                                  Expanded(
-                                    child: _MetaChip(
-                                      icon: Icons.payments_outlined,
-                                      label: p.feeType.isNotEmpty
-                                          ? p.feeType
-                                          : 'Fee —',
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 6),
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: _InfoRow(
-                                      icon: Icons.calendar_today_outlined,
-                                      text: approved,
-                                    ),
-                                  ),
-                                  Expanded(
-                                    child: _InfoRow(
-                                      icon: Icons.event_outlined,
-                                      text: deadline,
-                                      emphasized: missed,
-                                      emphasizeColor: DashboardColors.error,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              if (missed) ...[
-                                const SizedBox(height: 4),
-                                Text(
-                                  'Deadline missed',
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w600,
-                                    color: DashboardColors.error,
-                                  ),
-                                ),
-                              ],
-                              const SizedBox(height: 6),
-                              TaskSummaryWidget(summary: p.taskSummary),
-                            ],
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 8),
+                _InfoRow(
+                  icon: Icons.location_on_outlined,
+                  text: p.catchmentArea.isNotEmpty ? p.catchmentArea : '—',
+                ),
+                const SizedBox(height: 4),
+                _InfoRow(
+                  icon: Icons.person_outline_rounded,
+                  text: responsible,
+                ),
+                if (showTier || showFee) ...[
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      if (showTier)
+                        Expanded(
+                          child: _MetaChip(
+                            icon: Icons.diamond_outlined,
+                            label: 'Tier ${p.tierName.trim()}',
                           ),
                         ),
+                      if (showTier && showFee) const SizedBox(width: 8),
+                      if (showFee)
+                        Expanded(
+                          child: _MetaChip(
+                            icon: Icons.payments_outlined,
+                            label: 'Fee ${p.feeType.trim()}',
+                          ),
+                        ),
+                    ],
+                  ),
+                ],
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _InfoRow(
+                        icon: Icons.calendar_today_outlined,
+                        text: approved,
                       ),
+                    ),
+                    Expanded(
+                      child: _InfoRow(
+                        icon: Icons.event_outlined,
+                        text: deadline,
+                        emphasized: missed,
+                        emphasizeColor: DashboardColors.error,
+                      ),
+                    ),
+                  ],
+                ),
+                if (missed) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    'Deadline missed',
+                    style: GoogleFonts.poppins(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                      color: DashboardColors.error,
                     ),
                   ),
                 ],
-              );
-            },
+                const SizedBox(height: 8),
+                TaskSummaryWidget(summary: p.taskSummary),
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _FooterActionButton(
+                        icon: Icons.chat_bubble_outline_rounded,
+                        label: 'Communication',
+                        color: DashboardColors.primary,
+                        onTap: onCommunication,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: _FooterActionButton(
+                        icon: Icons.badge_outlined,
+                        label: 'Indent Details',
+                        color: DashboardColors.purple,
+                        onTap: onIndentDetails,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: _FooterActionButton(
+                        icon: Icons.description_outlined,
+                        label: 'Documents',
+                        color: DashboardColors.success,
+                        onTap: onDocuments,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _FooterActionButton extends StatelessWidget {
+  const _FooterActionButton({
+    required this.icon,
+    required this.label,
+    required this.color,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String label;
+  final Color color;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return OutlinedButton(
+      onPressed: onTap,
+      style: OutlinedButton.styleFrom(
+        foregroundColor: color,
+        side: BorderSide(color: color.withValues(alpha: 0.35)),
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+        minimumSize: const Size(0, 36),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16, color: color),
+          const SizedBox(height: 2),
+          Text(
+            label,
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.poppins(
+              fontSize: 8,
+              fontWeight: FontWeight.w600,
+              height: 1.1,
+              color: color,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -297,7 +258,7 @@ class _MetaChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
       decoration: BoxDecoration(
         color: DashboardColors.primaryLight.withValues(alpha: 0.55),
         borderRadius: BorderRadius.circular(8),
@@ -359,48 +320,6 @@ class _InfoRow extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-class _SwipeAction extends StatelessWidget {
-  const _SwipeAction({
-    required this.color,
-    required this.icon,
-    required this.label,
-    required this.onTap,
-  });
-
-  final Color color;
-  final IconData icon;
-  final String label;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: color,
-      child: InkWell(
-        onTap: onTap,
-        child: SizedBox(
-          width: 62,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, color: Colors.white, size: 20),
-              const SizedBox(height: 4),
-              Text(
-                label,
-                style: GoogleFonts.poppins(
-                  color: Colors.white,
-                  fontSize: 10,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }

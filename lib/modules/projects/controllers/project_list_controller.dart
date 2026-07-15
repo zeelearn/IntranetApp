@@ -216,14 +216,42 @@ class ProjectListController extends GetxController {
     );
   }
 
-  void onNotes(ProjectItem project) {
+  void onCommunication(ProjectItem project) {
     Get.snackbar(
-      'Notes',
-      'Notes for ${project.crmId} — coming soon',
+      'Communication',
+      'Communication for ${project.crmId} — coming soon',
       snackPosition: SnackPosition.BOTTOM,
       backgroundColor: DashboardColors.primaryLight,
       colorText: DashboardColors.textDark,
     );
+  }
+
+  void onIndentDetails(ProjectItem project) {
+    openProjectDetail(project);
+  }
+
+  void onDocuments(ProjectItem project) {
+    if (project.docUrl.trim().isEmpty) {
+      Get.snackbar(
+        'Documents',
+        'No documents available for ${project.crmId}',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: DashboardColors.primaryLight,
+        colorText: DashboardColors.textDark,
+      );
+      return;
+    }
+    Get.snackbar(
+      'Documents',
+      'Opening documents for ${project.crmId} — coming soon',
+      snackPosition: SnackPosition.BOTTOM,
+      backgroundColor: DashboardColors.primaryLight,
+      colorText: DashboardColors.textDark,
+    );
+  }
+
+  void onNotes(ProjectItem project) {
+    onCommunication(project);
   }
 
   void onEdit(ProjectItem project) {

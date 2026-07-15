@@ -51,9 +51,7 @@ class DashboardErrorWidget extends StatelessWidget {
             const SizedBox(height: 16),
             FilledButton(
               onPressed: onRetry,
-              style: FilledButton.styleFrom(
-                backgroundColor: DashboardColors.primary,
-              ),
+              style: DashboardColors.primaryFilledButton(),
               child: const Text('Retry'),
             ),
           ],

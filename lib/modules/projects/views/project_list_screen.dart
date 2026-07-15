@@ -192,10 +192,12 @@ class ProjectListScreen extends StatelessWidget {
                                   DashboardStatusIds.showsMissedDeadline(
                                 controller.projectTeamStatus,
                               ),
-                              onDetails: () =>
-                                  controller.openProjectDetail(project),
-                              onNotes: () => controller.onNotes(project),
-                              onEdit: () => controller.onEdit(project),
+                              onCommunication: () =>
+                                  controller.onCommunication(project),
+                              onIndentDetails: () =>
+                                  controller.onIndentDetails(project),
+                              onDocuments: () =>
+                                  controller.onDocuments(project),
                             );
                           },
                         ),
@@ -211,7 +213,7 @@ class ProjectListScreen extends StatelessWidget {
                         crossAxisCount: columns,
                         crossAxisSpacing: 12,
                         mainAxisSpacing: 8,
-                        mainAxisExtent: columns >= 3 ? 210 : 230,
+                        mainAxisExtent: columns >= 3 ? 300 : 320,
                       ),
                       itemCount: controller.visibleProjects.length,
                       itemBuilder: (context, index) {
@@ -225,10 +227,11 @@ class ProjectListScreen extends StatelessWidget {
                               DashboardStatusIds.showsMissedDeadline(
                             controller.projectTeamStatus,
                           ),
-                          onDetails: () =>
-                              controller.openProjectDetail(project),
-                          onNotes: () => controller.onNotes(project),
-                          onEdit: () => controller.onEdit(project),
+                          onCommunication: () =>
+                              controller.onCommunication(project),
+                          onIndentDetails: () =>
+                              controller.onIndentDetails(project),
+                          onDocuments: () => controller.onDocuments(project),
                         );
                       },
                     );

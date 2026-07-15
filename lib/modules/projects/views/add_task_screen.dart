@@ -13,8 +13,8 @@ class AddTaskScreen extends StatelessWidget {
 
   final AddTaskArgs args;
 
-  static Future<bool?> open(AddTaskArgs args) async {
-    return Get.to<bool>(
+  static Future<AddTaskResult?> open(AddTaskArgs args) async {
+    return Get.to<AddTaskResult>(
       () => AddTaskScreen(args: args),
       binding: AddTaskBinding(args: args),
       arguments: args,
@@ -38,7 +38,7 @@ class AddTaskScreen extends StatelessWidget {
           _Header(
             title: controller.screenTitle,
             busy: false,
-            onClose: () => Get.back(result: false),
+            onClose: () => Get.back(result: null),
             onSave: () => _save(controller),
           ),
           Expanded(
@@ -64,15 +64,10 @@ class AddTaskScreen extends StatelessWidget {
                         final plane = controller.planEnd.value;
                         final acts = controller.actualStart.value;
                         final acte = controller.actualEnd.value;
-                        final subtasks = controller.subtaskCount.value;
-                        final files =
-                            controller.attachments.toList(growable: false);
                         final titleErr = controller.titleError.value;
                         final noteErr = controller.noteError.value;
                         final dateErr = controller.dateError.value;
                         final formErr = controller.formError.value;
-                        final attachErr = controller.attachmentError.value;
-                        final picking = controller.isPickingFile.value;
                         final isEdit = controller.isEditMode;
 
                         final dateRow = wide
@@ -122,6 +117,8 @@ class AddTaskScreen extends StatelessWidget {
                               controller: controller.titleController,
                               hint: 'Enter task title',
                               errorText: titleErr,
+                              enabled: !isEdit,
+                              readOnly: isEdit,
                               suffix: const Icon(
                                 Icons.bookmark_border_rounded,
                                 color: DashboardColors.textMuted,
@@ -136,42 +133,38 @@ class AddTaskScreen extends StatelessWidget {
                             const SizedBox(height: 16),
                             dateRow,
                             if (dateErr != null) ValidationMessage(dateErr),
-                            const SizedBox(height: 16),
-                            const TaskSectionLabel(
-                              'Responsible Person',
-                              required: true,
-                            ),
-                            TaskSelectorCard(
-                              label: 'Assignee',
-                              value: person,
-                              placeholder: 'Select person',
-                              leading: Container(
-                                width: 40,
-                                height: 40,
-                                decoration: BoxDecoration(
-                                  color: DashboardColors.primaryLight,
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: const Icon(
-                                  Icons.person_outline_rounded,
-                                  color: DashboardColors.primary,
-                                ),
+                            if (!isEdit) ...[
+                              const SizedBox(height: 16),
+                              const TaskSectionLabel(
+                                'Responsible Person',
+                                required: true,
                               ),
-                              onTap: () => _pickAssignee(context, controller),
-                            ),
-                            const SizedBox(height: 16),
-                            const TaskSectionLabel('Priority'),
-                            TaskPriorityChips(
-                              selected: priority,
-                              onSelected: controller.selectPriority,
-                            ),
-                            const SizedBox(height: 16),
-                            const TaskSectionLabel('Total Subtasks'),
-                            TaskSubtaskStepper(
-                              value: subtasks,
-                              onIncrement: controller.incrementSubtasks,
-                              onDecrement: controller.decrementSubtasks,
-                            ),
+                              TaskSelectorCard(
+                                label: 'Assignee',
+                                value: person,
+                                placeholder: 'Select person',
+                                leading: Container(
+                                  width: 40,
+                                  height: 40,
+                                  decoration: BoxDecoration(
+                                    color: DashboardColors.primaryLight,
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: const Icon(
+                                    Icons.person_outline_rounded,
+                                    color: DashboardColors.primary,
+                                  ),
+                                ),
+                                onTap: () =>
+                                    _pickAssignee(context, controller),
+                              ),
+                              const SizedBox(height: 16),
+                              const TaskSectionLabel('Priority'),
+                              TaskPriorityChips(
+                                selected: priority,
+                                onSelected: controller.selectPriority,
+                              ),
+                            ],
                             const SizedBox(height: 16),
                             const TaskSectionLabel(
                               'Description',
@@ -184,16 +177,16 @@ class AddTaskScreen extends StatelessWidget {
                               maxLength: 500,
                               errorText: noteErr,
                             ),
-                            const SizedBox(height: 16),
-                            const TaskSectionLabel('Attachments'),
-                            TaskAttachmentBox(
-                              files: files,
-                              busy: picking,
-                              errorText: attachErr,
-                              onBrowse: () =>
-                                  _showAttachmentSheet(context, controller),
-                              onRemove: controller.removeAttachment,
-                            ),
+                            //const SizedBox(height: 16),
+                            //const TaskSectionLabel('Attachments'),
+                            // TaskAttachmentBox(
+                            //   files: files,
+                            //   busy: picking,
+                            //   errorText: attachErr,
+                            //   onBrowse: () =>
+                            //       _showAttachmentSheet(context, controller),
+                            //   onRemove: controller.removeAttachment,
+                            // ),
                             if (formErr != null) ...[
                               const SizedBox(height: 12),
                               ValidationMessage(formErr),
@@ -233,7 +226,7 @@ class AddTaskScreen extends StatelessWidget {
               primaryLabel: controller.isEditMode ? 'Update Task' : 'Save Task',
               busy: controller.isSaving.value,
               onPrimary: () => _save(controller),
-              onCancel: () => Get.back(result: false),
+              onCancel: () => Get.back(result: null),
             ),
           ),
         ],
@@ -242,9 +235,9 @@ class AddTaskScreen extends StatelessWidget {
   }
 
   Future<void> _save(AddTaskController controller) async {
-    final ok = await controller.saveTask();
-    if (ok) {
-      Get.back(result: true);
+    final result = await controller.saveTask();
+    if (result != null && result.success) {
+      Get.back(result: result);
     }
   }
 

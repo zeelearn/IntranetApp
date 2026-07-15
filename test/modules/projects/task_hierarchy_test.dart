@@ -60,4 +60,36 @@ void main() {
       expect(task.displayPlanEnd, '15-09-2023');
     });
   });
+
+  group('Create/Update API response parsing', () {
+    test('maps AddNewTask data item into HierarchyTask', () {
+      final task = HierarchyTask.fromJson({
+        'project_id': 'xxxxxxxxxx00000002',
+        'title': 'Test ',
+        'id': '120972',
+        'note': 'Please Ignore, this is created for Testing purpose',
+        'img': 'assets/images/user/user1.jpg',
+        'priority': 'High',
+        'Start_date': '2026-07-15T00:00:00.000Z',
+        'End_date': '2026-07-15T00:00:00.000Z',
+        'p_start_date': '2026-07-15T00:00:00.000Z',
+        'due_date': '2026-07-15T00:00:00.000Z',
+        'Responsible_person': 'Manish Sharma',
+        'taskcount': 'P-1',
+        'status': 1,
+        'statusname': 'Pending',
+        'parent_task_id': '9566',
+        'mtask_id': '0',
+        'latest_comment': 'Please Ignore, this is created for Testing purpose',
+        'files': null,
+        'manager': '9566',
+        'taskcreateduser': '12345',
+      });
+      expect(task.id, '120972');
+      expect(task.parentTaskId, '9566');
+      expect(task.statusName, 'Pending');
+      expect(task.isRoot, isFalse);
+      expect(task.taskCreatedUser, '12345');
+    });
+  });
 }

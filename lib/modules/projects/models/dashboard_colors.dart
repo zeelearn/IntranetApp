@@ -26,6 +26,20 @@ class DashboardColors {
   static const Color textDark = Color(0xFF1A237E);
   static const Color textMuted = Color(0xFF607D8B);
   static const Color cardShadow = Color(0x1A000000);
+
+  /// Primary blue filled buttons always use white label/icon color.
+  static ButtonStyle primaryFilledButton({
+    Size? minimumSize,
+    OutlinedBorder? shape,
+  }) {
+    return FilledButton.styleFrom(
+      backgroundColor: primary,
+      foregroundColor: Colors.white,
+      disabledForegroundColor: Colors.white70,
+      minimumSize: minimumSize,
+      shape: shape,
+    );
+  }
 }
 
 /// Synthetic status ids for task cards (not API project statuses).

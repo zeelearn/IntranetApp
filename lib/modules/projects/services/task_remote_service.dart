@@ -14,7 +14,9 @@ class TaskRemoteService {
     http.Client? client,
     this.baseUrl = LocalStrings.bpms,
     this.fetchPath = '/api/bp/Gettaskdata',
-    this.addPath = '/api/bp/AddNewTask',
+    this.addPath = '/${LocalStrings.API_INSERT_BPMS_NEW_TASK}',
+    this.updatePath = '/${LocalStrings.API_UPDATE_TASKDETAILS}',
+    this.deletePath = '/${LocalStrings.API_BPMS_DELETETASK}',
     this.byUserPath = '/api/bp/GettaskbyUser',
     this.timeout = const Duration(seconds: 60),
   }) : _client = client ?? http.Client();
@@ -23,6 +25,8 @@ class TaskRemoteService {
   final String baseUrl;
   final String fetchPath;
   final String addPath;
+  final String updatePath;
+  final String deletePath;
   final String byUserPath;
   final Duration timeout;
 
@@ -40,27 +44,77 @@ class TaskRemoteService {
     return HierarchyTaskResponse.fromJson(decoded).tasks;
   }
 
-  /// Creates or updates a task. Returns true when API reports success.
+  /// Creates a task via `API_INSERT_BPMS_NEW_TASK`. Returns saved task from data[].
   Future<AddTaskResult> addTask(AddTaskRequest request) async {
     final decoded = await _postJson(
       path: addPath,
       body: request.toJson(),
     );
-    final successCode = decoded['success'];
-    final ok = successCode == 200 ||
-        successCode == true ||
-        successCode?.toString() == '200';
-    if (!ok) {
-      throw DashboardFailure(
-        type: DashboardFailureType.server,
-        message: decoded['message']?.toString() ??
-            'Unable to save task. Please try again.',
-      );
-    }
+    print('Add task response: $decoded');
+    print(addPath);
+    _ensureSuccess(decoded, fallbackMessage: 'Unable to create task.');
+    final task = _parseFirstTask(decoded);
     return AddTaskResult(
       success: true,
       savedOffline: false,
-      message: decoded['message']?.toString() ?? 'Task created successfully',
+      message: _successMessage(decoded, fallback: 'Task created successfully'),
+      task: task,
+    );
+  }
+
+  /// Updates task status / dates via `UpdateTaskStatus`.
+  Future<AddTaskResult> updateTaskStatus(UpdateTaskStatusRequest request) async {
+    if (request.taskId.trim().isEmpty || request.taskId == '0') {
+      throw const DashboardFailure(
+        type: DashboardFailureType.unknown,
+        message: 'Invalid task id for update.',
+      );
+    }
+    if (request.status.trim().isEmpty) {
+      throw const DashboardFailure(
+        type: DashboardFailureType.unknown,
+        message: 'Status is required.',
+      );
+    }
+    if (request.startDate.trim().isEmpty || request.endDate.trim().isEmpty) {
+      throw const DashboardFailure(
+        type: DashboardFailureType.unknown,
+        message: 'Start and end dates are required.',
+      );
+    }
+
+    final decoded = await _postJson(
+      path: updatePath,
+      body: request.toJson(),
+    );
+    _ensureSuccess(decoded, fallbackMessage: 'Unable to update task.');
+    final task = _parseFirstTask(decoded);
+    return AddTaskResult(
+      success: true,
+      savedOffline: false,
+      message: _successMessage(decoded, fallback: 'Task updated successfully'),
+      task: task,
+    );
+  }
+
+  /// Deletes task via `deletetask` — payload `{ "taskid": "..." }`.
+  Future<DeleteTaskResult> deleteTask({required String taskId}) async {
+    final id = taskId.trim();
+    if (id.isEmpty || id == '0') {
+      throw const DashboardFailure(
+        type: DashboardFailureType.unknown,
+        message: 'Invalid task id for delete.',
+      );
+    }
+
+    final decoded = await _postJson(
+      path: deletePath,
+      body: {'taskid': id},
+    );
+    _ensureSuccess(decoded, fallbackMessage: 'Unable to delete task.');
+    return DeleteTaskResult(
+      success: true,
+      message: _deleteMessage(decoded) ?? 'Record Deleted Successfully',
     );
   }
 
@@ -80,16 +134,71 @@ class TaskRemoteService {
     return UserTaskListResponse.fromJson(decoded).tasks;
   }
 
+  void _ensureSuccess(
+    Map<String, dynamic> decoded, {
+    required String fallbackMessage,
+  }) {
+    final successCode = decoded['success'];
+    final ok = successCode == 200 ||
+        successCode == true ||
+        successCode?.toString() == '200';
+    if (!ok) {
+      throw DashboardFailure(
+        type: DashboardFailureType.server,
+        message: decoded['message']?.toString() ??
+            _deleteMessage(decoded) ??
+            fallbackMessage,
+      );
+    }
+  }
+
+  HierarchyTask? _parseFirstTask(Map<String, dynamic> decoded) {
+    final data = decoded['data'];
+    if (data is! List || data.isEmpty) return null;
+    final first = data.first;
+    if (first is! Map) return null;
+    try {
+      return HierarchyTask.fromJson(Map<String, dynamic>.from(first));
+    } catch (_) {
+      return null;
+    }
+  }
+
+  String _successMessage(
+    Map<String, dynamic> decoded, {
+    required String fallback,
+  }) {
+    final direct = decoded['message']?.toString().trim();
+    if (direct != null && direct.isNotEmpty) return direct;
+    return _deleteMessage(decoded) ?? fallback;
+  }
+
+  String? _deleteMessage(Map<String, dynamic> decoded) {
+    final data = decoded['data'];
+    if (data is List && data.isNotEmpty) {
+      final first = data.first;
+      if (first is Map) {
+        final msg = first['Msg'] ?? first['msg'] ?? first['message'];
+        if (msg != null && msg.toString().trim().isNotEmpty) {
+          return msg.toString().trim();
+        }
+      }
+    }
+    return null;
+  }
+
   Future<Map<String, dynamic>> _postJson({
     required String path,
     required Map<String, dynamic> body,
   }) async {
-    final uri = Uri.parse('$baseUrl$path');
+    final normalized = path.startsWith('/') ? path : '/$path';
+    final uri = Uri.parse('$baseUrl$normalized');
     try {
+      print('POST $uri');
       final response = await _client
           .post(uri, headers: _headers(), body: jsonEncode(body))
           .timeout(timeout);
-
+      print('Response (${response.statusCode}): ${response.body}');
       if (response.statusCode == 401) {
         throw const DashboardFailure(
           type: DashboardFailureType.unauthorized,
@@ -109,9 +218,23 @@ class TaskRemoteService {
         );
       }
       if (response.statusCode != 200) {
+        String detail = 'Unexpected response (${response.statusCode}).';
+        try {
+          final errBody = jsonDecode(response.body);
+          if (errBody is Map && errBody['message'] != null) {
+            detail = errBody['message'].toString();
+          }
+        } catch (_) {}
         throw DashboardFailure(
           type: DashboardFailureType.unknown,
-          message: 'Unexpected response (${response.statusCode}).',
+          message: detail,
+        );
+      }
+
+      if (response.body.trim().isEmpty) {
+        throw const DashboardFailure(
+          type: DashboardFailureType.invalidJson,
+          message: 'Empty response from server.',
         );
       }
 
@@ -129,6 +252,11 @@ class TaskRemoteService {
       throw const DashboardFailure(
         type: DashboardFailureType.timeout,
         message: 'Request timed out. Please try again.',
+      );
+    } on FormatException {
+      throw const DashboardFailure(
+        type: DashboardFailureType.invalidJson,
+        message: 'Invalid JSON response from server.',
       );
     } on http.ClientException {
       throw const DashboardFailure(

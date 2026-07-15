@@ -78,10 +78,19 @@ class TaskRepository {
     }
   }
 
-  /// Online → API. Offline / unreachable → pending queue.
+  /// Online → create API. Offline / unreachable → pending queue.
   Future<AddTaskResult> addTask(AddTaskRequest request) async {
+    _validateCreateRequest(request);
     try {
-      return await _remote.addTask(request);
+      final result = await _remote.addTask(request);
+      if (result.task != null) {
+        await upsertCachedTask(
+          userId: request.userId,
+          projectId: request.projectId,
+          task: result.task!,
+        );
+      }
+      return result;
     } on DashboardFailure catch (failure) {
       if (failure.type == DashboardFailureType.noInternet ||
           failure.type == DashboardFailureType.timeout) {
@@ -93,6 +102,154 @@ class TaskRepository {
         );
       }
       rethrow;
+    }
+  }
+
+  /// Update via UpdateTaskStatus and upsert response task into cache.
+  Future<AddTaskResult> updateTaskStatus({
+    required UpdateTaskStatusRequest request,
+    required String projectId,
+  }) async {
+    _validateUpdateRequest(request);
+    final result = await _remote.updateTaskStatus(request);
+    if (result.task != null) {
+      await upsertCachedTask(
+        userId: request.userId,
+        projectId: projectId,
+        task: result.task!,
+      );
+    }
+    return result;
+  }
+
+  /// Delete task and remove from local cache.
+  Future<DeleteTaskResult> deleteTask({
+    required String taskId,
+    required int userId,
+    required String projectId,
+  }) async {
+    final result = await _remote.deleteTask(taskId: taskId);
+    await removeCachedTask(
+      userId: userId,
+      projectId: projectId,
+      taskId: taskId,
+    );
+    return result;
+  }
+
+  /// Inserts or replaces a task in the project cache.
+  Future<void> upsertCachedTask({
+    required int userId,
+    required String projectId,
+    required HierarchyTask task,
+  }) async {
+    final cached =
+        await loadOffline(userId: userId, projectId: projectId) ??
+            <HierarchyTask>[];
+    final next = <HierarchyTask>[];
+    var found = false;
+    for (final t in cached) {
+      if (t.id == task.id) {
+        next.add(task);
+        found = true;
+      } else {
+        next.add(t);
+      }
+    }
+    if (!found) next.add(task);
+    await _local.saveTasks(
+      userId: userId,
+      projectId: projectId,
+      tasks: next,
+    );
+  }
+
+  Future<void> removeCachedTask({
+    required int userId,
+    required String projectId,
+    required String taskId,
+  }) async {
+    final cached = await loadOffline(userId: userId, projectId: projectId);
+    if (cached == null) return;
+    final next =
+        cached.where((t) => t.id != taskId).toList(growable: false);
+    await _local.saveTasks(
+      userId: userId,
+      projectId: projectId,
+      tasks: next,
+    );
+  }
+
+  void _validateCreateRequest(AddTaskRequest request) {
+    if (request.projectId.trim().isEmpty) {
+      throw const DashboardFailure(
+        type: DashboardFailureType.unknown,
+        message: 'Project id is required.',
+      );
+    }
+    if (request.title.trim().length < 3) {
+      throw const DashboardFailure(
+        type: DashboardFailureType.unknown,
+        message: 'Title must be at least 3 characters.',
+      );
+    }
+    if (request.note.trim().length < 5) {
+      throw const DashboardFailure(
+        type: DashboardFailureType.unknown,
+        message: 'Description must be at least 5 characters.',
+      );
+    }
+    if (request.startDate.trim().isEmpty || request.endDate.trim().isEmpty) {
+      throw const DashboardFailure(
+        type: DashboardFailureType.unknown,
+        message: 'Actual start and end dates are required.',
+      );
+    }
+    if (request.planStartDate.trim().isEmpty ||
+        request.planEndDate.trim().isEmpty) {
+      throw const DashboardFailure(
+        type: DashboardFailureType.unknown,
+        message: 'Plan start and end dates are required.',
+      );
+    }
+    if (request.userId <= 0) {
+      throw const DashboardFailure(
+        type: DashboardFailureType.unknown,
+        message: 'Invalid user id.',
+      );
+    }
+  }
+
+  void _validateUpdateRequest(UpdateTaskStatusRequest request) {
+    if (request.taskId.trim().isEmpty || request.taskId == '0') {
+      throw const DashboardFailure(
+        type: DashboardFailureType.unknown,
+        message: 'Invalid task id.',
+      );
+    }
+    if (request.status.trim().isEmpty) {
+      throw const DashboardFailure(
+        type: DashboardFailureType.unknown,
+        message: 'Status is required.',
+      );
+    }
+    if (request.remark.trim().isEmpty) {
+      throw const DashboardFailure(
+        type: DashboardFailureType.unknown,
+        message: 'Remark is required.',
+      );
+    }
+    if (request.startDate.trim().isEmpty || request.endDate.trim().isEmpty) {
+      throw const DashboardFailure(
+        type: DashboardFailureType.unknown,
+        message: 'Start and end dates are required.',
+      );
+    }
+    if (request.userId <= 0) {
+      throw const DashboardFailure(
+        type: DashboardFailureType.unknown,
+        message: 'Invalid user id.',
+      );
     }
   }
 

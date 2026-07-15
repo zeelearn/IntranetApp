@@ -161,9 +161,7 @@ class _ProjectFilterSheetState extends State<_ProjectFilterSheet> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: FilledButton(
-                      style: FilledButton.styleFrom(
-                        backgroundColor: DashboardColors.primary,
-                      ),
+                      style: DashboardColors.primaryFilledButton(),
                       onPressed: () {
                         Navigator.pop(
                           context,

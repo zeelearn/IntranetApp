@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:Intranet/modules/projects/models/dashboard_colors.dart';
 
 class ProjectShimmer extends StatelessWidget {
   const ProjectShimmer({super.key});
@@ -51,7 +52,11 @@ class ProjectEmptyWidget extends StatelessWidget {
             ),
             if (onRetry != null) ...[
               const SizedBox(height: 16),
-              FilledButton(onPressed: onRetry, child: const Text('Refresh')),
+              FilledButton(
+                style: DashboardColors.primaryFilledButton(),
+                onPressed: onRetry,
+                child: const Text('Refresh'),
+              ),
             ],
           ],
         ),
@@ -83,7 +88,11 @@ class ProjectErrorWidget extends StatelessWidget {
             Text(message, textAlign: TextAlign.center),
             if (onRetry != null) ...[
               const SizedBox(height: 16),
-              FilledButton(onPressed: onRetry, child: const Text('Try Again')),
+              FilledButton(
+                style: DashboardColors.primaryFilledButton(),
+                onPressed: onRetry,
+                child: const Text('Try Again'),
+              ),
             ],
           ],
         ),

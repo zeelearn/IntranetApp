@@ -1,12 +1,15 @@
 import 'dart:async';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:Intranet/modules/projects/models/add_task_request.dart';
+import 'package:Intranet/modules/projects/models/dashboard_colors.dart';
 import 'package:Intranet/modules/projects/models/dashboard_failure.dart';
 import 'package:Intranet/modules/projects/models/hierarchy_task.dart';
 import 'package:Intranet/modules/projects/models/project_item.dart';
 import 'package:Intranet/modules/projects/repositories/task_repository.dart';
+import 'package:Intranet/modules/projects/utils/project_date_utils.dart';
 import 'package:Intranet/modules/projects/views/add_task_screen.dart';
 import 'package:Intranet/modules/projects/views/task_comments_screen.dart';
 import 'package:Intranet/modules/projects/models/task_comment.dart';
@@ -21,6 +24,7 @@ enum TaskActionType {
   activity,
   timeline,
   createChild,
+  delete,
 }
 
 /// List presentation on the Task Hierarchy screen.
@@ -263,10 +267,22 @@ class TaskHierarchyController extends GetxController {
     );
   }
 
-  bool canMutate(HierarchyTask task) {
-    final me = effectiveMyTaskUserName.toLowerCase().trim();
-    if (me.isEmpty) return false;
-    return task.responsiblePerson.toLowerCase().trim() == me;
+  /// Edit / Delete (and related) when current [userId] created the task.
+  bool canMutate(HierarchyTask task) => isCreatedByCurrentUser(task);
+
+  bool isCreatedByCurrentUser(HierarchyTask task) {
+    final created = task.taskCreatedUser.trim();
+    if (created.isEmpty) return false;
+    return created == userId.toString();
+  }
+
+  /// Immediate + nested subtask count under [taskId].
+  int subtaskCountOf(String taskId) {
+    var count = 0;
+    for (final child in childrenOf(taskId)) {
+      count += 1 + subtaskCountOf(child.id);
+    }
+    return count;
   }
 
   void onSearchChanged(String value) {
@@ -351,7 +367,7 @@ class TaskHierarchyController extends GetxController {
     onTaskAction?.call(action, task);
   }
 
-  /// Opens Add/Edit Task form. Returns whether hierarchy should refresh.
+  /// Opens Add/Edit Task form. Upserts returned task into local list.
   Future<bool> openAddTask({HierarchyTask? parent}) async {
     final effectiveParent = parent ??
         (navStack.isNotEmpty ? navStack.last : null);
@@ -368,24 +384,29 @@ class TaskHierarchyController extends GetxController {
         defaultAssignee: currentUserName,
       ),
     );
-    if (result == true) {
-      await refreshTasks();
-      return true;
-    }
-    return false;
+    return _applySaveResult(result);
   }
 
   /// Opens Edit Task form prefilled from [task].
   Future<bool> openEditTask(HierarchyTask task) async {
     final parsedId = int.tryParse(task.id) ?? 0;
     final parsedMTask = int.tryParse(task.mtaskId) ?? 0;
+    String parentName = '';
+    if (!task.isRoot) {
+      for (final t in allTasks) {
+        if (t.id == task.parentTaskId) {
+          parentName = t.title;
+          break;
+        }
+      }
+    }
     final result = await AddTaskScreen.open(
       AddTaskArgs(
         projectId: projectId,
         userId: userId,
         projectName: projectTitle,
         parentTaskId: task.isRoot ? '0' : task.parentTaskId,
-        parentTaskName: '',
+        parentTaskName: parentName,
         contributionId: contributionId,
         taskId: parsedId,
         mtaskId: parsedMTask,
@@ -395,11 +416,170 @@ class TaskHierarchyController extends GetxController {
         defaultAssignee: currentUserName,
       ),
     );
-    if (result == true) {
-      await refreshTasks();
+    return _applySaveResult(result);
+  }
+
+  /// Quick status update via UpdateTaskStatus API.
+  Future<bool> updateTaskStatus({
+    required HierarchyTask task,
+    required String statusLabel,
+    String remark = '',
+  }) async {
+    try {
+      final startRaw = task.startDate.isNotEmpty
+          ? task.startDate
+          : task.displayActualStart;
+      final endRaw =
+          task.endDate.isNotEmpty ? task.endDate : task.displayActualEnd;
+      final start = ProjectDateUtils.tryParse(startRaw) ?? DateTime.now();
+      final end = ProjectDateUtils.tryParse(endRaw) ?? start;
+      final result = await _repository.updateTaskStatus(
+        request: UpdateTaskStatusRequest(
+          taskId: task.id,
+          status: statusLabel,
+          remark: remark.trim().isEmpty
+              ? (task.note.trim().isEmpty ? statusLabel : task.note.trim())
+              : remark.trim(),
+          startDate: ProjectDateUtils.formatApi(start),
+          endDate: ProjectDateUtils.formatApi(end),
+          userId: userId,
+        ),
+        projectId: projectId,
+      );
+      if (result.task != null) {
+        upsertLocalTask(result.task!);
+      } else {
+        await refreshTasks();
+      }
+      Get.snackbar(
+        'Success',
+        result.message,
+        snackPosition: SnackPosition.BOTTOM,
+      );
       return true;
+    } on DashboardFailure catch (e) {
+      Get.snackbar('Error', e.message, snackPosition: SnackPosition.BOTTOM);
+      return false;
+    } catch (e) {
+      Get.snackbar('Error', e.toString(), snackPosition: SnackPosition.BOTTOM);
+      return false;
     }
-    return false;
+  }
+
+  /// Deletes own task and removes it (and descendants) from local list.
+  Future<bool> deleteTask(HierarchyTask task) async {
+    if (!isCreatedByCurrentUser(task)) {
+      Get.snackbar(
+        'Not allowed',
+        'You can only delete tasks you created.',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+      return false;
+    }
+    final subCount = subtaskCountOf(task.id);
+    final title = task.title.isEmpty ? 'this task' : task.title;
+    final message = subCount > 0
+        ? 'You have $subCount subtask${subCount == 1 ? '' : 's'} under '
+            '"$title". Do you want to delete this task and all its subtasks? '
+            'This cannot be undone.'
+        : 'Delete "$title"? This cannot be undone.';
+    final confirmed = await Get.dialog<bool>(
+      AlertDialog(
+        title: const Text('Delete task?'),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(result: false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            style: DashboardColors.primaryFilledButton(),
+            onPressed: () => Get.back(result: true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return false;
+    try {
+      final result = await _repository.deleteTask(
+        taskId: task.id,
+        userId: userId,
+        projectId: projectId,
+      );
+      removeLocalTask(task.id);
+      Get.snackbar(
+        'Deleted',
+        result.message,
+        snackPosition: SnackPosition.BOTTOM,
+      );
+      return true;
+    } on DashboardFailure catch (e) {
+      Get.snackbar('Error', e.message, snackPosition: SnackPosition.BOTTOM);
+      return false;
+    } catch (e) {
+      Get.snackbar('Error', e.toString(), snackPosition: SnackPosition.BOTTOM);
+      return false;
+    }
+  }
+
+  Future<bool> _applySaveResult(AddTaskResult? result) async {
+    if (result == null || !result.success) return false;
+
+    // Optimistic local upsert when API returns the task payload.
+    if (result.task != null) {
+      upsertLocalTask(result.task!);
+    }
+
+    // Reload listing from server so parent counts / tree stay in sync.
+    if (!result.savedOffline) {
+      await refreshTasks();
+    }
+
+    Get.snackbar(
+      result.savedOffline ? 'Saved Offline' : 'Success',
+      result.message.isEmpty
+          ? (result.savedOffline
+              ? 'Task saved offline. It will sync when you are online.'
+              : 'Task saved successfully.')
+          : result.message,
+      snackPosition: SnackPosition.BOTTOM,
+      backgroundColor: result.savedOffline
+          ? const Color(0xFFFFF3E0)
+          : const Color(0xFFE8F5E9),
+      colorText: const Color(0xFF1A237E),
+      margin: const EdgeInsets.all(12),
+    );
+    return true;
+  }
+
+  void upsertLocalTask(HierarchyTask task) {
+    final list = allTasks.toList(growable: true);
+    final index = list.indexWhere((t) => t.id == task.id);
+    if (index >= 0) {
+      list[index] = task;
+    } else {
+      list.add(task);
+    }
+    _applyTasks(list, fromCache: false);
+  }
+
+  void removeLocalTask(String taskId) {
+    final toRemove = <String>{taskId};
+    // Also drop descendants that reference this parent chain.
+    var growing = true;
+    while (growing) {
+      growing = false;
+      for (final t in allTasks) {
+        if (toRemove.contains(t.parentTaskId) && !toRemove.contains(t.id)) {
+          toRemove.add(t.id);
+          growing = true;
+        }
+      }
+    }
+    final list =
+        allTasks.where((t) => !toRemove.contains(t.id)).toList(growable: false);
+    _applyTasks(list, fromCache: false);
   }
 
   /// Opens Task Comments / Communication (static data until API).

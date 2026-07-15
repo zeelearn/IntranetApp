@@ -847,6 +847,10 @@ class _TaskOverflowMenu extends StatelessWidget {
             value: TaskActionType.assignUser,
             child: _MenuRow(Icons.person_add_alt_1_outlined, 'Assign'),
           ),
+          const PopupMenuItem(
+            value: TaskActionType.delete,
+            child: _MenuRow(Icons.delete_outline_rounded, 'Delete'),
+          ),
         ],
         const PopupMenuItem(
           value: TaskActionType.activity,

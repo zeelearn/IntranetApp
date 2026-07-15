@@ -206,12 +206,16 @@ class TaskHierarchyScreen extends StatelessWidget {
         canMutate: controller.canMutate(task),
         onAction: (a) {
           Navigator.pop(context);
-          if (a == TaskActionType.edit) {
+          if (a == TaskActionType.edit || a == TaskActionType.updateStatus) {
             controller.openEditTask(task);
             return;
           }
           if (a == TaskActionType.comments) {
             controller.openComments(task);
+            return;
+          }
+          if (a == TaskActionType.delete) {
+            controller.deleteTask(task);
             return;
           }
           controller.handleAction(a, task);
@@ -284,6 +288,14 @@ class _TreeList extends StatelessWidget {
                 controller.openComments(task);
                 return;
               }
+              if (action == TaskActionType.delete) {
+                controller.deleteTask(task);
+                return;
+              }
+              if (action == TaskActionType.updateStatus) {
+                onEdit(task);
+                return;
+              }
               controller.handleAction(action, task);
               onNotify('${action.name} — coming soon');
             },
@@ -325,6 +337,14 @@ class _DrillDownList extends StatelessWidget {
     }
     if (action == TaskActionType.comments) {
       controller.openComments(task);
+      return;
+    }
+    if (action == TaskActionType.delete) {
+      controller.deleteTask(task);
+      return;
+    }
+    if (action == TaskActionType.updateStatus) {
+      onEdit(task);
       return;
     }
     controller.handleAction(action, task);
@@ -665,6 +685,7 @@ class _SearchRow extends StatelessWidget {
                       const SizedBox(width: 8),
                       Expanded(
                         child: FilledButton(
+                          style: DashboardColors.primaryFilledButton(),
                           onPressed: () {
                             controller.applyFilters(
                               status: status,
@@ -848,16 +869,25 @@ class _TaskDetailSheet extends StatelessWidget {
                   ),
                   const SizedBox(width: 8),
                   Expanded(
-                    child: FilledButton.icon(
-                      onPressed: () => onAction(TaskActionType.updateStatus),
-                      icon: const Icon(Icons.check),
-                      label: const Text('Mark Complete'),
+                    child: OutlinedButton.icon(
+                      onPressed: () => onAction(TaskActionType.delete),
+                      icon: const Icon(Icons.delete_outline_rounded),
+                      label: const Text('Delete'),
                     ),
                   ),
                 ],
-              )
-            else
+              ),
+            if (canMutate) ...[
+              const SizedBox(height: 8),
+              FilledButton.icon(
+                style: DashboardColors.primaryFilledButton(),
+                onPressed: () => onAction(TaskActionType.updateStatus),
+                icon: const Icon(Icons.check),
+                label: const Text('Update Status'),
+              ),
+            ] else
               FilledButton(
+                style: DashboardColors.primaryFilledButton(),
                 onPressed: () => onAction(TaskActionType.view),
                 child: const Text('Close'),
               ),

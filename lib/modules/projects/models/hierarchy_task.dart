@@ -24,6 +24,7 @@ class HierarchyTask extends Equatable {
     required this.mtaskId,
     this.img = '',
     this.manager = '',
+    this.taskCreatedUser = '',
     this.parentDate = '',
     this.parentPlanDate = '',
   });
@@ -47,6 +48,9 @@ class HierarchyTask extends Equatable {
   final String mtaskId;
   final String img;
   final String manager;
+
+  /// Creator user id from API `taskcreateduser` (compared to logged-in [userId]).
+  final String taskCreatedUser;
 
   /// Actual dates for root/main tasks — API `parant_date` (`start,end`).
   final String parentDate;
@@ -134,6 +138,7 @@ class HierarchyTask extends Equatable {
       mtaskId: _str(json['mtask_id']),
       img: _str(json['img']),
       manager: _str(json['manager']),
+      taskCreatedUser: _str(json['taskcreateduser']),
       parentDate: _str(json['parant_date'] ?? json['parent_date']),
       parentPlanDate: _str(json['parant_plandate'] ?? json['parent_plandate']),
     );
@@ -159,6 +164,7 @@ class HierarchyTask extends Equatable {
         'mtask_id': mtaskId,
         'img': img,
         'manager': manager,
+        'taskcreateduser': taskCreatedUser,
         'parant_date': parentDate,
         'parant_plandate': parentPlanDate,
       };
@@ -170,6 +176,7 @@ class HierarchyTask extends Equatable {
     int? status,
     String? statusName,
     String? latestComment,
+    String? taskCreatedUser,
   }) {
     return HierarchyTask(
       id: id,
@@ -191,6 +198,7 @@ class HierarchyTask extends Equatable {
       mtaskId: mtaskId,
       img: img,
       manager: manager,
+      taskCreatedUser: taskCreatedUser ?? this.taskCreatedUser,
       parentDate: parentDate,
       parentPlanDate: parentPlanDate,
     );

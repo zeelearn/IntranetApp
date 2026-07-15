@@ -135,14 +135,63 @@ class AddTaskResult extends Equatable {
     required this.success,
     required this.savedOffline,
     this.message = '',
+    this.task,
   });
 
   final bool success;
   final bool savedOffline;
   final String message;
 
+  /// Task returned by create/update API — used to upsert local list.
+  final HierarchyTask? task;
+
   @override
-  List<Object?> get props => [success, savedOffline, message];
+  List<Object?> get props => [success, savedOffline, message, task?.id];
+}
+
+/// Payload for `POST api/bp/UpdateTaskStatus`.
+class UpdateTaskStatusRequest extends Equatable {
+  const UpdateTaskStatusRequest({
+    required this.taskId,
+    required this.status,
+    required this.remark,
+    required this.startDate,
+    required this.endDate,
+    required this.userId,
+  });
+
+  final String taskId;
+  final String status;
+  final String remark;
+  final String startDate;
+  final String endDate;
+  final int userId;
+
+  Map<String, dynamic> toJson() => {
+        'taskid': taskId,
+        'status': status,
+        'remark': remark,
+        'start_date': startDate,
+        'end_date': endDate,
+        'user_id': userId,
+      };
+
+  @override
+  List<Object?> get props => [taskId, status, userId];
+}
+
+/// Result of delete-task API.
+class DeleteTaskResult extends Equatable {
+  const DeleteTaskResult({
+    required this.success,
+    this.message = '',
+  });
+
+  final bool success;
+  final String message;
+
+  @override
+  List<Object?> get props => [success, message];
 }
 
 /// Status chip options shown on the form (API `status` int).
@@ -167,6 +216,16 @@ class TaskFormStatusOption {
       TaskFormStatusOption(id: 4, code: 'BPC', label: 'BP Completed');
 
   static const all = [pending, inProgress, completed, bpCompleted];
+
+  static TaskFormStatusOption? byId(int id) {
+    for (final o in all) {
+      if (o.id == id) return o;
+    }
+    return null;
+  }
+
+  /// Status name string expected by UpdateTaskStatus API.
+  static String labelForId(int id) => byId(id)?.label ?? 'Pending';
 }
 
 class TaskFormPriority {

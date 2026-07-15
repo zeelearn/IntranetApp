@@ -79,9 +79,17 @@ class DashboardController extends GetxController {
     isLoading.value = true;
     errorMessage.value = null;
     failureType.value = null;
+    // Keep shimmer until server responds — do not paint cache first.
+    summary.value = null;
+    cards.clear();
+    servingFromCache.value = false;
 
-    await loadOffline();
     await sync();
+
+    // Fallback to cache only when server did not deliver data.
+    if (summary.value == null) {
+      await loadOffline();
+    }
 
     isLoading.value = false;
   }
@@ -159,10 +167,15 @@ class DashboardController extends GetxController {
     _updateBusinessLabel();
     isLoading.value = true;
     errorMessage.value = null;
+    failureType.value = null;
     cards.clear();
     summary.value = null;
-    await loadOffline();
+    servingFromCache.value = false;
+
     await sync();
+    if (summary.value == null) {
+      await loadOffline();
+    }
     isLoading.value = false;
   }
 
