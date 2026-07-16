@@ -8,7 +8,7 @@ import 'package:Intranet/modules/projects/models/hierarchy_task.dart';
 import 'package:Intranet/modules/projects/models/task_comment.dart';
 import 'package:Intranet/modules/projects/utils/project_date_utils.dart';
 
-/// Figma Task Comments / Communication screen (static data via controller).
+/// Figma Task Comments / Communication screen (API + offline).
 class TaskCommentsScreen extends StatelessWidget {
   const TaskCommentsScreen({super.key, required this.args});
 
@@ -39,6 +39,7 @@ class TaskCommentsScreen extends StatelessWidget {
           _Header(
             controller: controller,
             onBack: () => Get.back(),
+            onRefresh: controller.refreshComments,
           ),
           Expanded(
             child: Column(
@@ -52,13 +53,103 @@ class TaskCommentsScreen extends StatelessWidget {
                 ),
                 Expanded(
                   child: Obx(() {
+                    final loading = controller.isLoading.value;
                     final items = controller.comments.toList(growable: false);
                     final typing = controller.typingUserName.value;
-                    return _MessageThread(
-                      comments: items,
-                      typingUserName: typing,
-                      onReact: controller.addReaction,
-                    );
+                    final error = controller.errorMessage.value;
+                    final fromCache = controller.servingFromCache.value ||
+                        controller.isOffline.value;
+
+                    if (loading && items.isEmpty) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+
+                    Widget body;
+                    if (error != null && items.isEmpty) {
+                      body = ListView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        children: [
+                          const SizedBox(height: 80),
+                          Center(
+                            child: Padding(
+                              padding: const EdgeInsets.all(24),
+                              child: Column(
+                                children: [
+                                  Text(
+                                    error,
+                                    textAlign: TextAlign.center,
+                                    style: GoogleFonts.poppins(
+                                      color: DashboardColors.textMuted,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  FilledButton(
+                                    style: DashboardColors.primaryFilledButton(),
+                                    onPressed: controller.refreshComments,
+                                    child: const Text('Retry'),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      );
+                    } else if (items.isEmpty) {
+                      body = ListView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        children: [
+                          const SizedBox(height: 80),
+                          Center(
+                            child: Text(
+                              'No comments or files yet',
+                              style: GoogleFonts.poppins(
+                                color: DashboardColors.textMuted,
+                              ),
+                            ),
+                          ),
+                        ],
+                      );
+                    } else {
+                      body = Column(
+                        children: [
+                          if (fromCache)
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(12, 0, 12, 6),
+                              child: Text(
+                                controller.isOffline.value
+                                    ? 'Offline — showing cached comments'
+                                    : 'Showing cached comments',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 11,
+                                  color: DashboardColors.textMuted,
+                                ),
+                              ),
+                            ),
+                          Expanded(
+                            child: RefreshIndicator(
+                              color: DashboardColors.primary,
+                              onRefresh: controller.refreshComments,
+                              child: _MessageThread(
+                                comments: items,
+                                typingUserName: typing,
+                                onReact: controller.addReaction,
+                                onOpenAttachment: controller.openAttachment,
+                                onRetryUpload: controller.retryUpload,
+                              ),
+                            ),
+                          ),
+                        ],
+                      );
+                    }
+
+                    if (items.isEmpty) {
+                      return RefreshIndicator(
+                        color: DashboardColors.primary,
+                        onRefresh: controller.refreshComments,
+                        child: body,
+                      );
+                    }
+                    return body;
                   }),
                 ),
               ],
@@ -72,10 +163,15 @@ class TaskCommentsScreen extends StatelessWidget {
 }
 
 class _Header extends StatelessWidget {
-  const _Header({required this.controller, required this.onBack});
+  const _Header({
+    required this.controller,
+    required this.onBack,
+    required this.onRefresh,
+  });
 
   final TaskCommentsController controller;
   final VoidCallback onBack;
+  final VoidCallback onRefresh;
 
   @override
   Widget build(BuildContext context) {
@@ -140,12 +236,30 @@ class _Header extends StatelessWidget {
               ),
             );
           }),
+          Obx(() {
+            final busy = controller.isRefreshing.value;
+            return IconButton(
+              tooltip: 'Refresh',
+              onPressed: busy ? null : onRefresh,
+              icon: busy
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : const Icon(Icons.refresh_rounded, color: Colors.white),
+            );
+          }),
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert_rounded, color: Colors.white),
-            onSelected: (_) {},
+            onSelected: (v) {
+              if (v == 'refresh') onRefresh();
+            },
             itemBuilder: (_) => const [
-              PopupMenuItem(value: 'mute', child: Text('Mute notifications')),
-              PopupMenuItem(value: 'info', child: Text('Task info')),
+              PopupMenuItem(value: 'refresh', child: Text('Refresh')),
             ],
           ),
         ],
@@ -413,22 +527,71 @@ class _MetaCol extends StatelessWidget {
   }
 }
 
-class _MessageThread extends StatelessWidget {
+class _MessageThread extends StatefulWidget {
   const _MessageThread({
     required this.comments,
     required this.typingUserName,
     required this.onReact,
+    required this.onOpenAttachment,
+    required this.onRetryUpload,
   });
 
   final List<TaskComment> comments;
   final String? typingUserName;
   final void Function(String commentId) onReact;
+  final void Function(TaskCommentAttachment attachment) onOpenAttachment;
+  final void Function(String commentId) onRetryUpload;
+
+  @override
+  State<_MessageThread> createState() => _MessageThreadState();
+}
+
+class _MessageThreadState extends State<_MessageThread> {
+  final ScrollController _scrollController = ScrollController();
+  int _lastCommentCount = -1;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
+  }
+
+  @override
+  void didUpdateWidget(covariant _MessageThread oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final countChanged = widget.comments.length != _lastCommentCount;
+    final typingChanged = widget.typingUserName != oldWidget.typingUserName;
+    if (countChanged || typingChanged) {
+      _scrollToBottom();
+    }
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _scrollToBottom() {
+    _lastCommentCount = widget.comments.length;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_scrollController.hasClients) return;
+      final max = _scrollController.position.maxScrollExtent;
+      if (max <= 0) return;
+      _scrollController.jumpTo(max);
+      // Second pass after layout settles (images / separators).
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted || !_scrollController.hasClients) return;
+        _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+      });
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     final grouped = <_ThreadEntry>[];
     DateTime? lastDay;
-    for (final c in comments) {
+    for (final c in widget.comments) {
       final day = DateTime(c.sentAt.year, c.sentAt.month, c.sentAt.day);
       if (lastDay == null || day != lastDay) {
         grouped.add(_ThreadEntry.date(day));
@@ -438,11 +601,13 @@ class _MessageThread extends StatelessWidget {
     }
 
     return ListView.builder(
+      controller: _scrollController,
+      physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
-      itemCount: grouped.length + (typingUserName != null ? 1 : 0),
+      itemCount: grouped.length + (widget.typingUserName != null ? 1 : 0),
       itemBuilder: (context, index) {
-        if (index == grouped.length && typingUserName != null) {
-          return _TypingIndicator(name: typingUserName!);
+        if (index == grouped.length && widget.typingUserName != null) {
+          return _TypingIndicator(name: widget.typingUserName!);
         }
         final entry = grouped[index];
         if (entry.date != null) {
@@ -451,7 +616,9 @@ class _MessageThread extends StatelessWidget {
         final comment = entry.comment!;
         return _MessageBubble(
           comment: comment,
-          onReact: () => onReact(comment.id),
+          onReact: () => widget.onReact(comment.id),
+          onOpenAttachment: widget.onOpenAttachment,
+          onRetryUpload: () => widget.onRetryUpload(comment.id),
         );
       },
     );
@@ -518,10 +685,14 @@ class _MessageBubble extends StatelessWidget {
   const _MessageBubble({
     required this.comment,
     required this.onReact,
+    required this.onOpenAttachment,
+    required this.onRetryUpload,
   });
 
   final TaskComment comment;
   final VoidCallback onReact;
+  final void Function(TaskCommentAttachment attachment) onOpenAttachment;
+  final VoidCallback onRetryUpload;
 
   @override
   Widget build(BuildContext context) {
@@ -587,7 +758,10 @@ class _MessageBubble extends StatelessWidget {
                           for (final file in comment.attachments) ...[
                             if (comment.message.isNotEmpty)
                               const SizedBox(height: 8),
-                            _AttachmentTile(attachment: file),
+                            _AttachmentTile(
+                              attachment: file,
+                              onTap: () => onOpenAttachment(file),
+                            ),
                           ],
                           const SizedBox(height: 4),
                           Row(
@@ -602,7 +776,38 @@ class _MessageBubble extends StatelessWidget {
                               ),
                               if (mine) ...[
                                 const SizedBox(width: 4),
-                                _DeliveryIcon(status: comment.deliveryStatus),
+                                if (comment.deliveryStatus ==
+                                    CommentDeliveryStatus.failed)
+                                  InkWell(
+                                    onTap: onRetryUpload,
+                                    borderRadius: BorderRadius.circular(10),
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(2),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(
+                                            Icons.error_outline_rounded,
+                                            size: 14,
+                                            color: DashboardColors.error,
+                                          ),
+                                          const SizedBox(width: 2),
+                                          Text(
+                                            'Retry',
+                                            style: GoogleFonts.poppins(
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.w600,
+                                              color: DashboardColors.error,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  )
+                                else
+                                  _DeliveryIcon(
+                                    status: comment.deliveryStatus,
+                                  ),
                               ],
                             ],
                           ),
@@ -687,8 +892,14 @@ class _DeliveryIcon extends StatelessWidget {
   Widget build(BuildContext context) {
     switch (status) {
       case CommentDeliveryStatus.sending:
-        return Icon(Icons.schedule_rounded,
-            size: 14, color: Colors.grey.shade500);
+        return SizedBox(
+          width: 12,
+          height: 12,
+          child: CircularProgressIndicator(
+            strokeWidth: 1.5,
+            color: Colors.grey.shade500,
+          ),
+        );
       case CommentDeliveryStatus.sent:
         return Icon(Icons.done_rounded, size: 14, color: Colors.grey.shade500);
       case CommentDeliveryStatus.delivered:
@@ -697,76 +908,110 @@ class _DeliveryIcon extends StatelessWidget {
       case CommentDeliveryStatus.read:
         return const Icon(Icons.done_all_rounded,
             size: 14, color: DashboardColors.primary);
+      case CommentDeliveryStatus.failed:
+        return Icon(Icons.error_outline_rounded,
+            size: 14, color: DashboardColors.error);
     }
   }
 }
 
 class _AttachmentTile extends StatelessWidget {
-  const _AttachmentTile({required this.attachment});
+  const _AttachmentTile({
+    required this.attachment,
+    required this.onTap,
+  });
 
   final TaskCommentAttachment attachment;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final isImage = attachment.type == CommentAttachmentType.image;
     final isPdf = attachment.type == CommentAttachmentType.pdf;
+    final isVideo = attachment.type == CommentAttachmentType.video;
     final color = isPdf
         ? DashboardColors.error
         : isImage
             ? DashboardColors.success
-            : DashboardColors.primary;
+            : isVideo
+                ? const Color(0xFF5E35B1)
+                : DashboardColors.primary;
     final icon = isPdf
         ? Icons.picture_as_pdf_rounded
         : isImage
             ? Icons.image_rounded
-            : Icons.insert_drive_file_rounded;
+            : isVideo
+                ? Icons.videocam_rounded
+                : Icons.insert_drive_file_rounded;
 
-    return Container(
-      width: 220,
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: isImage ? 0.7 : 1),
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Colors.grey.shade200),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(icon, color: color, size: 20),
+        child: Container(
+          width: 220,
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: isImage ? 0.7 : 1),
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: Colors.grey.shade200),
           ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  attachment.fileName,
-                  style: GoogleFonts.poppins(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                    color: DashboardColors.textDark,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+          child: Row(
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(8),
                 ),
-                Text(
-                  attachment.sizeLabel,
-                  style: GoogleFonts.poppins(
-                    fontSize: 10,
-                    color: DashboardColors.textMuted,
-                  ),
+                clipBehavior: Clip.antiAlias,
+                child: isImage && attachment.openUrl.isNotEmpty
+                    ? Image.network(
+                        attachment.openUrl,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) =>
+                            Icon(icon, color: color, size: 20),
+                      )
+                    : Icon(icon, color: color, size: 20),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      attachment.fileName.isEmpty
+                          ? 'Attachment'
+                          : attachment.fileName,
+                      style: GoogleFonts.poppins(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: DashboardColors.textDark,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    Text(
+                      isPdf
+                          ? 'Tap to open PDF'
+                          : isImage
+                              ? 'Tap to view image'
+                              : attachment.sizeLabel,
+                      style: GoogleFonts.poppins(
+                        fontSize: 10,
+                        color: DashboardColors.textMuted,
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+              Icon(Icons.open_in_new_rounded,
+                  size: 18, color: Colors.grey.shade600),
+            ],
           ),
-          Icon(Icons.download_rounded, size: 18, color: Colors.grey.shade600),
-        ],
+        ),
       ),
     );
   }
@@ -869,78 +1114,61 @@ class _ComposerBar extends StatelessWidget {
       color: Colors.white,
       elevation: 8,
       child: Padding(
-        padding: EdgeInsets.fromLTRB(8, 10, 8, 10 + bottom),
-        child: Row(
-          children: [
-            IconButton(
-              onPressed: () => _openAttachSheet(context),
-              icon: Icon(Icons.attach_file_rounded, color: Colors.grey.shade700),
-            ),
-            Expanded(
-              child: TextField(
-                onChanged: controller.onDraftChanged,
-                minLines: 1,
-                maxLines: 4,
-                style: GoogleFonts.poppins(fontSize: 13),
-                decoration: InputDecoration(
-                  hintText: 'Type a comment...',
-                  hintStyle: GoogleFonts.poppins(
-                    fontSize: 13,
+        padding: EdgeInsets.fromLTRB(12, 10, 12, 10 + bottom),
+        child: Obx(() {
+          final busy = controller.isPickingFile.value;
+          return Row(
+            children: [
+              Expanded(
+                child: Text(
+                  'Attach PDF, image, or video',
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
                     color: DashboardColors.textMuted,
-                  ),
-                  filled: true,
-                  fillColor: const Color(0xFFF5F7FB),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 14,
-                    vertical: 10,
-                  ),
-                  suffixIcon: Icon(
-                    Icons.emoji_emotions_outlined,
-                    color: Colors.grey.shade600,
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(24),
-                    borderSide: BorderSide.none,
                   ),
                 ),
               ),
-            ),
-            const SizedBox(width: 8),
-            Obx(() {
-              final canSend =
-                  controller.draft.value.trim().isNotEmpty &&
-                      !controller.isSending.value;
-              return Material(
-                color: canSend
-                    ? DashboardColors.primary
-                    : DashboardColors.primary.withValues(alpha: 0.4),
+              Material(
+                color: busy
+                    ? DashboardColors.primary.withValues(alpha: 0.45)
+                    : DashboardColors.primary,
                 shape: const CircleBorder(),
                 child: InkWell(
                   customBorder: const CircleBorder(),
-                  onTap: canSend ? controller.sendComment : null,
-                  child: const SizedBox(
-                    width: 44,
-                    height: 44,
-                    child: Icon(Icons.send_rounded, color: Colors.white, size: 20),
+                  onTap: busy ? null : () => _openAttachSheet(context),
+                  child: SizedBox(
+                    width: 48,
+                    height: 48,
+                    child: busy
+                        ? const Padding(
+                            padding: EdgeInsets.all(12),
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : const Icon(
+                            Icons.attach_file_rounded,
+                            color: Colors.white,
+                            size: 22,
+                          ),
                   ),
                 ),
-              );
-            }),
-          ],
-        ),
+              ),
+            ],
+          );
+        }),
       ),
     );
   }
 
   void _openAttachSheet(BuildContext context) {
     const options = <(IconData, Color, String)>[
-      (Icons.description_rounded, Color(0xFF1565C0), 'Document'),
       (Icons.image_rounded, Color(0xFF43A047), 'Image'),
       (Icons.photo_camera_rounded, Color(0xFF5E35B1), 'Camera'),
+      (Icons.videocam_rounded, Color(0xFF6A1B9A), 'Video'),
       (Icons.picture_as_pdf_rounded, Color(0xFFD32F2F), 'PDF'),
-      (Icons.grid_on_rounded, Color(0xFF2E7D32), 'Excel'),
-      (Icons.article_rounded, Color(0xFF1976D2), 'Word'),
-      (Icons.folder_rounded, Color(0xFF607D8B), 'Other Files'),
+      (Icons.folder_rounded, Color(0xFF607D8B), 'Files'),
     ];
 
     showModalBottomSheet<void>(
@@ -960,6 +1188,14 @@ class _ComposerBar extends StatelessWidget {
                 style: GoogleFonts.poppins(
                   fontSize: 15,
                   fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'PDF, images, and videos only',
+                style: GoogleFonts.poppins(
+                  fontSize: 12,
+                  color: DashboardColors.textMuted,
                 ),
               ),
               const SizedBox(height: 16),

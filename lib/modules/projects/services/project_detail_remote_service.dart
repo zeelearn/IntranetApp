@@ -4,14 +4,14 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:Intranet/modules/projects/models/dashboard_failure.dart';
-import 'package:Intranet/modules/projects/models/project_item.dart';
+import 'package:Intranet/modules/projects/models/project_detail.dart';
 import 'package:Intranet/pages/helper/LocalStrings.dart';
 
-class ProjectRemoteService {
-  ProjectRemoteService({
+class ProjectDetailRemoteService {
+  ProjectDetailRemoteService({
     http.Client? client,
     this.baseUrl = LocalStrings.bpms,
-    this.path = '/api/bp/GetAllProjectList_new',
+    this.path = '/api/bp/GetFranchiseeDetailInfoV1',
     this.timeout = const Duration(seconds: 45),
   }) : _client = client ?? http.Client();
 
@@ -20,16 +20,14 @@ class ProjectRemoteService {
   final String path;
   final Duration timeout;
 
-  Future<List<ProjectItem>> fetchProjects({
-    required int userId,
-    required int projectTeamStatus,
-    int? businessId,
+  Future<ProjectDetailData> fetchDetail({
+    required int franchiseeId,
+    required String crmId,
   }) async {
     final uri = Uri.parse('$baseUrl$path');
     final body = jsonEncode({
-      'userID': userId,
-      'projectTeam_status': projectTeamStatus.toString(),
-      'Business_id': businessId ?? null,
+      'Franchisee_ID': franchiseeId,
+      'crm_id': crmId,
     });
 
     try {
@@ -46,7 +44,7 @@ class ProjectRemoteService {
       if (response.statusCode == 403) {
         throw const DashboardFailure(
           type: DashboardFailureType.forbidden,
-          message: 'You do not have permission to view projects.',
+          message: 'You do not have permission to view project details.',
         );
       }
       if (response.statusCode >= 500) {
@@ -66,12 +64,23 @@ class ProjectRemoteService {
       if (decoded is! Map<String, dynamic>) {
         throw const DashboardFailure(
           type: DashboardFailureType.invalidJson,
-          message: 'Invalid project list response.',
+          message: 'Invalid project detail response.',
         );
       }
 
-      final envelope = ProjectListResponse.fromJson(decoded);
-      return envelope.data;
+      final success = decoded['success'];
+      final ok = success == 200 ||
+          success == true ||
+          success?.toString() == '200';
+      if (!ok) {
+        throw DashboardFailure(
+          type: DashboardFailureType.server,
+          message: decoded['message']?.toString() ??
+              'Unable to load project details.',
+        );
+      }
+
+      return ProjectDetailData.fromApiEnvelope(decoded);
     } on DashboardFailure {
       rethrow;
     } on TimeoutException {
@@ -87,7 +96,7 @@ class ProjectRemoteService {
     } on FormatException {
       throw const DashboardFailure(
         type: DashboardFailureType.invalidJson,
-        message: 'Invalid project JSON response.',
+        message: 'Invalid project detail JSON.',
       );
     } catch (e) {
       final message = e.toString().toLowerCase();

@@ -6,9 +6,11 @@ import 'package:get/get.dart';
 import 'package:Intranet/api/response/login_response.dart';
 import 'package:Intranet/modules/projects/models/dashboard_colors.dart';
 import 'package:Intranet/modules/projects/models/dashboard_failure.dart';
+import 'package:Intranet/modules/projects/models/project_detail.dart';
 import 'package:Intranet/modules/projects/models/project_item.dart';
 import 'package:Intranet/modules/projects/models/project_list_filter.dart';
 import 'package:Intranet/modules/projects/repositories/project_repository.dart';
+import 'package:Intranet/modules/projects/views/project_detail_screen.dart';
 import 'package:Intranet/modules/projects/views/task_hierarchy_screen.dart';
 
 class ProjectListController extends GetxController {
@@ -216,37 +218,48 @@ class ProjectListController extends GetxController {
     );
   }
 
+  void openTaskScreen(ProjectItem project, int taskId) {
+    TaskHierarchyScreen.open(
+      project: project,
+      userId: userId,
+      currentUserName: 'project.crmId,',
+      contributionId: selectedBusinessId.value ?? 0,
+    );
+  }
+
+  void openProjectDetailsPage(
+    ProjectItem project, {
+    required ProjectDetailTab initialTab,
+  }) {
+    ProjectDetailScreen.open(
+      project: project,
+      userId: userId,
+      currentUserName: currentUserName,
+      statusName: statusName,
+      statusColor: statusColor,
+      initialTab: initialTab,
+      contributionId: selectedBusinessId.value ?? 0,
+    );
+  }
+
   void onCommunication(ProjectItem project) {
-    Get.snackbar(
-      'Communication',
-      'Communication for ${project.crmId} — coming soon',
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: DashboardColors.primaryLight,
-      colorText: DashboardColors.textDark,
+    openProjectDetailsPage(
+      project,
+      initialTab: ProjectDetailTab.communication,
     );
   }
 
   void onIndentDetails(ProjectItem project) {
-    openProjectDetail(project);
+    openProjectDetailsPage(
+      project,
+      initialTab: ProjectDetailTab.indent,
+    );
   }
 
   void onDocuments(ProjectItem project) {
-    if (project.docUrl.trim().isEmpty) {
-      Get.snackbar(
-        'Documents',
-        'No documents available for ${project.crmId}',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: DashboardColors.primaryLight,
-        colorText: DashboardColors.textDark,
-      );
-      return;
-    }
-    Get.snackbar(
-      'Documents',
-      'Opening documents for ${project.crmId} — coming soon',
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: DashboardColors.primaryLight,
-      colorText: DashboardColors.textDark,
+    openProjectDetailsPage(
+      project,
+      initialTab: ProjectDetailTab.documents,
     );
   }
 

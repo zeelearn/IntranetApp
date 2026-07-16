@@ -16,25 +16,37 @@ class TaskRepository {
   final TaskLocalService _local;
 
   /// Builds parent → children map once (O(n)).
+  /// Only exact `parent_task_id == "0"` are roots (legacy BPMS HOME rule).
   static Map<String, List<HierarchyTask>> buildChildrenMap(
     List<HierarchyTask> tasks,
   ) {
     final map = <String, List<HierarchyTask>>{};
     for (final task in tasks) {
-      final key = task.isRoot ? '0' : task.parentTaskId;
+      final key = task.parentTaskId.trim();
+      // Never promote empty/missing parent to root — only exact "0".
+      if (key.isEmpty) continue;
       map.putIfAbsent(key, () => <HierarchyTask>[]).add(task);
     }
     return map;
   }
 
+  /// Top-level tasks only — strict `parent_task_id == "0"`.
   static List<HierarchyTask> roots(Map<String, List<HierarchyTask>> map) =>
       List<HierarchyTask>.from(map['0'] ?? const []);
+
+  /// Prefer filtering the flat list so root never includes non-`"0"` parents.
+  static List<HierarchyTask> rootTasks(List<HierarchyTask> tasks) => tasks
+      .where((t) => t.parentTaskId.trim() == '0')
+      .toList(growable: false);
 
   static List<HierarchyTask> childrenOf(
     Map<String, List<HierarchyTask>> map,
     String parentId,
-  ) =>
-      List<HierarchyTask>.from(map[parentId] ?? const []);
+  ) {
+    final key = parentId.trim();
+    if (key.isEmpty) return const [];
+    return List<HierarchyTask>.from(map[key] ?? const []);
+  }
 
   Future<List<HierarchyTask>?> loadOffline({
     required int userId,

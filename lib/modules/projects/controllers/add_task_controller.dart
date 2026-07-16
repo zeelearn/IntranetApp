@@ -183,10 +183,10 @@ class AddTaskController extends GetxController {
       }
     }
 
-    if (!isEditMode && responsiblePerson.value.trim().isEmpty) {
-      formError.value = 'Please select a responsible person';
-      ok = false;
-    }
+    // if (!isEditMode && responsiblePerson.value.trim().isEmpty) {
+    //   formError.value = 'Please select a responsible person';
+    //   ok = false;
+    // }
     return ok;
   }
 

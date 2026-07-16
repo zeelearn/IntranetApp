@@ -134,30 +134,30 @@ class AddTaskScreen extends StatelessWidget {
                             dateRow,
                             if (dateErr != null) ValidationMessage(dateErr),
                             if (!isEdit) ...[
-                              const SizedBox(height: 16),
-                              const TaskSectionLabel(
-                                'Responsible Person',
-                                required: true,
-                              ),
-                              TaskSelectorCard(
-                                label: 'Assignee',
-                                value: person,
-                                placeholder: 'Select person',
-                                leading: Container(
-                                  width: 40,
-                                  height: 40,
-                                  decoration: BoxDecoration(
-                                    color: DashboardColors.primaryLight,
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  child: const Icon(
-                                    Icons.person_outline_rounded,
-                                    color: DashboardColors.primary,
-                                  ),
-                                ),
-                                onTap: () =>
-                                    _pickAssignee(context, controller),
-                              ),
+                              // const SizedBox(height: 16),
+                              // const TaskSectionLabel(
+                              //   'Responsible Person',
+                              //   required: true,
+                              // ),
+                              // TaskSelectorCard(
+                              //   label: 'Assignee',
+                              //   value: person,
+                              //   placeholder: 'Select person',
+                              //   leading: Container(
+                              //     width: 40,
+                              //     height: 40,
+                              //     decoration: BoxDecoration(
+                              //       color: DashboardColors.primaryLight,
+                              //       borderRadius: BorderRadius.circular(10),
+                              //     ),
+                              //     child: const Icon(
+                              //       Icons.person_outline_rounded,
+                              //       color: DashboardColors.primary,
+                              //     ),
+                              //   ),
+                              //   onTap: () =>
+                              //       _pickAssignee(context, controller),
+                              // ),
                               const SizedBox(height: 16),
                               const TaskSectionLabel('Priority'),
                               TaskPriorityChips(

@@ -12,10 +12,11 @@ import 'package:Intranet/modules/projects/repositories/dashboard_repository.dart
 class DashboardController extends GetxController {
   DashboardController({
     required this.userId,
-    required this.displayName,
+    required this.userName,
     required List<BusinessApplications> businesses,
     required DashboardRepository repository,
     int? businessId,
+    this.businessName = '',
     this.onCardTap,
     this.onQuickAction,
     Connectivity? connectivity,
@@ -26,10 +27,14 @@ class DashboardController extends GetxController {
   }
 
   final int userId;
-  final String displayName;
+  final String userName;
+  final String businessName;
   final List<BusinessApplications> businesses;
   final DashboardRepository _repository;
   final Connectivity _connectivity;
+
+  /// Backward-compatible alias used by list/task openers.
+  String get displayName => userName;
 
   final void Function(int statusId, String statusName)? onCardTap;
   final void Function(QuickActionType action)? onQuickAction;
@@ -84,14 +89,18 @@ class DashboardController extends GetxController {
     cards.clear();
     servingFromCache.value = false;
 
-    await sync();
+    try {
+      await _updateConnectivityFlag();
+      await sync();
 
-    // Fallback to cache only when server did not deliver data.
-    if (summary.value == null) {
-      await loadOffline();
+      // Fallback to cache only when server did not deliver data.
+      if (summary.value == null) {
+        await loadOffline();
+      }
+    } finally {
+      // Always clear shimmer, even if sync throws unexpectedly.
+      isLoading.value = false;
     }
-
-    isLoading.value = false;
   }
 
   Future<void> loadOffline() async {
@@ -172,11 +181,15 @@ class DashboardController extends GetxController {
     summary.value = null;
     servingFromCache.value = false;
 
-    await sync();
-    if (summary.value == null) {
-      await loadOffline();
+    try {
+      await _updateConnectivityFlag();
+      await sync();
+      if (summary.value == null) {
+        await loadOffline();
+      }
+    } finally {
+      isLoading.value = false;
     }
-    isLoading.value = false;
   }
 
   void handleCardTap(DashboardCardModel card) {
@@ -229,8 +242,12 @@ class DashboardController extends GetxController {
       return;
     }
     final match = businesses.where((b) => b.businessID == id);
+    if (match.isNotEmpty) {
+      selectedBusinessLabel.value = match.first.businessName;
+      return;
+    }
     selectedBusinessLabel.value =
-        match.isEmpty ? 'Business $id' : match.first.businessName;
+        businessName.trim().isEmpty ? 'Business $id' : businessName.trim();
   }
 
   Future<void> _updateConnectivityFlag() async {

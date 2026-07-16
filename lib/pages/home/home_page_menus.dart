@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:Intranet/modules/projects/models/projects_entry_args.dart';
 import 'package:Intranet/modules/projects/views/projects_dashboard_page.dart';
 import 'package:Intranet/pages/helper/LocalConstant.dart';
 import 'package:Intranet/pages/pjp/cvf/mycvf.dart';
@@ -151,17 +152,20 @@ class _HomePageMenuState extends State<HomePageMenu> {
                 title: 'Projects',
                 icon: Icons.approval,
                 // disabled: !isBusinessMapped,
-                onTap: () {
+                onTap: () async {
+                  final args = await ProjectsEntryArgs.fromHive();
+                  if (!context.mounted) return;
                   Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (_) => ProjectsDashboardPage(
-                        userId: 34254,
-                        businessId: null,
-                        displayName: widget.mUserName,
-                        businesses: [],
-                        onCardTap: (id, name) {},
-                        onQuickAction: (action) {},
+                        userId: args.userId,
+                        userName: args.userName.isEmpty
+                            ? widget.mUserName
+                            : args.userName,
+                        businessId: args.businessId,
+                        businessName: args.businessName,
+                        businesses: args.businesses,
                       ),
                     ),
                   );

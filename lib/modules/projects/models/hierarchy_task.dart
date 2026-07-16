@@ -60,8 +60,9 @@ class HierarchyTask extends Equatable {
 
   TaskSummary get summary => TaskSummary.parse(taskcount);
 
-  bool get isRoot =>
-      parentTaskId.isEmpty || parentTaskId == '0' || parentTaskId == 'null';
+  /// Root = exact API value `"0"` (same as legacy BPMS HOME filter).
+  /// Empty / null / other ids are NOT roots.
+  bool get isRoot => parentTaskId.trim() == '0';
 
   /// Parsed attachment paths/URLs from comma-separated [files] API field.
   List<String> get attachmentList {
@@ -131,7 +132,7 @@ class HierarchyTask extends Equatable {
       responsiblePerson: _str(json['Responsible_person']),
       status: _int(json['status']),
       statusName: _str(json['statusname']),
-      parentTaskId: _str(json['parent_task_id']),
+      parentTaskId: _parentTaskIdFromJson(json),
       taskcount: _str(json['taskcount']),
       latestComment: _str(json['latest_comment']),
       files: _str(json['files']),
@@ -269,6 +270,20 @@ class HierarchyTask extends Equatable {
   }
 
   static String _str(dynamic v) => v?.toString() ?? '';
+
+  /// Reads `parent_task_id` (and common aliases). Does **not** coerce empty → `"0"`.
+  static String _parentTaskIdFromJson(Map<String, dynamic> json) {
+    final raw = json['parent_task_id'] ??
+        json['Parent_Task_Id'] ??
+        json['parentTaskId'] ??
+        json['ParentTaskId'];
+    if (raw == null) return '';
+    final s = raw.toString().trim();
+    if (s.toLowerCase() == 'null') return '';
+    // Numeric 0 from JSON must stay as "0".
+    if (raw is num && raw == 0) return '0';
+    return s;
+  }
 
   static int _int(dynamic v) {
     if (v == null) return 0;

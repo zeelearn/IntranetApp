@@ -27,6 +27,49 @@ void main() {
       expect(TaskRepository.childrenOf(map, '1').single.id, '2');
       expect(TaskRepository.childrenOf(map, '2').single.id, '3');
     });
+
+    test('only exact parent_task_id 0 is root; children stay nested', () {
+      final tasks = [
+        HierarchyTask.fromJson({
+          'id': '1',
+          'title': 'Root A',
+          'parent_task_id': 0,
+        }),
+        HierarchyTask.fromJson({
+          'id': '2',
+          'title': '',
+          'parent_task_id': '1',
+        }),
+        HierarchyTask.fromJson({
+          'id': '3',
+          'title': 'Untitled child',
+          'parent_task_id': '999',
+        }),
+        HierarchyTask.fromJson({
+          'id': '4',
+          'title': 'Missing parent field',
+          'parent_task_id': null,
+        }),
+        HierarchyTask.fromJson({
+          'id': '5',
+          'title': 'Empty parent',
+          'parent_task_id': '',
+        }),
+      ];
+      final roots = TaskRepository.rootTasks(tasks);
+      expect(roots.map((t) => t.id).toList(), ['1']);
+      expect(roots.single.isRoot, isTrue);
+      expect(tasks[1].isRoot, isFalse);
+      expect(tasks[2].isRoot, isFalse);
+      expect(tasks[3].isRoot, isFalse);
+      expect(tasks[4].isRoot, isFalse);
+
+      final map = TaskRepository.buildChildrenMap(tasks);
+      expect(TaskRepository.roots(map).single.id, '1');
+      expect(TaskRepository.childrenOf(map, '1').single.id, '2');
+      // Orphans (parent 999 / empty) are not promoted to root.
+      expect(TaskRepository.roots(map).any((t) => t.id == '3'), isFalse);
+    });
   });
 
   group('HierarchyTaskResponse', () {

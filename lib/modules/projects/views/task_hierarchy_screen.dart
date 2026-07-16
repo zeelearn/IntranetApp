@@ -85,7 +85,9 @@ class TaskHierarchyScreen extends StatelessWidget {
             final canPopDrill = controller.navStack.isNotEmpty;
             return _Header(
               title: title,
-              subtitle: controller.effectiveMyTaskUserName,
+              subtitle: controller.projectId.isNotEmpty
+                  ? 'Project ID: ${controller.projectId}'
+                  : '',
               mode: mode,
               onBack: () {
                 if (mode == TaskListViewMode.drillDown && canPopDrill) {

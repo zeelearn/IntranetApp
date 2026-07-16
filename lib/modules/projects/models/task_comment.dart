@@ -7,11 +7,13 @@ enum CommentDeliveryStatus {
   sent,
   delivered,
   read,
+  failed,
 }
 
 enum CommentAttachmentType {
   pdf,
   image,
+  video,
   document,
   other,
 }
@@ -22,19 +24,36 @@ class TaskCommentAttachment extends Equatable {
     required this.fileName,
     required this.sizeLabel,
     required this.type,
+    this.url = '',
     this.localPath = '',
     this.thumbnailUrl = '',
+    this.bytes,
   });
 
   final String id;
   final String fileName;
   final String sizeLabel;
   final CommentAttachmentType type;
+
+  /// Remote URL (`file_path`) for in-app / external open.
+  final String url;
   final String localPath;
   final String thumbnailUrl;
 
+  /// In-memory bytes for web / cross-platform upload + retry.
+  final List<int>? bytes;
+
+  String get openUrl {
+    final u = url.trim();
+    if (u.isNotEmpty) return u;
+    return localPath.trim();
+  }
+
+  bool get hasUploadSource =>
+      (bytes != null && bytes!.isNotEmpty) || localPath.trim().isNotEmpty;
+
   @override
-  List<Object?> get props => [id, fileName, type];
+  List<Object?> get props => [id, fileName, type, url, localPath, bytes?.length];
 }
 
 class TaskComment extends Equatable {
@@ -49,6 +68,7 @@ class TaskComment extends Equatable {
     this.attachments = const [],
     this.reactionEmoji = '',
     this.reactionCount = 0,
+    this.createdBy = '',
   });
 
   final String id;
@@ -61,6 +81,9 @@ class TaskComment extends Equatable {
   final List<TaskCommentAttachment> attachments;
   final String reactionEmoji;
   final int reactionCount;
+
+  /// API `CreatedBy` user id string.
+  final String createdBy;
 
   String get initials {
     if (avatarInitials.trim().isNotEmpty) return avatarInitials.trim();
@@ -79,6 +102,7 @@ class TaskComment extends Equatable {
     List<TaskCommentAttachment>? attachments,
     String? reactionEmoji,
     int? reactionCount,
+    String? createdBy,
   }) {
     return TaskComment(
       id: id,
@@ -91,11 +115,13 @@ class TaskComment extends Equatable {
       attachments: attachments ?? this.attachments,
       reactionEmoji: reactionEmoji ?? this.reactionEmoji,
       reactionCount: reactionCount ?? this.reactionCount,
+      createdBy: createdBy ?? this.createdBy,
     );
   }
 
   @override
-  List<Object?> get props => [id, senderName, message, sentAt, isMine];
+  List<Object?> get props =>
+      [id, senderName, message, sentAt, isMine, createdBy];
 }
 
 /// Online member chip for the header / members sheet.

@@ -13,6 +13,7 @@ class ProjectCard extends StatelessWidget {
     required this.statusColor,
     required this.onCommunication,
     required this.onIndentDetails,
+    required this.onCardTap,
     required this.onDocuments,
     this.index = 0,
     this.showMissedDeadline = false,
@@ -24,6 +25,7 @@ class ProjectCard extends StatelessWidget {
   final VoidCallback onCommunication;
   final VoidCallback onIndentDetails;
   final VoidCallback onDocuments;
+  final VoidCallback onCardTap;
   final int index;
   final bool showMissedDeadline;
 
@@ -64,136 +66,139 @@ class ProjectCard extends StatelessWidget {
           elevation: 2,
           shadowColor: const Color(0x14000000),
           borderRadius: BorderRadius.circular(16),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(12, 12, 12, 10),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        p.crmId.isEmpty ? '—' : p.crmId,
-                        style: GoogleFonts.poppins(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                          color: DashboardColors.primary,
+          child: InkWell(
+            onTap: onCardTap,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(12, 12, 12, 10),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          p.crmId.isEmpty ? '—' : p.crmId,
+                          style: GoogleFonts.poppins(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            color: DashboardColors.primary,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
                       ),
-                    ),
-                    StatusBadge(label: chip, color: statusColor),
-                  ],
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  displayName,
-                  style: GoogleFonts.poppins(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
-                    color: const Color(0xFF263238),
+                      StatusBadge(label: chip, color: statusColor),
+                    ],
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 8),
-                _InfoRow(
-                  icon: Icons.location_on_outlined,
-                  text: p.catchmentArea.isNotEmpty ? p.catchmentArea : '—',
-                ),
-                const SizedBox(height: 4),
-                _InfoRow(
-                  icon: Icons.person_outline_rounded,
-                  text: responsible,
-                ),
-                if (showTier || showFee) ...[
+                  const SizedBox(height: 6),
+                  Text(
+                    displayName,
+                    style: GoogleFonts.poppins(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: const Color(0xFF263238),
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 8),
+                  _InfoRow(
+                    icon: Icons.location_on_outlined,
+                    text: p.catchmentArea.isNotEmpty ? p.catchmentArea : '—',
+                  ),
+                  const SizedBox(height: 4),
+                  _InfoRow(
+                    icon: Icons.person_outline_rounded,
+                    text: responsible,
+                  ),
+                  if (showTier || showFee) ...[
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        if (showTier)
+                          Expanded(
+                            child: _MetaChip(
+                              icon: Icons.diamond_outlined,
+                              label: 'Tier ${p.tierName.trim()}',
+                            ),
+                          ),
+                        if (showTier && showFee) const SizedBox(width: 8),
+                        if (showFee)
+                          Expanded(
+                            child: _MetaChip(
+                              icon: Icons.payments_outlined,
+                              label: 'Fee ${p.feeType.trim()}',
+                            ),
+                          ),
+                      ],
+                    ),
+                  ],
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      if (showTier)
-                        Expanded(
-                          child: _MetaChip(
-                            icon: Icons.diamond_outlined,
-                            label: 'Tier ${p.tierName.trim()}',
-                          ),
+                      Expanded(
+                        child: _InfoRow(
+                          icon: Icons.calendar_today_outlined,
+                          text: approved,
                         ),
-                      if (showTier && showFee) const SizedBox(width: 8),
-                      if (showFee)
-                        Expanded(
-                          child: _MetaChip(
-                            icon: Icons.payments_outlined,
-                            label: 'Fee ${p.feeType.trim()}',
-                          ),
+                      ),
+                      Expanded(
+                        child: _InfoRow(
+                          icon: Icons.event_outlined,
+                          text: deadline,
+                          emphasized: missed,
+                          emphasizeColor: DashboardColors.error,
                         ),
+                      ),
+                    ],
+                  ),
+                  if (missed) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      'Deadline missed',
+                      style: GoogleFonts.poppins(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                        color: DashboardColors.error,
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 8),
+                  TaskSummaryWidget(summary: p.taskSummary),
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _FooterActionButton(
+                          icon: Icons.chat_bubble_outline_rounded,
+                          label: 'Communication',
+                          color: DashboardColors.primary,
+                          onTap: onCommunication,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: _FooterActionButton(
+                          icon: Icons.badge_outlined,
+                          label: 'Indent Details',
+                          color: DashboardColors.purple,
+                          onTap: onIndentDetails,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: _FooterActionButton(
+                          icon: Icons.description_outlined,
+                          label: 'Documents',
+                          color: DashboardColors.success,
+                          onTap: onDocuments,
+                        ),
+                      ),
                     ],
                   ),
                 ],
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    Expanded(
-                      child: _InfoRow(
-                        icon: Icons.calendar_today_outlined,
-                        text: approved,
-                      ),
-                    ),
-                    Expanded(
-                      child: _InfoRow(
-                        icon: Icons.event_outlined,
-                        text: deadline,
-                        emphasized: missed,
-                        emphasizeColor: DashboardColors.error,
-                      ),
-                    ),
-                  ],
-                ),
-                if (missed) ...[
-                  const SizedBox(height: 4),
-                  Text(
-                    'Deadline missed',
-                    style: GoogleFonts.poppins(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w600,
-                      color: DashboardColors.error,
-                    ),
-                  ),
-                ],
-                const SizedBox(height: 8),
-                TaskSummaryWidget(summary: p.taskSummary),
-                const SizedBox(height: 10),
-                Row(
-                  children: [
-                    Expanded(
-                      child: _FooterActionButton(
-                        icon: Icons.chat_bubble_outline_rounded,
-                        label: 'Communication',
-                        color: DashboardColors.primary,
-                        onTap: onCommunication,
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: _FooterActionButton(
-                        icon: Icons.badge_outlined,
-                        label: 'Indent Details',
-                        color: DashboardColors.purple,
-                        onTap: onIndentDetails,
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: _FooterActionButton(
-                        icon: Icons.description_outlined,
-                        label: 'Documents',
-                        color: DashboardColors.success,
-                        onTap: onDocuments,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
+              ),
             ),
           ),
         ),

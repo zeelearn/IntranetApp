@@ -87,9 +87,13 @@ class LocalStrings {
   static const String API_GET_TASKDETAILS = 'api/bp/GetPartnerTaskDetails';
   static const String API_UPDATE_TASKDETAILS = 'api/bp/UpdateTaskStatus';
   static const String API_GET_COMMENTS = 'api/bp/Getcomments';
-  static const String API_INSERT_ATTACHMENT = 'api/bp/InserttaskAttachment';
+  static const String API_GET_TASK_ATTACHMENTS_AND_COMMENTS =
+      'api/bp//GetTaskAttachmentsAndComments';
+  static const String API_INSERT_ATTACHMENT = 'api/bp//InserttaskAttachment';
   static const String API_GET_FRANCHISEEDETAILS =
       'api/bp/GetFranchiseeDetailInfo';
+  static const String API_GET_FRANCHISEEDETAILS_V1 =
+      'api/bp/GetFranchiseeDetailInfoV1';
   static const String API_GET_COMMUNICATION = 'api/bp/Getcommunication';
   static const String API_GET_BPMS_COUNTS = 'api/bp//GetDashboardCount';
   static const String API_GET_BPMS_ALL_PROJECTS = 'api/bp//GetAllProjectList';

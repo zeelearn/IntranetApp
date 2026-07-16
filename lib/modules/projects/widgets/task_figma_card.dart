@@ -61,6 +61,8 @@ class TaskFigmaCard extends StatelessWidget {
           child: task.isRoot
               ? _RootTaskBody(
                   task: task,
+                  isFolder: isFolder,
+                  expanded: expanded,
                   statusColor: statusColor,
                   canMutate: canMutate,
                   onAction: onAction,
@@ -153,10 +155,14 @@ class _RootTaskBody extends StatelessWidget {
     required this.task,
     required this.statusColor,
     required this.canMutate,
+    this.isFolder = false,
+    this.expanded = false,
     this.onAction,
   });
 
   final HierarchyTask task;
+  final bool isFolder;
+  final bool expanded;
   final Color statusColor;
   final bool canMutate;
   final void Function(TaskActionType action)? onAction;
@@ -207,6 +213,17 @@ class _RootTaskBody extends StatelessWidget {
               color: statusColor,
               size: 30,
             ),
+            if (isFolder)
+              Padding(
+                padding: const EdgeInsets.only(left: 2),
+                child: Icon(
+                  expanded
+                      ? Icons.keyboard_arrow_up_rounded
+                      : Icons.keyboard_arrow_down_rounded,
+                  color: const Color(0xFF1A237E),
+                  size: 26,
+                ),
+              ),
             if (onAction != null)
               _TaskOverflowMenu(
                 canMutate: canMutate,
@@ -526,6 +543,7 @@ class _SubTaskBody extends StatelessWidget {
                 valueColor: TaskFigmaCard.priorityColorFor(task.priority),
               ),
             ),
+            if( isFolder)
             Expanded(
               child: _FooterStat(
                 icon: Icons.list_alt_rounded,
@@ -770,7 +788,27 @@ class _FooterStat extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    return label=='Comments' ? 
+    Center(
+      child: Row(
+          children: [
+            Icon(icon, size: 13, color: Colors.grey.shade600),
+            const SizedBox(width: 4),
+            Flexible(
+              child: Text(
+                label,
+                style: GoogleFonts.poppins(
+                  fontSize: 10,
+                  color: DashboardColors.textMuted,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
+    ) :
+     Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
@@ -830,40 +868,44 @@ class _TaskOverflowMenu extends StatelessWidget {
           value: TaskActionType.comments,
           child: _MenuRow(Icons.chat_bubble_outline, 'Comments'),
         ),
+        const PopupMenuItem(
+          value: TaskActionType.createChild,
+          child: _MenuRow(Icons.add_circle_outline, 'Add Sub Task'),
+        ),
         if (canMutate) ...[
           const PopupMenuItem(
             value: TaskActionType.edit,
             child: _MenuRow(Icons.edit_outlined, 'Edit'),
           ),
-          const PopupMenuItem(
-            value: TaskActionType.updateStatus,
-            child: _MenuRow(Icons.event_available_outlined, 'Update Status'),
-          ),
-          const PopupMenuItem(
-            value: TaskActionType.uploadFile,
-            child: _MenuRow(Icons.attach_file_rounded, 'Attach'),
-          ),
-          const PopupMenuItem(
-            value: TaskActionType.assignUser,
-            child: _MenuRow(Icons.person_add_alt_1_outlined, 'Assign'),
-          ),
+          // const PopupMenuItem(
+          //   value: TaskActionType.updateStatus,
+          //   child: _MenuRow(Icons.event_available_outlined, 'Update Status'),
+          // ),
+          // const PopupMenuItem(
+          //   value: TaskActionType.uploadFile,
+          //   child: _MenuRow(Icons.attach_file_rounded, 'Attach'),
+          // ),
+          // const PopupMenuItem(
+          //   value: TaskActionType.assignUser,
+          //   child: _MenuRow(Icons.person_add_alt_1_outlined, 'Assign'),
+          // ),
           const PopupMenuItem(
             value: TaskActionType.delete,
             child: _MenuRow(Icons.delete_outline_rounded, 'Delete'),
           ),
         ],
-        const PopupMenuItem(
-          value: TaskActionType.activity,
-          child: _MenuRow(Icons.history_rounded, 'Activity'),
-        ),
-        const PopupMenuItem(
-          value: TaskActionType.createChild,
-          child: _MenuRow(Icons.add_circle_outline, 'Add Sub Task'),
-        ),
-        const PopupMenuItem(
-          value: TaskActionType.timeline,
-          child: _MenuRow(Icons.timeline_rounded, 'Timeline'),
-        ),
+        // const PopupMenuItem(
+        //   value: TaskActionType.activity,
+        //   child: _MenuRow(Icons.history_rounded, 'Activity'),
+        // ),
+        // const PopupMenuItem(
+        //   value: TaskActionType.createChild,
+        //   child: _MenuRow(Icons.add_circle_outline, 'Add Sub Task'),
+        // ),
+        // const PopupMenuItem(
+        //   value: TaskActionType.timeline,
+        //   child: _MenuRow(Icons.timeline_rounded, 'Timeline'),
+        // ),
       ],
     );
   }

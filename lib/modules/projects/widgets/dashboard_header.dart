@@ -7,7 +7,7 @@ import 'package:Intranet/modules/projects/widgets/business_selector.dart';
 class DashboardHeader extends StatelessWidget {
   const DashboardHeader({
     super.key,
-    required this.displayName,
+    required this.userName,
     required this.businesses,
     required this.selectedBusinessId,
     required this.selectedBusinessLabel,
@@ -15,7 +15,7 @@ class DashboardHeader extends StatelessWidget {
     this.onBackTap,
   });
 
-  final String displayName;
+  final String userName;
   final List<BusinessApplications> businesses;
   final int? selectedBusinessId;
   final String selectedBusinessLabel;
@@ -42,15 +42,19 @@ class DashboardHeader extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Dashboard',
+                    userName.trim().isEmpty ? 'User' : userName.trim(),
                     style: GoogleFonts.poppins(
                       color: Colors.white,
-                      fontSize: 20,
+                      fontSize: 18,
                       fontWeight: FontWeight.w700,
                     ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                   Text(
-                    'Welcome back, $displayName',
+                    selectedBusinessLabel.trim().isEmpty
+                        ? 'All Business'
+                        : selectedBusinessLabel.trim(),
                     style: GoogleFonts.poppins(
                       color: Colors.white.withValues(alpha: 0.9),
                       fontSize: 12,

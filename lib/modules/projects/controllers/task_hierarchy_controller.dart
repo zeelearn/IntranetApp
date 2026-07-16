@@ -75,7 +75,7 @@ class TaskHierarchyController extends GetxController {
 
   /// Temporary identity for "My Tasks" until preference / Hive is wired.
   /// Replace this with the logged-in display name from prefs/Hive later.
-  static const String myTasksUserName = 'Nikul Kumar';
+  static const String myTasksUserName = '';
 
   final RxList<HierarchyTask> allTasks = <HierarchyTask>[].obs;
   final RxInt treeRevision = 0.obs;
@@ -254,7 +254,7 @@ class TaskHierarchyController extends GetxController {
   /// Items for the current drill-down level (filtered).
   List<HierarchyTask> drillDownItems() {
     final base = navStack.isEmpty
-        ? TaskRepository.roots(_childrenMap)
+        ? TaskRepository.rootTasks(allTasks.toList(growable: false))
         : childrenOf(navStack.last.id);
     return _applyMyTasksFilter(
       _repository.search(
@@ -334,20 +334,39 @@ class TaskHierarchyController extends GetxController {
         .toList(growable: false);
   }
 
-  /// Root tasks, or a flat filtered list while searching/filtering.
+  /// Top-level list: **only** `parent_task_id == "0"` (legacy BPMS HOME).
+  /// Children appear only after expand — never promoted to root.
   List<HierarchyTask> visibleRoots() {
-    if (_hasActiveFilters) {
-      return _applyMyTasksFilter(
-        _repository.search(
-          source: allTasks.toList(growable: false),
-          query: searchQuery.value,
-          statusFilter: statusFilter.value,
-          priorityFilter: priorityFilter.value,
-          assigneeFilter: assigneeFilter.value,
-        ),
-      );
+    // Strict filter on the flat list (do not use empty/null as root).
+    final roots = TaskRepository.rootTasks(allTasks.toList(growable: false));
+
+    if (!_hasActiveFilters) {
+      return roots;
     }
-    return TaskRepository.roots(_childrenMap);
+
+    final filtered = _applyMyTasksFilter(
+      _repository.search(
+        source: allTasks.toList(growable: false),
+        query: searchQuery.value,
+        statusFilter: statusFilter.value,
+        priorityFilter: priorityFilter.value,
+        assigneeFilter: assigneeFilter.value,
+      ),
+    );
+    final matchedIds = filtered.map((t) => t.id).toSet();
+
+    return roots.where((root) {
+      if (matchedIds.contains(root.id)) return true;
+      return _subtreeContainsAny(root.id, matchedIds);
+    }).toList(growable: false);
+  }
+
+  bool _subtreeContainsAny(String parentId, Set<String> ids) {
+    for (final child in childrenOf(parentId)) {
+      if (ids.contains(child.id)) return true;
+      if (_subtreeContainsAny(child.id, ids)) return true;
+    }
+    return false;
   }
 
   List<HierarchyTask> childrenOf(String parentId) =>
@@ -607,9 +626,11 @@ class TaskHierarchyController extends GetxController {
   void _applyTasks(List<HierarchyTask> list, {required bool fromCache}) {
     allTasks.assignAll(list);
     _childrenMap = TaskRepository.buildChildrenMap(list);
-    // Drop expands / nav for nodes that no longer exist.
     final ids = list.map((t) => t.id).toSet();
-    _expandedIds.removeWhere((id) => !ids.contains(id));
+    // Always start collapsed so only parent_task_id == "0" is visible.
+    _expandedIds
+      ..clear()
+      ..removeWhere((id) => !ids.contains(id));
     navStack.removeWhere((t) => !ids.contains(t.id));
     servingFromCache.value = fromCache;
     _recomputeSummary();

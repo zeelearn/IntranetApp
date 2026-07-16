@@ -1,7 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:Intranet/modules/projects/models/dashboard_colors.dart';
+import 'package:Intranet/modules/projects/utils/projects_file_opener.dart';
+
+/// Named document (e.g. project Documents tab Name + DocURL).
+class NamedAttachment {
+  const NamedAttachment({required this.name, required this.url});
+
+  final String name;
+  final String url;
+}
 
 /// Displays comma-separated / list of attachment paths from Gettaskdata.
 class TaskAttachmentList extends StatelessWidget {
@@ -10,11 +18,31 @@ class TaskAttachmentList extends StatelessWidget {
     required this.files,
     this.compact = false,
     this.title = 'Attachments',
+    this.namedFiles = const [],
   });
+
+  /// Builds from Name + URL pairs (project documents).
+  factory TaskAttachmentList.named({
+    Key? key,
+    required List<NamedAttachment> documents,
+    bool compact = false,
+    String title = 'Documents',
+  }) {
+    return TaskAttachmentList(
+      key: key,
+      files: documents.map((e) => e.url).toList(growable: false),
+      namedFiles: documents,
+      compact: compact,
+      title: title,
+    );
+  }
 
   final List<String> files;
   final bool compact;
   final String title;
+
+  /// When non-empty, display [NamedAttachment.name] instead of URL filename.
+  final List<NamedAttachment> namedFiles;
 
   static String fileName(String path) {
     final cleaned = path.trim();
@@ -75,11 +103,17 @@ class TaskAttachmentList extends StatelessWidget {
   }
 
   Future<void> _open(String path) async {
-    final uri = Uri.tryParse(path);
-    if (uri == null) return;
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    await ProjectsFileOpener.open(
+      url: path,
+      title: fileName(path),
+    );
+  }
+
+  String _labelFor(int index, String file) {
+    if (index < namedFiles.length && namedFiles[index].name.trim().isNotEmpty) {
+      return namedFiles[index].name.trim();
     }
+    return fileName(file);
   }
 
   @override
@@ -91,9 +125,9 @@ class TaskAttachmentList extends StatelessWidget {
         spacing: 6,
         runSpacing: 6,
         children: [
-          for (final file in files)
+          for (var i = 0; i < files.length; i++)
             InkWell(
-              onTap: () => _open(file),
+              onTap: () => _open(files[i]),
               borderRadius: BorderRadius.circular(8),
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -106,15 +140,15 @@ class TaskAttachmentList extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(
-                      iconFor(file).$1,
+                      iconFor(files[i]).$1,
                       size: 14,
-                      color: iconFor(file).$2,
+                      color: iconFor(files[i]).$2,
                     ),
                     const SizedBox(width: 4),
                     ConstrainedBox(
                       constraints: const BoxConstraints(maxWidth: 140),
                       child: Text(
-                        fileName(file),
+                        _labelFor(i, files[i]),
                         style: GoogleFonts.poppins(
                           fontSize: 10,
                           fontWeight: FontWeight.w500,
@@ -143,13 +177,13 @@ class TaskAttachmentList extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 8),
-        for (final file in files) ...[
+        for (var i = 0; i < files.length; i++) ...[
           Material(
             color: Colors.white,
             borderRadius: BorderRadius.circular(10),
             child: InkWell(
               borderRadius: BorderRadius.circular(10),
-              onTap: () => _open(file),
+              onTap: () => _open(files[i]),
               child: Container(
                 width: double.infinity,
                 margin: const EdgeInsets.only(bottom: 8),
@@ -164,12 +198,12 @@ class TaskAttachmentList extends StatelessWidget {
                       width: 36,
                       height: 36,
                       decoration: BoxDecoration(
-                        color: iconFor(file).$2.withValues(alpha: 0.12),
+                        color: iconFor(files[i]).$2.withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Icon(
-                        iconFor(file).$1,
-                        color: iconFor(file).$2,
+                        iconFor(files[i]).$1,
+                        color: iconFor(files[i]).$2,
                         size: 20,
                       ),
                     ),
@@ -179,7 +213,7 @@ class TaskAttachmentList extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            fileName(file),
+                            _labelFor(i, files[i]),
                             style: GoogleFonts.poppins(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
@@ -188,9 +222,9 @@ class TaskAttachmentList extends StatelessWidget {
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                           ),
-                          if (extensionOf(file).isNotEmpty)
+                          if (extensionOf(files[i]).isNotEmpty)
                             Text(
-                              extensionOf(file).toUpperCase(),
+                              extensionOf(files[i]).toUpperCase(),
                               style: GoogleFonts.poppins(
                                 fontSize: 10,
                                 color: DashboardColors.textMuted,

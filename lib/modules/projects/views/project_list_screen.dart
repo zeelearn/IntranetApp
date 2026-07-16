@@ -192,6 +192,9 @@ class ProjectListScreen extends StatelessWidget {
                                   DashboardStatusIds.showsMissedDeadline(
                                 controller.projectTeamStatus,
                               ),
+                              onCardTap: () {
+                                controller.openTaskScreen(project, 0);
+                              },
                               onCommunication: () =>
                                   controller.onCommunication(project),
                               onIndentDetails: () =>
@@ -227,6 +230,7 @@ class ProjectListScreen extends StatelessWidget {
                               DashboardStatusIds.showsMissedDeadline(
                             controller.projectTeamStatus,
                           ),
+                          onCardTap: () => controller.openTaskScreen(project, 0),
                           onCommunication: () =>
                               controller.onCommunication(project),
                           onIndentDetails: () =>
@@ -281,7 +285,7 @@ class _AppBar extends StatelessWidget {
                             controller.statusName,
                             style: GoogleFonts.poppins(
                               color: Colors.white,
-                              fontSize: 18,
+                              fontSize: 16,
                               fontWeight: FontWeight.w700,
                             ),
                             maxLines: 1,
@@ -313,10 +317,10 @@ class _AppBar extends StatelessWidget {
                 ),
               ),
             ),
-            IconButton(
-              onPressed: controller.toggleSearchBar,
-              icon: const Icon(Icons.search_rounded, color: Colors.white),
-            ),
+            // IconButton(
+            //   onPressed: controller.toggleSearchBar,
+            //   icon: const Icon(Icons.search_rounded, color: Colors.white),
+            // ),
           ],
         ),
       ),

@@ -28,6 +28,58 @@ class ProjectDateUtils {
     return '$day ${_months[dt.month - 1]} ${dt.year}';
   }
 
+  /// Formats as `07 Sep 2023, 02:47 PM` when time is present.
+  static String formatReadableDateTime(String? raw, {String? timeHint}) {
+    final dt = tryParse(raw);
+    if (dt == null) {
+      final trimmed = raw?.trim() ?? '';
+      if (trimmed.isEmpty) return '—';
+      if (timeHint != null && timeHint.trim().isNotEmpty) {
+        return '$trimmed, ${timeHint.trim()}';
+      }
+      return trimmed;
+    }
+    final day = dt.day.toString().padLeft(2, '0');
+    final datePart = '$day ${_months[dt.month - 1]} ${dt.year}';
+    final hint = timeHint?.trim() ?? '';
+    if (hint.isNotEmpty) return '$datePart, $hint';
+    if (dt.hour == 0 && dt.minute == 0 && dt.second == 0) return datePart;
+    final hour12 = dt.hour % 12 == 0 ? 12 : dt.hour % 12;
+    final ampm = dt.hour >= 12 ? 'PM' : 'AM';
+    final min = dt.minute.toString().padLeft(2, '0');
+    final h = hour12.toString().padLeft(2, '0');
+    return '$datePart, $h:$min $ampm';
+  }
+
+  /// Formats currency-like amounts with Indian grouping when possible.
+  static String formatAmount(num value) {
+    final n = value.toDouble();
+    if (n == 0) return '₹0';
+    final isNeg = n < 0;
+    final abs = n.abs();
+    final whole = abs.floor();
+    final frac = ((abs - whole) * 100).round();
+    final s = whole.toString();
+    final buf = StringBuffer();
+    if (s.length <= 3) {
+      buf.write(s);
+    } else {
+      final last3 = s.substring(s.length - 3);
+      var rest = s.substring(0, s.length - 3);
+      final parts = <String>[];
+      while (rest.length > 2) {
+        parts.insert(0, rest.substring(rest.length - 2));
+        rest = rest.substring(0, rest.length - 2);
+      }
+      if (rest.isNotEmpty) parts.insert(0, rest);
+      buf.write(parts.join(','));
+      buf.write(',');
+      buf.write(last3);
+    }
+    final out = frac == 0 ? buf.toString() : '${buf.toString()}.${frac.toString().padLeft(2, '0')}';
+    return isNeg ? '₹-$out' : '₹$out';
+  }
+
   static DateTime? tryParse(String? raw) {
     if (raw == null) return null;
     final value = raw.trim();
