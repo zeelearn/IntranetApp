@@ -17,3 +17,8 @@ samples, guidance on mobile development, and a full API reference.
 
 
 flutter run -d chrome --web-browser-flag "--disable-web-security"
+
+
+Value	Base64
+IS_STAGING=true	SVNfU1RBR0lORz10cnVl
+IS_STAGING=false	SVNfU1RBR0lORz1mYWxzZQ==
