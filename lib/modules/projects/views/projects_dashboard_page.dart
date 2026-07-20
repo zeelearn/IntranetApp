@@ -138,7 +138,7 @@ class _ProjectsDashboardPageState extends State<ProjectsDashboardPage> {
           Obx(
             () => DashboardHeader(
               userName: controller.userName,
-              businesses: widget.businesses,
+              businesses: controller.businesses.toList(growable: false),
               selectedBusinessId: controller.selectedBusinessId.value,
               selectedBusinessLabel: controller.selectedBusinessLabel.value,
               onBusinessChanged: controller.selectBusiness,
@@ -257,7 +257,7 @@ class _ProjectsDashboardPageState extends State<ProjectsDashboardPage> {
         projectTeamStatus: card.statusId,
         statusName: card.statusName,
         statusColor: card.color,
-        businesses: widget.businesses,
+        businesses: controller.businesses.toList(growable: false),
         currentUserName: widget.userName,
       );
     }

@@ -1796,14 +1796,14 @@ class _IntranetHomePageState extends State<IntranetHomePage>
                   },
           ),
         ),
-         Ink(
+         /* Ink(
           color: Colors.white,
           child: ListTile(
             leading: SizedBox(
                 height: 32.0,
                 width: 32.0,
                 child: Image.asset('assets/icons/ic_checklist.png')),
-            title:  Text(mUserName),
+            title:  Text('Projects'),
             onTap: businessId == 0
                 ? () {
                     Utility.showMessage(context,
@@ -1856,7 +1856,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
                     );
                   },
           ),
-        ),
+        ), */
         /* Ink(
           color: widget._selectedDestination == MENU_ATTENDANCE_MARKING
               ? LightColors.kLightBlue

@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Projects Module — Unit Testing Report</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet" />
+  <link href="https://unpkg.com/material-components-web@14.0.0/dist/material-components-web.min.css" rel="stylesheet" />
+  <style>
+    :root {
+      --md-sys-color-primary: #1565c0;
+      --md-sys-color-on-primary: #ffffff;
+      --md-sys-color-primary-container: #d3e4ff;
+      --md-sys-color-secondary: #2e7d32;
+      --md-sys-color-error: #c62828;
+      --md-sys-color-surface: #f8f9fa;
+      --md-sys-color-surface-container: #ffffff;
+      --md-sys-color-on-surface: #1c1b1f;
+      --md-sys-color-on-surface-variant: #49454f;
+      --md-sys-color-outline: #e0e0e0;
+      --md-elevation-1: 0 1px 3px rgba(0,0,0,.12), 0 1px 2px rgba(0,0,0,.08);
+      --md-elevation-2: 0 3px 6px rgba(0,0,0,.12), 0 2px 4px rgba(0,0,0,.08);
+      --radius: 12px;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Roboto", system-ui, sans-serif;
+      background: var(--md-sys-color-surface);
+      color: var(--md-sys-color-on-surface);
+      line-height: 1.5;
+    }
+
+    .app-bar {
+      background: var(--md-sys-color-primary);
+      color: var(--md-sys-color-on-primary);
+      padding: 20px 24px;
+      box-shadow: var(--md-elevation-2);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .app-bar-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .app-bar .material-icons-round { font-size: 32px; }
+    .app-bar h1 {
+      margin: 0;
+      font-size: 1.35rem;
+      font-weight: 500;
+      letter-spacing: 0.01em;
+    }
+    .app-bar .subtitle {
+      margin: 2px 0 0;
+      opacity: 0.9;
+      font-size: 0.875rem;
+      font-weight: 400;
+    }
+    .app-bar-meta {
+      margin-left: auto;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 0.8125rem;
+      font-weight: 500;
+      background: rgba(255,255,255,.18);
+      color: #fff;
+    }
+    .chip.success {
+      background: #e8f5e9;
+      color: #1b5e20;
+    }
+    .chip.neutral {
+      background: #eceff1;
+      color: #37474f;
+    }
+    .chip .material-icons-round { font-size: 16px; }
+
+    .page {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 24px 16px 48px;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .stat-card {
+      background: var(--md-sys-color-surface-container);
+      border-radius: var(--radius);
+      box-shadow: var(--md-elevation-1);
+      padding: 16px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .stat-card .label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--md-sys-color-on-surface-variant);
+      font-weight: 500;
+    }
+    .stat-card .value {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: var(--md-sys-color-primary);
+      line-height: 1.2;
+    }
+    .stat-card.pass .value { color: var(--md-sys-color-secondary); }
+    .stat-card.fail .value { color: var(--md-sys-color-error); }
+
+    .mdc-card-section {
+      background: var(--md-sys-color-surface-container);
+      border-radius: var(--radius);
+      box-shadow: var(--md-elevation-1);
+      margin-bottom: 20px;
+      overflow: hidden;
+    }
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--md-sys-color-outline);
+    }
+    .section-header .material-icons-round {
+      color: var(--md-sys-color-primary);
+    }
+    .section-header h2 {
+      margin: 0;
+      font-size: 1.1rem;
+      font-weight: 500;
+    }
+    .section-body {
+      padding: 16px 20px 20px;
+    }
+    .section-body p { margin: 0 0 12px; color: var(--md-sys-color-on-surface-variant); }
+    .section-body p:last-child { margin-bottom: 0; }
+
+    ul.plain {
+      margin: 0;
+      padding-left: 1.2rem;
+      color: var(--md-sys-color-on-surface-variant);
+    }
+    ul.plain li { margin-bottom: 6px; }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 12px;
+    }
+    .info-tile {
+      background: #f5f7fa;
+      border-radius: 8px;
+      padding: 12px 14px;
+    }
+    .info-tile strong {
+      display: block;
+      font-size: 0.875rem;
+      margin-bottom: 4px;
+    }
+    .info-tile span {
+      font-size: 0.8125rem;
+      color: var(--md-sys-color-on-surface-variant);
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .mdc-text-field-wrap {
+      flex: 1;
+      min-width: 200px;
+      position: relative;
+    }
+    .mdc-text-field-wrap .material-icons-round {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #757575;
+      font-size: 20px;
+      pointer-events: none;
+    }
+    #filterInput {
+      width: 100%;
+      padding: 12px 14px 12px 42px;
+      border: 1px solid #cfd8dc;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 0.9375rem;
+      outline: none;
+      background: #fff;
+      transition: border-color .15s, box-shadow .15s;
+    }
+    #filterInput:focus {
+      border-color: var(--md-sys-color-primary);
+      box-shadow: 0 0 0 3px rgba(21,101,192,.15);
+    }
+
+    .filter-chips { display: flex; gap: 8px; flex-wrap: wrap; }
+    .filter-chip {
+      border: 1px solid #cfd8dc;
+      background: #fff;
+      border-radius: 999px;
+      padding: 8px 14px;
+      font-size: 0.8125rem;
+      font-weight: 500;
+      cursor: pointer;
+      font-family: inherit;
+      color: var(--md-sys-color-on-surface);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .filter-chip.active {
+      background: var(--md-sys-color-primary-container);
+      border-color: var(--md-sys-color-primary);
+      color: var(--md-sys-color-primary);
+    }
+
+    .table-wrap { overflow-x: auto; }
+    table.cases {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.875rem;
+    }
+    table.cases thead th {
+      text-align: left;
+      padding: 12px 14px;
+      background: #f5f7fa;
+      color: var(--md-sys-color-on-surface-variant);
+      font-weight: 500;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border-bottom: 1px solid var(--md-sys-color-outline);
+      position: sticky;
+      top: 0;
+    }
+    table.cases tbody td {
+      padding: 12px 14px;
+      border-bottom: 1px solid #eee;
+      vertical-align: middle;
+    }
+    table.cases tbody tr:hover { background: #fafbfc; }
+    table.cases tbody tr.hidden { display: none; }
+    .col-num { width: 48px; color: #90a4ae; font-variant-numeric: tabular-nums; }
+    .col-file {
+      font-family: "Roboto Mono", monospace;
+      font-size: 0.75rem;
+      color: #455a64;
+      white-space: nowrap;
+    }
+    .col-case { min-width: 220px; }
+    .col-pass { width: 100px; text-align: center; }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      font-family: "Roboto Mono", monospace;
+    }
+    .badge.true {
+      background: #e8f5e9;
+      color: #1b5e20;
+    }
+    .badge.false {
+      background: #ffebee;
+      color: #b71c1c;
+    }
+    .badge .material-icons-round { font-size: 14px; }
+
+    code.cmd {
+      display: block;
+      background: #263238;
+      color: #eceff1;
+      padding: 14px 16px;
+      border-radius: 8px;
+      font-family: "Roboto Mono", monospace;
+      font-size: 0.8125rem;
+      overflow-x: auto;
+      margin: 8px 0 12px;
+    }
+
+    .files-table td:first-child {
+      font-family: "Roboto Mono", monospace;
+      font-size: 0.8125rem;
+      white-space: nowrap;
+    }
+
+    .footer {
+      text-align: center;
+      padding: 24px 16px;
+      color: var(--md-sys-color-on-surface-variant);
+      font-size: 0.8125rem;
+    }
+
+    .empty-state {
+      display: none;
+      text-align: center;
+      padding: 32px 16px;
+      color: var(--md-sys-color-on-surface-variant);
+    }
+    .empty-state.visible { display: block; }
+  </style>
+</head>
+<body>
+  <header class="app-bar">
+    <div class="app-bar-inner">
+      <span class="material-icons-round">science</span>
+      <div>
+        <h1>Projects Module — Unit Testing Report</h1>
+        <p class="subtitle">lib/modules/projects · 20 July 2026 · Flutter</p>
+      </div>
+      <div class="app-bar-meta">
+        <span class="chip"><span class="material-icons-round">verified</span> Status: Passed</span>
+        <span class="chip"><span class="material-icons-round">code</span> App code unchanged</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="page">
+    <!-- Stats -->
+    <section class="stats" aria-label="Summary metrics">
+      <div class="stat-card pass">
+        <span class="label">Passed</span>
+        <span class="value">60</span>
+      </div>
+      <div class="stat-card fail">
+        <span class="label">Failed</span>
+        <span class="value">0</span>
+      </div>
+      <div class="stat-card">
+        <span class="label">Total tests</span>
+        <span class="value">60</span>
+      </div>
+      <div class="stat-card">
+        <span class="label">Pass rate</span>
+        <span class="value">100%</span>
+      </div>
+      <div class="stat-card">
+        <span class="label">Test files</span>
+        <span class="value">15</span>
+      </div>
+    </section>
+
+    <!-- Verdict -->
+    <section class="mdc-card-section">
+      <div class="section-header">
+        <span class="material-icons-round">gavel</span>
+        <h2>Verdict</h2>
+      </div>
+      <div class="section-body">
+        <div class="info-grid">
+          <div class="info-tile">
+            <strong>Status</strong>
+            <span class="chip success"><span class="material-icons-round">check_circle</span> Passed</span>
+          </div>
+          <div class="info-tile">
+            <strong>Result</strong>
+            <span>60 of 60 tests passed</span>
+          </div>
+          <div class="info-tile">
+            <strong>Production code</strong>
+            <span>Not modified — only test files added</span>
+          </div>
+          <div class="info-tile">
+            <strong>Network required</strong>
+            <span>No — pure unit tests</span>
+          </div>
+        </div>
+        <p style="margin-top:16px">
+          The Projects module’s core business rules and data parsing are covered by automated unit tests,
+          and the latest run completed successfully.
+        </p>
+      </div>
+    </section>
+
+    <!-- What this means -->
+    <section class="mdc-card-section">
+      <div class="section-header">
+        <span class="material-icons-round">info</span>
+        <h2>What this report means</h2>
+      </div>
+      <div class="section-body">
+        <p>Unit tests check small pieces of logic <strong>without opening the app</strong> and <strong>without calling live servers</strong>. They answer questions like:</p>
+        <ul class="plain">
+          <li>Does the app correctly understand API data?</li>
+          <li>Are task roots and subtasks grouped the right way?</li>
+          <li>Are dates, amounts, and email bodies formatted correctly?</li>
+          <li>Are create/edit task payloads built with the expected fields?</li>
+        </ul>
+        <p>They do <strong>not</strong> replace manual testing of screens, login, or real API calls.</p>
+      </div>
+    </section>
+
+    <!-- Coverage areas -->
+    <section class="mdc-card-section">
+      <div class="section-header">
+        <span class="material-icons-round">checklist</span>
+        <h2>What was tested</h2>
+      </div>
+      <div class="section-body">
+        <div class="info-grid">
+          <div class="info-tile">
+            <strong>Dashboard</strong>
+            <span>Counts, status mapping, missed deadline rules</span>
+          </div>
+          <div class="info-tile">
+            <strong>Project list &amp; filters</strong>
+            <span>Row parsing, filter on/off behaviour</span>
+          </div>
+          <div class="info-tile">
+            <strong>Task hierarchy</strong>
+            <span>Root filter (parent = 0), nesting, dates</span>
+          </div>
+          <div class="info-tile">
+            <strong>Add / Edit task</strong>
+            <span>Create vs edit mode, API payloads, labels</span>
+          </div>
+          <div class="info-tile">
+            <strong>Comments &amp; attachments</strong>
+            <span>Timeline order, open URL, upload source</span>
+          </div>
+          <div class="info-tile">
+            <strong>Project details &amp; helpers</strong>
+            <span>Emails, dates, amounts, file names</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Not tested -->
+    <section class="mdc-card-section">
+      <div class="section-header">
+        <span class="material-icons-round">pending_actions</span>
+        <h2>What was not tested yet</h2>
+      </div>
+      <div class="section-body">
+        <div class="table-wrap">
+          <table class="cases">
+            <thead>
+              <tr>
+                <th>Area</th>
+                <th>Why it’s out of this suite</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Screen UI (buttons, layouts)</td>
+                <td>Needs widget / UI tests</td>
+              </tr>
+              <tr>
+                <td>Controllers (load, refresh, save)</td>
+                <td>Needs fake repositories</td>
+              </tr>
+              <tr>
+                <td>Live API / upload to cloud</td>
+                <td>Needs network or integration tests</td>
+              </tr>
+              <tr>
+                <td>Offline Hive cache</td>
+                <td>Needs local database test setup</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- How to run -->
+    <section class="mdc-card-section">
+      <div class="section-header">
+        <span class="material-icons-round">terminal</span>
+        <h2>How to run the tests</h2>
+      </div>
+      <div class="section-body">
+        <p>From the project root:</p>
+        <code class="cmd">flutter test test/modules/projects/</code>
+        <p>Run one file only:</p>
+        <code class="cmd">flutter test test/modules/projects/task_hierarchy_test.dart</code>
+      </div>
+    </section>
+
+    <!-- Test files -->
+    <section class="mdc-card-section">
+      <div class="section-header">
+        <span class="material-icons-round">folder</span>
+        <h2>Test files included</h2>
+      </div>
+      <div class="section-body">
+        <div class="table-wrap">
+          <table class="cases files-table">
+            <thead>
+              <tr>
+                <th>File</th>
+                <th>What it checks</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>dashboard_parser_test.dart</td><td>Dashboard numbers and cards</td></tr>
+              <tr><td>dashboard_status_ids_test.dart</td><td>Status mapping &amp; missed deadline rules</td></tr>
+              <tr><td>project_item_test.dart</td><td>Project list row data</td></tr>
+              <tr><td>project_list_filter_test.dart</td><td>Filter on/off behaviour</td></tr>
+              <tr><td>project_status_test.dart</td><td>Status count objects</td></tr>
+              <tr><td>project_detail_test.dart</td><td>Project details API data</td></tr>
+              <tr><td>project_email_and_utils_test.dart</td><td>Email body, dates, amounts, file names</td></tr>
+              <tr><td>project_date_utils_test.dart</td><td>Date helpers</td></tr>
+              <tr><td>task_hierarchy_test.dart</td><td>Root/subtask tree rules</td></tr>
+              <tr><td>task_summary_test.dart</td><td>Task count string (C-, IP-, P-)</td></tr>
+              <tr><td>task_comments_payload_test.dart</td><td>Comments timeline order</td></tr>
+              <tr><td>task_comment_model_test.dart</td><td>Comment &amp; attachment models</td></tr>
+              <tr><td>user_task_item_test.dart</td><td>User task list items</td></tr>
+              <tr><td>add_task_request_test.dart</td><td>Add/Update API payload</td></tr>
+              <tr><td>add_task_args_test.dart</td><td>Create vs Edit mode</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- Full case list -->
+    <section class="mdc-card-section">
+      <div class="section-header">
+        <span class="material-icons-round">list_alt</span>
+        <h2>Full test case list</h2>
+        <span class="chip neutral" id="visibleCount" style="margin-left:auto">60 shown</span>
+      </div>
+      <div class="section-body">
+        <div class="toolbar">
+          <div class="mdc-text-field-wrap">
+            <span class="material-icons-round">search</span>
+            <input id="filterInput" type="search" placeholder="Filter by file or test name…" autocomplete="off" />
+          </div>
+          <div class="filter-chips">
+            <button type="button" class="filter-chip active" data-filter="all">All</button>
+            <button type="button" class="filter-chip" data-filter="true">
+              <span class="material-icons-round" style="font-size:16px;color:#2e7d32">check</span> Passed
+            </button>
+            <button type="button" class="filter-chip" data-filter="false">
+              <span class="material-icons-round" style="font-size:16px;color:#c62828">close</span> Failed
+            </button>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table class="cases" id="casesTable">
+            <thead>
+              <tr>
+                <th class="col-num">#</th>
+                <th>File</th>
+                <th>Test case</th>
+                <th class="col-pass">Passed</th>
+              </tr>
+            </thead>
+            <tbody id="casesBody">
+              <!-- rows injected -->
+            </tbody>
+          </table>
+        </div>
+        <div class="empty-state" id="emptyState">
+          <span class="material-icons-round" style="font-size:40px;opacity:.4">search_off</span>
+          <p>No test cases match this filter.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Conclusion -->
+    <section class="mdc-card-section">
+      <div class="section-header">
+        <span class="material-icons-round">flag</span>
+        <h2>Conclusion</h2>
+      </div>
+      <div class="section-body">
+        <p>
+          The Projects module unit test suite is <strong>healthy and fully passing (60/60)</strong>.
+          Production app code was <strong>not modified</strong> for this work.
+        </p>
+        <p>
+          This gives confidence that core parsing and business rules stay correct as the module evolves.
+          Manual and integration testing of screens and live APIs should continue as usual.
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    IntranetApp · Projects module · Unit testing report · 20 July 2026
+  </footer>
+
+  <script>
+    const cases = [
+      [1, "add_task_args_test.dart", "AddTaskArgs: isEditMode false for create", true],
+      [2, "add_task_args_test.dart", "AddTaskArgs: isEditMode true when taskId > 0", true],
+      [3, "add_task_args_test.dart", "AddTaskArgs: isEditMode true when seedTask present", true],
+      [4, "add_task_args_test.dart", "TaskFormStatusOption: labelForId covers known statuses", true],
+      [5, "add_task_args_test.dart", "TaskFormPriority: exposes standard priorities", true],
+      [6, "add_task_request_test.dart", "AddTaskRequest: serializes API payload keys", true],
+      [7, "add_task_request_test.dart", "UpdateTaskStatusRequest: serializes UpdateTaskStatus payload", true],
+      [8, "add_task_request_test.dart", "TaskFormStatusOption: maps id to UpdateTaskStatus label", true],
+      [9, "add_task_request_test.dart", "ProjectDateUtils.formatApi: formats yyyy-MM-dd", true],
+      [10, "dashboard_parser_test.dart", "DashboardResponse.parseInnerSummary: parses nested JSON string list", true],
+      [11, "dashboard_parser_test.dart", "DashboardResponse.parseInnerSummary: throws invalidJson on malformed inner string", true],
+      [12, "dashboard_parser_test.dart", "DashboardResponse.parseInnerSummary: throws empty when data list is empty", true],
+      [13, "dashboard_parser_test.dart", "DashboardCardModel.fromSummary: calculates percentages with zero-safe totals", true],
+      [14, "dashboard_parser_test.dart", "DashboardCardModel.fromSummary: maps pending and confirmed counts", true],
+      [15, "dashboard_status_ids_test.dart", "DashboardStatusIds: maps task card ids to GettaskbyUser Status", true],
+      [16, "dashboard_status_ids_test.dart", "DashboardStatusIds: showsMissedDeadline only for pending project/task", true],
+      [17, "dashboard_status_ids_test.dart", "DashboardStatusIds: isTaskCard detects task status ids", true],
+      [18, "dashboard_status_ids_test.dart", "DashboardFailure: toString includes type and message", true],
+      [19, "project_date_utils_test.dart", "ProjectDateUtils: formats dd-MM-yyyy", true],
+      [20, "project_date_utils_test.dart", "ProjectDateUtils: detects missed deadline", true],
+      [21, "project_detail_test.dart", "ProjectDetailData: parses GetFranchiseeDetailInfoV1 envelope", true],
+      [22, "project_detail_test.dart", "ProjectDetailData: isStaleForToday when synced yesterday", true],
+      [23, "project_email_and_utils_test.dart", "ProjectCommunicationItem email parsing: detects HTML body", true],
+      [24, "project_email_and_utils_test.dart", "ProjectCommunicationItem email parsing: unescapes entity-encoded HTML", true],
+      [25, "project_email_and_utils_test.dart", "ProjectCommunicationItem email parsing: bodyPreview truncates long plain text", true],
+      [26, "project_email_and_utils_test.dart", "ProjectCommunicationItem email parsing: plain text body is not treated as HTML", true],
+      [27, "project_email_and_utils_test.dart", "ProjectDateUtils extended: formatApi uses yyyy-MM-dd", true],
+      [28, "project_email_and_utils_test.dart", "ProjectDateUtils extended: formatAmount uses Indian grouping", true],
+      [29, "project_email_and_utils_test.dart", "ProjectDateUtils extended: tryParse supports ISO and dd-MM-yyyy", true],
+      [30, "project_email_and_utils_test.dart", "ProjectDateUtils extended: formatReadableDateTime appends time hint", true],
+      [31, "project_email_and_utils_test.dart", "TaskAttachmentList helpers: fileName extracts last path segment", true],
+      [32, "project_email_and_utils_test.dart", "TaskAttachmentList helpers: extensionOf is lowercase without dot", true],
+      [33, "project_item_test.dart", "ProjectItem: fromJson maps GetAllProjectList_new fields", true],
+      [34, "project_item_test.dart", "ProjectItem: fromJson falls back project_id when CRM_id missing", true],
+      [35, "project_item_test.dart", "ProjectItem: toJson / copyWith round-trip key fields", true],
+      [36, "project_list_filter_test.dart", "ProjectListFilter: empty has no active filters", true],
+      [37, "project_list_filter_test.dart", "ProjectListFilter: hasActiveFilters when any field set", true],
+      [38, "project_list_filter_test.dart", "ProjectListFilter: copyWith updates and clear flags", true],
+      [39, "project_list_filter_test.dart", "ProjectListFilter: equality via Equatable", true],
+      [40, "project_status_test.dart", "ProjectStatus: fromJson maps status_id and c", true],
+      [41, "project_status_test.dart", "ProjectStatus: fromJson coerces string numbers", true],
+      [42, "project_status_test.dart", "ProjectStatus: toJson / copyWith", true],
+      [43, "task_comment_model_test.dart", "TaskCommentAttachment: openUrl prefers remote url over localPath", true],
+      [44, "task_comment_model_test.dart", "TaskCommentAttachment: openUrl falls back to localPath", true],
+      [45, "task_comment_model_test.dart", "TaskCommentAttachment: hasUploadSource for bytes or localPath", true],
+      [46, "task_comment_model_test.dart", "TaskComment: initials from senderName", true],
+      [47, "task_comment_model_test.dart", "TaskComment: copyWith updates deliveryStatus", true],
+      [48, "task_comment_model_test.dart", "TaskCommentsArgs: props include task id and userId", true],
+      [49, "task_comments_payload_test.dart", "TaskCommentsPayload: merges comments and files oldest first; isMine by CreatedBy", true],
+      [50, "task_hierarchy_test.dart", "TaskRepository.buildChildrenMap: maps roots and children", true],
+      [51, "task_hierarchy_test.dart", "TaskRepository.buildChildrenMap: only exact parent_task_id 0 is root; children stay nested", true],
+      [52, "task_hierarchy_test.dart", "HierarchyTaskResponse: flattens nested data lists", true],
+      [53, "task_hierarchy_test.dart", "HierarchyTask parent dates: parses parant_date and parant_plandate pairs", true],
+      [54, "task_hierarchy_test.dart", "Create/Update API response parsing: maps AddNewTask data item into HierarchyTask", true],
+      [55, "task_summary_test.dart", "TaskSummary.parse: parses C-IP-P format", true],
+      [56, "task_summary_test.dart", "TaskSummary.parse: parses BPC", true],
+      [57, "task_summary_test.dart", "TaskSummary.parse: handles empty and invalid", true],
+      [58, "user_task_item_test.dart", "UserTaskItem: fromJson maps GettaskbyUser fields", true],
+      [59, "user_task_item_test.dart", "UserTaskItem: toProjectItem uses franchisee / project ids", true],
+      [60, "user_task_item_test.dart", "UserTaskItem: toJson round-trips core keys", true],
+    ];
+
+    const tbody = document.getElementById("casesBody");
+    const emptyState = document.getElementById("emptyState");
+    const visibleCount = document.getElementById("visibleCount");
+    const filterInput = document.getElementById("filterInput");
+    let passFilter = "all";
+
+    function badge(passed) {
+      if (passed) {
+        return `<span class="badge true"><span class="material-icons-round">check_circle</span> true</span>`;
+      }
+      return `<span class="badge false"><span class="material-icons-round">cancel</span> false</span>`;
+    }
+
+    function render() {
+      const q = filterInput.value.trim().toLowerCase();
+      let shown = 0;
+      tbody.innerHTML = cases.map(([n, file, name, passed]) => {
+        const passStr = passed ? "true" : "false";
+        const matchText = !q || file.toLowerCase().includes(q) || name.toLowerCase().includes(q) || String(n).includes(q);
+        const matchPass = passFilter === "all" || passFilter === passStr;
+        const visible = matchText && matchPass;
+        if (visible) shown++;
+        return `<tr class="${visible ? "" : "hidden"}" data-pass="${passStr}">
+          <td class="col-num">${n}</td>
+          <td class="col-file">${file}</td>
+          <td class="col-case">${name}</td>
+          <td class="col-pass">${badge(passed)}</td>
+        </tr>`;
+      }).join("");
+      visibleCount.textContent = `${shown} shown`;
+      emptyState.classList.toggle("visible", shown === 0);
+    }
+
+    filterInput.addEventListener("input", render);
+    document.querySelectorAll(".filter-chip").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".filter-chip").forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        passFilter = btn.dataset.filter;
+        render();
+      });
+    });
+
+    render();
+  </script>
+</body>
+</html>

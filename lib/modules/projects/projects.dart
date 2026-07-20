@@ -21,6 +21,7 @@ export 'models/dashboard_summary.dart';
 export 'models/hierarchy_task.dart';
 export 'models/project_detail.dart';
 export 'models/project_item.dart';
+export 'models/project_business.dart';
 export 'models/projects_entry_args.dart';
 export 'models/project_list_filter.dart';
 export 'models/project_status.dart';

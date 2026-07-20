@@ -3,8 +3,11 @@ import 'package:Intranet/api/response/login_response.dart';
 import 'package:Intranet/modules/projects/controllers/dashboard_controller.dart';
 import 'package:Intranet/modules/projects/models/quick_action_type.dart';
 import 'package:Intranet/modules/projects/repositories/dashboard_repository.dart';
+import 'package:Intranet/modules/projects/repositories/project_business_repository.dart';
 import 'package:Intranet/modules/projects/services/dashboard_local_service.dart';
 import 'package:Intranet/modules/projects/services/dashboard_remote_service.dart';
+import 'package:Intranet/modules/projects/services/project_business_local_service.dart';
+import 'package:Intranet/modules/projects/services/project_business_remote_service.dart';
 
 class DashboardBinding extends Bindings {
   DashboardBinding({
@@ -44,6 +47,15 @@ class DashboardBinding extends Bindings {
     if (Get.isRegistered<DashboardRemoteService>(tag: tag)) {
       Get.delete<DashboardRemoteService>(tag: tag, force: true);
     }
+    if (Get.isRegistered<ProjectBusinessRepository>(tag: tag)) {
+      Get.delete<ProjectBusinessRepository>(tag: tag, force: true);
+    }
+    if (Get.isRegistered<ProjectBusinessLocalService>(tag: tag)) {
+      Get.delete<ProjectBusinessLocalService>(tag: tag, force: true);
+    }
+    if (Get.isRegistered<ProjectBusinessRemoteService>(tag: tag)) {
+      Get.delete<ProjectBusinessRemoteService>(tag: tag, force: true);
+    }
   }
 
   @override
@@ -63,6 +75,22 @@ class DashboardBinding extends Bindings {
       tag: tag,
     );
 
+    final businessRemote = Get.put<ProjectBusinessRemoteService>(
+      ProjectBusinessRemoteService(),
+      tag: tag,
+    );
+    final businessLocal = Get.put<ProjectBusinessLocalService>(
+      ProjectBusinessLocalService(),
+      tag: tag,
+    );
+    final businessRepository = Get.put<ProjectBusinessRepository>(
+      ProjectBusinessRepository(
+        remoteService: businessRemote,
+        localService: businessLocal,
+      ),
+      tag: tag,
+    );
+
     Get.put<DashboardController>(
       DashboardController(
         userId: userId,
@@ -71,6 +99,7 @@ class DashboardBinding extends Bindings {
         businessName: businessName,
         businesses: businesses,
         repository: repository,
+        businessRepository: businessRepository,
         onCardTap: onCardTap,
         onQuickAction: onQuickAction,
       ),
