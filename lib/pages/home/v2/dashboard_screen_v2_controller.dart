@@ -35,6 +35,7 @@ import 'package:Intranet/pages/widget/VideoPlayer.dart';
 import 'package:app_links/app_links.dart';
 import 'package:app_version_update/app_version_update.dart';
 import 'package:awesome_notifications/awesome_notifications.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:expensestracker/app/hiveDatabase/hive_database.dart';
 import 'package:expensestracker/presentation/app.dart' as expense_placeholder;
 import 'package:expensestracker/presentation/controllers/dashboard/dashboard_binding.dart';
@@ -53,17 +54,32 @@ import 'package:in_app_update/in_app_update.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:saathi/zllsaathi.dart';
 
+import '../../firebase/notification.dart';
+import '../../firebase/notification_service.dart';
+
+typedef ProfileImageFetcher = void Function(
+  String employeeId,
+  onUploadResponse response,
+);
+typedef ForegroundNotificationRegistrar
+    = Future<StreamSubscription<RemoteMessage>?> Function(String employeeId);
+
 class DashboardScreenV2Controller extends GetxController
     with WidgetsBindingObserver {
   DashboardScreenV2Controller({
     required this.userId,
     this.receivedAction,
-  });
+    ProfileImageFetcher? profileImageFetcher,
+    ForegroundNotificationRegistrar? foregroundNotificationRegistrar,
+  })  : _profileImageFetcher = profileImageFetcher,
+        _foregroundNotificationRegistrar = foregroundNotificationRegistrar;
 
   static const double kWideBreakpoint = 1000;
 
   final String userId;
   final ReceivedAction? receivedAction;
+  final ProfileImageFetcher? _profileImageFetcher;
+  final ForegroundNotificationRegistrar? _foregroundNotificationRegistrar;
 
   final userFullName = ''.obs;
   final firstName = ''.obs;
@@ -106,6 +122,7 @@ class DashboardScreenV2Controller extends GetxController
   bool _shellBootstrapped = false;
   StreamSubscription<RemoteMessage>? _messageOpenedAppSubscription;
   StreamSubscription<RemoteMessage>? _notificationNavigationSubscription;
+  StreamSubscription<RemoteMessage>? _foregroundMessageSubscription;
   StreamSubscription<Uri?>? _incomingLinkSubscription;
 
   bool get isBusinessMapped => businessId.value != 0;
@@ -128,15 +145,14 @@ class DashboardScreenV2Controller extends GetxController
     WidgetsBinding.instance.removeObserver(this);
     unawaited(_messageOpenedAppSubscription?.cancel());
     unawaited(_notificationNavigationSubscription?.cancel());
+    unawaited(_foregroundMessageSubscription?.cancel());
     unawaited(_incomingLinkSubscription?.cancel());
     super.onClose();
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed &&
-        !kDebugMode &&
-        !kIsWeb) {
+    if (state == AppLifecycleState.resumed && !kDebugMode && !kIsWeb) {
       if (Platform.isAndroid) {
         unawaited(checkForUpdate());
       } else if (Platform.isIOS) {
@@ -157,6 +173,9 @@ class DashboardScreenV2Controller extends GetxController
             .getMaxAdvanceLimit(employeeCode.value);
       }
       await loadAppVersion();
+      if (employeeId.value != 0) {
+        await registerForegroundNotifications(employeeId.value.toString());
+      }
       unawaited(getProfileImage());
     } finally {
       isLoading.value = false;
@@ -195,8 +214,7 @@ class DashboardScreenV2Controller extends GetxController
       }
     }
 
-    WidgetsBinding.instance
-        .addPostFrameCallback((_) => _incomingLinkHandler());
+    WidgetsBinding.instance.addPostFrameCallback((_) => _incomingLinkHandler());
   }
 
   void _handleReceivedAction() {
@@ -259,8 +277,9 @@ class DashboardScreenV2Controller extends GetxController
         profileAvatarBytes.value = base64.decode(encodedAvatar!);
       }
 
-      final passwordExpired =
-          int.tryParse(box.get(LocalConstant.KEY_PASSWORD_EXPIRED)?.toString() ?? '0') ?? 0;
+      final passwordExpired = int.tryParse(
+              box.get(LocalConstant.KEY_PASSWORD_EXPIRED)?.toString() ?? '0') ??
+          0;
       if (passwordExpired == 1) {
         Future.delayed(Duration.zero, _showUpdatePasswordDialog);
       }
@@ -276,6 +295,42 @@ class DashboardScreenV2Controller extends GetxController
     } catch (error) {
       debugPrint('Dashboard V2 app version load failed: $error');
     }
+  }
+
+  Future<void> registerForegroundNotifications(String employeeId) async {
+    await _foregroundMessageSubscription?.cancel();
+    final registrar =
+        _foregroundNotificationRegistrar ?? _registerForegroundNotifications;
+    _foregroundMessageSubscription = await registrar(employeeId);
+  }
+
+  Future<StreamSubscription<RemoteMessage>?> _registerForegroundNotifications(
+      String employeeId) async {
+    var deviceId = '0';
+    var userAgent = 'Android';
+    try {
+      final deviceInfo = DeviceInfoPlugin();
+      if (kIsWeb) {
+        userAgent = 'Web';
+      } else if (Platform.isIOS) {
+        final iosDeviceInfo = await deviceInfo.iosInfo;
+        deviceId = iosDeviceInfo.identifierForVendor ?? '0';
+        userAgent = 'IOS_${iosDeviceInfo.model}_${appVersion.value}';
+      } else if (Platform.isAndroid) {
+        final androidDeviceInfo = await deviceInfo.androidInfo;
+        deviceId = androidDeviceInfo.id;
+        userAgent =
+            'Android_${androidDeviceInfo.brand}_${androidDeviceInfo.model}';
+      }
+    } catch (error) {
+      debugPrint('Dashboard V2 device info failed: $error');
+    }
+
+    FCM().setNotifications(employeeId, deviceId, userAgent);
+    return FirebaseMessaging.onMessage.listen((message) {
+      debugPrint('Dashboard V2 foreground notification: ${message.toMap()}');
+      NotificationService().parseNotification(message);
+    });
   }
 
   Future<void> loadBusinessApplications() async {
@@ -845,10 +900,12 @@ class DashboardScreenV2Controller extends GetxController
 
   // -- Profile avatar --------------------------------------------------
 
-  Future<void> getProfileImage() async {
-    if (profileAvatarBytes.value != null) return;
+  Future<void> getProfileImage({bool force = false}) async {
+    if (!force && profileAvatarBytes.value != null) return;
     try {
-      FirebaseStorageUtil().getProfileImage(
+      final fetcher =
+          _profileImageFetcher ?? FirebaseStorageUtil().getProfileImage;
+      fetcher(
         employeeId.value.toString(),
         _ProfileAvatarFetchResponse(this),
       );
@@ -887,7 +944,7 @@ class DashboardScreenV2Controller extends GetxController
     profileImageUrl.value = url;
     final box = await Utility.openBox();
     await box.put(LocalConstant.KEY_EMPLOYEE_AVTAR, url);
-    unawaited(getProfileImage());
+    unawaited(getProfileImage(force: true));
   }
 
   // -- Password expiry ---------------------------------------------------
