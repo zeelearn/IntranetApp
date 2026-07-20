@@ -50,8 +50,8 @@ class TaskRemoteService {
       path: addPath,
       body: request.toJson(),
     );
-    print('Add task response: $decoded');
-    print(addPath);
+    // print('Add task response: $decoded');
+    // print(addPath);
     _ensureSuccess(decoded, fallbackMessage: 'Unable to create task.');
     final task = _parseFirstTask(decoded);
     return AddTaskResult(
@@ -194,11 +194,11 @@ class TaskRemoteService {
     final normalized = path.startsWith('/') ? path : '/$path';
     final uri = Uri.parse('$baseUrl$normalized');
     try {
-      print('POST $uri');
+      // print('POST $uri');
       final response = await _client
           .post(uri, headers: _headers(), body: jsonEncode(body))
           .timeout(timeout);
-      print('Response (${response.statusCode}): ${response.body}');
+      // print('Response (${response.statusCode}): ${response.body}');
       if (response.statusCode == 401) {
         throw const DashboardFailure(
           type: DashboardFailureType.unauthorized,
