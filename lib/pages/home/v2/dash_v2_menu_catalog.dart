@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 class DashV2Greeting {
   DashV2Greeting._();
 
+  static const subtitle = 'Stay updated with your tasks';
+
   static String forDateTime(DateTime now, String firstName) {
     final hour = now.hour;
     final String period;

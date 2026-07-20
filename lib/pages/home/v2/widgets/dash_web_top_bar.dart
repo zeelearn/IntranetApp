@@ -150,7 +150,7 @@ class DashWebHeaderActions extends StatelessWidget {
                   ),
                   const SizedBox(height: 3),
                   Text(
-                    'Here is what is happening with your work today.',
+                    DashV2Greeting.subtitle,
                     style: DashV2Text.subtitle,
                   ),
                 ],

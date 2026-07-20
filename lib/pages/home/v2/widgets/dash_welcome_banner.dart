@@ -57,7 +57,7 @@ class DashWelcomeBanner extends StatelessWidget {
                     ),
                     const SizedBox(height: 7),
                     Text(
-                      'Stay updated with your tasks',
+                      DashV2Greeting.subtitle,
                       maxLines: 2,
                       style: DashV2Text.subtitle,
                     ),
