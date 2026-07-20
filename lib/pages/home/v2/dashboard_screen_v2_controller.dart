@@ -436,6 +436,8 @@ class DashboardScreenV2Controller extends GetxController {
     );
   }
 
+  void toggleSidebar() => sidebarExpanded.toggle();
+
   Future<void> openNewProject() => openProjects();
 
   Future<void> onQuickAccessTap(String key) async {
