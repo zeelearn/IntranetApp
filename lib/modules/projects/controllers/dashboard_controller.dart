@@ -6,8 +6,11 @@ import 'package:Intranet/api/response/login_response.dart';
 import 'package:Intranet/modules/projects/models/dashboard_card_model.dart';
 import 'package:Intranet/modules/projects/models/dashboard_failure.dart';
 import 'package:Intranet/modules/projects/models/dashboard_summary.dart';
+import 'package:Intranet/modules/projects/models/project_business.dart';
 import 'package:Intranet/modules/projects/models/quick_action_type.dart';
 import 'package:Intranet/modules/projects/repositories/dashboard_repository.dart';
+import 'package:Intranet/modules/projects/repositories/project_business_repository.dart';
+import 'package:Intranet/modules/projects/utils/business_name_matcher.dart';
 
 class DashboardController extends GetxController {
   DashboardController({
@@ -15,22 +18,34 @@ class DashboardController extends GetxController {
     required this.userName,
     required List<BusinessApplications> businesses,
     required DashboardRepository repository,
+    required ProjectBusinessRepository businessRepository,
     int? businessId,
     this.businessName = '',
     this.onCardTap,
     this.onQuickAction,
     Connectivity? connectivity,
-  })  : businesses = List<BusinessApplications>.unmodifiable(businesses),
+  })  : intranetBusinesses = List<BusinessApplications>.unmodifiable(businesses),
         _repository = repository,
-        _connectivity = connectivity ?? Connectivity() {
-    selectedBusinessId.value = businessId;
+        _businessRepository = businessRepository,
+        _connectivity = connectivity ?? Connectivity(),
+        _intranetBusinessId = businessId {
+    // Do not use intranet businessId for Projects APIs until GetBusiness maps it.
+    selectedBusinessId.value = null;
   }
 
   final int userId;
   final String userName;
+
+  /// Intranet session business name (`KEY_BUSINESS_NAME`) used for name mapping.
   final String businessName;
-  final List<BusinessApplications> businesses;
+
+  /// Login businesses (intranet ids) — fallback only if GetBusiness unavailable.
+  final List<BusinessApplications> intranetBusinesses;
+
+  final int? _intranetBusinessId;
+
   final DashboardRepository _repository;
+  final ProjectBusinessRepository _businessRepository;
   final Connectivity _connectivity;
 
   /// Backward-compatible alias used by list/task openers.
@@ -38,6 +53,9 @@ class DashboardController extends GetxController {
 
   final void Function(int statusId, String statusName)? onCardTap;
   final void Function(QuickActionType action)? onQuickAction;
+
+  /// Projects selector list (GetBusiness ids). Reactive so UI updates after load.
+  final RxList<BusinessApplications> businesses = <BusinessApplications>[].obs;
 
   final RxnInt selectedBusinessId = RxnInt();
   final RxString selectedBusinessLabel = 'All Business'.obs;
@@ -57,7 +75,6 @@ class DashboardController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    _updateBusinessLabel();
     observeConnectivity();
     loadDashboard();
   }
@@ -91,6 +108,7 @@ class DashboardController extends GetxController {
 
     try {
       await _updateConnectivityFlag();
+      await _loadProjectBusinesses();
       await sync();
 
       // Fallback to cache only when server did not deliver data.
@@ -101,6 +119,69 @@ class DashboardController extends GetxController {
       // Always clear shimmer, even if sync throws unexpectedly.
       isLoading.value = false;
     }
+  }
+
+  /// Loads GetBusiness list (network → cache) and maps intranet name → Projects id.
+  Future<void> _loadProjectBusinesses() async {
+    List<ProjectBusiness> projectList = const [];
+    try {
+      if (isOffline.value) {
+        projectList = await _businessRepository.loadOffline();
+        if (projectList.isNotEmpty) {
+          servingFromCache.value = true;
+        }
+      } else {
+        projectList = await _businessRepository.sync();
+        if (projectList.isEmpty) {
+          projectList = await _businessRepository.loadOffline();
+          if (projectList.isNotEmpty) {
+            servingFromCache.value = true;
+          }
+        }
+      }
+    } catch (_) {
+      projectList = await _businessRepository.loadOffline();
+      if (projectList.isNotEmpty) {
+        servingFromCache.value = true;
+      }
+    }
+
+    if (projectList.isNotEmpty) {
+      businesses.assignAll(projectList.map(_toSelectorItem));
+      _applyMappedSelection(projectList);
+      return;
+    }
+
+    // Last resort: keep intranet list so UI is not empty (ids may be wrong).
+    if (intranetBusinesses.isNotEmpty && businesses.isEmpty) {
+      businesses.assignAll(intranetBusinesses);
+      selectedBusinessId.value = _intranetBusinessId;
+      _updateBusinessLabel();
+    } else {
+      _applyMappedSelection(const []);
+    }
+  }
+
+  void _applyMappedSelection(List<ProjectBusiness> projectList) {
+    final match = matchProjectBusinessByName(
+      intranetName: businessName,
+      projectsBusinesses: projectList,
+    );
+    selectedBusinessId.value = match?.businessId;
+    _updateBusinessLabel();
+  }
+
+  BusinessApplications _toSelectorItem(ProjectBusiness item) {
+    return BusinessApplications(
+      businessID: item.businessId,
+      business_UserID: userId,
+      employeeId: '',
+      businessName: item.businessName,
+      logoPath: '',
+      headerPath: '',
+      footerPath: '',
+      path: '',
+    );
   }
 
   Future<void> loadOffline() async {
@@ -115,7 +196,7 @@ class DashboardController extends GetxController {
 
   Future<void> sync() async {
     if (isOffline.value) {
-      servingFromCache.value = summary.value != null;
+      servingFromCache.value = summary.value != null || businesses.isNotEmpty;
       if (summary.value == null) {
         errorMessage.value = 'No internet connection.';
         failureType.value = DashboardFailureType.noInternet;
@@ -145,6 +226,7 @@ class DashboardController extends GetxController {
     errorMessage.value = null;
     try {
       await _updateConnectivityFlag();
+      await _loadProjectBusinesses();
       if (isOffline.value) {
         await loadOffline();
         if (summary.value == null) {
