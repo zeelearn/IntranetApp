@@ -19,22 +19,26 @@ class DashMobileAppBar extends StatelessWidget implements PreferredSizeWidget {
       foregroundColor: Colors.white,
       surfaceTintColor: Colors.transparent,
       elevation: 0,
+      scrolledUnderElevation: 0,
+      centerTitle: false,
       automaticallyImplyLeading: false,
       leading: Builder(
         builder: (context) => IconButton(
           tooltip: 'Open navigation',
           onPressed: () => Scaffold.of(context).openDrawer(),
-          icon: const Icon(Icons.menu_rounded),
+          icon: const Icon(Icons.menu_rounded, size: 26),
         ),
       ),
-      titleSpacing: 4,
+      titleSpacing: 0,
       title: Obx(
         () => Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              controller.userFullName.value,
+              controller.userFullName.value.isEmpty
+                  ? ' '
+                  : controller.userFullName.value,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: DashV2Text.appBarTitle,
@@ -43,23 +47,20 @@ class DashMobileAppBar extends StatelessWidget implements PreferredSizeWidget {
               onTap: () => controller.showBusinessPicker(fromDrawer: false),
               borderRadius: BorderRadius.circular(4),
               child: Padding(
-                padding: const EdgeInsets.only(right: 4),
+                padding: const EdgeInsets.only(right: 4, top: 1),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Flexible(
                       child: Text(
-                        controller.businessName.value,
+                        controller.businessName.value.isEmpty ||
+                                controller.businessName.value == 'null'
+                            ? 'eKidzee'
+                            : controller.businessName.value,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: DashV2Text.appBarSubtitle,
                       ),
-                    ),
-                    const SizedBox(width: 2),
-                    const Icon(
-                      Icons.keyboard_arrow_down_rounded,
-                      color: Colors.white70,
-                      size: 15,
                     ),
                   ],
                 ),
@@ -72,7 +73,7 @@ class DashMobileAppBar extends StatelessWidget implements PreferredSizeWidget {
         IconButton(
           tooltip: 'Search',
           onPressed: controller.onSearchTap,
-          icon: const Icon(Icons.search_rounded),
+          icon: const Icon(Icons.search_rounded, size: 24),
         ),
         Obx(
           () => IconButton(
@@ -81,33 +82,27 @@ class DashMobileAppBar extends StatelessWidget implements PreferredSizeWidget {
             icon: Stack(
               clipBehavior: Clip.none,
               children: [
-                const Icon(Icons.notifications_none_rounded),
+                const Icon(Icons.notifications_none_rounded, size: 24),
                 if (controller.notificationCount.value > 0)
                   Positioned(
-                    right: -7,
-                    top: -7,
+                    right: -6,
+                    top: -5,
                     child: Container(
                       constraints: const BoxConstraints(
-                        minWidth: 17,
-                        minHeight: 17,
+                        minWidth: 16,
+                        minHeight: 16,
                       ),
-                      padding: const EdgeInsets.symmetric(horizontal: 4),
-                      decoration: BoxDecoration(
+                      padding: const EdgeInsets.symmetric(horizontal: 3.5),
+                      decoration: const BoxDecoration(
                         color: DashV2Colors.red,
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: Colors.white, width: 1.5),
+                        shape: BoxShape.circle,
                       ),
                       alignment: Alignment.center,
                       child: Text(
                         controller.notificationCount.value > 99
                             ? '99+'
                             : '${controller.notificationCount.value}',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 9,
-                          fontWeight: FontWeight.w700,
-                          height: 1,
-                        ),
+                        style: DashV2Text.badge,
                       ),
                     ),
                   ),

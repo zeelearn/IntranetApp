@@ -28,7 +28,7 @@ class DashKpiRow extends StatelessWidget {
         children: [
           for (var index = 0; index < stats.length; index++) ...[
             if (index > 0)
-              SizedBox(width: variant == DashKpiVariant.web ? 16 : 6),
+              SizedBox(width: variant == DashKpiVariant.web ? 16 : 8),
             Expanded(
               child: variant == DashKpiVariant.web
                   ? _WebKpiCard(stat: stats[index])
@@ -41,6 +41,7 @@ class DashKpiRow extends StatelessWidget {
   }
 }
 
+/// Figma mobile KPI: solid circular icon (white glyph) + value + label + underline.
 class _MobileKpiItem extends StatelessWidget {
   const _MobileKpiItem({required this.stat});
 
@@ -51,31 +52,36 @@ class _MobileKpiItem extends StatelessWidget {
     return Column(
       children: [
         Container(
-          width: 38,
-          height: 38,
+          width: 42,
+          height: 42,
           decoration: BoxDecoration(
-            color: DashV2Colors.tint(stat.color),
+            color: stat.color,
             shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: stat.color.withValues(alpha: 0.28),
+                blurRadius: 8,
+                offset: const Offset(0, 3),
+              ),
+            ],
           ),
-          child: Icon(stat.icon, color: stat.color, size: 19),
+          child: Icon(stat.icon, color: Colors.white, size: 20),
         ),
-        const SizedBox(height: 7),
+        const SizedBox(height: 8),
         Text(stat.value, style: DashV2Text.kpiValue),
-        const SizedBox(height: 1),
+        const SizedBox(height: 2),
         FittedBox(
           fit: BoxFit.scaleDown,
           child: Text(
             stat.label,
             maxLines: 1,
-            style: DashV2Text.caption.copyWith(
-              color: DashV2Colors.textDark,
-              fontWeight: FontWeight.w500,
-            ),
+            style: DashV2Text.kpiLabel,
           ),
         ),
-        const SizedBox(height: 7),
+        const SizedBox(height: 8),
         Container(
-          height: 3,
+          height: 3.5,
+          width: double.infinity,
           decoration: BoxDecoration(
             color: stat.color,
             borderRadius: BorderRadius.circular(2),
@@ -97,15 +103,8 @@ class _WebKpiCard extends StatelessWidget {
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: DashV2Colors.card,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: DashV2Colors.border),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x0D1F2A44),
-            blurRadius: 18,
-            offset: Offset(0, 6),
-          ),
-        ],
+        borderRadius: BorderRadius.circular(DashV2Colors.cardRadius),
+        boxShadow: DashV2Colors.cardShadow,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -117,7 +116,7 @@ class _WebKpiCard extends StatelessWidget {
                 height: 42,
                 decoration: BoxDecoration(
                   color: DashV2Colors.tint(stat.color),
-                  borderRadius: BorderRadius.circular(11),
+                  borderRadius: BorderRadius.circular(DashV2Colors.iconRadius),
                 ),
                 child: Icon(stat.icon, color: stat.color, size: 21),
               ),

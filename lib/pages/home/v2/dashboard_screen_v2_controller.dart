@@ -16,6 +16,7 @@ import 'package:Intranet/pages/helper/web_helper.dart';
 import 'package:Intranet/pages/home/change_password_request.dart';
 import 'package:Intranet/pages/home/v2/dash_v2_menu_catalog.dart';
 import 'package:Intranet/pages/home/v2/models/dash_v2_models.dart';
+import 'package:Intranet/pages/home/v2/profile/profile_screen_v2.dart';
 import 'package:Intranet/pages/home/v2/widgets/dash_v2_tokens.dart';
 import 'package:Intranet/pages/iface/onResponse.dart';
 import 'package:Intranet/pages/iface/onUploadResponse.dart';
@@ -362,34 +363,35 @@ class DashboardScreenV2Controller extends GetxController
 
   void seedPlaceholders() {
     // PLACEHOLDER until KPI APIs exist
+    // PLACEHOLDER until KPI APIs exist — values/icons match Figma mobile.
     kpiStats.assignAll(const [
       DashKpiStat(
         label: 'My PJP',
         value: '24',
-        icon: Icons.electric_car,
+        icon: Icons.directions_car_filled_rounded,
         color: DashV2Colors.blue,
-        progress: 0.75,
+        progress: 0.27,
       ),
       DashKpiStat(
         label: 'My CVF',
         value: '12',
-        icon: Icons.calendar_today,
+        icon: Icons.calendar_month_rounded,
         color: DashV2Colors.green,
-        progress: 0.60,
+        progress: 0.72,
       ),
       DashKpiStat(
         label: 'Pending',
         value: '05',
-        icon: Icons.pending_actions,
+        icon: Icons.access_time_filled_rounded,
         color: DashV2Colors.amber,
-        progress: 0.25,
+        progress: 0.21,
       ),
       DashKpiStat(
         label: 'Approved',
         value: '18',
-        icon: Icons.check_circle_outline,
+        icon: Icons.check_rounded,
         color: DashV2Colors.purple,
-        progress: 0.80,
+        progress: 0.79,
       ),
     ]);
     projectStatusSegments.assignAll(const [
@@ -663,6 +665,9 @@ class DashboardScreenV2Controller extends GetxController
     }
 
     switch (key) {
+      case 'profile':
+        selectedNav.value = 'profile';
+        await openProfile();
       case 'pjp':
         await openMyPjp();
       case 'cvf':
@@ -676,6 +681,15 @@ class DashboardScreenV2Controller extends GetxController
       default:
         debugPrint('Dashboard V2: unknown sidebar key: $key');
     }
+  }
+
+  Future<void> openProfile() async {
+    final context = Get.context;
+    if (context == null) return;
+    await Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const ProfileScreenV2()),
+    );
+    selectedNav.value = 'dashboard';
   }
 
   Future<void> signOut() async {

@@ -80,6 +80,7 @@ class DashQuickAccessItem {
     required this.icon,
     required this.color,
     required this.requiresBusiness,
+    this.assetIcon,
     this.bpmsOnly = false,
     this.hideWhenBpms = false,
     this.notiflowOnly = false,
@@ -89,6 +90,8 @@ class DashQuickAccessItem {
   final String title;
   final String subtitle;
   final IconData icon;
+  /// When set, the card renders this asset instead of [icon].
+  final String? assetIcon;
   final Color color;
   final bool requiresBusiness;
   final bool bpmsOnly;

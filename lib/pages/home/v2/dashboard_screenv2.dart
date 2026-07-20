@@ -1,4 +1,3 @@
-import 'package:Intranet/pages/helper/utils.dart';
 import 'package:Intranet/pages/home/v2/dashboard_screen_v2_controller.dart';
 import 'package:Intranet/pages/home/v2/widgets/dash_kpi_row.dart';
 import 'package:Intranet/pages/home/v2/widgets/dash_mobile_app_bar.dart';
@@ -78,23 +77,22 @@ class _DashboardScreenV2State extends State<DashboardScreenV2> {
       drawer: const Drawer(child: DashSidebar(isDrawer: true)),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const DashWelcomeBanner(),
-              const SizedBox(height: 16),
-              const DashKpiRow(),
-              const SizedBox(height: 20),
-              Text('Quick Access', style: DashV2Text.sectionTitle),
-              const SizedBox(height: 12),
+              // const SizedBox(height: 18),
+              // const DashKpiRow(),
+              const SizedBox(height: 18),
               const DashQuickAccessGrid(),
+              const SizedBox(height: 12),
             ],
           ),
         ),
       ),
       bottomNavigationBar: Obx(
-        () => Utility.footer(controller.appVersion.value),
+        () => _MobileFooter(version: controller.appVersion.value),
       ),
     );
   }
@@ -121,12 +119,12 @@ class _DashboardScreenV2State extends State<DashboardScreenV2> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const DashKpiRow(variant: DashKpiVariant.web),
-                        const SizedBox(height: 24),
+                        //const DashKpiRow(variant: DashKpiVariant.web),
+                        //const SizedBox(height: 24),
                         _buildQuickAccessSection(),
                         const SizedBox(height: 24),
-                        _buildInsightRow(),
-                        const SizedBox(height: 20),
+                        // _buildInsightRow(),
+                        // const SizedBox(height: 20),
                         Obx(
                           () => Center(
                             child: Text(
@@ -153,9 +151,9 @@ class _DashboardScreenV2State extends State<DashboardScreenV2> {
       children: [
         Row(
           children: [
-            Expanded(
-              child: Text('Quick Access', style: DashV2Text.sectionTitle),
-            ),
+            // Expanded(
+            //   child: Text('Quick Access', style: DashV2Text.sectionTitle),
+            // ),
             TextButton.icon(
               onPressed: controller.onCustomizeTap,
               icon: const Icon(Icons.tune_rounded, size: 16),
@@ -195,6 +193,34 @@ class _DashboardScreenV2State extends State<DashboardScreenV2> {
           ],
         );
       },
+    );
+  }
+}
+
+/// Figma footer: light bar with centered `Intranet_{version}`.
+class _MobileFooter extends StatelessWidget {
+  const _MobileFooter({required this.version});
+
+  final String version;
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      top: false,
+      child: Container(
+        height: 34,
+        alignment: Alignment.center,
+        decoration: const BoxDecoration(
+          color: Color(0xFFF0F2F5),
+          border: Border(
+            top: BorderSide(color: Color(0xFFE4E8EE), width: 0.8),
+          ),
+        ),
+        child: Text(
+          'Intranet_${version.isEmpty ? '—' : version}',
+          style: DashV2Text.footer,
+        ),
+      ),
     );
   }
 }

@@ -2,6 +2,7 @@ import 'package:Intranet/pages/home/v2/models/dash_v2_models.dart';
 import 'package:Intranet/pages/home/v2/widgets/dash_v2_tokens.dart';
 import 'package:flutter/material.dart';
 
+/// Figma feature card: tinted icon box + title/subtitle + chevron.
 class DashQuickAccessCard extends StatelessWidget {
   const DashQuickAccessCard({
     required this.item,
@@ -16,47 +17,53 @@ class DashQuickAccessCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Material(
       color: DashV2Colors.card,
-      borderRadius: BorderRadius.circular(14),
+      elevation: 0,
+      borderRadius: BorderRadius.circular(DashV2Colors.cardRadius),
+      shadowColor: Colors.black12,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(DashV2Colors.cardRadius),
         child: Ink(
           decoration: BoxDecoration(
-            border: Border.all(color: DashV2Colors.border),
-            borderRadius: BorderRadius.circular(14),
-            boxShadow: const [
-              BoxShadow(
-                color: Color(0x0D1F2A44),
-                blurRadius: 18,
-                offset: Offset(0, 6),
-              ),
-            ],
+            color: DashV2Colors.card,
+            borderRadius: BorderRadius.circular(DashV2Colors.cardRadius),
+            boxShadow: DashV2Colors.cardShadow,
           ),
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+          padding: const EdgeInsets.fromLTRB(10, 12, 6, 12),
           child: Row(
             children: [
               Container(
-                width: 42,
-                height: 42,
+                width: 40,
+                height: 40,
                 decoration: BoxDecoration(
                   color: DashV2Colors.tint(item.color),
-                  borderRadius: BorderRadius.circular(11),
+                  borderRadius:
+                      BorderRadius.circular(DashV2Colors.iconRadius),
                 ),
-                child: Icon(item.icon, color: item.color, size: 21),
+                alignment: Alignment.center,
+                child: item.assetIcon != null
+                    ? Image.asset(
+                        item.assetIcon!,
+                        width: 22,
+                        height: 22,
+                        fit: BoxFit.contain,
+                      )
+                    : Icon(item.icon, color: item.color, size: 20),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 8),
               Expanded(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       item.title,
-                      maxLines: 2,
+                      maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: DashV2Text.cardTitle,
                     ),
-                    const SizedBox(height: 3),
+                    const SizedBox(height: 2),
                     Text(
                       item.subtitle,
                       maxLines: 2,
@@ -66,11 +73,10 @@ class DashQuickAccessCard extends StatelessWidget {
                   ],
                 ),
               ),
-              const SizedBox(width: 4),
               const Icon(
                 Icons.chevron_right_rounded,
-                color: DashV2Colors.textMuted,
-                size: 19,
+                color: Color(0xFFB0B8C4),
+                size: 18,
               ),
             ],
           ),

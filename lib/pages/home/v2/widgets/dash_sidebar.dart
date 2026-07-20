@@ -38,9 +38,12 @@ class DashSidebar extends StatelessWidget {
                 expanded: expanded,
                 isDrawer: isDrawer,
                 onToggle: controller.toggleSidebar,
+                userFullName: controller.userFullName.value,
+                designation: controller.designation.value,
                 businessName: controller.businessName.value,
                 onBusinessTap: () =>
                     controller.showBusinessPicker(fromDrawer: isDrawer),
+                onProfileTap: () => controller.onSidebarTap('profile'),
               ),
               const Divider(height: 1, color: DashV2Colors.border),
               Expanded(
@@ -121,84 +124,141 @@ class _SidebarHeader extends StatelessWidget {
     required this.expanded,
     required this.isDrawer,
     required this.onToggle,
+    required this.userFullName,
+    required this.designation,
     required this.businessName,
     required this.onBusinessTap,
+    required this.onProfileTap,
   });
 
   final bool expanded;
   final bool isDrawer;
   final VoidCallback onToggle;
+  final String userFullName;
+  final String designation;
   final String businessName;
   final VoidCallback onBusinessTap;
+  final VoidCallback onProfileTap;
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: isDrawer && expanded ? 92 : 72,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12),
-        child: Row(
-          children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: DashV2Colors.primary,
-                borderRadius: BorderRadius.circular(11),
-              ),
-              child: const Icon(
-                Icons.dashboard_customize_outlined,
-                color: Colors.white,
-                size: 21,
-              ),
-            ),
-            if (expanded) ...[
-              const SizedBox(width: 10),
+    if (!expanded) {
+      return SizedBox(
+        height: 72,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          child: Row(
+            children: [
               Expanded(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Intranet', style: DashV2Text.sectionTitle),
-                    if (isDrawer)
-                      InkWell(
-                        onTap: onBusinessTap,
-                        child: Row(
-                          children: [
-                            Flexible(
-                              child: Text(
-                                businessName,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: DashV2Text.caption,
+                child: Center(
+                  child: Image.asset(
+                    'assets/images/app_logo.png',
+                    width: 36,
+                    height: 36,
+                    fit: BoxFit.contain,
+                  ),
+                ),
+              ),
+              if (!isDrawer)
+                IconButton(
+                  tooltip: 'Expand sidebar',
+                  onPressed: onToggle,
+                  icon: const Icon(
+                    Icons.keyboard_double_arrow_right_rounded,
+                    color: DashV2Colors.textMuted,
+                    size: 20,
+                  ),
+                ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 16, 8, 14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Image.asset(
+                  'assets/images/app_logo.png',
+                  height: 52,
+                  fit: BoxFit.contain,
+                  alignment: Alignment.centerLeft,
+                ),
+              ),
+              if (!isDrawer)
+                IconButton(
+                  tooltip: 'Collapse sidebar',
+                  onPressed: onToggle,
+                  icon: const Icon(
+                    Icons.keyboard_double_arrow_left_rounded,
+                    color: DashV2Colors.textMuted,
+                    size: 20,
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          InkWell(
+            onTap: onProfileTap,
+            borderRadius: BorderRadius.circular(12),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    userFullName.isEmpty ? 'User' : userFullName,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: DashV2Text.cardTitle.copyWith(fontSize: 14),
+                  ),
+                  if (designation.isNotEmpty) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      designation,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: DashV2Text.caption,
+                    ),
+                  ],
+                  if (isDrawer &&
+                      businessName.isNotEmpty &&
+                      businessName != 'null') ...[
+                    const SizedBox(height: 6),
+                    InkWell(
+                      onTap: onBusinessTap,
+                      child: Row(
+                        children: [
+                          Flexible(
+                            child: Text(
+                              businessName,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: DashV2Text.caption.copyWith(
+                                color: DashV2Colors.primary,
+                                fontWeight: FontWeight.w600,
                               ),
                             ),
-                            const Icon(
-                              Icons.keyboard_arrow_down_rounded,
-                              size: 15,
-                              color: DashV2Colors.textMuted,
-                            ),
-                          ],
-                        ),
+                          ),
+                          const Icon(
+                            Icons.keyboard_arrow_down_rounded,
+                            size: 15,
+                            color: DashV2Colors.primary,
+                          ),
+                        ],
                       ),
+                    ),
                   ],
-                ),
+                ],
               ),
-            ],
-            if (!isDrawer)
-              IconButton(
-                tooltip: expanded ? 'Collapse sidebar' : 'Expand sidebar',
-                onPressed: onToggle,
-                icon: Icon(
-                  expanded
-                      ? Icons.keyboard_double_arrow_left_rounded
-                      : Icons.keyboard_double_arrow_right_rounded,
-                  color: DashV2Colors.textMuted,
-                  size: 20,
-                ),
-              ),
-          ],
-        ),
+            ),
+          ),
+        ],
       ),
     );
   }

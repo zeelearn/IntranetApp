@@ -32,11 +32,13 @@ class DashV2MenuCatalog {
     '14001782',
   ];
 
+  // Icons / colors / subtitles aligned to Figma mobile feature cards.
   static const _projects = DashQuickAccessItem(
     key: 'projects',
     title: 'Projects',
-    subtitle: 'Manage project workflows',
-    icon: Icons.approval,
+    subtitle: 'View & manage projects',
+    icon: Icons.analytics_outlined,
+    assetIcon: 'assets/icons/ic_project.png',
     color: DashV2Colors.blue,
     requiresBusiness: false,
   );
@@ -44,36 +46,36 @@ class DashV2MenuCatalog {
   static const _myPjp = DashQuickAccessItem(
     key: 'my_pjp',
     title: 'My PJP',
-    subtitle: 'View your PJP plans',
+    subtitle: 'View & manage PJP details',
     icon: Icons.electric_car,
-    color: DashV2Colors.green,
+    color: DashV2Colors.primary,
     requiresBusiness: true,
   );
 
   static const _myCvf = DashQuickAccessItem(
     key: 'my_cvf',
     title: 'My CVF',
-    subtitle: 'Customer visit forms',
-    icon: Icons.calendar_today,
-    color: DashV2Colors.amber,
+    subtitle: 'View & manage CVF details',
+    icon: Icons.calendar_today_outlined,
+    color: DashV2Colors.green,
     requiresBusiness: true,
   );
 
   static const _myReport = DashQuickAccessItem(
     key: 'my_report',
     title: 'My Report',
-    subtitle: 'Analytics and reports',
-    icon: Icons.multiline_chart,
-    color: DashV2Colors.purple,
+    subtitle: 'Analytics & reports',
+    icon: Icons.show_chart_rounded,
+    color: DashV2Colors.amber,
     requiresBusiness: false,
   );
 
   static const _pjpCvfApprovalExp = DashQuickAccessItem(
     key: 'pjp_cvf_approval_exp',
     title: 'PJP-CVF Approval (Exp)',
-    subtitle: 'Exceptional approvals',
-    icon: Icons.approval,
-    color: DashV2Colors.teal,
+    subtitle: 'Review & approve requests',
+    icon: Icons.approval_outlined,
+    color: DashV2Colors.purple,
     requiresBusiness: true,
   );
 
@@ -81,44 +83,45 @@ class DashV2MenuCatalog {
     key: 'bpms',
     title: 'BPMS',
     subtitle: 'Business process management',
-    icon: Icons.business,
+    icon: Icons.business_outlined,
     color: DashV2Colors.primary,
     requiresBusiness: false,
     bpmsOnly: true,
   );
 
-  static const _zllSaathi = DashQuickAccessItem(
-    key: 'zll_saathi',
-    title: 'ZllSaathi',
-    subtitle: 'Saathi dashboard',
-    icon: Icons.ac_unit,
-    color: DashV2Colors.pink,
-    requiresBusiness: true,
-  );
-
   static const _expenses = DashQuickAccessItem(
     key: 'expenses',
-    title: 'Expense',
-    subtitle: 'Track and submit expenses',
-    icon: Icons.account_balance_wallet,
-    color: DashV2Colors.green,
+    title: 'Expenses',
+    subtitle: 'Manage all expenses',
+    icon: Icons.currency_rupee,
+    color: DashV2Colors.pink,
     requiresBusiness: false,
+  );
+
+  static const _zllSaathi = DashQuickAccessItem(
+    key: 'zll_saathi',
+    title: 'ZILSaathi',
+    subtitle: 'Dashboard',
+    icon: Icons.ac_unit,
+    assetIcon: 'assets/icons/ic_saathi.png',
+    color: DashV2Colors.teal,
+    requiresBusiness: true,
   );
 
   static const _contracts = DashQuickAccessItem(
     key: 'contracts',
     title: 'Contracts',
-    subtitle: 'Legal status and contracts',
-    icon: Icons.legend_toggle_sharp,
-    color: DashV2Colors.amber,
+    subtitle: 'View & manage contracts',
+    icon: Icons.assignment_outlined,
+    color: DashV2Colors.yellow,
     requiresBusiness: false,
   );
 
   static const _notiflow = DashQuickAccessItem(
     key: 'notiflow',
-    title: 'Notiflow',
-    subtitle: 'Notification workflows',
-    icon: Icons.notifications,
+    title: 'NotiFlow',
+    subtitle: 'Alerts & updates',
+    icon: Icons.notifications_none_rounded,
     color: DashV2Colors.blue,
     requiresBusiness: false,
     notiflowOnly: true,
@@ -126,31 +129,31 @@ class DashV2MenuCatalog {
 
   static const _pjpDashboard = DashQuickAccessItem(
     key: 'pjp_dashboard',
-    title: 'PJP Dashboard',
+    title: 'PJP Journey',
     subtitle: 'Summary dashboard',
-    icon: Icons.group,
+    icon: Icons.electric_car,
     color: DashV2Colors.purple,
     requiresBusiness: true,
   );
 
+  /// Live menus only (no Figma-only Documents). Order mirrors Figma where possible.
   static List<DashQuickAccessItem> visibleQuickAccess({
     required bool isBpms,
     required String employeeCode,
   }) {
-    final items = <DashQuickAccessItem>[
+    return <DashQuickAccessItem>[
       _projects,
-      _myPjp,
-      _myCvf,
+      ///_myPjp,
+      //_myCvf,
       _myReport,
       if (isBpms) _bpms else _pjpCvfApprovalExp,
-      _zllSaathi,
       _expenses,
+      _zllSaathi,
       _contracts,
       if (notiflowAccessList.contains(employeeCode)) _notiflow,
       if (isBpms) _pjpCvfApprovalExp,
       _pjpDashboard,
     ];
-    return items;
   }
 
   static List<DashNavItem> sidebarItems({required bool isBpms}) {
@@ -161,6 +164,11 @@ class DashV2MenuCatalog {
         icon: Icons.dashboard_outlined,
       ),
       DashNavItem(
+        key: 'profile',
+        label: 'Profile',
+        icon: Icons.person_outline_rounded,
+      ),
+      DashNavItem(
         key: 'pjp',
         label: 'PJP',
         icon: Icons.electric_car,
@@ -168,12 +176,12 @@ class DashV2MenuCatalog {
       DashNavItem(
         key: 'cvf',
         label: 'CVF',
-        icon: Icons.calendar_today,
+        icon: Icons.calendar_today_outlined,
       ),
       DashNavItem(
         key: 'projects_nav',
         label: 'Projects',
-        icon: Icons.approval,
+        icon: Icons.location_on_outlined,
       ),
       DashNavItem(
         key: 'approvals_pjp',

@@ -11,7 +11,6 @@ void main() {
     expect(keys, contains('pjp_cvf_approval_exp'));
     expect(keys, isNot(contains('bpms')));
     expect(keys, contains('projects'));
-    expect(keys, contains('my_pjp'));
     expect(keys, contains('expenses'));
     expect(keys, isNot(contains('notiflow')));
   });
@@ -33,10 +32,21 @@ void main() {
     expect(keys, contains('notiflow'));
   });
 
-  test('sidebar always includes dashboard, pjp, cvf, projects, approvals_pjp, logout', () {
+  test('sidebar always includes dashboard, profile, pjp, cvf, projects, approvals_pjp, logout', () {
     final keys = DashV2MenuCatalog.sidebarItems(isBpms: false)
         .map((e) => e.key)
         .toList();
-    expect(keys, containsAll(['dashboard', 'pjp', 'cvf', 'projects_nav', 'approvals_pjp', 'logout']));
+    expect(
+      keys,
+      containsAll([
+        'dashboard',
+        'profile',
+        'pjp',
+        'cvf',
+        'projects_nav',
+        'approvals_pjp',
+        'logout',
+      ]),
+    );
   });
 }

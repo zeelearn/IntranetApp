@@ -19,7 +19,12 @@ class DashQuickAccessGrid extends StatelessWidget {
             : width >= 600
                 ? 3
                 : 2;
-        final aspectRatio = columnCount == 2 ? 1.35 : 1.65;
+        // Figma mobile cards are wide/short; keep enough height for title+subtitle.
+        final aspectRatio = columnCount == 2
+            ? 1.95
+            : columnCount == 3
+                ? 2.0
+                : 2.2;
 
         return Obx(() {
           final items = controller.quickAccessItems;
