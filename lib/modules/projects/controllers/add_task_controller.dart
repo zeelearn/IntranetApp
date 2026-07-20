@@ -50,12 +50,12 @@ class AddTaskController extends GetxController {
 
   bool get isEditMode => args.isEditMode;
 
-  /// Plan dates: hidden on create, visible+enabled on edit.
+  /// Plan dates: hidden on create; visible but disabled on edit.
   bool get showPlanDates => isEditMode;
-  bool get planDatesEnabled => isEditMode;
+  bool get planDatesEnabled => false;
 
-  /// Actual dates: enabled on create, visible+disabled on edit.
-  bool get actualDatesEnabled => !isEditMode;
+  /// Actual dates: enabled on create and edit (saved to API).
+  bool get actualDatesEnabled => true;
 
   String get screenTitle => isEditMode ? 'Edit Task' : 'Add New Task';
 
@@ -161,16 +161,12 @@ class AddTaskController extends GetxController {
     }
 
     if (isEditMode) {
-      if (planStart.value == null || planEnd.value == null) {
-        dateError.value = 'Plan start and end dates are required';
-        ok = false;
-      } else if (planEnd.value!.isBefore(planStart.value!)) {
-        dateError.value = 'Plan end date must be on or after plan start';
-        ok = false;
-      }
+      // Plan dates are read-only on edit; actual dates are editable + sent to API.
       if (actualStart.value == null || actualEnd.value == null) {
-        dateError.value =
-            'Actual dates are missing for this task. Please contact support.';
+        dateError.value = 'Actual start and end dates are required';
+        ok = false;
+      } else if (actualEnd.value!.isBefore(actualStart.value!)) {
+        dateError.value = 'Actual end date must be on or after actual start';
         ok = false;
       }
     } else {
@@ -196,11 +192,14 @@ class AddTaskController extends GetxController {
         : parentTaskId.value.trim();
 
     // Create: plan dates hidden → mirror actual dates for API.
-    // Edit: send edited plan + locked actual dates.
+    // Edit: plan dates locked (display); actual dates editable and sent.
     final actualStartDt = actualStart.value!;
     final actualEndDt = actualEnd.value!;
-    final planStartDt = isEditMode ? planStart.value! : actualStartDt;
-    final planEndDt = isEditMode ? planEnd.value! : actualEndDt;
+    final planStartDt = isEditMode
+        ? (planStart.value ?? actualStartDt)
+        : actualStartDt;
+    final planEndDt =
+        isEditMode ? (planEnd.value ?? actualEndDt) : actualEndDt;
 
     final parsedTaskId = args.taskId > 0
         ? args.taskId
@@ -313,12 +312,12 @@ class AddTaskController extends GetxController {
     final taskId = args.taskId > 0
         ? args.taskId.toString()
         : (args.seedTask?.id ?? '0');
-    final start = actualStart.value ?? planStart.value;
-    final end = actualEnd.value ?? planEnd.value;
+    final start = actualStart.value;
+    final end = actualEnd.value;
     if (start == null || end == null) {
       throw const DashboardFailure(
         type: DashboardFailureType.unknown,
-        message: 'Start and end dates are required.',
+        message: 'Actual start and end dates are required.',
       );
     }
     return UpdateTaskStatusRequest(
