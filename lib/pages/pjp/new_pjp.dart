@@ -944,3 +944,18 @@ class _PjpState extends State<NewPJP> {
     return code;
   }
 }
+
+/// Local calendar helpers previously imported transitively from
+/// `IntranetHomePage.dart`. Kept here so routing to `DashboardScreenV2`
+/// does not break this file.
+List<DateTime> daysInRange(DateTime first, DateTime last) {
+  final dayCount = last.difference(first).inDays + 1;
+  return List.generate(
+    dayCount,
+    (index) => DateTime.utc(first.year, first.month, first.day + index),
+  );
+}
+
+final kToday = DateTime.now();
+final kFirstDay = DateTime(kToday.year, kToday.month - 3, kToday.day);
+final kLastDay = DateTime(kToday.year, kToday.month + 2, kToday.day);
