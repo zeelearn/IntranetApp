@@ -19,7 +19,7 @@ import '../helper/LightColor.dart';
 import '../helper/LocalConstant.dart';
 import '../helper/constants.dart';
 import '../helper/utils.dart';
-import '../home/IntranetHomePage.dart';
+import 'package:Intranet/pages/home/v2/dashboard_screenv2.dart';
 import '../utils/theme/colors/light_colors.dart';
 import '../widget/MyWidget.dart';
 import '../widget/check/checkbox.dart';
@@ -696,7 +696,7 @@ class _PjpState extends State<NewPJP> {
           Navigator.push(
               context,
               MaterialPageRoute(
-                  builder: (context) => IntranetHomePage(userId: '')));
+                  builder: (context) => DashboardScreenV2(userId: '')));
         },
         label: const Text('Add New'),
         icon: const Icon(Icons.thumb_up),
