@@ -149,6 +149,7 @@ void main() {
     );
 
     expect(find.text('Search here…'), findsOneWidget);
+    expect(find.text('Stay updated with your tasks'), findsOneWidget);
     expect(find.text('Asha Patil'), findsOneWidget);
     expect(find.text('Project Manager'), findsOneWidget);
     expect(find.text('May 20 – May 26, 2024'), findsOneWidget);

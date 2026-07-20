@@ -121,7 +121,6 @@ class DashboardScreenV2Controller extends GetxController
 
   bool _shellBootstrapped = false;
   StreamSubscription<RemoteMessage>? _messageOpenedAppSubscription;
-  StreamSubscription<RemoteMessage>? _notificationNavigationSubscription;
   StreamSubscription<RemoteMessage>? _foregroundMessageSubscription;
   StreamSubscription<Uri?>? _incomingLinkSubscription;
 
@@ -144,7 +143,6 @@ class DashboardScreenV2Controller extends GetxController
   void onClose() {
     WidgetsBinding.instance.removeObserver(this);
     unawaited(_messageOpenedAppSubscription?.cancel());
-    unawaited(_notificationNavigationSubscription?.cancel());
     unawaited(_foregroundMessageSubscription?.cancel());
     unawaited(_incomingLinkSubscription?.cancel());
     super.onClose();
@@ -195,8 +193,6 @@ class DashboardScreenV2Controller extends GetxController
     await initFirebase();
     await NotificationController.initializeLocalNotifications();
     _messageOpenedAppSubscription =
-        FirebaseMessaging.onMessageOpenedApp.listen(_handleMessage);
-    _notificationNavigationSubscription =
         FirebaseMessaging.onMessageOpenedApp.listen((message) {
       debugPrint('Dashboard V2: onMessageOpenedApp received');
       final ctx = Get.context;
@@ -651,6 +647,8 @@ class DashboardScreenV2Controller extends GetxController
         await openPjpDashboard();
       case 'notiflow':
         await openNotiflow();
+      default:
+        debugPrint('Dashboard V2: unknown quick access key: $key');
     }
   }
 
@@ -675,6 +673,8 @@ class DashboardScreenV2Controller extends GetxController
         await openPjpApprovals();
       case 'logout':
         await signOut();
+      default:
+        debugPrint('Dashboard V2: unknown sidebar key: $key');
     }
   }
 
@@ -786,13 +786,6 @@ class DashboardScreenV2Controller extends GetxController
       provisional: false,
       sound: true,
     );
-  }
-
-  void _handleMessage(RemoteMessage message) {
-    debugPrint('Dashboard V2: Handle Notification $message');
-    if (message.data['type'] == 'chat') {
-      debugPrint('Dashboard V2: Handle chat notification');
-    }
   }
 
   /// Handles app links received while the app is already running.
