@@ -66,6 +66,7 @@ class DashboardScreenV2Controller extends GetxController {
   final selectedNav = 'dashboard'.obs;
   final notificationCount = 0.obs;
   final isLoading = false.obs;
+  final dateRangeLabel = 'May 20 – May 26, 2024'.obs;
 
   final kpiStats = <DashKpiStat>[].obs;
   final projectStatusSegments = <DashChartSegment>[].obs;
