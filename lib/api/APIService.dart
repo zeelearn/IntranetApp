@@ -1325,7 +1325,9 @@ class APIService {
       isVideoFile,
       (int bytes, int totalBytes) async {
         log('Uploading file progress in ApiService is - $bytes $totalBytes');
-        await progress!(bytes, totalBytes);
+        if (progress != null) {
+          await progress(bytes, totalBytes);
+        }
       },
     );
     if (isVideoFile) {
@@ -1478,10 +1480,22 @@ class APIService {
   Future<dynamic> insertTaskAttachment(
       InsertTaskAttachmentRequest requestModel) async {
     try {
-      final response = await http.post(
-          Uri.parse(bpms_url + LocalStrings.API_INSERT_ATTACHMENT),
-          headers: getHeader(''),
-          body: requestModel.toJson());
+      // Match web: …/commonapi/api/bp//InserttaskAttachment
+      final uri = Uri.parse(
+        '$bpms_url/${LocalStrings.API_INSERT_ATTACHMENT}'
+            .replaceAll('///', '//'),
+      );
+      final headers = {
+        ...getHeader(''),
+        'Accept': 'application/json, text/plain, */*',
+        'Authorization': 'Bearer admin-token',
+      };
+      final body = requestModel.toJson();
+      log('insertTaskAttachment url=$uri body=$body');
+      final response = await http.post(uri, headers: headers, body: body);
+      log(
+        'insertTaskAttachment status=${response.statusCode} body=${response.body}',
+      );
       if (response.statusCode == 200) {
         return InsertTaskAttachmentResponse.fromJson(
           json.decode(response.body) as Map<String, dynamic>,
@@ -1490,7 +1504,7 @@ class APIService {
         return null;
       }
     } catch (e) {
-      e.toString();
+      log('insertTaskAttachment error=$e');
       return null;
     }
   }

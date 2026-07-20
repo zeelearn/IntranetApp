@@ -6,6 +6,8 @@ import 'dart:io';
 
 import 'package:Intranet/api/response/login_response.dart';
 import 'package:Intranet/main.dart';
+import 'package:Intranet/modules/projects/models/projects_entry_args.dart';
+import 'package:Intranet/modules/projects/views/projects_dashboard_page.dart';
 import 'package:Intranet/pages/helper/LocalConstant.dart';
 import 'package:Intranet/pages/helper/utils.dart';
 import 'package:Intranet/pages/helper/web_helper.dart';
@@ -225,8 +227,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
               try {
                 hive.put(LocalConstant.KEY_BUSINESS_ID,
                     value.responseData.businessApplications[0].businessID);
-                List<BusinessApplications> businessApplications =
-                    value.responseData.businessApplications;
+                List<BusinessApplications> businessApplications = value.responseData.businessApplications;
                 if (businessApplications.isEmpty) {
                   hive.clear();
                   Utility.showMessage(context,
@@ -1792,6 +1793,67 @@ class _IntranetHomePageState extends State<IntranetHomePage>
                         context,
                         MaterialPageRoute(
                             builder: (context) => MyCVFListScreenV2()));
+                  },
+          ),
+        ),
+         Ink(
+          color: Colors.white,
+          child: ListTile(
+            leading: SizedBox(
+                height: 32.0,
+                width: 32.0,
+                child: Image.asset('assets/icons/ic_checklist.png')),
+            title:  Text(mUserName),
+            onTap: businessId == 0
+                ? () {
+                    Utility.showMessage(context,
+                        'Business not mapped. Please connect with your manager.');
+                  }
+                : () async {
+                    Navigator.pop(context);
+                    final args =
+                        await ProjectsEntryArgs.fromHive();
+                    if (args.businesses.isEmpty &&
+                        businessApplications.isNotEmpty) {
+                      // Prefer in-memory list if Hive login payload is missing.
+                      if (!mounted) return;
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => ProjectsDashboardPage(
+                            userId: args.userId,
+                            userName: args.userName.isEmpty
+                                ? mUserName
+                                : args.userName,
+                            businessId: args.businessId,
+                            businessName: args.businessName.isEmpty
+                                ? _currentBusinessName
+                                : args.businessName,
+                            businesses: businessApplications,
+                          ),
+                        ),
+                      );
+                      return;
+                    }
+                    if (!mounted) return;
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => ProjectsDashboardPage(
+                          userId: args.userId,
+                          userName: args.userName.isEmpty
+                              ? mUserName
+                              : args.userName,
+                          businessId: args.businessId,
+                          businessName: args.businessName.isEmpty
+                              ? _currentBusinessName
+                              : args.businessName,
+                          businesses: args.businesses.isEmpty
+                              ? businessApplications
+                              : args.businesses,
+                        ),
+                      ),
+                    );
                   },
           ),
         ),

@@ -44,7 +44,8 @@ dependencies:
   bloc: ^9.2.1
   flutter_bloc: ^9.1.1
   flutter_easyloading: 3.0.5
-  #shimmer: ^2.0.0
+  shimmer: ^3.0.0
+  connectivity_plus: ^6.1.0
   firebase_crashlytics: ^5.2.0
   # firebase_core: ^4.9.0
   firebase_analytics: ^11.5.1
@@ -137,13 +138,14 @@ dependencies:
     #path: ../ZeeSathi
 
   expensestracker:
-    path: ../excepsesmanagement
-    # git:
-    #   url: https://github.com/ZeeLearnLtd/excepsesmanagement.git
-    #   ref: uat
+    #path: ../excepsesmanagement
+    git:
+      url: https://github.com/ZeeLearnLtd/excepsesmanagement.git
+      ref: uat
 
 
   fl_chart: ^1.2.0
+  http: ^1.6.0
 
   path_provider: any
   google_maps_flutter: ^2.11.0
