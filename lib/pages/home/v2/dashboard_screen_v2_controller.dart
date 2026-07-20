@@ -1,39 +1,60 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:typed_data';
+import 'dart:io';
 
+import 'package:Intranet/api/ServiceHandler.dart';
 import 'package:Intranet/api/response/login_response.dart';
+import 'package:Intranet/main.dart' show NotificationController;
 import 'package:Intranet/modules/projects/models/projects_entry_args.dart';
 import 'package:Intranet/modules/projects/views/projects_dashboard_page.dart';
 import 'package:Intranet/pages/bpms/bpms_dashboard.dart';
+import 'package:Intranet/pages/firebase/storageutil.dart';
 import 'package:Intranet/pages/helper/DatabaseHelper.dart';
 import 'package:Intranet/pages/helper/LocalConstant.dart';
 import 'package:Intranet/pages/helper/utils.dart';
 import 'package:Intranet/pages/helper/web_helper.dart';
+import 'package:Intranet/pages/home/change_password_request.dart';
 import 'package:Intranet/pages/home/v2/dash_v2_menu_catalog.dart';
 import 'package:Intranet/pages/home/v2/models/dash_v2_models.dart';
 import 'package:Intranet/pages/home/v2/widgets/dash_v2_tokens.dart';
+import 'package:Intranet/pages/iface/onResponse.dart';
+import 'package:Intranet/pages/iface/onUploadResponse.dart';
 import 'package:Intranet/pages/intro/intro.dart';
 import 'package:Intranet/pages/legal_mis/all_legal_status_page.dart';
 import 'package:Intranet/pages/model/filter.dart';
+import 'package:Intranet/pages/notification/UserNotification.dart';
 import 'package:Intranet/pages/pjp/cvf/v2/cvf.dart';
 import 'package:Intranet/pages/pjp/mypjp.dart';
 import 'package:Intranet/pages/pjp/pjp_list_manager.dart';
 import 'package:Intranet/pages/pjp/pjp_list_manager_exceptional.dart';
 import 'package:Intranet/pages/report/myreport.dart';
 import 'package:Intranet/pages/summary%20dashboard/summary_dashboard.dart';
+import 'package:Intranet/pages/utils/util.dart';
 import 'package:Intranet/pages/widget/MyWebSiteView.dart';
+import 'package:Intranet/pages/widget/VideoPlayer.dart';
+import 'package:app_links/app_links.dart';
+import 'package:app_version_update/app_version_update.dart';
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:expensestracker/app/hiveDatabase/hive_database.dart';
 import 'package:expensestracker/presentation/app.dart' as expense_placeholder;
 import 'package:expensestracker/presentation/controllers/dashboard/dashboard_binding.dart';
 import 'package:expensestracker/presentation/controllers/dashboard/dashboard_page_controller.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:hive/hive.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:in_app_update/in_app_update.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:saathi/zllsaathi.dart';
 
-class DashboardScreenV2Controller extends GetxController {
+class DashboardScreenV2Controller extends GetxController
+    with WidgetsBindingObserver {
   DashboardScreenV2Controller({
     required this.userId,
     this.receivedAction,
@@ -82,6 +103,11 @@ class DashboardScreenV2Controller extends GetxController {
     'approvals_pjp',
   };
 
+  bool _shellBootstrapped = false;
+  StreamSubscription<RemoteMessage>? _messageOpenedAppSubscription;
+  StreamSubscription<RemoteMessage>? _notificationNavigationSubscription;
+  StreamSubscription<Uri?>? _incomingLinkSubscription;
+
   bool get isBusinessMapped => businessId.value != 0;
 
   List<DashQuickAccessItem> get quickAccessItems =>
@@ -97,13 +123,103 @@ class DashboardScreenV2Controller extends GetxController {
     unawaited(_initialize());
   }
 
+  @override
+  void onClose() {
+    WidgetsBinding.instance.removeObserver(this);
+    unawaited(_messageOpenedAppSubscription?.cancel());
+    unawaited(_notificationNavigationSubscription?.cancel());
+    unawaited(_incomingLinkSubscription?.cancel());
+    super.onClose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed &&
+        !kDebugMode &&
+        !kIsWeb) {
+      if (Platform.isAndroid) {
+        unawaited(checkForUpdate());
+      } else if (Platform.isIOS) {
+        final context = Get.context;
+        if (context != null) unawaited(_verifyVersion(context));
+      }
+    }
+  }
+
   Future<void> _initialize() async {
     isLoading.value = true;
     try {
       await loadUserFromHive();
       await loadBusinessApplications();
+      if (Get.isRegistered<DashboardPageController>() &&
+          employeeCode.value.isNotEmpty) {
+        Get.find<DashboardPageController>()
+            .getMaxAdvanceLimit(employeeCode.value);
+      }
+      await loadAppVersion();
+      unawaited(getProfileImage());
     } finally {
       isLoading.value = false;
+    }
+  }
+
+  /// Registers Firebase messaging, deep-link handlers, in-app update checks
+  /// and password-expiry prompts — parity with `IntranetHomePage.initState`.
+  /// Call once from the screen's `initState` after `Get.put`.
+  Future<void> bootstrapShell(BuildContext context) async {
+    if (_shellBootstrapped) return;
+    _shellBootstrapped = true;
+
+    WidgetsBinding.instance.addObserver(this);
+    _handleReceivedAction();
+
+    await initFirebase();
+    await NotificationController.initializeLocalNotifications();
+    _messageOpenedAppSubscription =
+        FirebaseMessaging.onMessageOpenedApp.listen(_handleMessage);
+    _notificationNavigationSubscription =
+        FirebaseMessaging.onMessageOpenedApp.listen((message) {
+      debugPrint('Dashboard V2: onMessageOpenedApp received');
+      final ctx = Get.context;
+      if (ctx == null) return;
+      Navigator.of(ctx).push(
+        MaterialPageRoute(builder: (_) => const UserNotification()),
+      );
+    });
+
+    if (!kIsWeb) {
+      if (Platform.isAndroid) {
+        unawaited(checkForUpdate());
+      } else if (Platform.isIOS) {
+        unawaited(_verifyVersion(context));
+      }
+    }
+
+    WidgetsBinding.instance
+        .addPostFrameCallback((_) => _incomingLinkHandler());
+  }
+
+  void _handleReceivedAction() {
+    final action = receivedAction;
+    final payload = action?.payload;
+    final context = Get.context;
+    if (context == null || payload == null) return;
+
+    if (payload['type'] == 'td') {
+      Util.openSaathiNotification(action!);
+    } else if (payload['Video_path'] != null) {
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => VideoPlayer(
+            Title: payload['Video_path']!,
+            path: payload['Video_path']!,
+          ),
+        ),
+      );
+    } else if (payload['url']?.isNotEmpty == true) {
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => const UserNotification()),
+      );
     }
   }
 
@@ -142,8 +258,23 @@ class DashboardScreenV2Controller extends GetxController {
       if (encodedAvatar?.isNotEmpty == true) {
         profileAvatarBytes.value = base64.decode(encodedAvatar!);
       }
+
+      final passwordExpired =
+          int.tryParse(box.get(LocalConstant.KEY_PASSWORD_EXPIRED)?.toString() ?? '0') ?? 0;
+      if (passwordExpired == 1) {
+        Future.delayed(Duration.zero, _showUpdatePasswordDialog);
+      }
     } catch (error) {
       debugPrint('Dashboard V2 user load failed: $error');
+    }
+  }
+
+  Future<void> loadAppVersion() async {
+    try {
+      final packageInfo = await PackageInfo.fromPlatform();
+      appVersion.value = packageInfo.version;
+    } catch (error) {
+      debugPrint('Dashboard V2 app version load failed: $error');
     }
   }
 
@@ -578,6 +709,553 @@ class DashboardScreenV2Controller extends GetxController {
       'This feature will be available soon.',
       snackPosition: SnackPosition.BOTTOM,
       duration: const Duration(seconds: 2),
+    );
+  }
+
+  // ---------------------------------------------------------------------
+  // Shell lifecycle parity — Firebase, deep links, in-app update, password.
+  // Ported from IntranetHomePage (read-only reference); behavior preserved.
+  // ---------------------------------------------------------------------
+
+  Future<void> initFirebase() async {
+    if (!kDebugMode) {
+      FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(true);
+    }
+    await FirebaseMessaging.instance.setAutoInitEnabled(true);
+    await FirebaseMessaging.instance.requestPermission(
+      alert: true,
+      announcement: false,
+      badge: true,
+      carPlay: false,
+      criticalAlert: false,
+      provisional: false,
+      sound: true,
+    );
+  }
+
+  void _handleMessage(RemoteMessage message) {
+    debugPrint('Dashboard V2: Handle Notification $message');
+    if (message.data['type'] == 'chat') {
+      debugPrint('Dashboard V2: Handle chat notification');
+    }
+  }
+
+  /// Handles app links received while the app is already running.
+  void _incomingLinkHandler() {
+    if (kIsWeb) return;
+    final appLinks = AppLinks();
+    _incomingLinkSubscription = appLinks.uriLinkStream.listen(
+      (Uri? uri) {
+        debugPrint('Dashboard V2: Received URI: $uri');
+        deepLinkCommonFunction(uri);
+      },
+      onError: (Object err) {
+        debugPrint('Dashboard V2: deep link error: $err');
+      },
+    );
+  }
+
+  void deepLinkCommonFunction(Uri? initialURI) {
+    if (initialURI == null) return;
+    final context = Get.context;
+    if (context == null) return;
+    if (initialURI.toString().contains('zllsaathi.zeelearn.com/ticketDetail')) {
+      final params = initialURI.queryParameters;
+      final id = params['id'];
+      final bId = params['b_id'];
+      final buId = params['bu_id'];
+      final uId = params['u_id'];
+      if (id == null || bId == null || buId == null || uId == null) return;
+      ZllTicket(
+        context,
+        id,
+        bId,
+        buId,
+        uId.replaceAll('.', ''),
+        DashV2Colors.primary,
+      );
+    }
+  }
+
+  Future<void> checkForUpdate() async {
+    if (kIsWeb) return;
+    try {
+      final info = await InAppUpdate.checkForUpdate();
+      if (info.updateAvailability == UpdateAvailability.updateAvailable) {
+        await InAppUpdate.performImmediateUpdate();
+      }
+    } catch (error) {
+      debugPrint('Dashboard V2 update check failed: $error');
+    }
+  }
+
+  Future<void> _verifyVersion(BuildContext context) async {
+    try {
+      final result = await AppVersionUpdate.checkForUpdates(
+        appleId: '6443464060',
+        playStoreId: 'com.zeelearn.intranet',
+        country: 'in',
+      );
+      if (result.canUpdate == true && context.mounted) {
+        await AppVersionUpdate.showBottomSheetUpdate(
+          context: context,
+          appVersionResult: result,
+          mandatory: true,
+          title: 'App Update Avaliable',
+          content: const Text(
+            'New version of our Intranet application is now available, and we highly recommend that you install it to benefit from its enhanced features and improved security.',
+          ),
+        );
+      }
+    } catch (error) {
+      debugPrint('Dashboard V2 iOS version check failed: $error');
+    }
+  }
+
+  void onBackPressed() {
+    final context = Get.context;
+    if (context == null) return;
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Alert'),
+        content: const Text('Would you like to Exit?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(dialogContext).pop(true);
+              if (!kIsWeb && Platform.isAndroid) {
+                Future.delayed(const Duration(milliseconds: 100), () {
+                  SystemChannels.platform.invokeMethod('SystemNavigator.pop');
+                });
+              } else if (!kIsWeb && Platform.isIOS) {
+                exit(0);
+              }
+            },
+            child: const Text('Exit'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // -- Profile avatar --------------------------------------------------
+
+  Future<void> getProfileImage() async {
+    if (profileAvatarBytes.value != null) return;
+    try {
+      FirebaseStorageUtil().getProfileImage(
+        employeeId.value.toString(),
+        _ProfileAvatarFetchResponse(this),
+      );
+    } catch (error) {
+      debugPrint('Dashboard V2 profile image fetch failed: $error');
+    }
+  }
+
+  Future<void> uploadProfilePicture() async {
+    try {
+      final pickedFile = await ImagePicker().pickImage(
+        source: ImageSource.camera,
+        maxHeight: 800,
+        imageQuality: 100,
+      );
+      if (pickedFile == null) return;
+      FirebaseStorageUtil().uploadAvtar(
+        pickedFile.path,
+        employeeId.value.toString(),
+        _AvatarUploadResponse(this),
+      );
+    } catch (error) {
+      debugPrint('Dashboard V2 avatar upload failed: $error');
+    }
+  }
+
+  Future<void> _cacheAvatarBytes(Uint8List bytes) async {
+    final box = await Utility.openBox();
+    await box.put(LocalConstant.KEY_EMPLOYEE_AVTAR_LIST, base64.encode(bytes));
+  }
+
+  Future<void> _applyUploadedAvatarUrl(String muggedUrl) async {
+    var url = muggedUrl.replaceAll('___', '&');
+    url = Uri.decodeFull(url);
+    if (url.isEmpty) return;
+    profileImageUrl.value = url;
+    final box = await Utility.openBox();
+    await box.put(LocalConstant.KEY_EMPLOYEE_AVTAR, url);
+    unawaited(getProfileImage());
+  }
+
+  // -- Password expiry ---------------------------------------------------
+
+  void _showUpdatePasswordDialog() {
+    final context = Get.context;
+    if (context == null) return;
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => PopScope(
+        canPop: !kReleaseMode,
+        onPopInvokedWithResult: (didPop, result) {
+          if (!didPop) {
+            Fluttertoast.showToast(
+              msg: 'Please update your password to continue.',
+              toastLength: Toast.LENGTH_SHORT,
+              gravity: ToastGravity.BOTTOM,
+              backgroundColor: Colors.black87,
+              textColor: Colors.white,
+              fontSize: 14,
+            );
+          }
+        },
+        child: _UpdatePasswordDialog(
+          onSubmit: (newPassword, ctx) =>
+              _performPasswordUpdate(ctx, newPassword),
+        ),
+      ),
+    );
+  }
+
+  void _performPasswordUpdate(BuildContext dialogContext, String newPassword) {
+    final context = Get.context;
+    if (context == null) return;
+    final request = ChangePasswordRequest(
+      userName: employeeCode.value,
+      password: newPassword,
+    );
+    IntranetServiceHandler.changePassword(
+      request,
+      _PasswordUpdateResponse(
+        context: context,
+        dialogContext: dialogContext,
+        onSuccessCallback: () async {
+          final box = await Utility.openBox();
+          await box.put(LocalConstant.KEY_USER_PASSWORD, newPassword);
+          await box.put(LocalConstant.KEY_PASSWORD_EXPIRED, 0);
+        },
+      ),
+    );
+  }
+}
+
+class _ProfileAvatarFetchResponse implements onUploadResponse {
+  _ProfileAvatarFetchResponse(this.controller);
+
+  final DashboardScreenV2Controller controller;
+
+  @override
+  void onStart() {}
+
+  @override
+  void onUploadProgress(int value) {}
+
+  @override
+  void onUploadError(dynamic value) {}
+
+  @override
+  void onUploadSuccess(dynamic value) {
+    if (value is Uint8List) {
+      controller.profileAvatarBytes.value = value;
+      unawaited(controller._cacheAvatarBytes(value));
+    }
+  }
+}
+
+class _AvatarUploadResponse implements onUploadResponse {
+  _AvatarUploadResponse(this.controller);
+
+  final DashboardScreenV2Controller controller;
+
+  @override
+  void onStart() {
+    final context = Get.context;
+    if (context != null) Utility.showLoaderDialog(context);
+  }
+
+  @override
+  void onUploadProgress(int value) {}
+
+  @override
+  void onUploadError(dynamic value) {
+    final context = Get.context;
+    if (context != null) Navigator.of(context).pop();
+  }
+
+  @override
+  void onUploadSuccess(dynamic value) {
+    final context = Get.context;
+    if (context != null) Navigator.of(context).pop();
+    if (value is String) {
+      unawaited(controller._applyUploadedAvatarUrl(value));
+    }
+  }
+}
+
+class _PasswordUpdateResponse implements onResponse {
+  _PasswordUpdateResponse({
+    required this.context,
+    required this.dialogContext,
+    required this.onSuccessCallback,
+  });
+
+  final BuildContext context;
+  final BuildContext dialogContext;
+  final Future<void> Function() onSuccessCallback;
+
+  @override
+  void onStart() {
+    Utility.showLoaderDialog(context);
+  }
+
+  @override
+  void onSuccess(dynamic value) async {
+    Navigator.of(context).pop();
+    Navigator.of(dialogContext).pop();
+    await onSuccessCallback();
+    Utility.showMessage(context, 'Password updated successfully');
+  }
+
+  @override
+  void onError(dynamic value) {
+    Navigator.of(context).pop();
+    Utility.showMessage(context, value.toString());
+  }
+}
+
+typedef _PasswordSubmitCallback = void Function(
+  String newPassword,
+  BuildContext dialogContext,
+);
+
+class _UpdatePasswordDialog extends StatefulWidget {
+  const _UpdatePasswordDialog({required this.onSubmit});
+
+  final _PasswordSubmitCallback onSubmit;
+
+  @override
+  State<_UpdatePasswordDialog> createState() => _UpdatePasswordDialogState();
+}
+
+class _UpdatePasswordDialogState extends State<_UpdatePasswordDialog> {
+  final _newPasswordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+  bool _obscureNewPassword = true;
+  bool _obscureConfirmPassword = true;
+
+  @override
+  void dispose() {
+    _newPasswordController.dispose();
+    _confirmPasswordController.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    if (_formKey.currentState?.validate() ?? false) {
+      widget.onSubmit(_newPasswordController.text, context);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      insetPadding: const EdgeInsets.all(20),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 440),
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(32),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.orange.withValues(alpha: 0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.lock_reset_rounded,
+                      color: Colors.orange,
+                      size: 40,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  Text(
+                    'Password Expired',
+                    style: GoogleFonts.inter(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w700,
+                      color: const Color(0xFF1A1D2E),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    'Your password has expired. For security reasons, please set a new password to continue accessing the application.',
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.inter(
+                      fontSize: 14,
+                      color: const Color(0xFF6B7280),
+                      height: 1.5,
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                  TextFormField(
+                    controller: _newPasswordController,
+                    obscureText: _obscureNewPassword,
+                    textInputAction: TextInputAction.next,
+                    style: GoogleFonts.inter(fontSize: 15),
+                    decoration: InputDecoration(
+                      labelText: 'New Password',
+                      labelStyle: GoogleFonts.inter(
+                        color: const Color(0xFF6B7280),
+                        fontSize: 15,
+                      ),
+                      prefixIcon:
+                          const Icon(Icons.lock_outline_rounded, size: 20),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _obscureNewPassword
+                              ? Icons.visibility_off
+                              : Icons.visibility,
+                          size: 20,
+                        ),
+                        onPressed: () => setState(
+                          () => _obscureNewPassword = !_obscureNewPassword,
+                        ),
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: Color(0xFFE8EDF2)),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(
+                          color: DashV2Colors.primary,
+                          width: 2,
+                        ),
+                      ),
+                      errorStyle: GoogleFonts.inter(
+                        color: Colors.black87,
+                        fontSize: 12,
+                      ),
+                      errorMaxLines: 2,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 16,
+                      ),
+                    ),
+                    onFieldSubmitted: (_) => FocusScope.of(context).nextFocus(),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter a new password';
+                      }
+                      if (value.length < 8) {
+                        return 'Password must be at least 8 characters';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 20),
+                  TextFormField(
+                    controller: _confirmPasswordController,
+                    obscureText: _obscureConfirmPassword,
+                    textInputAction: TextInputAction.done,
+                    style: GoogleFonts.inter(fontSize: 15),
+                    decoration: InputDecoration(
+                      labelText: 'Confirm New Password',
+                      labelStyle: GoogleFonts.inter(
+                        color: const Color(0xFF6B7280),
+                        fontSize: 15,
+                      ),
+                      prefixIcon:
+                          const Icon(Icons.lock_reset_rounded, size: 20),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _obscureConfirmPassword
+                              ? Icons.visibility_off
+                              : Icons.visibility,
+                          size: 20,
+                        ),
+                        onPressed: () => setState(
+                          () => _obscureConfirmPassword =
+                              !_obscureConfirmPassword,
+                        ),
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: Color(0xFFE8EDF2)),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(
+                          color: DashV2Colors.primary,
+                          width: 2,
+                        ),
+                      ),
+                      errorStyle: GoogleFonts.inter(
+                        color: Colors.black87,
+                        fontSize: 12,
+                      ),
+                      errorMaxLines: 2,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 16,
+                      ),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please confirm your password';
+                      }
+                      if (value != _newPasswordController.text) {
+                        return 'Passwords do not match';
+                      }
+                      return null;
+                    },
+                    onFieldSubmitted: (_) => _submit(),
+                  ),
+                  const SizedBox(height: 32),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: _submit,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: DashV2Colors.primary,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        elevation: 0,
+                      ),
+                      child: Text(
+                        'Update and Continue',
+                        style: GoogleFonts.inter(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
