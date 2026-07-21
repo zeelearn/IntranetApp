@@ -27,6 +27,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -255,6 +256,11 @@ final localhostServer =
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    // Uncomment if you also want upside-down portrait on supported devices:
+    // DeviceOrientation.portraitDown,
+  ]);
   if (kReleaseMode) {
     debugPrint = (String? message, {int? wrapWidth}) {};
   }
@@ -329,7 +335,7 @@ Future<void> main() async {
   PermissionUtil.requestPermission();
 
   await Hive.initFlutter();
-  
+
   if (!Hive.isAdapterRegistered(103)) {
     Hive.registerAdapter(TicketModelAdapter());
   }
@@ -344,7 +350,7 @@ Future<void> main() async {
   //await Hive.openBox<NotificationModel>(HiveConstant.key_NotificationList);
   await Hive.openBox(HiveConstant.box_SSOUser);
   await Hive.openBox(HiveConstant.key_logindetails);
-  
+
   DependencyInjection.init();
 
   //await initializeService();
@@ -701,9 +707,10 @@ Future<void> setup() async {
       InitializationSettings(android: androidSetting, iOS: iosSetting);
 
   // #3
-  await flutterLocalNotificationsPlugin?.initialize(initSettings).then((_) {
-  }).catchError((Object error) {
-  });
+  await flutterLocalNotificationsPlugin
+      ?.initialize(initSettings)
+      .then((_) {})
+      .catchError((Object error) {});
 }
 
 Future _showNotificationWithDefaultSound(
@@ -854,8 +861,8 @@ class _MyAppState extends State<MyApp> {
             // <-- SEE HERE
             color: kPrimaryLightColor,
             iconTheme: IconThemeData(color: Colors.white),
-            titleTextStyle:
-                TextStyle(fontSize: 17, color: Colors.white, letterSpacing: 0.53),
+            titleTextStyle: TextStyle(
+                fontSize: 17, color: Colors.white, letterSpacing: 0.53),
           ),
           colorScheme: const ColorScheme(
             brightness: Brightness.light,
@@ -873,7 +880,9 @@ class _MyAppState extends State<MyApp> {
           dialogTheme: const DialogThemeData(
             backgroundColor: Colors.white,
             titleTextStyle: TextStyle(
-                fontWeight: FontWeight.w500, fontSize: 16, color: Colors.black54),
+                fontWeight: FontWeight.w500,
+                fontSize: 16,
+                color: Colors.black54),
           ),
           inputDecorationTheme: InputDecorationTheme(
               filled: true,

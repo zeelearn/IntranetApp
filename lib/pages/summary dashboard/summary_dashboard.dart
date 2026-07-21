@@ -2709,7 +2709,6 @@ class _PjpInfoCard extends StatelessWidget {
   final String empCode;
   final String empName;
 
-
   const _PjpInfoCard(
       {required this.pjp,
       required this.color,
@@ -3124,8 +3123,7 @@ class _CheckInClickListener implements onClickListener {
       if (action == Utility.ACTION_OK) {
         updateCVF(cvfView);
       } else if (action == Utility.ACTION_CCNCEL) {}
-    } else {
-    }
+    } else {}
   }
 }
 
@@ -3191,7 +3189,6 @@ class _VisitTile extends StatelessWidget {
         visit.DateTimeOut.isNotEmpty && visit.DateTimeOut != 'NA';
     final bool isCancelled =
         visit.IsCancelled || visit.Status.trim().toLowerCase() == 'cancelled';
-
 
     final canRescheduleVisit = controller.canReschedule(visit);
     final canCancelVisit = controller.canRescheduleOrCancel(visit);
@@ -3421,9 +3418,9 @@ class _VisitTile extends StatelessWidget {
                       ),
                     ],
                   ),
-                  if (!isCompleted &&
+                  if (/* !isCompleted && */
                       visit.Address.trim().isNotEmpty &&
-                      visit.Address.trim() != 'NA') ...[
+                          visit.Address.trim() != 'NA') ...[
                     const SizedBox(height: 4),
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -3485,7 +3482,7 @@ class _VisitTile extends StatelessWidget {
                   ),
                 ),
               ),
-              WebCardActions(controller: controller, cvf: visit),
+            WebCardActions(controller: controller, cvf: visit),
             if (isCancelled &&
                 visit.remarks.isNotEmpty &&
                 visit.remarks != 'NA')
@@ -3769,7 +3766,8 @@ class _VisitTile extends StatelessWidget {
     navigator.pop();
 
     if (response != null) {
-      if (context.mounted) Utility.showMessage(context, 'CVF Cancelled successfully');
+      if (context.mounted)
+        Utility.showMessage(context, 'CVF Cancelled successfully');
       visit.IsCancelled = true;
       visit.Status = 'Cancelled';
       visit.remarks = remark;
@@ -3887,8 +3885,8 @@ class _VisitTile extends StatelessWidget {
                   child: const Text("Reschedule"),
                   onPressed: () {
                     if (_remarkController.text.trim().isEmpty) {
-                      Utility.showMessage(
-                          dialogContext, 'Please enter a reason for rescheduling');
+                      Utility.showMessage(dialogContext,
+                          'Please enter a reason for rescheduling');
                     } else {
                       // Pop dialog first (sync), then run async with outerContext
                       Navigator.of(dialogContext).pop();
@@ -3947,7 +3945,8 @@ class _VisitTile extends StatelessWidget {
     navigator.pop();
 
     if (response != null) {
-      if (context.mounted) Utility.showMessage(context, 'CVF Rescheduled successfully');
+      if (context.mounted)
+        Utility.showMessage(context, 'CVF Rescheduled successfully');
       if (visit.cvfHistory == null) {
         visit.cvfHistory = [];
       }
@@ -3968,7 +3967,8 @@ class _VisitTile extends StatelessWidget {
       visit.remarks = remark;
       onCVFUpdateSuccess(visit);
     } else {
-      if (context.mounted) Utility.showMessage(context, 'Failed to reschedule CVF');
+      if (context.mounted)
+        Utility.showMessage(context, 'Failed to reschedule CVF');
     }
   }
 }
