@@ -26,43 +26,66 @@ class DashWebTopBar extends StatelessWidget {
           ),
           child: Row(
             children: [
-              IconButton(
-                tooltip: 'Toggle sidebar',
-                onPressed: controller.toggleSidebar,
-                icon: const Icon(
-                  Icons.menu_open_rounded,
-                  color: DashV2Colors.textDark,
-                ),
-              ),
-              const SizedBox(width: 20),
+              // IconButton(
+              //   tooltip: 'Toggle sidebar',
+              //   onPressed: controller.toggleSidebar,
+              //   icon: const Icon(
+              //     Icons.menu_open_rounded,
+              //     color: DashV2Colors.textDark,
+              //   ),
+              // ),
+              // const SizedBox(width: 20),
+              
               Expanded(
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 520),
-                  child: Tooltip(
-                    message: 'Search',
-                    child: TextField(
-                      readOnly: true,
-                      onTap: controller.onSearchTap,
-                      decoration: InputDecoration(
-                        hintText: 'Search here…',
-                        hintStyle: DashV2Text.subtitle,
-                        prefixIcon: const Icon(
-                          Icons.search_rounded,
-                          size: 20,
-                          color: DashV2Colors.textMuted,
+                  child : Obx(
+                    () => Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          DashV2Greeting.forDateTime(
+                            DateTime.now(),
+                            controller.firstName.value,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: DashV2Text.title,
                         ),
-                        filled: true,
-                        fillColor: DashV2Colors.scaffold,
-                        isDense: true,
-                        contentPadding:
-                            const EdgeInsets.symmetric(vertical: 13),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: BorderSide.none,
+                        const SizedBox(height: 3),
+                        Text(
+                          DashV2Greeting.subtitle,
+                          style: DashV2Text.subtitle,
                         ),
-                      ),
+                      ],
                     ),
                   ),
+                  // child: Tooltip(
+                  //   message: 'Search',
+                  //   child: TextField(
+                  //     readOnly: true,
+                  //     onTap: controller.onSearchTap,
+                  //     decoration: InputDecoration(
+                  //       hintText: 'Search here…',
+                  //       hintStyle: DashV2Text.subtitle,
+                  //       prefixIcon: const Icon(
+                  //         Icons.search_rounded,
+                  //         size: 20,
+                  //         color: DashV2Colors.textMuted,
+                  //       ),
+                  //       filled: true,
+                  //       fillColor: DashV2Colors.scaffold,
+                  //       isDense: true,
+                  //       contentPadding:
+                  //           const EdgeInsets.symmetric(vertical: 13),
+                  //       border: OutlineInputBorder(
+                  //         borderRadius: BorderRadius.circular(10),
+                  //         borderSide: BorderSide.none,
+                  //       ),
+                  //     ),
+                  //   ),
+                  // ),
                 ),
               ),
               const Spacer(),
@@ -116,7 +139,7 @@ class DashWebTopBar extends StatelessWidget {
             ],
           ),
         ),
-        const DashWebHeaderActions(),
+        //const DashWebHeaderActions(),
       ],
     );
   }
@@ -157,47 +180,47 @@ class DashWebHeaderActions extends StatelessWidget {
               ),
             ),
           ),
-          Obx(
-            () => Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-              decoration: BoxDecoration(
-                color: DashV2Colors.card,
-                borderRadius: BorderRadius.circular(9),
-                border: Border.all(color: DashV2Colors.border),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(
-                    Icons.calendar_today_outlined,
-                    size: 16,
-                    color: DashV2Colors.textMuted,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    controller.dateRangeLabel.value,
-                    style: DashV2Text.cardSubtitle.copyWith(
-                      color: DashV2Colors.textDark,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          FilledButton.icon(
-            onPressed: controller.openNewProject,
-            icon: const Icon(Icons.add_rounded, size: 18),
-            label: const Text('+ New Project'),
-            style: FilledButton.styleFrom(
-              backgroundColor: DashV2Colors.blue,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 17),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(9),
-              ),
-            ),
-          ),
+          // Obx(
+          //   () => Container(
+          //     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          //     decoration: BoxDecoration(
+          //       color: DashV2Colors.card,
+          //       borderRadius: BorderRadius.circular(9),
+          //       border: Border.all(color: DashV2Colors.border),
+          //     ),
+          //     child: Row(
+          //       mainAxisSize: MainAxisSize.min,
+          //       children: [
+          //         const Icon(
+          //           Icons.calendar_today_outlined,
+          //           size: 16,
+          //           color: DashV2Colors.textMuted,
+          //         ),
+          //         const SizedBox(width: 8),
+          //         Text(
+          //           controller.dateRangeLabel.value,
+          //           style: DashV2Text.cardSubtitle.copyWith(
+          //             color: DashV2Colors.textDark,
+          //           ),
+          //         ),
+          //       ],
+          //     ),
+          //   ),
+          // ),
+          // const SizedBox(width: 12),
+          // FilledButton.icon(
+          //   onPressed: controller.openNewProject,
+          //   icon: const Icon(Icons.add_rounded, size: 18),
+          //   label: const Text('+ New Project'),
+          //   style: FilledButton.styleFrom(
+          //     backgroundColor: DashV2Colors.blue,
+          //     foregroundColor: Colors.white,
+          //     padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 17),
+          //     shape: RoundedRectangleBorder(
+          //       borderRadius: BorderRadius.circular(9),
+          //     ),
+          //   ),
+          // ),
         ],
       ),
     );

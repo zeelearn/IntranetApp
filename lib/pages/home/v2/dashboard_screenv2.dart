@@ -34,6 +34,7 @@ class DashboardScreenV2 extends StatefulWidget {
 
 class _DashboardScreenV2State extends State<DashboardScreenV2> {
   late final DashboardScreenV2Controller controller;
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
   void initState() {
@@ -58,7 +59,13 @@ class _DashboardScreenV2State extends State<DashboardScreenV2> {
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
-        if (!didPop) controller.onBackPressed();
+        if (didPop) return;
+        final scaffold = _scaffoldKey.currentState;
+        if (scaffold?.isDrawerOpen ?? false) {
+          scaffold!.closeDrawer();
+          return;
+        }
+        controller.onBackPressed();
       },
       child: LayoutBuilder(
         builder: (context, constraints) {
@@ -70,8 +77,15 @@ class _DashboardScreenV2State extends State<DashboardScreenV2> {
     );
   }
 
+  Widget _buildVersionFooter() {
+    return Obx(
+      () => _AppVersionFooter(version: controller.appVersion.value),
+    );
+  }
+
   Widget _buildMobile(BuildContext context) {
     return Scaffold(
+      key: _scaffoldKey,
       backgroundColor: DashV2Colors.scaffold,
       appBar: const DashMobileAppBar(),
       drawer: const Drawer(child: DashSidebar(isDrawer: true)),
@@ -91,9 +105,7 @@ class _DashboardScreenV2State extends State<DashboardScreenV2> {
           ),
         ),
       ),
-      bottomNavigationBar: Obx(
-        () => _MobileFooter(version: controller.appVersion.value),
-      ),
+      bottomNavigationBar: _buildVersionFooter(),
     );
   }
 
@@ -122,21 +134,12 @@ class _DashboardScreenV2State extends State<DashboardScreenV2> {
                         //const DashKpiRow(variant: DashKpiVariant.web),
                         //const SizedBox(height: 24),
                         _buildQuickAccessSection(),
-                        const SizedBox(height: 24),
                         // _buildInsightRow(),
-                        // const SizedBox(height: 20),
-                        Obx(
-                          () => Center(
-                            child: Text(
-                              'Intranet_${controller.appVersion.value}',
-                              style: DashV2Text.caption,
-                            ),
-                          ),
-                        ),
                       ],
                     ),
                   ),
                 ),
+                _buildVersionFooter(),
               ],
             ),
           ),
@@ -197,9 +200,9 @@ class _DashboardScreenV2State extends State<DashboardScreenV2> {
   }
 }
 
-/// Figma footer: light bar with centered `Intranet_{version}`.
-class _MobileFooter extends StatelessWidget {
-  const _MobileFooter({required this.version});
+/// Sticky page footer: centered `Intranet_{version}`.
+class _AppVersionFooter extends StatelessWidget {
+  const _AppVersionFooter({required this.version});
 
   final String version;
 

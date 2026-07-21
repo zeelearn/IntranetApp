@@ -59,8 +59,8 @@ class DashSidebar extends StatelessWidget {
                   ),
                 ),
               ),
-              if (showHelpCard && expanded)
-                _NeedHelpCard(onTap: controller.onContactSupportTap),
+              // if (showHelpCard && expanded)
+              //   _NeedHelpCard(onTap: controller.onContactSupportTap),
               Padding(
                 padding: const EdgeInsets.fromLTRB(10, 6, 10, 12),
                 child: _NavTile(

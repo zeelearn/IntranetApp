@@ -142,17 +142,20 @@ class DashV2MenuCatalog {
     required String employeeCode,
   }) {
     return <DashQuickAccessItem>[
+      _pjpDashboard,
       _projects,
+      _expenses,
       ///_myPjp,
       //_myCvf,
-      _myReport,
+      
       if (isBpms) _bpms else _pjpCvfApprovalExp,
-      _expenses,
+      
       _zllSaathi,
       _contracts,
       if (notiflowAccessList.contains(employeeCode)) _notiflow,
       if (isBpms) _pjpCvfApprovalExp,
-      _pjpDashboard,
+      _myReport,
+      
     ];
   }
 

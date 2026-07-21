@@ -151,12 +151,15 @@ class DashboardScreenV2Controller extends GetxController
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed && !kDebugMode && !kIsWeb) {
-      if (Platform.isAndroid) {
-        unawaited(checkForUpdate());
-      } else if (Platform.isIOS) {
-        final context = Get.context;
-        if (context != null) unawaited(_verifyVersion(context));
+    if (state == AppLifecycleState.resumed) {
+      unawaited(loadNotificationCount());
+      if (!kDebugMode && !kIsWeb) {
+        if (Platform.isAndroid) {
+          unawaited(checkForUpdate());
+        } else if (Platform.isIOS) {
+          final context = Get.context;
+          if (context != null) unawaited(_verifyVersion(context));
+        }
       }
     }
   }
@@ -172,6 +175,7 @@ class DashboardScreenV2Controller extends GetxController
             .getMaxAdvanceLimit(employeeCode.value);
       }
       await loadAppVersion();
+      await loadNotificationCount();
       if (employeeId.value != 0) {
         await registerForegroundNotifications(employeeId.value.toString());
       }
@@ -194,13 +198,14 @@ class DashboardScreenV2Controller extends GetxController
     await initFirebase();
     await NotificationController.initializeLocalNotifications();
     _messageOpenedAppSubscription =
-        FirebaseMessaging.onMessageOpenedApp.listen((message) {
+        FirebaseMessaging.onMessageOpenedApp.listen((message) async {
       debugPrint('Dashboard V2: onMessageOpenedApp received');
       final ctx = Get.context;
       if (ctx == null) return;
-      Navigator.of(ctx).push(
+      await Navigator.of(ctx).push(
         MaterialPageRoute(builder: (_) => const UserNotification()),
       );
+      await loadNotificationCount();
     });
 
     if (!kIsWeb) {
@@ -327,6 +332,7 @@ class DashboardScreenV2Controller extends GetxController
     return FirebaseMessaging.onMessage.listen((message) {
       debugPrint('Dashboard V2 foreground notification: ${message.toMap()}');
       NotificationService().parseNotification(message);
+      unawaited(loadNotificationCount());
     });
   }
 
@@ -477,7 +483,16 @@ class DashboardScreenV2Controller extends GetxController
         when: 'Thursday, 5:00 PM',
       ),
     ]);
-    notificationCount.value = 3;
+  }
+
+  Future<void> loadNotificationCount() async {
+    try {
+      final list =
+          await DBHelper().getData(LocalConstant.TABLE_NOTIFICATION);
+      notificationCount.value = list.length;
+    } catch (error) {
+      debugPrint('Dashboard V2 notification count failed: $error');
+    }
   }
 
   Future<void> updateCurrentBusiness(int bid, String name, int uid) async {
@@ -768,7 +783,14 @@ class DashboardScreenV2Controller extends GetxController
 
   void onCustomizeTap() => _showComingSoon();
 
-  void onNotificationsTap() => _showComingSoon();
+  Future<void> onNotificationsTap() async {
+    final context = Get.context;
+    if (context == null) return;
+    await Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => const UserNotification()),
+    );
+    await loadNotificationCount();
+  }
 
   void onContactSupportTap() => _showComingSoon();
 
