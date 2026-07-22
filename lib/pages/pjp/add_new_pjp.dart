@@ -376,9 +376,9 @@ class _AddNewPJPState extends State<AddNewPJPScreen>
             addPJPinDB(1);
             String message = response.responseMessage ?? "Your PJP has been created successfully.";
             
-            // Utility.showMessageSingleButton(
-            //     context, "PJP Added successfully", this,
-            //     object: mPjpModel);
+            /* Utility.showMessageSingleButton(
+                context, message, this,
+                object: mPjpModel); */
 
             Utility().showPJPStatusDialog(
               pageContext: context,

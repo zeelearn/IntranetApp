@@ -304,14 +304,14 @@ class CVFController extends GetxController {
       Utility.showMessage(context, 'Report URL not available');
       return;
     }
-    // if (kIsWeb) {
-    //   launchUrl(
-    //     Uri.parse(url),
-    //     mode: LaunchMode.platformDefault,
-    //   );
-    // } else {
+    if (kIsWeb) {
+      launchUrl(
+        Uri.parse(url),
+        mode: LaunchMode.platformDefault,
+      );
+    } else {
       Get.to(() => CVFReportWebView(url: url));
-    // }
+    }
     // Navigator.push(
     //   context,
     //   MaterialPageRoute(

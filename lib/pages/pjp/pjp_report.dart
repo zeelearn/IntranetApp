@@ -3,13 +3,16 @@ import 'dart:convert';
 import 'package:Intranet/api/ServiceHandler.dart';
 import 'package:Intranet/api/request/pjp/get_pjp_report_request.dart';
 import 'package:Intranet/api/request/pjp/update_pjpstatus_request.dart';
+import 'package:Intranet/pages/utils/util.dart';
 import 'package:Intranet/pages/widget/MyWebSiteView.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hive/hive.dart';
 import 'package:intl/intl.dart';
 import 'package:timeline_tile/timeline_tile.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../api/response/pjp/pjplistresponse.dart';
 import '../../api/response/pjp/update_pjpstatus_response.dart';
@@ -685,8 +688,7 @@ class _MyPjpReportListState extends State<MyPjpReportScreen>
         }
       }
       loadPjpReport();
-    } else {
-    }
+    } else {}
   }
 
   @override
@@ -795,30 +797,7 @@ class _MyPjpReportListState extends State<MyPjpReportScreen>
                         child: Column(
                           children: [
                             const SizedBox(height: 4),
-                            Container(
-                              padding: EdgeInsets.only(left: 20, right: 20),
-                              color: kPrimaryLightColor.withOpacity(0.4),
-                              child: InkWell(
-                                onTap: () {
-                                  Navigator.of(context).push(MaterialPageRoute(
-                                      builder: (BuildContext context) =>
-                                          MyWebsiteView(
-                                            title:
-                                                'CVF Report - ${cvf.PJPCVF_Id}',
-                                            url:
-                                                'https://intranet.zeelearn.com/cvfreport.html?cid=${cvf.PJPCVF_Id}',
-                                          )));
-                                },
-                                child: Text(
-                                  'View Report',
-                                  style: GoogleFonts.lato(
-                                    fontSize: 14,
-                                    color: Colors.black87,
-                                    fontWeight: FontWeight.normal,
-                                  ),
-                                ),
-                              ),
-                            )
+                           Util.openReportPage(cvf, context)
                           ],
                         ),
                       )
@@ -830,6 +809,8 @@ class _MyPjpReportListState extends State<MyPjpReportScreen>
       ),
     );
   }
+
+ 
 
   @override
   void onSuccess(value) {
@@ -898,8 +879,7 @@ class _MyPjpReportListState extends State<MyPjpReportScreen>
           //mPjpList.addAll(response.responseData);
           //mPjpList = mPjpList.reversed.toList();
         }
-      } else {
-      }
+      } else {}
     }
     setState(() {
       //mPjpList.addAll(response.responseData);

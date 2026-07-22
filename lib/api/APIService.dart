@@ -95,6 +95,8 @@ import 'package:hive/hive.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 
+import 'package:google_maps_webservice/src/places.dart';
+
 import '../pages/helper/LocalConstant.dart';
 import '../pages/helper/LocalStrings.dart';
 import '../pages/helper/utils.dart';
@@ -157,7 +159,7 @@ class APIService {
     }
   }
 
-   Future<void> subscribeToTopicForWeb(String token, String topic) async {
+  Future<void> subscribeToTopicForWeb(String token, String topic) async {
     debugPrint('Messaging token is - $token');
     if (kIsWeb) {
       /* Below code subscribes to topic for web as normal way does not works. */
@@ -179,9 +181,31 @@ class APIService {
     }
   }
 
-   Future<void> unsubscribeToTopicForWeb(String topic,String? token) async {
-   
+  Future<Either<String, Prediction?>> getMatchingLocationList(
+      String address) async {
+    try {
+      var response = await http.get(
+        Uri.parse(
+            '$bpms_url/api/bp/map/place/autocomplete/json?input=$address'),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      );
+      debugPrint('Response from get matching location list api is - ${response.body} and status is - ${response.statusCode} ');
+      if (response.statusCode == 200) {
+        return Right(jsonDecode(response.body)['predictions'].isNotEmpty
+            ? Prediction.fromJson(jsonDecode(response.body)['predictions'][0])
+            : null);
+      } else {
+        return Left('Failed to get matching location list');
+      }
+    } catch (e) {
+      debugPrint('Exception while subscribing for web - $e');
+      return Left('Failed to get matching location list');
+    }
+  }
 
+  Future<void> unsubscribeToTopicForWeb(String topic, String? token) async {
     if (token != null && token.isNotEmpty) {
       /* Below code unsubscribes to topic for web as normal way does not works. */
       try {
@@ -865,15 +889,14 @@ class APIService {
 
   Future<dynamic> getPJPList(PJPListRequest requestModel) async {
     try {
-      
       final response = await http.post(
           Uri.parse(url + LocalStrings.GET_PJP_LIST),
           headers: commonHeaders,
           body: requestModel.getJson());
-      
+
       if (response.statusCode == 200 || response.statusCode == 400) {
         String data = response.body.replaceAll('null', '"NA"');
-      
+
         return PjpListResponse.fromJson(
           json.decode(data),
         );
@@ -888,12 +911,11 @@ class APIService {
   Future<dynamic> getPJPExceptionalList(
       PJPExceptionalRequest requestModel) async {
     try {
-      
       final response = await http.post(
           Uri.parse(url + LocalStrings.GET_PJP_EXCEPTIONAL_LIST),
           headers: commonHeaders,
           body: requestModel.getJson());
-      
+
       if (response.statusCode == 200 || response.statusCode == 400) {
         return PjpExceptionalResponse.fromJson(
           json.decode(response.body),
@@ -912,10 +934,10 @@ class APIService {
           Uri.parse(url + LocalStrings.GET_PJP_REPORT),
           headers: commonHeaders,
           body: requestModel.getJson());
-      
+
       if (response.statusCode == 200 || response.statusCode == 400) {
         String data = response.body.replaceAll('null', '"NA"');
-      
+
         return PjpListResponse.fromJson(
           json.decode(data),
         );

@@ -2888,7 +2888,15 @@ class _PjpInfoCard extends StatelessWidget {
                         pjp.ApprovalStatus != 'Rejected')
                       Padding(
                         padding: const EdgeInsets.only(right: 4),
-                        child: IconButton(
+                        child: OutlinedButton.icon(
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: _accent,
+                            side: BorderSide(color: _accent.withOpacity(0.5)),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 12),
+                            minimumSize: Size.zero,
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
                           icon: const Icon(Icons.add_location_alt_outlined,
                               color: _accent, size: 20),
                           onPressed: () async {
@@ -2902,9 +2910,17 @@ class _PjpInfoCard extends StatelessWidget {
                               onUpdated!();
                             }
                           },
-                          tooltip: 'Add CVF',
-                          padding: EdgeInsets.zero,
-                          constraints: const BoxConstraints(),
+                          label: Text(
+                            'Add CVF',
+                            style: TextStyle(
+                              color: _accent,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          // tooltip: 'Add CVF',
+                          // padding: EdgeInsets.zero,
+                          // constraints: const BoxConstraints(),
                         ),
                       ),
                     if (!isMobile ||
@@ -3622,7 +3638,11 @@ class _VisitTile extends StatelessWidget {
       double distance =
           _calculateDistance(expectedLat, expectedLng, actualLat, actualLng);
       if (distance < 1000) {
-        distanceStr = '${distance.toStringAsFixed(0)}m diff';
+        if (distance <= 300) {
+          distanceStr = 'At Location';
+        } else {
+          distanceStr = '${distance.toStringAsFixed(0)}m diff';
+        }
       } else {
         distanceStr = '${(distance / 1000).toStringAsFixed(1)}km diff';
       }
@@ -3663,10 +3683,23 @@ class _VisitTile extends StatelessWidget {
                 style: GoogleFonts.inter(
                     fontSize: 10, fontWeight: FontWeight.w600, color: _red),
               ),
+              SizedBox(width: 6),
               OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    side: const BorderSide(color: _divider),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(6)),
+                  ),
                   onPressed: () => Util.openGoogleMaps(
                       expectedLat, expectedLng, actualLat, actualLng, context),
-                  child: Text('Open Maps'))
+                  child: Text(
+                    'Open Maps',
+                    style: TextStyle(fontSize: 11),
+                  ))
             ],
           ],
         ),

@@ -1457,9 +1457,9 @@ class Utility {
                         Navigator.pop(dialogContext);
 
                         if (isSuccess) {
-                          Navigator.pop(pageContext);
+                          Navigator.pop(pageContext, pjp);
+                          // listener.onClick(Utility.ACTION_OK, pjp);
                         }
-                        //listener.onClick(Utility.ACTION_OK, pjp);
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: isSuccess ? Colors.green : Colors.red,
