@@ -129,8 +129,8 @@ class DashV2MenuCatalog {
 
   static const _pjpDashboard = DashQuickAccessItem(
     key: 'pjp_dashboard',
-    title: 'PJP Journey',
-    subtitle: 'Summary dashboard',
+    title: 'PJP Journey Plan',
+    subtitle: 'Permanent Journey Plan',
     icon: Icons.electric_car,
     color: DashV2Colors.purple,
     requiresBusiness: true,
@@ -145,8 +145,8 @@ class DashV2MenuCatalog {
       _pjpDashboard,
       _projects,
       _expenses,
-      ///_myPjp,
-      //_myCvf,
+      _myPjp,
+      _myCvf,
       
       if (isBpms) _bpms else _pjpCvfApprovalExp,
       
