@@ -91,7 +91,7 @@ class DashboardScreenV2Controller extends GetxController
   final email = ''.obs;
 
   final businessId = 0.obs;
-  final businessName = ''.obs;
+  final businessName = 'Select Business'.obs;
   final businessApplications = <BusinessApplications>[].obs;
   final isBpms = false.obs;
 
@@ -264,7 +264,7 @@ class DashboardScreenV2Controller extends GetxController
       businessName.value =
           box.get(LocalConstant.KEY_BUSINESS_NAME)?.toString() ?? '';
       isBpms.value = box.containsKey(LocalConstant.KEY_FRANCHISEE_ID);
-
+      print('Dashboard V2 user loaded: ${userFullName.value}, ${employeeCode.value}, ${businessName.value}');
       final imageUrl = box.get(LocalConstant.KEY_EMPLOYEE_AVTAR)?.toString();
       final gender = box.get(LocalConstant.KEY_GENDER)?.toString() ?? '';
       profileImageUrl.value = imageUrl?.isNotEmpty == true
