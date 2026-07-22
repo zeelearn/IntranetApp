@@ -1566,7 +1566,7 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
           Navigator.push(
               context,
               MaterialPageRoute(
-                  builder: (context) => IntranetHomePage(userId: '')));
+                  builder: (context) => DashboardScreenV2(userId: '')));
         },
         label: const Text('Add New'),
         icon: const Icon(Icons.thumb_up),

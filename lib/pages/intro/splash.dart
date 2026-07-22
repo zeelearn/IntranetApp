@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 import '../auth/login.dart';
 import '../helper/LocalConstant.dart';
 import '../helper/utils.dart';
-import '../home/IntranetHomePage.dart';
+import 'package:Intranet/pages/home/v2/dashboard_screenv2.dart';
 import 'intro.dart';
 import '../helper/web_helper.dart';
 import '../auth/magic_link_handler.dart';
@@ -63,7 +63,7 @@ class _SplashScreenState extends State<SplashScreen> {
                 context,
                 MaterialPageRoute(
                     builder: (context) =>
-                        /*currentBusinessName==null || currentBusinessName.isEmpty ? LoginPage(isAutoLogin: true,) : */ IntranetHomePage(
+                        /*currentBusinessName==null || currentBusinessName.isEmpty ? LoginPage(isAutoLogin: true,) : */ DashboardScreenV2(
                           userId: '',
                           receivedAction: widget.receivedAction,
                         )),

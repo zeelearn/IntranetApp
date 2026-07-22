@@ -385,7 +385,7 @@ class _AddNewPjp extends State<AddNewPjp> {
           // Add your onPressed code here!
           savePJP();
           Navigator.push(
-              context, MaterialPageRoute(builder: (context) => IntranetHomePage(userId:'')));
+              context, MaterialPageRoute(builder: (context) => DashboardScreenV2(userId:'')));
 
         },
         label: const Text('SAVE PJP'),
