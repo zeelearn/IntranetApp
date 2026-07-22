@@ -193,7 +193,7 @@ class APIService {
       );
       debugPrint('Response from get matching location list api is - ${response.body} and status is - ${response.statusCode} ');
       if (response.statusCode == 200) {
-        return Right(jsonDecode(response.body)['predictions'].isNotEmpty
+         return Right(jsonDecode(response.body)['predictions'].isNotEmpty
             ? Prediction.fromJson(jsonDecode(response.body)['predictions'][0])
             : null);
       } else {
@@ -895,10 +895,8 @@ class APIService {
           body: requestModel.getJson());
 
       if (response.statusCode == 200 || response.statusCode == 400) {
-        String data = response.body.replaceAll('null', '"NA"');
-
         return PjpListResponse.fromJson(
-          json.decode(data),
+          json.decode(response.body),
         );
       } else {
         return null; //LoginResponseModel(token:"",Status:"Invalid/Wrong Login Details");
@@ -936,10 +934,8 @@ class APIService {
           body: requestModel.getJson());
 
       if (response.statusCode == 200 || response.statusCode == 400) {
-        String data = response.body.replaceAll('null', '"NA"');
-
         return PjpListResponse.fromJson(
-          json.decode(data),
+          json.decode(response.body),
         );
       } else {
         return null;
@@ -959,14 +955,14 @@ class APIService {
           level: 3);
 
       if (response.statusCode == 200 || response.statusCode == 400) {
-        String data = response.body.replaceAll('null', '"NA"');
         return PjpListResponse.fromJson(
-          json.decode(data),
+          json.decode(response.body),
         );
       } else {
         return null;
       }
     } catch (e) {
+      debugPrint("Exception while fetching my team report - ${e.toString()}");
       e.toString();
     }
   }
@@ -1002,16 +998,9 @@ class APIService {
           headers: commonHeaders,
           body: requestModel.getJson());
       if (response.statusCode == 200 || response.statusCode == 400) {
-        String data = response.body.replaceAll('null', 'NA');
-        if (response.body is GetAllCVFResponse) {
-          return GetAllCVFResponse.fromJson(
-            json.decode(data),
-          );
-        } else {
-          return GetAllCVFResponse.fromJson(
-            json.decode(response.body),
-          );
-        }
+        return GetAllCVFResponse.fromJson(
+          json.decode(response.body),
+        );
       } else {
         return null; //LoginResponseModel(token:"",Status:"Invalid/Wrong Login Details");
       }
