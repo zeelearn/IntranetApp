@@ -3,8 +3,10 @@ import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:hive/hive.dart';
 import 'package:saathi/zllsaathi.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../firebase_options.dart';
 import '../../main.dart';
@@ -12,6 +14,31 @@ import '../helper/LocalConstant.dart';
 import '../helper/constants.dart';
 
 class Util {
+  static Future<void> openGoogleMaps(
+    double fromLat,
+    double fromLng,
+    double toLat,
+    double toLng,BuildContext context
+  ) async {
+    final Uri uri = Uri.parse(
+      'https://www.google.com/maps/dir/?api=1'
+      '&origin=$fromLat,$fromLng'
+      '&destination=$toLat,$toLng'
+      '&travelmode=driving',
+    );
+
+    // Navigator.push(
+    //     context,
+    //     MaterialPageRoute(
+    //       builder: (context) =>
+    //           InAppWebView(initialUrlRequest: URLRequest(url: WebUri.uri(uri))),
+    //     ));
+
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.inAppWebView);
+    }
+  }
+
   static String getDisplayTitle(String status) {
     switch (status) {
       case 'All':

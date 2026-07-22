@@ -18,6 +18,7 @@ import 'package:Intranet/pages/pjp/cvf/v2/cvf.dart';
 import 'package:Intranet/pages/pjp/cvf/v2/cvf_controller.dart';
 import 'package:Intranet/pages/pjp/models/PjpModel.dart';
 import 'package:Intranet/pages/utils/theme/colors/light_colors.dart';
+import 'package:Intranet/pages/utils/util.dart';
 import 'package:Intranet/pages/widget/MyWebSiteView.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -3539,33 +3540,33 @@ class _VisitTile extends StatelessWidget {
                       children: [
                         // Check-In
                         _buildActualPoint(
-                          title: 'Check-In',
-                          time: visit.DateTimeIn,
-                          address: visit.AddressIn.isNotEmpty &&
-                                  visit.AddressIn != 'NA'
-                              ? visit.AddressIn
-                              : visit.CheckInAddress,
-                          color: hasCheckIn ? _blue : _textSecondary,
-                          actualLat: visit.LatitudeIn,
-                          actualLng: visit.LongitudeIn,
-                          expectedLat: visit.Latitude,
-                          expectedLng: visit.Longitude,
-                        ),
+                            title: 'Check-In',
+                            time: visit.DateTimeIn,
+                            address: visit.AddressIn.isNotEmpty &&
+                                    visit.AddressIn != 'NA'
+                                ? visit.AddressIn
+                                : visit.CheckInAddress,
+                            color: hasCheckIn ? _blue : _textSecondary,
+                            actualLat: visit.LatitudeIn,
+                            actualLng: visit.LongitudeIn,
+                            expectedLat: visit.Latitude,
+                            expectedLng: visit.Longitude,
+                            context: context),
                         const SizedBox(height: 12),
                         // Check-Out
                         _buildActualPoint(
-                          title: 'Check-Out',
-                          time: visit.DateTimeOut,
-                          address: visit.AddressOut.isNotEmpty &&
-                                  visit.AddressOut != 'NA'
-                              ? visit.AddressOut
-                              : visit.CheckOutAddress,
-                          color: hasCheckOut ? _orange : _textSecondary,
-                          actualLat: visit.LatitudeOut,
-                          actualLng: visit.LongitudeOut,
-                          expectedLat: visit.Latitude,
-                          expectedLng: visit.Longitude,
-                        ),
+                            title: 'Check-Out',
+                            time: visit.DateTimeOut,
+                            address: visit.AddressOut.isNotEmpty &&
+                                    visit.AddressOut != 'NA'
+                                ? visit.AddressOut
+                                : visit.CheckOutAddress,
+                            color: hasCheckOut ? _orange : _textSecondary,
+                            actualLat: visit.LatitudeOut,
+                            actualLng: visit.LongitudeOut,
+                            expectedLat: visit.Latitude,
+                            expectedLng: visit.Longitude,
+                            context: context),
                       ],
                     ),
                   ),
@@ -3610,7 +3611,8 @@ class _VisitTile extends StatelessWidget {
       double actualLat = 0,
       double actualLng = 0,
       double expectedLat = 0,
-      double expectedLng = 0}) {
+      double expectedLng = 0,
+      required BuildContext context}) {
     final bool hasData = time.isNotEmpty && time != 'NA';
     final bool hasActualCoords = actualLat != 0 && actualLng != 0;
     final bool hasExpectedCoords = expectedLat != 0 && expectedLng != 0;
@@ -3661,6 +3663,10 @@ class _VisitTile extends StatelessWidget {
                 style: GoogleFonts.inter(
                     fontSize: 10, fontWeight: FontWeight.w600, color: _red),
               ),
+              OutlinedButton(
+                  onPressed: () => Util.openGoogleMaps(
+                      expectedLat, expectedLng, actualLat, actualLng, context),
+                  child: Text('Open Maps'))
             ],
           ],
         ),

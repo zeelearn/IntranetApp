@@ -825,8 +825,11 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
           //     context, 'Unable to fetch location, Please try again');
           return;
         }
-        latitude = deviceLocation.latitude!;
-        longitude = deviceLocation.longitude!;
+        if (_activityNameController.text.toString().toLowerCase() !=
+            'activity') {
+          latitude = deviceLocation.latitude!;
+          longitude = deviceLocation.longitude!;
+        }
 
         /*if (await Permission.location.request().isGranted) {
           Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.medium);
@@ -911,8 +914,7 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
                     .createOrUpdateEvent(eventToCreate);
                 if (createEventResult!.isSuccess) {
                 } else {
-                  for (var element in createEventResult.errors) {
-                  }
+                  for (var element in createEventResult.errors) {}
                 }
               } catch (_) {}
               Navigator.of(context).pop(
@@ -927,8 +929,7 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
           setState(() {});
         });
       }
-    } else {
-    }
+    } else {}
   }
 
   Widget getCenterDropdown(BuildContext context) {
@@ -1025,7 +1026,8 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(Icons.info_outline, color: Colors.blue.shade700, size: 18),
+                    Icon(Icons.info_outline,
+                        color: Colors.blue.shade700, size: 18),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
@@ -1054,19 +1056,21 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
                         });
                         loadCenterList();
                       } else {
-                        Utility.showMessages(
-                            context, 'Please check your Internet Connection and try again');
+                        Utility.showMessages(context,
+                            'Please check your Internet Connection and try again');
                       }
                     },
                     icon: const Icon(Icons.refresh, size: 16),
                     label: const Text(
                       'Refresh Centers',
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                      style:
+                          TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                     ),
                     style: ElevatedButton.styleFrom(
                       foregroundColor: Colors.white,
                       backgroundColor: LightColor.brighter,
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 8),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(20),
                       ),
@@ -1270,8 +1274,7 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
               strictbounds: false,
               components: [Component(Component.country, 'in')],
               //google_map_webservice package
-              onError: (err) {
-              });
+              onError: (err) {});
 
           if (place != null) {
             setState(() {
@@ -1467,8 +1470,7 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
   Future<String?> _showMultiSelect(BuildContext context) async {
     if (mCategoryList.isEmpty) {
       fetchCategory();
-    } else {
-    }
+    } else {}
 
     // a list of selectable items
     // these items can be hard-coded or dynamically fetched from a database/API
