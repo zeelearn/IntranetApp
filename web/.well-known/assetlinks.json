@@ -1,0 +1,15 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.zeelearn.intranet",
+      "sha256_cert_fingerprints": [
+        "YOUR_RELEASE_SHA256_FINGERPRINT",
+        "5C:9A:81:08:ED:B2:A0:DE:02:AB:16:11:4D:FA:C1:7B:73:67:4A:4D:74:2B:FC:3A:73:C0:31:5D:CD:45:16:A4"
+      ]
+    }
+  }
+]

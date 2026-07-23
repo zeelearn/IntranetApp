@@ -843,7 +843,7 @@ class DashboardScreenV2Controller extends GetxController
     if (initialURI == null) return;
     final context = Get.context;
     if (context == null) return;
-    if (initialURI.toString().contains('zllsaathi.zeelearn.com/ticketDetail')) {
+    if (initialURI.path.contains('ticketDetail')) {
       final params = initialURI.queryParameters;
       final id = params['id'];
       final bId = params['b_id'];

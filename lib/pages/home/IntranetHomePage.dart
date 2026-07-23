@@ -486,7 +486,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
         'udid from deep linkk is - ${initialURI!.path.split('/').elementAt(1)}');
     debugPrint('udid $initialURI');
     debugPrint('udid ${initialURI.queryParameters['id']}');
-    if (initialURI.toString().contains('zllsaathi.zeelearn.com/ticketDetail')) {
+    if (initialURI.path.contains('ticketDetail')) {
       //Saathi Ticket Details
       // print('ticket ID ${initialURI.queryParameters['id']!}');
       // print('BID ${initialURI.queryParameters['b_id']!}');
