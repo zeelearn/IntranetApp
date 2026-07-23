@@ -152,19 +152,19 @@ class _DashboardScreenV2State extends State<DashboardScreenV2> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            // Expanded(
-            //   child: Text('Quick Access', style: DashV2Text.sectionTitle),
-            // ),
-            TextButton.icon(
-              onPressed: controller.onCustomizeTap,
-              icon: const Icon(Icons.tune_rounded, size: 16),
-              label: const Text('Customize'),
-              style: TextButton.styleFrom(foregroundColor: DashV2Colors.blue),
-            ),
-          ],
-        ),
+        // Row(
+        //   children: [
+        //     // Expanded(
+        //     //   child: Text('Quick Access', style: DashV2Text.sectionTitle),
+        //     // ),
+        //     TextButton.icon(
+        //       onPressed: controller.onCustomizeTap,
+        //       icon: const Icon(Icons.tune_rounded, size: 16),
+        //       label: const Text('Customize'),
+        //       style: TextButton.styleFrom(foregroundColor: DashV2Colors.blue),
+        //     ),
+        //   ],
+        // ),
         const SizedBox(height: 12),
         const DashQuickAccessGrid(),
       ],

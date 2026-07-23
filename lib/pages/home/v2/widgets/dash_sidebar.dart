@@ -174,7 +174,6 @@ class _SidebarHeader extends StatelessWidget {
         ),
       );
     }
-
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 16, 8, 14),
       child: Column(
@@ -226,8 +225,8 @@ class _SidebarHeader extends StatelessWidget {
                       style: DashV2Text.caption,
                     ),
                   ],
-                  if (isDrawer &&
-                      businessName.isNotEmpty &&
+                  
+                  if (businessName.isNotEmpty &&
                       businessName != 'null') ...[
                     const SizedBox(height: 6),
                     InkWell(
@@ -236,7 +235,7 @@ class _SidebarHeader extends StatelessWidget {
                         children: [
                           Flexible(
                             child: Text(
-                              businessName,
+                              "${businessName} (Switch Business)",
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: DashV2Text.caption.copyWith(
