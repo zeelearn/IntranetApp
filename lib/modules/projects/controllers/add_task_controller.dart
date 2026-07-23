@@ -132,8 +132,8 @@ class AddTaskController extends GetxController {
     final picked = await showDatePicker(
       context: context,
       initialDate: initial,
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2040),
+      firstDate: DateTime.now().subtract(const Duration(days: 365 * 5)),
+      lastDate: DateTime.now(),
     );
     if (picked != null) {
       target.value = picked;
