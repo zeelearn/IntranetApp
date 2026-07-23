@@ -272,7 +272,7 @@ class DashboardScreenV2Controller extends GetxController
           : gender == 'Male'
               ? 'https://cdn-icons-png.flaticon.com/128/149/149071.png'
               : gender == 'Female' ? 
-               'https://cdn-icons-png.flaticon.com/128/727/727393.png' : ''; 
+               'https://cdn-icons-png.flaticon.com/128/727/727393.png' : 'https://cdn-icons-png.flaticon.com/128/149/149071.png'; 
 
       final encodedAvatar =
           box.get(LocalConstant.KEY_EMPLOYEE_AVTAR_LIST)?.toString();
