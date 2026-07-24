@@ -843,7 +843,7 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
         //   //     context, 'Unable to fetch location, Please try again');
         //   return;
         // }
-        if (_activityNameController.text.toString().toLowerCase() !=
+        if (_purposeMultiSelect.toString().toLowerCase() !=
             'activity') {
           var franchiseeInfo = getFranchiseeDetails();
           debugPrint(
@@ -1317,14 +1317,14 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
           //form google_maps_webservice package
           final plist = GoogleMapsPlaces(
             apiKey: LocalStrings.kGoogleApiKey,
-            apiHeaders: await const GoogleApiHeaders().getHeaders(),
+            baseUrl: '${LocalStrings.bpms}}/api/bp/map'
             //from google_api_headers package
           );
           String placeid = place.placeId ?? "0";
           final detail = await plist.getDetailsByPlaceId(placeid);
           final geometry = detail.result.geometry!;
-          latitude = geometry.location.lat;
-          longitude = geometry.location.lng;
+          // latitude = geometry.location.lat;
+          // longitude = geometry.location.lng;
           return (
             geometry.location.lat.toString(),
             geometry.location.lng.toString()
@@ -1346,7 +1346,7 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
               //mode: Mode.overlay,
               types: [],
               proxyBaseUrl:
-                  'https://kubapi.zeelearn.com/V1/commonapi/api/bp/map',
+                  '${LocalStrings.bpms}/api/bp/map',
               strictbounds: false,
               components: [Component(Component.country, 'in')],
               //google_map_webservice package
@@ -1362,7 +1362,7 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
             //form google_maps_webservice package
             final plist = GoogleMapsPlaces(
               apiKey: LocalStrings.kGoogleApiKey,
-              apiHeaders: await const GoogleApiHeaders().getHeaders(),
+              baseUrl: '${LocalStrings.bpms}/api/bp/map'
               //from google_api_headers package
             );
             String placeid = place.placeId ?? "0";
@@ -1370,6 +1370,8 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
             final geometry = detail.result.geometry!;
             latitude = geometry.location.lat;
             longitude = geometry.location.lng;
+            debugPrint(
+                'Selected Location: $location, Latitude: $latitude, Longitude: $longitude');
             //var newlatlang = LatLng(lat, lang);
 
             //move map camera to selected place with animation
