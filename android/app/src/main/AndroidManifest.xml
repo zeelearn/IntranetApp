@@ -37,6 +37,16 @@
         <intent>
             <action android:name="android.support.customtabs.action.CustomTabsService" />
         </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <!-- If you don't know the MIME type in advance, set "mimeType" to "*/*". -->
+            <data android:mimeType="application/pdf" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.SEND" />
+            <!-- Replace with the MIME type that your app works with, if needed. -->
+            <data android:mimeType="image/jpeg" />
+        </intent>
     </queries>
 
     <application tools:replace="android:label" android:label="Intranet"

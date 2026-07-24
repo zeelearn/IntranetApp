@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:Intranet/pages/helper/LocalConstant.dart';
 import 'package:Intranet/pages/helper/constants.dart';
 import 'package:Intranet/pages/utils/theme/colors/light_colors.dart';
+import 'package:Intranet/pages/utils/toast_utility.dart';
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
@@ -80,33 +81,68 @@ class NotificationService {
     await flutterLocalNotificationsPlugin.initialize(
       initializationSettings,
     );
-
   }
 
   showSimpleNotification(String title, String body,
       [RemoteMessage? message]) async {
     String channel = LocalConstant.NOTIFICATION_CHANNEL;
-    AwesomeNotifications().createNotification(
-        content: NotificationContent(
-      id: -1,
-      channelKey: channel,
-      title: title,
-      body: Utility.removeAllHtmlTags(body),
-      notificationLayout: NotificationLayout.BigText,
-      // summary: body,
-      autoDismissible: true,
-      payload: {
-        'url': message != null ? (message.data['url'] ?? '') : '',
-        'type': message != null ? (message.data['type'] ?? '') : '',
-        'topic': message != null ? (message.data['topic'] ?? '') : '',
-        'bigimage': message != null ? (message.data['bigimage'] ?? '') : '',
-        'webViewLink':
-            message != null ? (message.data['webViewLink'] ?? '') : '',
-        'id': message != null ? (message.data['id'] ?? '') : '',
-        'employee_code':
-            message != null ? (message.data['employee_code'] ?? '') : ''
-      },
-    ));
+    if (kIsWeb) {
+      ToastUtilityIntranet.showInfoToast(message?.data['body'] ?? '');
+      // if (context == null || !context.mounted) return;
+      /* ScaffoldMessenger.maybeOf(context)?.showSnackBar(SnackBar(
+          duration: Duration(seconds: 20),
+          showCloseIcon: false,
+          closeIconColor: Colors.redAccent,
+          backgroundColor: /* item.colorCode?.toColor() ?? */
+              kPrimaryLightColor,
+          margin: EdgeInsets.only(
+              left: MediaQuery.of(context).size.width / 2,
+              right: 10,
+              bottom: 20),
+          behavior: SnackBarBehavior.floating,
+          content: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              Text(
+                message.data['title'],
+                style: LightColors.subTextStyle.copyWith(color: Colors.white),
+              ),
+              SizedBox(
+                height: 5,
+              ),
+              Text(
+                message.data['body'],
+                style: LightColors.subTextStyle.copyWith(color: Colors.white),
+              ),
+              SizedBox(
+                height: 5,
+              ),
+            ],
+          ))); */
+    } else {
+      AwesomeNotifications().createNotification(
+          content: NotificationContent(
+        id: -1,
+        channelKey: channel,
+        title: title,
+        body: Utility.removeAllHtmlTags(body),
+        notificationLayout: NotificationLayout.BigText,
+        // summary: body,
+        autoDismissible: true,
+        payload: {
+          'url': message != null ? (message.data['url'] ?? '') : '',
+          'type': message != null ? (message.data['type'] ?? '') : '',
+          'topic': message != null ? (message.data['topic'] ?? '') : '',
+          'bigimage': message != null ? (message.data['bigimage'] ?? '') : '',
+          'webViewLink':
+              message != null ? (message.data['webViewLink'] ?? '') : '',
+          'id': message != null ? (message.data['id'] ?? '') : '',
+          'employee_code':
+              message != null ? (message.data['employee_code'] ?? '') : ''
+        },
+      ));
+    }
   }
 
   showBigNotification(String title, String body, String logo, String imageUrl,
@@ -224,7 +260,7 @@ class NotificationService {
     RemoteMessage message, {
     BuildContext? context,
   }) async {
-    print('parse Notification 217');
+    // print('parse Notification 217');
     String cdate = DateFormat("yyyy-MM-dd hh:mm a").format(DateTime.now());
     String? imsageUrl = '';
     if (kIsWeb) {
@@ -362,43 +398,9 @@ void identifySaathiNotification(RemoteMessage message,
             message.data.containsKey('id') ? message.data['id'] as String : '');
     helper.insert(LocalConstant.TABLE_NOTIFICATION, data);
     NotificationService notificationService = NotificationService();
-    if (kIsWeb) {
-      if (context == null || !context.mounted) return;
-      ScaffoldMessenger.maybeOf(context)?.showSnackBar(SnackBar(
-          duration: Duration(seconds: 20),
-          showCloseIcon: false,
-          closeIconColor: Colors.redAccent,
-          backgroundColor: /* item.colorCode?.toColor() ?? */
-              kPrimaryLightColor,
-          margin: EdgeInsets.only(
-              left: MediaQuery.of(context).size.width / 2,
-              right: 10,
-              bottom: 20),
-          behavior: SnackBarBehavior.floating,
-          content: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              Text(
-                message.data['title'],
-                style: LightColors.subTextStyle.copyWith(color: Colors.white),
-              ),
-              SizedBox(
-                height: 5,
-              ),
-              Text(
-                message.data['body'],
-                style: LightColors.subTextStyle.copyWith(color: Colors.white),
-              ),
-              SizedBox(
-                height: 5,
-              ),
-            ],
-          )));
-    } else {
-      notificationService.showSimpleNotification(
-          message.data['title'], message.data['body'], message);
-    }
+
+    notificationService.showSimpleNotification(
+        message.data['title'], message.data['body'], message);
   }
 }
 

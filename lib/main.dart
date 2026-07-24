@@ -27,6 +27,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -48,6 +49,7 @@ import 'package:saathi/model/ticketModel/ticket_model.dart';
 import 'package:saathi/zllsaathi.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+import 'package:toastification/toastification.dart';
 
 import 'api/APIService.dart';
 import 'api/request/cvf/update_cvf_status_request.dart';
@@ -254,6 +256,11 @@ final localhostServer =
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    // Uncomment if you also want upside-down portrait on supported devices:
+    // DeviceOrientation.portraitDown,
+  ]);
   if (kReleaseMode) {
     debugPrint = (String? message, {int? wrapWidth}) {};
   }
@@ -328,7 +335,7 @@ Future<void> main() async {
   PermissionUtil.requestPermission();
 
   await Hive.initFlutter();
-  
+
   if (!Hive.isAdapterRegistered(103)) {
     Hive.registerAdapter(TicketModelAdapter());
   }
@@ -343,7 +350,7 @@ Future<void> main() async {
   //await Hive.openBox<NotificationModel>(HiveConstant.key_NotificationList);
   await Hive.openBox(HiveConstant.box_SSOUser);
   await Hive.openBox(HiveConstant.key_logindetails);
-  
+
   DependencyInjection.init();
 
   //await initializeService();
@@ -700,9 +707,10 @@ Future<void> setup() async {
       InitializationSettings(android: androidSetting, iOS: iosSetting);
 
   // #3
-  await flutterLocalNotificationsPlugin?.initialize(initSettings).then((_) {
-  }).catchError((Object error) {
-  });
+  await flutterLocalNotificationsPlugin
+      ?.initialize(initSettings)
+      .then((_) {})
+      .catchError((Object error) {});
 }
 
 Future _showNotificationWithDefaultSound(
@@ -793,119 +801,123 @@ class _MyAppState extends State<MyApp> {
     // GetMaterialApp initialises GetX (routing, dependency injection,
     // snackbars and reactive state) while remaining a drop-in replacement
     // for MaterialApp.
-    return GetMaterialApp(
-      key: UniqueKey(),
-      localizationsDelegates: const [
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-      ],
-      supportedLocales: const [
-        Locale('en', ''), // English, no country code
-      ],
-      navigatorKey: MyApp.navigatorKey,
-      debugShowCheckedModeBanner: false,
-      title: 'Intranet',
-      themeMode: ThemeMode.light,
-      builder: (context, child) => ResponsiveBreakpoints.builder(
-        child: child!,
-        breakpoints: [
-          const Breakpoint(start: 0, end: 360, name: 'SMALL_MOBILE'),
-          const Breakpoint(start: 361, end: 450, name: MOBILE),
-          const Breakpoint(start: 451, end: 800, name: TABLET),
-          const Breakpoint(start: 801, end: 1920, name: DESKTOP),
-          const Breakpoint(start: 1921, end: double.infinity, name: '4K'),
+    return ToastificationWrapper(
+      child: GetMaterialApp(
+        key: UniqueKey(),
+        localizationsDelegates: const [
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
         ],
-      ),
-      theme: ThemeData(
-        useMaterial3: true,
-        checkboxTheme: CheckboxThemeData(
-          checkColor: WidgetStateProperty.all(Colors.white),
-          //fillColor: MaterialStateProperty.all(Colors.white),
-          fillColor: WidgetStateColor.resolveWith(
-            (states) {
-              if (states.contains(WidgetState.selected)) {
-                return kPrimaryLightColor; // the color when checkbox is selected;
-              }
-              return Colors.black12; //the color when checkbox is unselected;
-            },
+        supportedLocales: const [
+          Locale('en', ''), // English, no country code
+        ],
+        navigatorKey: MyApp.navigatorKey,
+        debugShowCheckedModeBanner: false,
+        title: 'Intranet',
+        themeMode: ThemeMode.light,
+        builder: (context, child) => ResponsiveBreakpoints.builder(
+          child: child!,
+          breakpoints: [
+            const Breakpoint(start: 0, end: 360, name: 'SMALL_MOBILE'),
+            const Breakpoint(start: 361, end: 450, name: MOBILE),
+            const Breakpoint(start: 451, end: 800, name: TABLET),
+            const Breakpoint(start: 801, end: 1920, name: DESKTOP),
+            const Breakpoint(start: 1921, end: double.infinity, name: '4K'),
+          ],
+        ),
+        theme: ThemeData(
+          useMaterial3: true,
+          checkboxTheme: CheckboxThemeData(
+            checkColor: WidgetStateProperty.all(Colors.white),
+            //fillColor: MaterialStateProperty.all(Colors.white),
+            fillColor: WidgetStateColor.resolveWith(
+              (states) {
+                if (states.contains(WidgetState.selected)) {
+                  return kPrimaryLightColor; // the color when checkbox is selected;
+                }
+                return Colors.black12; //the color when checkbox is unselected;
+              },
+            ),
+            overlayColor: WidgetStateProperty.all(Colors.black),
+            side: const BorderSide(color: Color(0xff585858)),
           ),
-          overlayColor: WidgetStateProperty.all(Colors.black),
-          side: const BorderSide(color: Color(0xff585858)),
-        ),
-        tabBarTheme: const TabBarThemeData(
-          labelColor: Colors.pink,
-          labelStyle: TextStyle(color: Colors.pink), // color for text
-          indicator: UnderlineTabIndicator(
-              // color for indicator (underline)
-              borderSide: BorderSide(color: LightColors.kLightGray1)),
-        ),
-        elevatedButtonTheme: ElevatedButtonThemeData(
-            style: ElevatedButton.styleFrom(
-          foregroundColor: Colors.white,
-          backgroundColor: kPrimaryLightColor,
-          textStyle: const TextStyle(
-            color: Colors.white,
+          tabBarTheme: const TabBarThemeData(
+            labelColor: Colors.pink,
+            labelStyle: TextStyle(color: Colors.pink), // color for text
+            indicator: UnderlineTabIndicator(
+                // color for indicator (underline)
+                borderSide: BorderSide(color: LightColors.kLightGray1)),
           ),
-        )),
-        fontFamily: 'Roboto',
-        appBarTheme: const AppBarTheme(
-          // <-- SEE HERE
-          color: kPrimaryLightColor,
-          iconTheme: IconThemeData(color: Colors.white),
-          titleTextStyle:
-              TextStyle(fontSize: 17, color: Colors.white, letterSpacing: 0.53),
+          elevatedButtonTheme: ElevatedButtonThemeData(
+              style: ElevatedButton.styleFrom(
+            foregroundColor: Colors.white,
+            backgroundColor: kPrimaryLightColor,
+            textStyle: const TextStyle(
+              color: Colors.white,
+            ),
+          )),
+          fontFamily: 'Roboto',
+          appBarTheme: const AppBarTheme(
+            // <-- SEE HERE
+            color: kPrimaryLightColor,
+            iconTheme: IconThemeData(color: Colors.white),
+            titleTextStyle: TextStyle(
+                fontSize: 17, color: Colors.white, letterSpacing: 0.53),
+          ),
+          colorScheme: const ColorScheme(
+            brightness: Brightness.light,
+            primary: kPrimaryLightColor,
+            onPrimary: Colors.black,
+            secondary: Colors.green,
+            onSecondary: Colors.black45,
+            primaryContainer: Colors.white,
+            error: Colors.black,
+            onError: Colors.red,
+            surface: Colors.white,
+            onSurface: Colors.black87,
+            outline: LightColors.kLightGrayM,
+          ),
+          dialogTheme: const DialogThemeData(
+            backgroundColor: Colors.white,
+            titleTextStyle: TextStyle(
+                fontWeight: FontWeight.w500,
+                fontSize: 16,
+                color: Colors.black54),
+          ),
+          inputDecorationTheme: InputDecorationTheme(
+              filled: true,
+              fillColor: Colors.white,
+              errorStyle: LightColors.textsubtitle,
+              helperStyle: LightColors.textsubtitle,
+              hintStyle: LightColors.textsubtitle,
+              focusedErrorBorder: LightColors.kRed.getOutlineBorder,
+              errorBorder: LightColors.kRed.getOutlineBorder,
+              focusedBorder: Colors.black45.getOutlineBorder,
+              iconColor: Colors.black38,
+              prefixIconColor: Colors.black38,
+              enabledBorder: Colors.black12.getOutlineBorder,
+              disabledBorder: Colors.black12.getOutlineBorder,
+              errorMaxLines: 1,
+              suffixIconColor: kPrimaryLightColor,
+              floatingLabelStyle: const TextStyle(
+                color: Colors.black38,
+                backgroundColor: Colors.white,
+              )),
+          textTheme: Theme.of(context).textTheme.apply(bodyColor: Colors.black),
+          primaryTextTheme: Typography().black,
+          textSelectionTheme: const TextSelectionThemeData(
+            cursorColor: kPrimaryLightColor,
+            selectionColor: kPrimaryLightColor,
+            selectionHandleColor: kPrimaryLightColor,
+          ),
+          buttonTheme: const ButtonThemeData(
+            buttonColor: kPrimaryLightColor,
+            textTheme: ButtonTextTheme.primary,
+          ),
         ),
-        colorScheme: const ColorScheme(
-          brightness: Brightness.light,
-          primary: kPrimaryLightColor,
-          onPrimary: Colors.black,
-          secondary: Colors.green,
-          onSecondary: Colors.black45,
-          primaryContainer: Colors.white,
-          error: Colors.black,
-          onError: Colors.red,
-          surface: Colors.white,
-          onSurface: Colors.black87,
-          outline: LightColors.kLightGrayM,
+        home: /*  SummaryDashboard() */ SplashScreen(
+          receivedAction: widget.receivedAction,
         ),
-        dialogTheme: const DialogThemeData(
-          backgroundColor: Colors.white,
-          titleTextStyle: TextStyle(
-              fontWeight: FontWeight.w500, fontSize: 16, color: Colors.black54),
-        ),
-        inputDecorationTheme: InputDecorationTheme(
-            filled: true,
-            fillColor: Colors.white,
-            errorStyle: LightColors.textsubtitle,
-            helperStyle: LightColors.textsubtitle,
-            hintStyle: LightColors.textsubtitle,
-            focusedErrorBorder: LightColors.kRed.getOutlineBorder,
-            errorBorder: LightColors.kRed.getOutlineBorder,
-            focusedBorder: Colors.black45.getOutlineBorder,
-            iconColor: Colors.black38,
-            prefixIconColor: Colors.black38,
-            enabledBorder: Colors.black12.getOutlineBorder,
-            disabledBorder: Colors.black12.getOutlineBorder,
-            errorMaxLines: 1,
-            suffixIconColor: kPrimaryLightColor,
-            floatingLabelStyle: const TextStyle(
-              color: Colors.black38,
-              backgroundColor: Colors.white,
-            )),
-        textTheme: Theme.of(context).textTheme.apply(bodyColor: Colors.black),
-        primaryTextTheme: Typography().black,
-        textSelectionTheme: const TextSelectionThemeData(
-          cursorColor: kPrimaryLightColor,
-          selectionColor: kPrimaryLightColor,
-          selectionHandleColor: kPrimaryLightColor,
-        ),
-        buttonTheme: const ButtonThemeData(
-          buttonColor: kPrimaryLightColor,
-          textTheme: ButtonTextTheme.primary,
-        ),
-      ),
-      home: /*  SummaryDashboard() */ SplashScreen(
-        receivedAction: widget.receivedAction,
       ),
     );
   }

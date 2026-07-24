@@ -54,7 +54,7 @@ class _MyPjpListState extends State<MyPjpManAListScreen>
   void initState() {
     // TODO: implement initState
     super.initState();
-    print('PJP manager screen');
+    // print('PJP manager screen');
     FirebaseAnalyticsUtils().sendAnalyticsEvent('MyPjp');
     Future.delayed(Duration.zero, () {
       this.getUserInfo();

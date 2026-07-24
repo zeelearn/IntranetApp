@@ -29,12 +29,12 @@
             "type": "dart",
             "flutterMode": "release",
             "args": [
-                "-d",
-                "chrome",
-                "-v",
-                "--web-browser-flag",
-                "--disable-web-security",
-                "--dart-define=IS_STAGING=false"
+                // "-d",
+                // "chrome",
+                // "-v",
+                // "--web-browser-flag",
+                // "--disable-web-security",
+                "--dart-define=IS_STAGING=true"
             ]
         }
     ]

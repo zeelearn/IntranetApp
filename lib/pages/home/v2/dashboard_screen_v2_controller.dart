@@ -264,7 +264,7 @@ class DashboardScreenV2Controller extends GetxController
       businessName.value =
           box.get(LocalConstant.KEY_BUSINESS_NAME)?.toString() ?? '';
       isBpms.value = box.containsKey(LocalConstant.KEY_FRANCHISEE_ID);
-      print('Dashboard V2 user loaded: ${userFullName.value}, ${employeeCode.value}, ${businessName.value}');
+      // print('Dashboard V2 user loaded: ${userFullName.value}, ${employeeCode.value}, ${businessName.value}');
       final imageUrl = box.get(LocalConstant.KEY_EMPLOYEE_AVTAR)?.toString();
       final gender = box.get(LocalConstant.KEY_GENDER)?.toString() ?? '';
       profileImageUrl.value = imageUrl?.isNotEmpty == true

@@ -18,6 +18,7 @@ import 'package:Intranet/pages/pjp/cvf/v2/cvf.dart';
 import 'package:Intranet/pages/pjp/cvf/v2/cvf_controller.dart';
 import 'package:Intranet/pages/pjp/models/PjpModel.dart';
 import 'package:Intranet/pages/utils/theme/colors/light_colors.dart';
+import 'package:Intranet/pages/utils/util.dart';
 import 'package:Intranet/pages/widget/MyWebSiteView.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -2709,7 +2710,6 @@ class _PjpInfoCard extends StatelessWidget {
   final String empCode;
   final String empName;
 
-
   const _PjpInfoCard(
       {required this.pjp,
       required this.color,
@@ -2888,7 +2888,15 @@ class _PjpInfoCard extends StatelessWidget {
                         pjp.ApprovalStatus != 'Rejected')
                       Padding(
                         padding: const EdgeInsets.only(right: 4),
-                        child: IconButton(
+                        child: OutlinedButton.icon(
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: _accent,
+                            side: BorderSide(color: _accent.withOpacity(0.5)),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 12),
+                            minimumSize: Size.zero,
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
                           icon: const Icon(Icons.add_location_alt_outlined,
                               color: _accent, size: 20),
                           onPressed: () async {
@@ -2902,9 +2910,17 @@ class _PjpInfoCard extends StatelessWidget {
                               onUpdated!();
                             }
                           },
-                          tooltip: 'Add CVF',
-                          padding: EdgeInsets.zero,
-                          constraints: const BoxConstraints(),
+                          label: Text(
+                            'Add CVF',
+                            style: TextStyle(
+                              color: _accent,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          // tooltip: 'Add CVF',
+                          // padding: EdgeInsets.zero,
+                          // constraints: const BoxConstraints(),
                         ),
                       ),
                     if (!isMobile ||
@@ -3124,8 +3140,7 @@ class _CheckInClickListener implements onClickListener {
       if (action == Utility.ACTION_OK) {
         updateCVF(cvfView);
       } else if (action == Utility.ACTION_CCNCEL) {}
-    } else {
-    }
+    } else {}
   }
 }
 
@@ -3191,7 +3206,6 @@ class _VisitTile extends StatelessWidget {
         visit.DateTimeOut.isNotEmpty && visit.DateTimeOut != 'NA';
     final bool isCancelled =
         visit.IsCancelled || visit.Status.trim().toLowerCase() == 'cancelled';
-
 
     final canRescheduleVisit = controller.canReschedule(visit);
     final canCancelVisit = controller.canRescheduleOrCancel(visit);
@@ -3421,9 +3435,9 @@ class _VisitTile extends StatelessWidget {
                       ),
                     ],
                   ),
-                  if (!isCompleted &&
+                  if (/* !isCompleted && */
                       visit.Address.trim().isNotEmpty &&
-                      visit.Address.trim() != 'NA') ...[
+                          visit.Address.trim() != 'NA') ...[
                     const SizedBox(height: 4),
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -3485,7 +3499,7 @@ class _VisitTile extends StatelessWidget {
                   ),
                 ),
               ),
-              WebCardActions(controller: controller, cvf: visit),
+            WebCardActions(controller: controller, cvf: visit),
             if (isCancelled &&
                 visit.remarks.isNotEmpty &&
                 visit.remarks != 'NA')
@@ -3542,33 +3556,33 @@ class _VisitTile extends StatelessWidget {
                       children: [
                         // Check-In
                         _buildActualPoint(
-                          title: 'Check-In',
-                          time: visit.DateTimeIn,
-                          address: visit.AddressIn.isNotEmpty &&
-                                  visit.AddressIn != 'NA'
-                              ? visit.AddressIn
-                              : visit.CheckInAddress,
-                          color: hasCheckIn ? _blue : _textSecondary,
-                          actualLat: visit.LatitudeIn,
-                          actualLng: visit.LongitudeIn,
-                          expectedLat: visit.Latitude,
-                          expectedLng: visit.Longitude,
-                        ),
+                            title: 'Check-In',
+                            time: visit.DateTimeIn,
+                            address: visit.AddressIn.isNotEmpty &&
+                                    visit.AddressIn != 'NA'
+                                ? visit.AddressIn
+                                : visit.CheckInAddress,
+                            color: hasCheckIn ? _blue : _textSecondary,
+                            actualLat: visit.LatitudeIn,
+                            actualLng: visit.LongitudeIn,
+                            expectedLat: visit.Latitude,
+                            expectedLng: visit.Longitude,
+                            context: context),
                         const SizedBox(height: 12),
                         // Check-Out
                         _buildActualPoint(
-                          title: 'Check-Out',
-                          time: visit.DateTimeOut,
-                          address: visit.AddressOut.isNotEmpty &&
-                                  visit.AddressOut != 'NA'
-                              ? visit.AddressOut
-                              : visit.CheckOutAddress,
-                          color: hasCheckOut ? _orange : _textSecondary,
-                          actualLat: visit.LatitudeOut,
-                          actualLng: visit.LongitudeOut,
-                          expectedLat: visit.Latitude,
-                          expectedLng: visit.Longitude,
-                        ),
+                            title: 'Check-Out',
+                            time: visit.DateTimeOut,
+                            address: visit.AddressOut.isNotEmpty &&
+                                    visit.AddressOut != 'NA'
+                                ? visit.AddressOut
+                                : visit.CheckOutAddress,
+                            color: hasCheckOut ? _orange : _textSecondary,
+                            actualLat: visit.LatitudeOut,
+                            actualLng: visit.LongitudeOut,
+                            expectedLat: visit.Latitude,
+                            expectedLng: visit.Longitude,
+                            context: context),
                       ],
                     ),
                   ),
@@ -3613,7 +3627,8 @@ class _VisitTile extends StatelessWidget {
       double actualLat = 0,
       double actualLng = 0,
       double expectedLat = 0,
-      double expectedLng = 0}) {
+      double expectedLng = 0,
+      required BuildContext context}) {
     final bool hasData = time.isNotEmpty && time != 'NA';
     final bool hasActualCoords = actualLat != 0 && actualLng != 0;
     final bool hasExpectedCoords = expectedLat != 0 && expectedLng != 0;
@@ -3623,7 +3638,11 @@ class _VisitTile extends StatelessWidget {
       double distance =
           _calculateDistance(expectedLat, expectedLng, actualLat, actualLng);
       if (distance < 1000) {
-        distanceStr = '${distance.toStringAsFixed(0)}m diff';
+        if (distance <= 300) {
+          distanceStr = 'At Location';
+        } else {
+          distanceStr = '${distance.toStringAsFixed(0)}m diff';
+        }
       } else {
         distanceStr = '${(distance / 1000).toStringAsFixed(1)}km diff';
       }
@@ -3664,6 +3683,23 @@ class _VisitTile extends StatelessWidget {
                 style: GoogleFonts.inter(
                     fontSize: 10, fontWeight: FontWeight.w600, color: _red),
               ),
+              SizedBox(width: 6),
+              OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    side: const BorderSide(color: _divider),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(6)),
+                  ),
+                  onPressed: () => Util.openGoogleMaps(
+                      expectedLat, expectedLng, actualLat, actualLng, context),
+                  child: Text(
+                    'Open Maps',
+                    style: TextStyle(fontSize: 11),
+                  ))
             ],
           ],
         ),
@@ -3769,7 +3805,8 @@ class _VisitTile extends StatelessWidget {
     navigator.pop();
 
     if (response != null) {
-      if (context.mounted) Utility.showMessage(context, 'CVF Cancelled successfully');
+      if (context.mounted)
+        Utility.showMessage(context, 'CVF Cancelled successfully');
       visit.IsCancelled = true;
       visit.Status = 'Cancelled';
       visit.remarks = remark;
@@ -3887,8 +3924,8 @@ class _VisitTile extends StatelessWidget {
                   child: const Text("Reschedule"),
                   onPressed: () {
                     if (_remarkController.text.trim().isEmpty) {
-                      Utility.showMessage(
-                          dialogContext, 'Please enter a reason for rescheduling');
+                      Utility.showMessage(dialogContext,
+                          'Please enter a reason for rescheduling');
                     } else {
                       // Pop dialog first (sync), then run async with outerContext
                       Navigator.of(dialogContext).pop();
@@ -3947,7 +3984,8 @@ class _VisitTile extends StatelessWidget {
     navigator.pop();
 
     if (response != null) {
-      if (context.mounted) Utility.showMessage(context, 'CVF Rescheduled successfully');
+      if (context.mounted)
+        Utility.showMessage(context, 'CVF Rescheduled successfully');
       if (visit.cvfHistory == null) {
         visit.cvfHistory = [];
       }
@@ -3968,7 +4006,8 @@ class _VisitTile extends StatelessWidget {
       visit.remarks = remark;
       onCVFUpdateSuccess(visit);
     } else {
-      if (context.mounted) Utility.showMessage(context, 'Failed to reschedule CVF');
+      if (context.mounted)
+        Utility.showMessage(context, 'Failed to reschedule CVF');
     }
   }
 }
