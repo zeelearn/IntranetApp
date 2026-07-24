@@ -2576,6 +2576,7 @@ class _DayEventsScreenState extends State<_DayEventsScreen> {
   static const Color _textSecondary = Color(0xFF6B7280);
 
   bool _isUpdated = false;
+  late List<PJPInfo> _pjpList;
 
   void _refresh() {
     if (mounted) {
@@ -2585,11 +2586,44 @@ class _DayEventsScreenState extends State<_DayEventsScreen> {
     }
   }
 
+  void _refreshData(GetDetailedPJP updatedVisit) {
+    debugPrint('in Refereshing data');
+    for (final pjp in _pjpList) {
+      final visits = pjp.getDetailedPJP;
+      if (visits == null) continue;
+
+      final index = visits.indexWhere(
+        (v) => v.PJPCVF_Id == updatedVisit.PJPCVF_Id,
+      );
+
+      if (index >= 0) {
+        visits[index] = updatedVisit;
+        break;
+      }
+    }
+
+    if (mounted) {
+      setState(() {
+        _isUpdated = true;
+      });
+    }
+  }
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    _pjpList = widget.events
+        .map((e) => e.pjpInfo)
+        .whereType<PJPInfo>()
+        .toList();
+  }
+
   @override
   Widget build(BuildContext context) {
     // Extract PJPInfo objects (non-null) from events
-    final pjpList =
-        widget.events.map((e) => e.pjpInfo).whereType<PJPInfo>().toList();
+    // final pjpList =
+    //     widget.events.map((e) => e.pjpInfo).whereType<PJPInfo>().toList();
+    final pjpList = _pjpList;
 
     return Scaffold(
       backgroundColor: _mainBg,
@@ -2635,6 +2669,7 @@ class _DayEventsScreenState extends State<_DayEventsScreen> {
                     pjp: pjp,
                     color: widget.events[index].color,
                     onUpdated: _refresh,
+                    onUpdateCVF: _refreshData,
                     empCode: widget.empCode,
                     empName: widget.empName,
                   );
@@ -2707,6 +2742,7 @@ class _PjpInfoCard extends StatelessWidget {
   final PJPInfo pjp;
   final Color color;
   final VoidCallback? onUpdated;
+  final Function(GetDetailedPJP)? onUpdateCVF;
   final String empCode;
   final String empName;
 
@@ -2714,6 +2750,7 @@ class _PjpInfoCard extends StatelessWidget {
       {required this.pjp,
       required this.color,
       this.onUpdated,
+      this.onUpdateCVF,
       required this.empCode,
       required this.empName});
 
@@ -3039,6 +3076,10 @@ class _PjpInfoCard extends StatelessWidget {
                   controller: controller,
                   pjpApprovalStatus: pjp.ApprovalStatus,
                   isViewOnly: pjp.isSelfPJP.trim() != '1',
+                  onCVFUpdateStatusSuccess: (updatedVisit) {
+                    debugPrint('in onCVFUpdateStatusSuccess ${updatedVisit.toJson()}');
+                    if(onUpdateCVF !=null) onUpdateCVF!(updatedVisit);
+                  },
                   onCVFUpdateSuccess: (p0) {
                     if (onUpdated != null) onUpdated!();
                   },
@@ -3150,6 +3191,7 @@ class _VisitTile extends StatelessWidget {
   final bool isViewOnly;
   final onResponse onupdateResponse;
   final Function(GetDetailedPJP) onCVFUpdateSuccess;
+  final Function(GetDetailedPJP) onCVFUpdateStatusSuccess;
   final String pjpApprovalStatus;
   final CVFController controller;
   const _VisitTile(
@@ -3157,6 +3199,7 @@ class _VisitTile extends StatelessWidget {
       required this.isViewOnly,
       required this.onupdateResponse,
       required this.onCVFUpdateSuccess,
+      required this.onCVFUpdateStatusSuccess,
       required this.pjpApprovalStatus,
       required this.controller});
 
@@ -3335,48 +3378,48 @@ class _VisitTile extends StatelessWidget {
                       ),
                     ),
                   ),
-                const Spacer(),
-                if (!isCancelled &&
-                    !isViewOnly &&
-                    (visit.Status == 'Check In' || visit.Status == 'NA')) ...[
-                  GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: () {}, // Blocks tap propagation to InkWell
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        if (pjpApprovalStatus.toLowerCase().contains('approv'))
-                          IconButton(
-                            icon: const Icon(Icons.edit_calendar,
-                                color: Colors.blue, size: 20),
-                            tooltip: 'Reschedule',
-                            padding: EdgeInsets.zero,
-                            constraints: const BoxConstraints(),
-                            onPressed: () {
-                              if (visit.hasPjpRange) {
-                                _showRescheduleDialog(context);
-                              } else {
-                                Utility.showMessage(context,
-                                    "Cannot reschedule: PJP range not available.");
-                              }
-                            },
-                          ),
-                        // if (pjpApprovalStatus.toLowerCase().contains('approv'))
-                        //   const SizedBox(width: 8),
-                        // IconButton(
-                        //   icon: const Icon(Icons.cancel, color: Colors.red, size: 20),
-                        //   tooltip: 'Cancel',
-                        //   padding: EdgeInsets.zero,
-                        //   constraints: const BoxConstraints(),
-                        //   onPressed: () {
-                        //     controller.showCancelDialog(context, visit);
-                        //     //_showCancelConfirmation(context);
-                        //   },
-                        // ),
-                      ],
-                    ),
-                  ),
-                ],
+                // const Spacer(),
+                // if (!isCancelled &&
+                //     !isViewOnly &&
+                //     (visit.Status == 'Check In' || visit.Status == 'NA')) ...[
+                //   GestureDetector(
+                //     behavior: HitTestBehavior.opaque,
+                //     onTap: () {}, // Blocks tap propagation to InkWell
+                //     child: Row(
+                //       mainAxisSize: MainAxisSize.min,
+                //       children: [
+                //         if (pjpApprovalStatus.toLowerCase().contains('approv'))
+                //           IconButton(
+                //             icon: const Icon(Icons.edit_calendar,
+                //                 color: Colors.blue, size: 20),
+                //             tooltip: 'Reschedule',
+                //             padding: EdgeInsets.zero,
+                //             constraints: const BoxConstraints(),
+                //             onPressed: () {
+                //               if (visit.hasPjpRange) {
+                //                 _showRescheduleDialog(context);
+                //               } else {
+                //                 Utility.showMessage(context,
+                //                     "Cannot reschedule: PJP range not available.");
+                //               }
+                //             },
+                //           ),
+                //         // if (pjpApprovalStatus.toLowerCase().contains('approv'))
+                //         //   const SizedBox(width: 8),
+                //         // IconButton(
+                //         //   icon: const Icon(Icons.cancel, color: Colors.red, size: 20),
+                //         //   tooltip: 'Cancel',
+                //         //   padding: EdgeInsets.zero,
+                //         //   constraints: const BoxConstraints(),
+                //         //   onPressed: () {
+                //         //     controller.showCancelDialog(context, visit);
+                //         //     //_showCancelConfirmation(context);
+                //         //   },
+                //         // ),
+                //       ],
+                //     ),
+                //   ),
+                // ],
               ],
             ),
             if (visit.franchiseeName.trim().isNotEmpty &&
@@ -3487,7 +3530,7 @@ class _VisitTile extends StatelessWidget {
                           .map((history) => Padding(
                                 padding: const EdgeInsets.only(top: 4.0),
                                 child: Text(
-                                  '${Utility.shortDate(Utility.convertServerDate(history.visitDate))} at ${Utility.shortTime(Utility.convertTime(history.visitTime))} ${Utility.shortTimeAMPM(Utility.convertTime(history.visitTime))}',
+                                  '${Utility.shortDate(Utility.convertServerDate(history.visitDate))} at ${Utility.shortTime(Utility.convertTime(history.visitTime))} ${Utility.shortTimeAMPM(Utility.convertTime(history.visitTime))} - ${history.remarks}',
                                   style: GoogleFonts.inter(
                                     fontSize: 11,
                                     color: Colors.black87,
@@ -3499,7 +3542,10 @@ class _VisitTile extends StatelessWidget {
                   ),
                 ),
               ),
-            WebCardActions(controller: controller, cvf: visit),
+            WebCardActions(controller: controller, cvf: visit,onVisitUpdated: (p0) {
+              debugPrint('in WebCard Actions ${p0.toString()}');
+              onCVFUpdateStatusSuccess(p0);
+            },),
             if (isCancelled &&
                 visit.remarks.isNotEmpty &&
                 visit.remarks != 'NA')

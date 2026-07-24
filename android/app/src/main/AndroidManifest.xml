@@ -87,6 +87,10 @@
                     android:host="zllsaathi.zeelearn.com" />
 
                 <data
+                    android:scheme="zeelearn"
+                    android:host="home"/>
+
+                <data
                     android:scheme="https"
                     android:host="staging.pentemind.com" />
 
