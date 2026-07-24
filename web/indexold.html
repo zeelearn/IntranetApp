@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html>
-
 <head>
   <!--
     If you are serving your web app in a path other than the root, change the
@@ -27,10 +26,12 @@
   <meta name="apple-mobile-web-app-title" content="Intranet-ZeeLearn">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
 
-  <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+  <!-- <meta
+  http-equiv="Content-Security-Policy"
+  content="upgrade-insecure-requests"> -->
 
   <!-- Favicon -->
-  <link rel="icon" type="image/png" href="favicon.png" />
+  <link rel="icon" type="image/png" href="favicon.png"/>
 
   <title>intranet</title>
   <link rel="manifest" href="manifest.json">
@@ -40,41 +41,11 @@
     const serviceWorkerVersion = null;
   </script> -->
   <!-- This script adds the flutter initialization JS code -->
-<script src="flutter_bootstrap.js" async></script>
-  <script>
-    (function () {
-      const userAgent = navigator.userAgent || navigator.vendor || window.opera;
-
-      const isAndroid = /android/i.test(userAgent);
-      const isIOS =
-        /iPad|iPhone|iPod/.test(userAgent) ||
-        (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-
-      if (isAndroid) {
-        // window.location.replace(
-        //   'https://play.google.com/store/apps/details?id=com.zeelearn.intranet&hl=en_IN'
-        // );
-        window.location.href =
-          "intent://#Intent;" +
-          "scheme=zeelearn;" +
-          "package=com.zeelearn.intranet;" +
-          "S.browser_fallback_url=https://play.google.com/store/apps/details?id=com.zeelearn.intranet;" +
-          "end";
-      } else if (isIOS) {
-        window.location.replace(
-          'https://apps.apple.com/in/app/zeelearn-intranet/id6443464060'
-        );
-      }
-    })();
-  </script>
-
   <!-- <script src="flutter.js" defer></script> -->
-  <script
-    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA20o2gNqJ70-_SuHdcpNgIvKlHUhOlG-A&libraries=places"></script>
+   <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA20o2gNqJ70-_SuHdcpNgIvKlHUhOlG-A&libraries=places"></script>
 </head>
-
 <body>
-  
+  <script src="flutter_bootstrap.js" async></script>
   <!-- <script>
     window.addEventListener('load', function(ev) {
       // Download main.dart.js
@@ -91,5 +62,4 @@
     });
   </script> -->
 </body>
-
 </html>

@@ -216,7 +216,7 @@ class _SummaryDashboardState extends State<SummaryDashboard>
 
       _employeeRoleType =
           hiveBox.get(LocalConstant.KEY_EMP_TYPE)?.toString() ?? '';
-      zone = hiveBox.get(LocalConstant.KEY_ZONE)?.toString() ?? 'N/A';
+      zone = hiveBox.get(LocalConstant.KEY_ZONE)?.toString() ?? '';
       businessId = hiveBox.get(LocalConstant.KEY_BUSINESS_ID) ?? 0;
 
       String? emprole_type = _employeeRoleType;
@@ -306,12 +306,12 @@ class _SummaryDashboardState extends State<SummaryDashboard>
     // Populate all zones and select all by default
     _allZones = _pjpData
         .map((pjp) =>
-            (pjp.zone?.trim() ?? 'N/A').isEmpty ? 'N/A' : pjp.zone!.trim())
+            (pjp.zone?.trim() ?? '').isEmpty ? 'N/A' : pjp.zone!.trim())
         .toSet();
     if (_isTeamView) {
       _allZones.addAll(
         _myTeamData.map(
-            (t) => (t.zone?.trim() ?? 'N/A').isEmpty ? 'N/A' : t.zone!.trim()),
+            (t) => (t.zone?.trim() ?? '').isEmpty ? 'N/A' : t.zone!.trim()),
       );
     }
     _selectedZones = Set.from(_allZones);
@@ -349,7 +349,7 @@ class _SummaryDashboardState extends State<SummaryDashboard>
     _filteredPjpData = _pjpData.where((pjp) {
       final bool matchesTeam = _selectedTeamMembers.contains(pjp.displayName);
       final String zoneKey =
-          (pjp.zone?.trim() ?? 'N/A').isEmpty ? 'N/A' : pjp.zone!.trim();
+          (pjp.zone?.trim() ?? '').isEmpty ? 'N/A' : pjp.zone!.trim();
       final bool matchesZone = _selectedZones.contains(zoneKey);
 
       final bool matchesSearch = _searchQuery.isEmpty ||
@@ -514,7 +514,7 @@ class _SummaryDashboardState extends State<SummaryDashboard>
             if (showTeamFilters) {
               Set<String> memberSet = {};
               for (var pjp in _pjpData) {
-                final String zoneKey = (pjp.zone?.trim() ?? 'N/A').isEmpty
+                final String zoneKey = (pjp.zone?.trim() ?? '').isEmpty
                     ? 'N/A'
                     : pjp.zone!.trim();
                 if (tempZones.contains(zoneKey)) {
@@ -523,7 +523,7 @@ class _SummaryDashboardState extends State<SummaryDashboard>
               }
               if (_isTeamView) {
                 for (var t in _myTeamData) {
-                  final String zoneKey = (t.zone?.trim() ?? 'N/A').isEmpty
+                  final String zoneKey = (t.zone?.trim() ?? '').isEmpty
                       ? 'N/A'
                       : t.zone!.trim();
                   if (tempZones.contains(zoneKey)) {
@@ -3678,7 +3678,7 @@ class _VisitTile extends StatelessWidget {
     final bool hasData = time.isNotEmpty && time != 'NA';
     final bool hasActualCoords = actualLat != 0 && actualLng != 0;
     final bool hasExpectedCoords = expectedLat != 0 && expectedLng != 0;
-
+    Color distanceColor = _red;
     String distanceStr = '';
     if (hasData && hasActualCoords && hasExpectedCoords) {
       double distance =
@@ -3686,6 +3686,7 @@ class _VisitTile extends StatelessWidget {
       if (distance < 1000) {
         if (distance <= 300) {
           distanceStr = 'At Location';
+          distanceColor = Colors.green;
         } else {
           distanceStr = '${distance.toStringAsFixed(0)}m diff';
         }
@@ -3727,7 +3728,7 @@ class _VisitTile extends StatelessWidget {
               Text(
                 '($distanceStr)',
                 style: GoogleFonts.inter(
-                    fontSize: 10, fontWeight: FontWeight.w600, color: _red),
+                    fontSize: 10, fontWeight: FontWeight.w600, color:  distanceColor),
               ),
               SizedBox(width: 6),
               OutlinedButton(
