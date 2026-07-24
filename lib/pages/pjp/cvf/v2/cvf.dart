@@ -625,10 +625,11 @@ class _CvfCardActions extends StatelessWidget {
 }
 
 class WebCardActions extends StatelessWidget {
-  const WebCardActions({required this.controller, required this.cvf});
+  const WebCardActions({required this.controller, required this.cvf, this.onVisitUpdated});
 
   final CVFController controller;
   final GetDetailedPJP cvf;
+  final Function(GetDetailedPJP)? onVisitUpdated;
 
   @override
   Widget build(BuildContext context) {
@@ -656,7 +657,7 @@ class WebCardActions extends StatelessWidget {
             ),
           if (canRescheduleVisit)
             TextButton.icon(
-              onPressed: () => controller.showRescheduleDialog(context, cvf),
+              onPressed: () => controller.showRescheduleDialog(context, cvf, onVisitUpdated),
               icon: const Icon(Icons.edit_calendar,
                   size: 18, color: kPrimaryLightColor),
               label: const Text(
@@ -667,7 +668,7 @@ class WebCardActions extends StatelessWidget {
             ),
           if (canCancelVisit)
             TextButton.icon(
-              onPressed: () => controller.showCancelDialog(context, cvf),
+              onPressed: () => controller.showCancelDialog(context, cvf,onVisitUpdated),
               icon: const Icon(Icons.cancel, size: 18, color: Colors.red),
               label: const Text(
                 'Cancel CVF',
