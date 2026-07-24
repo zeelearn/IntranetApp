@@ -41,11 +41,33 @@
     const serviceWorkerVersion = null;
   </script>
   <!-- This script adds the flutter initialization JS code -->
+<!-- <script src="flutter_bootstrap.js" async></script>
+  <script>
+    (function () {
+      const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+
+      const isAndroid = /android/i.test(userAgent);
+      const isIOS =
+        /iPad|iPhone|iPod/.test(userAgent) ||
+        (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+      if (isAndroid) {
+        window.location.replace(
+          'https://play.google.com/store/apps/details?id=com.zeelearn.intranet&hl=en_IN'
+        );
+      } else if (isIOS) {
+        window.location.replace(
+          'https://apps.apple.com/in/app/zeelearn-intranet/id6443464060'
+        );
+      }
+    })();
+  </script> -->
+
   <!-- <script src="flutter.js" defer></script> -->
    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA20o2gNqJ70-_SuHdcpNgIvKlHUhOlG-A&libraries=places"></script>
 </head>
 <body>
-  <script src="flutter_bootstrap.js" async></script>
+  
   <!-- <script>
     window.addEventListener('load', function(ev) {
       // Download main.dart.js
