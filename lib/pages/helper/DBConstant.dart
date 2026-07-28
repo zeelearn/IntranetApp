@@ -18,6 +18,8 @@ class DBConstant{
   static String MAIL_ADDRESS ='mail';
   static String STATE ='state';
   static String CITY ='city';
+  static String franchiseelat ='franchiseelat';
+  static String franchiseelong ='franchiseelong';
   static String PLACE ='place';
   static String STUDENT_NAME ='student_name';
   static String STUDENT_GENDER ='student_gender';

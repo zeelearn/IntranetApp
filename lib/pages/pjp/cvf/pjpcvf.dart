@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:async';
 import 'package:Intranet/api/APIService.dart';
+import 'package:Intranet/pages/utils/util.dart';
 import 'package:Intranet/pages/widget/MyWebSiteView.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -13,6 +14,7 @@ import 'package:Intranet/pages/helper/LightColor.dart';
 import 'package:Intranet/pages/pjp/cvf/cvf_questions.dart';
 import 'package:location/location.dart';
 import 'package:order_tracker_zen/order_tracker_zen.dart';
+import 'package:Intranet/pages/widget/intranet_order_tracker.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -445,7 +447,7 @@ class _MyCVFListScreen extends State<CVFListScreen>
           Padding(
             padding: EdgeInsets.symmetric(horizontal: 20, vertical: 30),
             // OrderTrackerZen is the main widget of the package which displays the order tracking information.
-            child: OrderTrackerZen(
+            child: IntranetOrderTrackerZen(
               // Provide an array of TrackerData objects to display the order tracking information.
               tracker_data: getCheckInCheckOut(cvfInfo),
             ),
@@ -588,6 +590,18 @@ class _MyCVFListScreen extends State<CVFListScreen>
                             ],
                           ),
                         ],
+                      ),
+                    ),
+                    Padding(
+                      padding: EdgeInsetsDirectional.fromSTEB(0, 4, 0, 0),
+                      child: Text(
+                        'PJP Id : ${cvfView.PJP_Id}',
+                        style: TextStyle(
+                          fontFamily: 'Lexend Deca',
+                          color: Color(0xFF4B39EF),
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                     Padding(
@@ -787,44 +801,20 @@ class _MyCVFListScreen extends State<CVFListScreen>
                 ),
               ),
               getTimeLine(cvfView),
-               cvfView.Status == 'Completed'
+              cvfView.Status == 'Completed'
                   ? Column(
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: [
-                          Container(
-                            // width: 200,
-                            alignment: Alignment.centerLeft,
-                            margin: EdgeInsets.only(left: 20),
-                                padding: EdgeInsets.only(left: 20, right: 20),
-                                color: kPrimaryLightColor.withOpacity(0.4),
-                                child: InkWell(
-                                  onTap: () {
-                                    Navigator.of(context).push(MaterialPageRoute(
-                                        builder: (BuildContext context) =>
-                                            MyWebsiteView(
-                                              title:
-                                                  'CVF Report - ${cvfView.PJPCVF_Id}',
-                                              url:
-                                                  'https://intranet.zeelearn.com/cvfreport.html?cid=${cvfView.PJPCVF_Id}',
-                                            )));
-                                  },
-                                  child: Text(
-                                    'View Report',
-                                    style: GoogleFonts.lato(
-                                      fontSize: 14,
-                                      color: Colors.black87,
-                                      fontWeight: FontWeight.normal,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                        ],
-                      ),
-                      SizedBox(height: 10,)
-                    ],
-                  )
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            Util.openReportPage(cvfView, context),
+                          ],
+                        ),
+                        SizedBox(
+                          height: 10,
+                        )
+                      ],
+                    )
                   : SizedBox.shrink(),
             ],
           ),
@@ -849,7 +839,9 @@ class _MyCVFListScreen extends State<CVFListScreen>
   getView(GetDetailedPJP cvfView) {
     return GestureDetector(
       onTap: () {
-        if (cvfView.Status == 'Check In' ||
+        if (cvfView.IsCancelled || cvfView.Status == 'Cancelled') {
+          Utility.showMessage(context, 'This CVF is cancelled');
+        } else if (cvfView.Status == 'Check In' ||
             cvfView.Status == ' Check In' ||
             cvfView.Status == 'NA') {
           //Utility.showMessage(context, 'Please Click on Check In button');
@@ -1121,7 +1113,6 @@ class _MyCVFListScreen extends State<CVFListScreen>
                 ),
               )),
         ),
-         
       ],
     );
   }
@@ -1129,7 +1120,9 @@ class _MyCVFListScreen extends State<CVFListScreen>
   getTextCategory(GetDetailedPJP cvfView, String categoryname, bool isfirst) {
     return GestureDetector(
       onTap: () {
-        if (cvfView.Status == 'Check In' ||
+        if (cvfView.IsCancelled || cvfView.Status == 'Cancelled') {
+          Utility.showMessage(context, 'This CVF is cancelled');
+        } else if (cvfView.Status == 'Check In' ||
             cvfView.Status == ' Check In' ||
             cvfView.Status == 'NA') {
           Utility.showMessage(context, 'Please Click on Check In button');
@@ -1204,7 +1197,7 @@ class _MyCVFListScreen extends State<CVFListScreen>
   }
 
   updateCVF(GetDetailedPJP cvfView) async {
-    print('Updating CVF Status pjpcfv.dart for PJPCVF_Id: ${cvfView.PJPCVF_Id}, Current Status: ${cvfView.Status}');
+    // print('Updating CVF Status pjpcfv.dart for PJPCVF_Id: ${cvfView.PJPCVF_Id}, Current Status: ${cvfView.Status}');
     isInternet = await Utility.isInternet();
     if (isInternet) {
       //online
@@ -1444,7 +1437,7 @@ class _MyCVFListScreen extends State<CVFListScreen>
 
   @override
   void onSuccess(value) {
-    print('onSuccess called in pjpcvf.dart with value: $value');
+    // print('onSuccess called in pjpcvf.dart with value: $value');
     Navigator.of(context).pop();
     if (value is UpdateCVFStatusResponse) {
       UpdateCVFStatusResponse response = value;

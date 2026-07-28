@@ -1,8 +1,11 @@
 import 'dart:typed_data';
 
+import 'package:Intranet/modules/projects/models/projects_entry_args.dart';
+import 'package:Intranet/modules/projects/views/projects_dashboard_page.dart';
 import 'package:Intranet/pages/helper/LocalConstant.dart';
 import 'package:Intranet/pages/pjp/cvf/mycvf.dart';
 import 'package:Intranet/pages/pjp/cvf/v2/cvf.dart';
+import 'package:Intranet/pages/pjp/pjp_list_manager.dart';
 import 'package:Intranet/pages/summary%20dashboard/summary_dashboard.dart';
 import 'package:Intranet/pages/widget/MyWebSiteView.dart';
 import 'package:expensestracker/app/hiveDatabase/hive_database.dart';
@@ -145,6 +148,29 @@ class _HomePageMenuState extends State<HomePageMenu> {
           mainAxisSpacing: 16,
           childAspectRatio: childAspectRatio,
           children: [
+            _buildMenuCard(
+                title: 'Projects',
+                icon: Icons.approval,
+                // disabled: !isBusinessMapped,
+                onTap: () async {
+                  final args = await ProjectsEntryArgs.fromHive();
+                  if (!context.mounted) return;
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => ProjectsDashboardPage(
+                        userId: args.userId,
+                        userName: args.userName.isEmpty
+                            ? widget.mUserName
+                            : args.userName,
+                        businessId: args.businessId,
+                        businessName: args.businessName,
+                        businesses: args.businesses,
+                      ),
+                    ),
+                  );
+                },
+              ),
             _buildMenuCard(
               title: 'My PJP',
               icon: Icons.electric_car,

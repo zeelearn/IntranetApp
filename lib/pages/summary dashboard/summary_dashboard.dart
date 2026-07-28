@@ -18,6 +18,7 @@ import 'package:Intranet/pages/pjp/cvf/v2/cvf.dart';
 import 'package:Intranet/pages/pjp/cvf/v2/cvf_controller.dart';
 import 'package:Intranet/pages/pjp/models/PjpModel.dart';
 import 'package:Intranet/pages/utils/theme/colors/light_colors.dart';
+import 'package:Intranet/pages/utils/util.dart';
 import 'package:Intranet/pages/widget/MyWebSiteView.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -215,7 +216,7 @@ class _SummaryDashboardState extends State<SummaryDashboard>
 
       _employeeRoleType =
           hiveBox.get(LocalConstant.KEY_EMP_TYPE)?.toString() ?? '';
-      zone = hiveBox.get(LocalConstant.KEY_ZONE)?.toString() ?? 'N/A';
+      zone = hiveBox.get(LocalConstant.KEY_ZONE)?.toString() ?? '';
       businessId = hiveBox.get(LocalConstant.KEY_BUSINESS_ID) ?? 0;
 
       String? emprole_type = _employeeRoleType;
@@ -305,12 +306,12 @@ class _SummaryDashboardState extends State<SummaryDashboard>
     // Populate all zones and select all by default
     _allZones = _pjpData
         .map((pjp) =>
-            (pjp.zone?.trim() ?? 'N/A').isEmpty ? 'N/A' : pjp.zone!.trim())
+            (pjp.zone?.trim() ?? '').isEmpty ? 'N/A' : pjp.zone!.trim())
         .toSet();
     if (_isTeamView) {
       _allZones.addAll(
         _myTeamData.map(
-            (t) => (t.zone?.trim() ?? 'N/A').isEmpty ? 'N/A' : t.zone!.trim()),
+            (t) => (t.zone?.trim() ?? '').isEmpty ? 'N/A' : t.zone!.trim()),
       );
     }
     _selectedZones = Set.from(_allZones);
@@ -348,7 +349,7 @@ class _SummaryDashboardState extends State<SummaryDashboard>
     _filteredPjpData = _pjpData.where((pjp) {
       final bool matchesTeam = _selectedTeamMembers.contains(pjp.displayName);
       final String zoneKey =
-          (pjp.zone?.trim() ?? 'N/A').isEmpty ? 'N/A' : pjp.zone!.trim();
+          (pjp.zone?.trim() ?? '').isEmpty ? 'N/A' : pjp.zone!.trim();
       final bool matchesZone = _selectedZones.contains(zoneKey);
 
       final bool matchesSearch = _searchQuery.isEmpty ||
@@ -513,7 +514,7 @@ class _SummaryDashboardState extends State<SummaryDashboard>
             if (showTeamFilters) {
               Set<String> memberSet = {};
               for (var pjp in _pjpData) {
-                final String zoneKey = (pjp.zone?.trim() ?? 'N/A').isEmpty
+                final String zoneKey = (pjp.zone?.trim() ?? '').isEmpty
                     ? 'N/A'
                     : pjp.zone!.trim();
                 if (tempZones.contains(zoneKey)) {
@@ -522,7 +523,7 @@ class _SummaryDashboardState extends State<SummaryDashboard>
               }
               if (_isTeamView) {
                 for (var t in _myTeamData) {
-                  final String zoneKey = (t.zone?.trim() ?? 'N/A').isEmpty
+                  final String zoneKey = (t.zone?.trim() ?? '').isEmpty
                       ? 'N/A'
                       : t.zone!.trim();
                   if (tempZones.contains(zoneKey)) {
@@ -2575,6 +2576,7 @@ class _DayEventsScreenState extends State<_DayEventsScreen> {
   static const Color _textSecondary = Color(0xFF6B7280);
 
   bool _isUpdated = false;
+  late List<PJPInfo> _pjpList;
 
   void _refresh() {
     if (mounted) {
@@ -2584,11 +2586,44 @@ class _DayEventsScreenState extends State<_DayEventsScreen> {
     }
   }
 
+  void _refreshData(GetDetailedPJP updatedVisit) {
+    debugPrint('in Refereshing data');
+    for (final pjp in _pjpList) {
+      final visits = pjp.getDetailedPJP;
+      if (visits == null) continue;
+
+      final index = visits.indexWhere(
+        (v) => v.PJPCVF_Id == updatedVisit.PJPCVF_Id,
+      );
+
+      if (index >= 0) {
+        visits[index] = updatedVisit;
+        break;
+      }
+    }
+
+    if (mounted) {
+      setState(() {
+        _isUpdated = true;
+      });
+    }
+  }
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    _pjpList = widget.events
+        .map((e) => e.pjpInfo)
+        .whereType<PJPInfo>()
+        .toList();
+  }
+
   @override
   Widget build(BuildContext context) {
     // Extract PJPInfo objects (non-null) from events
-    final pjpList =
-        widget.events.map((e) => e.pjpInfo).whereType<PJPInfo>().toList();
+    // final pjpList =
+    //     widget.events.map((e) => e.pjpInfo).whereType<PJPInfo>().toList();
+    final pjpList = _pjpList;
 
     return Scaffold(
       backgroundColor: _mainBg,
@@ -2634,6 +2669,7 @@ class _DayEventsScreenState extends State<_DayEventsScreen> {
                     pjp: pjp,
                     color: widget.events[index].color,
                     onUpdated: _refresh,
+                    onUpdateCVF: _refreshData,
                     empCode: widget.empCode,
                     empName: widget.empName,
                   );
@@ -2706,14 +2742,15 @@ class _PjpInfoCard extends StatelessWidget {
   final PJPInfo pjp;
   final Color color;
   final VoidCallback? onUpdated;
+  final Function(GetDetailedPJP)? onUpdateCVF;
   final String empCode;
   final String empName;
-
 
   const _PjpInfoCard(
       {required this.pjp,
       required this.color,
       this.onUpdated,
+      this.onUpdateCVF,
       required this.empCode,
       required this.empName});
 
@@ -2888,7 +2925,15 @@ class _PjpInfoCard extends StatelessWidget {
                         pjp.ApprovalStatus != 'Rejected')
                       Padding(
                         padding: const EdgeInsets.only(right: 4),
-                        child: IconButton(
+                        child: OutlinedButton.icon(
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: _accent,
+                            side: BorderSide(color: _accent.withOpacity(0.5)),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 12),
+                            minimumSize: Size.zero,
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
                           icon: const Icon(Icons.add_location_alt_outlined,
                               color: _accent, size: 20),
                           onPressed: () async {
@@ -2902,9 +2947,17 @@ class _PjpInfoCard extends StatelessWidget {
                               onUpdated!();
                             }
                           },
-                          tooltip: 'Add CVF',
-                          padding: EdgeInsets.zero,
-                          constraints: const BoxConstraints(),
+                          label: Text(
+                            'Add CVF',
+                            style: TextStyle(
+                              color: _accent,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          // tooltip: 'Add CVF',
+                          // padding: EdgeInsets.zero,
+                          // constraints: const BoxConstraints(),
                         ),
                       ),
                     if (!isMobile ||
@@ -3023,6 +3076,10 @@ class _PjpInfoCard extends StatelessWidget {
                   controller: controller,
                   pjpApprovalStatus: pjp.ApprovalStatus,
                   isViewOnly: pjp.isSelfPJP.trim() != '1',
+                  onCVFUpdateStatusSuccess: (updatedVisit) {
+                    debugPrint('in onCVFUpdateStatusSuccess ${updatedVisit.toJson()}');
+                    if(onUpdateCVF !=null) onUpdateCVF!(updatedVisit);
+                  },
                   onCVFUpdateSuccess: (p0) {
                     if (onUpdated != null) onUpdated!();
                   },
@@ -3124,8 +3181,7 @@ class _CheckInClickListener implements onClickListener {
       if (action == Utility.ACTION_OK) {
         updateCVF(cvfView);
       } else if (action == Utility.ACTION_CCNCEL) {}
-    } else {
-    }
+    } else {}
   }
 }
 
@@ -3135,6 +3191,7 @@ class _VisitTile extends StatelessWidget {
   final bool isViewOnly;
   final onResponse onupdateResponse;
   final Function(GetDetailedPJP) onCVFUpdateSuccess;
+  final Function(GetDetailedPJP) onCVFUpdateStatusSuccess;
   final String pjpApprovalStatus;
   final CVFController controller;
   const _VisitTile(
@@ -3142,6 +3199,7 @@ class _VisitTile extends StatelessWidget {
       required this.isViewOnly,
       required this.onupdateResponse,
       required this.onCVFUpdateSuccess,
+      required this.onCVFUpdateStatusSuccess,
       required this.pjpApprovalStatus,
       required this.controller});
 
@@ -3191,7 +3249,6 @@ class _VisitTile extends StatelessWidget {
         visit.DateTimeOut.isNotEmpty && visit.DateTimeOut != 'NA';
     final bool isCancelled =
         visit.IsCancelled || visit.Status.trim().toLowerCase() == 'cancelled';
-
 
     final canRescheduleVisit = controller.canReschedule(visit);
     final canCancelVisit = controller.canRescheduleOrCancel(visit);
@@ -3321,48 +3378,48 @@ class _VisitTile extends StatelessWidget {
                       ),
                     ),
                   ),
-                const Spacer(),
-                if (!isCancelled &&
-                    !isViewOnly &&
-                    (visit.Status == 'Check In' || visit.Status == 'NA')) ...[
-                  GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: () {}, // Blocks tap propagation to InkWell
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        if (pjpApprovalStatus.toLowerCase().contains('approv'))
-                          IconButton(
-                            icon: const Icon(Icons.edit_calendar,
-                                color: Colors.blue, size: 20),
-                            tooltip: 'Reschedule',
-                            padding: EdgeInsets.zero,
-                            constraints: const BoxConstraints(),
-                            onPressed: () {
-                              if (visit.hasPjpRange) {
-                                _showRescheduleDialog(context);
-                              } else {
-                                Utility.showMessage(context,
-                                    "Cannot reschedule: PJP range not available.");
-                              }
-                            },
-                          ),
-                        // if (pjpApprovalStatus.toLowerCase().contains('approv'))
-                        //   const SizedBox(width: 8),
-                        // IconButton(
-                        //   icon: const Icon(Icons.cancel, color: Colors.red, size: 20),
-                        //   tooltip: 'Cancel',
-                        //   padding: EdgeInsets.zero,
-                        //   constraints: const BoxConstraints(),
-                        //   onPressed: () {
-                        //     controller.showCancelDialog(context, visit);
-                        //     //_showCancelConfirmation(context);
-                        //   },
-                        // ),
-                      ],
-                    ),
-                  ),
-                ],
+                // const Spacer(),
+                // if (!isCancelled &&
+                //     !isViewOnly &&
+                //     (visit.Status == 'Check In' || visit.Status == 'NA')) ...[
+                //   GestureDetector(
+                //     behavior: HitTestBehavior.opaque,
+                //     onTap: () {}, // Blocks tap propagation to InkWell
+                //     child: Row(
+                //       mainAxisSize: MainAxisSize.min,
+                //       children: [
+                //         if (pjpApprovalStatus.toLowerCase().contains('approv'))
+                //           IconButton(
+                //             icon: const Icon(Icons.edit_calendar,
+                //                 color: Colors.blue, size: 20),
+                //             tooltip: 'Reschedule',
+                //             padding: EdgeInsets.zero,
+                //             constraints: const BoxConstraints(),
+                //             onPressed: () {
+                //               if (visit.hasPjpRange) {
+                //                 _showRescheduleDialog(context);
+                //               } else {
+                //                 Utility.showMessage(context,
+                //                     "Cannot reschedule: PJP range not available.");
+                //               }
+                //             },
+                //           ),
+                //         // if (pjpApprovalStatus.toLowerCase().contains('approv'))
+                //         //   const SizedBox(width: 8),
+                //         // IconButton(
+                //         //   icon: const Icon(Icons.cancel, color: Colors.red, size: 20),
+                //         //   tooltip: 'Cancel',
+                //         //   padding: EdgeInsets.zero,
+                //         //   constraints: const BoxConstraints(),
+                //         //   onPressed: () {
+                //         //     controller.showCancelDialog(context, visit);
+                //         //     //_showCancelConfirmation(context);
+                //         //   },
+                //         // ),
+                //       ],
+                //     ),
+                //   ),
+                // ],
               ],
             ),
             if (visit.franchiseeName.trim().isNotEmpty &&
@@ -3421,9 +3478,9 @@ class _VisitTile extends StatelessWidget {
                       ),
                     ],
                   ),
-                  if (!isCompleted &&
+                  if (/* !isCompleted && */
                       visit.Address.trim().isNotEmpty &&
-                      visit.Address.trim() != 'NA') ...[
+                          visit.Address.trim() != 'NA') ...[
                     const SizedBox(height: 4),
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -3473,7 +3530,7 @@ class _VisitTile extends StatelessWidget {
                           .map((history) => Padding(
                                 padding: const EdgeInsets.only(top: 4.0),
                                 child: Text(
-                                  '${Utility.shortDate(Utility.convertServerDate(history.visitDate))} at ${Utility.shortTime(Utility.convertTime(history.visitTime))} ${Utility.shortTimeAMPM(Utility.convertTime(history.visitTime))}',
+                                  '${Utility.shortDate(Utility.convertServerDate(history.visitDate))} at ${Utility.shortTime(Utility.convertTime(history.visitTime))} ${Utility.shortTimeAMPM(Utility.convertTime(history.visitTime))} - ${history.remarks}',
                                   style: GoogleFonts.inter(
                                     fontSize: 11,
                                     color: Colors.black87,
@@ -3485,7 +3542,10 @@ class _VisitTile extends StatelessWidget {
                   ),
                 ),
               ),
-              WebCardActions(controller: controller, cvf: visit),
+            WebCardActions(controller: controller, cvf: visit,onVisitUpdated: (p0) {
+              debugPrint('in WebCard Actions ${p0.toString()}');
+              onCVFUpdateStatusSuccess(p0);
+            },),
             if (isCancelled &&
                 visit.remarks.isNotEmpty &&
                 visit.remarks != 'NA')
@@ -3542,33 +3602,33 @@ class _VisitTile extends StatelessWidget {
                       children: [
                         // Check-In
                         _buildActualPoint(
-                          title: 'Check-In',
-                          time: visit.DateTimeIn,
-                          address: visit.AddressIn.isNotEmpty &&
-                                  visit.AddressIn != 'NA'
-                              ? visit.AddressIn
-                              : visit.CheckInAddress,
-                          color: hasCheckIn ? _blue : _textSecondary,
-                          actualLat: visit.LatitudeIn,
-                          actualLng: visit.LongitudeIn,
-                          expectedLat: visit.Latitude,
-                          expectedLng: visit.Longitude,
-                        ),
+                            title: 'Check-In',
+                            time: visit.DateTimeIn,
+                            address: visit.AddressIn.isNotEmpty &&
+                                    visit.AddressIn != 'NA'
+                                ? visit.AddressIn
+                                : visit.CheckInAddress,
+                            color: hasCheckIn ? _blue : _textSecondary,
+                            actualLat: visit.LatitudeIn,
+                            actualLng: visit.LongitudeIn,
+                            expectedLat: visit.Latitude,
+                            expectedLng: visit.Longitude,
+                            context: context),
                         const SizedBox(height: 12),
                         // Check-Out
                         _buildActualPoint(
-                          title: 'Check-Out',
-                          time: visit.DateTimeOut,
-                          address: visit.AddressOut.isNotEmpty &&
-                                  visit.AddressOut != 'NA'
-                              ? visit.AddressOut
-                              : visit.CheckOutAddress,
-                          color: hasCheckOut ? _orange : _textSecondary,
-                          actualLat: visit.LatitudeOut,
-                          actualLng: visit.LongitudeOut,
-                          expectedLat: visit.Latitude,
-                          expectedLng: visit.Longitude,
-                        ),
+                            title: 'Check-Out',
+                            time: visit.DateTimeOut,
+                            address: visit.AddressOut.isNotEmpty &&
+                                    visit.AddressOut != 'NA'
+                                ? visit.AddressOut
+                                : visit.CheckOutAddress,
+                            color: hasCheckOut ? _orange : _textSecondary,
+                            actualLat: visit.LatitudeOut,
+                            actualLng: visit.LongitudeOut,
+                            expectedLat: visit.Latitude,
+                            expectedLng: visit.Longitude,
+                            context: context),
                       ],
                     ),
                   ),
@@ -3613,17 +3673,23 @@ class _VisitTile extends StatelessWidget {
       double actualLat = 0,
       double actualLng = 0,
       double expectedLat = 0,
-      double expectedLng = 0}) {
+      double expectedLng = 0,
+      required BuildContext context}) {
     final bool hasData = time.isNotEmpty && time != 'NA';
     final bool hasActualCoords = actualLat != 0 && actualLng != 0;
     final bool hasExpectedCoords = expectedLat != 0 && expectedLng != 0;
-
+    Color distanceColor = _red;
     String distanceStr = '';
     if (hasData && hasActualCoords && hasExpectedCoords) {
       double distance =
           _calculateDistance(expectedLat, expectedLng, actualLat, actualLng);
       if (distance < 1000) {
-        distanceStr = '${distance.toStringAsFixed(0)}m diff';
+        if (distance <= 300) {
+          distanceStr = 'At Location';
+          distanceColor = Colors.green;
+        } else {
+          distanceStr = '${distance.toStringAsFixed(0)}m diff';
+        }
       } else {
         distanceStr = '${(distance / 1000).toStringAsFixed(1)}km diff';
       }
@@ -3662,8 +3728,25 @@ class _VisitTile extends StatelessWidget {
               Text(
                 '($distanceStr)',
                 style: GoogleFonts.inter(
-                    fontSize: 10, fontWeight: FontWeight.w600, color: _red),
+                    fontSize: 10, fontWeight: FontWeight.w600, color:  distanceColor),
               ),
+              SizedBox(width: 6),
+              OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    side: const BorderSide(color: _divider),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(6)),
+                  ),
+                  onPressed: () => Util.openGoogleMaps(
+                      expectedLat, expectedLng, actualLat, actualLng, context),
+                  child: Text(
+                    'Open Maps',
+                    style: TextStyle(fontSize: 11),
+                  ))
             ],
           ],
         ),
@@ -3769,7 +3852,8 @@ class _VisitTile extends StatelessWidget {
     navigator.pop();
 
     if (response != null) {
-      if (context.mounted) Utility.showMessage(context, 'CVF Cancelled successfully');
+      if (context.mounted)
+        Utility.showMessage(context, 'CVF Cancelled successfully');
       visit.IsCancelled = true;
       visit.Status = 'Cancelled';
       visit.remarks = remark;
@@ -3887,8 +3971,8 @@ class _VisitTile extends StatelessWidget {
                   child: const Text("Reschedule"),
                   onPressed: () {
                     if (_remarkController.text.trim().isEmpty) {
-                      Utility.showMessage(
-                          dialogContext, 'Please enter a reason for rescheduling');
+                      Utility.showMessage(dialogContext,
+                          'Please enter a reason for rescheduling');
                     } else {
                       // Pop dialog first (sync), then run async with outerContext
                       Navigator.of(dialogContext).pop();
@@ -3947,7 +4031,8 @@ class _VisitTile extends StatelessWidget {
     navigator.pop();
 
     if (response != null) {
-      if (context.mounted) Utility.showMessage(context, 'CVF Rescheduled successfully');
+      if (context.mounted)
+        Utility.showMessage(context, 'CVF Rescheduled successfully');
       if (visit.cvfHistory == null) {
         visit.cvfHistory = [];
       }
@@ -3968,7 +4053,8 @@ class _VisitTile extends StatelessWidget {
       visit.remarks = remark;
       onCVFUpdateSuccess(visit);
     } else {
-      if (context.mounted) Utility.showMessage(context, 'Failed to reschedule CVF');
+      if (context.mounted)
+        Utility.showMessage(context, 'Failed to reschedule CVF');
     }
   }
 }

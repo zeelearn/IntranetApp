@@ -37,6 +37,8 @@ class FranchiseeInfo {
   late String franchiseeZone;
   late String franchiseeState;
   late String franchiseeCity;
+  late String? franchiseelat;
+  late String? franchiseelong;
 
   FranchiseeInfo(
       {required this.franchiseeId,
@@ -44,7 +46,7 @@ class FranchiseeInfo {
       required this.franchiseeName,
       required this.franchiseeZone,
       required this.franchiseeState,
-      required this.franchiseeCity});
+      required this.franchiseeCity,required this.franchiseelat,required this.franchiseelong});
 
   FranchiseeInfo.fromJson(Map<String, dynamic> json) {
     franchiseeId = json['franchisee_Id'];
@@ -53,6 +55,8 @@ class FranchiseeInfo {
     franchiseeZone = json['franchisee_Zone'];
     franchiseeState = json['franchisee_State'];
     franchiseeCity = json['franchisee_City'];
+    franchiseelat = json['latitude'];
+    franchiseelong = json['longitude'];
   }
 
   isContain(String filter) {
@@ -75,6 +79,8 @@ class FranchiseeInfo {
     data['franchisee_Zone'] = this.franchiseeZone;
     data['franchisee_State'] = this.franchiseeState;
     data['franchisee_City'] = this.franchiseeCity;
+    data['latitude'] = this.franchiseelat;
+    data['longitude'] = this.franchiseelong;
     return data;
   }
 

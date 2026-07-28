@@ -15,7 +15,7 @@ publish_to: "none" # Remove this line if you wish to publish to pub.dev
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 1.0.36+40
+version: 1.0.42+46
 
 environment:
   sdk: ">=3.2.3 <4.0.0"
@@ -44,7 +44,8 @@ dependencies:
   bloc: ^9.2.1
   flutter_bloc: ^9.1.1
   flutter_easyloading: 3.0.5
-  #shimmer: ^2.0.0
+  shimmer: ^3.0.0
+  connectivity_plus: ^6.1.0
   firebase_crashlytics: ^5.2.0
   # firebase_core: ^4.9.0
   firebase_analytics: ^11.5.1
@@ -62,7 +63,7 @@ dependencies:
   #webviewx: ^0.2.2
   google_fonts: ^6.2.1
   get: ^4.6.5
-  # pdfrx: ^2.1.19
+  pdfrx: ^2.1.19
   square_percent_indicater: ^0.1.0
   flutter_screenutil: ^5.8.4
   #flutter_icons_null_safety: ^1.1.0
@@ -116,7 +117,8 @@ dependencies:
   # device_calendar: ^4.3.2
 
   # syncfusion_flutter_calendar: ^30.2.6
-  fluttertoast: ^9.0.0
+  # fluttertoast: ^9.0.0
+  toastification: ^3.2.0
   grouped_list: ^6.0.0
   collection: ^1.18.0
   app_links: ^7.0.0
@@ -136,13 +138,14 @@ dependencies:
     #path: ../ZeeSathi
 
   expensestracker:
-    path: ../excepsesmanagement
-    # git:
-    #   url: https://github.com/ZeeLearnLtd/excepsesmanagement.git
-    #   ref: uat
+    #path: ../excepsesmanagement
+    git:
+      url: https://github.com/ZeeLearnLtd/excepsesmanagement.git
+      ref: uat
 
 
   fl_chart: ^1.2.0
+  http: ^1.6.0
 
   path_provider: any
   google_maps_flutter: ^2.11.0
@@ -159,7 +162,7 @@ dependency_overrides:
   http: ^1.6.0
   lottie: ^3.0.0
   intl: ^0.19.0
-  awesome_notifications: ^0.12.0
+  awesome_notifications: 0.12.0
   js: ^0.7.1
   file_picker: ^8.0.5
   photo_view: ^0.15.0
@@ -200,6 +203,7 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
+  lints: ^6.1.0
   # firebase_messaging_platform_interface: 4.6.9
 
 flutter_icons:

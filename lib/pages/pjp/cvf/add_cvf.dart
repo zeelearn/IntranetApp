@@ -21,6 +21,7 @@ import 'package:hive/hive.dart';
 import 'package:intl/intl.dart';
 import 'package:location/location.dart';
 import 'package:order_tracker_zen/order_tracker_zen.dart';
+import 'package:Intranet/pages/widget/intranet_order_tracker.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:timezone/src/location.dart' as timezonelocation;
 
@@ -48,6 +49,7 @@ import '../../widget/MyWebSiteView.dart';
 import '../../widget/MyWidget.dart';
 import '../PJPForm.dart';
 import 'model/getvisitplandatewisemodel.dart';
+import 'package:flutter_google_places/src/flutter_google_places.dart';
 
 class AddCVFScreen extends StatefulWidget {
   PJPInfo mPjpModel;
@@ -247,7 +249,9 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
         DBConstant.ZONE: mFrianchiseeList[index].franchiseeZone,
         DBConstant.STATE: mFrianchiseeList[index].franchiseeState,
         DBConstant.CITY: mFrianchiseeList[index].franchiseeCity,
-        DBConstant.BUSINESS_ID: businessId
+        DBConstant.BUSINESS_ID: businessId,
+        DBConstant.franchiseelat: mFrianchiseeList[index].franchiseelat ?? '',
+        DBConstant.franchiseelong: mFrianchiseeList[index].franchiseelong ?? '',
       };
       dbHelper.insert(LocalConstant.TABLE_CVF_FRANCHISEE, data);
     }
@@ -710,7 +714,7 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
                     ),
                   ),
                   const SizedBox(height: 5),
-                  OrderTrackerZen(
+                  IntranetOrderTrackerZen(
                     isShrinked: true,
                     tracker_data: getTrakcerList(
                         filteredlistofplandata[index].lastCheckIn,
@@ -762,6 +766,21 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
       }
     }
     return code;
+  }
+
+  FranchiseeInfo? getFranchiseeDetails() {
+    // int code = 0;
+    for (int index = 0; index < mFrianchiseeList.length; index++) {
+      if (mFrianchiseeList[index].franchiseeName.length < 150) {
+        if (_CenterName == mFrianchiseeList[index].franchiseeName) {
+          return mFrianchiseeList[index];
+        }
+      } else if (_CenterName ==
+          mFrianchiseeList[index].franchiseeName.substring(0, 150)) {
+        return mFrianchiseeList[index];
+      }
+    }
+    return null;
   }
 
   getFrichanseeAddress() {
@@ -816,16 +835,36 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
         Utility.noInternetConnection(context);
       } else {
         Utility.showLoaderDialog(context);
-        LocationData? deviceLocation =
-            await LocationHelper.getLocation(context);
-        if (deviceLocation == null) {
-          Navigator.of(context).pop();
-          // Utility.showMessages(
-          //     context, 'Unable to fetch location, Please try again');
-          return;
+        // LocationData? deviceLocation =
+        //     await LocationHelper.getLocation(context);
+        // if (deviceLocation == null) {
+        //   Navigator.of(context).pop();
+        //   // Utility.showMessages(
+        //   //     context, 'Unable to fetch location, Please try again');
+        //   return;
+        // }
+        if (_purposeMultiSelect.toString().toLowerCase() !=
+            'activity') {
+          var franchiseeInfo = getFranchiseeDetails();
+          debugPrint(
+              'Franchisee Info: ${franchiseeInfo?.toJson()}'); // Print the franchisee info
+          if (franchiseeInfo?.franchiseelat == null ||
+              franchiseeInfo!.franchiseelat!.isEmpty ||
+              franchiseeInfo.franchiseelong == null ||
+              franchiseeInfo.franchiseelong!.isEmpty) {
+            // (String?, String?) latlong = await getLocationFromAddress(
+            //     '${franchiseeInfo?.franchiseeName},${franchiseeInfo?.franchiseeCity}, ${franchiseeInfo?.franchiseeState}');
+            // latitude = double.parse(latlong.$1 ?? '0.0');
+            // longitude = double.parse(latlong.$2 ?? '0.0');
+            latitude = 0.0;
+            latitude = 0.0;
+            debugPrint(
+                'Latitude: $latitude, Longitude: $longitude'); // Print the latitude and longitude values
+          } else {
+            latitude = double.parse(franchiseeInfo.franchiseelat ?? '0.0');
+            longitude = double.parse(franchiseeInfo.franchiseelong ?? '0.0');
+          }
         }
-        latitude = deviceLocation.latitude!;
-        longitude = deviceLocation.longitude!;
 
         /*if (await Permission.location.request().isGranted) {
           Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.medium);
@@ -833,7 +872,7 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
           longitude=position.longitude;
         }*/
         String xml =
-            '<root><tblPJPCVF><Business_Id>$businessId</Business_Id><Employee_Id>$employeeId</Employee_Id><Franchisee_Id>${getFrichanseeId()}</Franchisee_Id><Visit_Date>${Utility.convertShortDate(cvfDate)}</Visit_Date><Visit_Time>${vistitDateTime?.hour}:${vistitDateTime?.minute}</Visit_Time><Category_Id>${getCategoryList()}</Category_Id><Latitude>$latitude</Latitude><Longitude>$longitude</Longitude><ActivityTitle>${_activityNameController.text.toString()}</ActivityTitle><Address>${location == 'Search Location' ? getFrichanseeAddress() : location}</Address></tblPJPCVF></root>';
+            '<root><tblPJPCVF><Business_Id>$businessId</Business_Id><Employee_Id>$employeeId</Employee_Id><Franchisee_Id>${getFrichanseeId()}</Franchisee_Id><Visit_Date>${Utility.convertShortDate(cvfDate)}</Visit_Date><Visit_Time>${vistitDateTime?.hour}:${vistitDateTime?.minute}</Visit_Time><Category_Id>${getCategoryList()}</Category_Id><Latitude>${latitude == 0.0 ? null : latitude}</Latitude><Longitude>${longitude == 0.0 ? null : longitude}</Longitude><ActivityTitle>${_activityNameController.text.toString()}</ActivityTitle><Address>${location == 'Search Location' ? getFrichanseeAddress() : location}</Address></tblPJPCVF></root>';
         AddCVFRequest request = AddCVFRequest(
             PJP_Id: int.parse(widget.mPjpModel.PJP_Id),
             DocXml: xml,
@@ -910,8 +949,7 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
                     .createOrUpdateEvent(eventToCreate);
                 if (createEventResult!.isSuccess) {
                 } else {
-                  for (var element in createEventResult.errors) {
-                  }
+                  for (var element in createEventResult.errors) {}
                 }
               } catch (_) {}
               Navigator.of(context).pop(
@@ -926,8 +964,7 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
           setState(() {});
         });
       }
-    } else {
-    }
+    } else {}
   }
 
   Widget getCenterDropdown(BuildContext context) {
@@ -1024,7 +1061,8 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(Icons.info_outline, color: Colors.blue.shade700, size: 18),
+                    Icon(Icons.info_outline,
+                        color: Colors.blue.shade700, size: 18),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
@@ -1053,19 +1091,21 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
                         });
                         loadCenterList();
                       } else {
-                        Utility.showMessages(
-                            context, 'Please check your Internet Connection and try again');
+                        Utility.showMessages(context,
+                            'Please check your Internet Connection and try again');
                       }
                     },
                     icon: const Icon(Icons.refresh, size: 16),
                     label: const Text(
                       'Refresh Centers',
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                      style:
+                          TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                     ),
                     style: ElevatedButton.styleFrom(
                       foregroundColor: Colors.white,
                       backgroundColor: LightColor.brighter,
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 8),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(20),
                       ),
@@ -1258,18 +1298,60 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
     );
   }
 
+  Future<(String?, String?)> getLocationFromAddress(String address) async {
+    var placePrediction = await APIService().getMatchingLocationList(address);
+
+    return placePrediction.fold(
+      (left) {
+        debugPrint('Error fetching location: $left');
+        return (null, null); // Return default coordinates on error
+      },
+      (place) async {
+        debugPrint(
+            'Place found: ${place?.toJson()} ${place?.description}, ID: ${place?.placeId}');
+        if (place != null) {
+          // setState(() {
+          //   location = place.description.toString();
+          // });
+
+          //form google_maps_webservice package
+          final plist = GoogleMapsPlaces(
+            apiKey: LocalStrings.kGoogleApiKey,
+            baseUrl: '${LocalStrings.bpms}}/api/bp/map'
+            //from google_api_headers package
+          );
+          String placeid = place.placeId ?? "0";
+          final detail = await plist.getDetailsByPlaceId(placeid);
+          final geometry = detail.result.geometry!;
+          // latitude = geometry.location.lat;
+          // longitude = geometry.location.lng;
+          return (
+            geometry.location.lat.toString(),
+            geometry.location.lng.toString()
+          );
+        }
+        return (null, null); // Return default coordinates if place is null
+      },
+    );
+
+    // return (latitude.toString(), longitude.toString());
+  }
+
   Widget _getLocation(BuildContext context) {
     return InkWell(
         onTap: () async {
-          var place = await PlacesAutocomplete.show(
+          Prediction? place = await PlacesAutocomplete.show(
               context: context,
               apiKey: LocalStrings.kGoogleApiKey,
               //mode: Mode.overlay,
               types: [],
+              proxyBaseUrl:
+                  '${LocalStrings.bpms}/api/bp/map',
               strictbounds: false,
               components: [Component(Component.country, 'in')],
               //google_map_webservice package
               onError: (err) {
+                debugPrint('Error: $err');
               });
 
           if (place != null) {
@@ -1280,7 +1362,7 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
             //form google_maps_webservice package
             final plist = GoogleMapsPlaces(
               apiKey: LocalStrings.kGoogleApiKey,
-              apiHeaders: await const GoogleApiHeaders().getHeaders(),
+              baseUrl: '${LocalStrings.bpms}/api/bp/map'
               //from google_api_headers package
             );
             String placeid = place.placeId ?? "0";
@@ -1288,6 +1370,8 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
             final geometry = detail.result.geometry!;
             latitude = geometry.location.lat;
             longitude = geometry.location.lng;
+            debugPrint(
+                'Selected Location: $location, Latitude: $latitude, Longitude: $longitude');
             //var newlatlang = LatLng(lat, lang);
 
             //move map camera to selected place with animation
@@ -1330,58 +1414,8 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
         )));*/
   }
 
-  _showLocationDialog(BuildContext context) async {
-    /*Prediction? p = await PlacesAutocomplete.show(
-        context: context,
-        apiKey: LocalStrings.kGoogleApiKey,
-        mode: Mode.overlay, // Mode.fullscreen
-        language: "en",
-        components: [new Component(Component.country, "en")]);*/
-    Prediction? p = await PlacesAutocomplete.show(
-      offset: 0,
-      radius: 1000,
-      strictbounds: true,
-      region: "us",
-      language: "en",
-      context: context,
-      //mode: Mode.overlay,
-      apiKey: LocalStrings.kGoogleApiKey,
-
-      components: [Component(Component.country, "us")],
-      types: ["(cities)"],
-      hint: "Search City",
-    );
-    displayPrediction(p!);
-  }
-
   void onError(PlacesAutocompleteResponse response) {
     Utility.showMessage(context, response.errorMessage!);
-  }
-
-  Future<void> _handlePressButton() async {
-    // show input autocomplete with selected mode
-    // then get the Prediction selected
-    Prediction? p = await PlacesAutocomplete.show(
-      context: context,
-      radius: 500,
-      apiKey: LocalStrings.kGoogleApiKey,
-      onError: onError,
-      types: ['establishment'],
-      strictbounds: true,
-      //mode: Mode.overlay,
-      language: "en",
-      decoration: InputDecoration(
-        hintText: 'Search',
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(20),
-          borderSide: const BorderSide(
-            color: Colors.white,
-          ),
-        ),
-      ),
-      components: [Component(Component.country, "in")],
-    );
-    displayPrediction(p!);
   }
 
   Future<void> displayPrediction(Prediction p) async {
@@ -1466,8 +1500,7 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
   Future<String?> _showMultiSelect(BuildContext context) async {
     if (mCategoryList.isEmpty) {
       fetchCategory();
-    } else {
-    }
+    } else {}
 
     // a list of selectable items
     // these items can be hard-coded or dynamically fetched from a database/API
@@ -1563,7 +1596,7 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
           Navigator.push(
               context,
               MaterialPageRoute(
-                  builder: (context) => IntranetHomePage(userId: '')));
+                  builder: (context) => DashboardScreenV2(userId: '')));
         },
         label: const Text('Add New'),
         icon: const Icon(Icons.thumb_up),

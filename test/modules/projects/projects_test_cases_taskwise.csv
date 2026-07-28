@@ -1,0 +1,66 @@
+Feature Area,TC ID,Test Case,Status,Covered By
+Business Selection,BS-01,Business selection working - intranet business name maps to Projects business id,Pass,business_name_matcher_test.dart
+Business Selection,BS-02,Business selection working - Kidzee maps to Projects business id 1,Pass,business_name_matcher_test.dart
+Business Selection,BS-03,Business selection working - eMountLitera / Mount Litera maps to id 3,Pass,business_name_matcher_test.dart
+Business Selection,BS-04,"Business name normalize working - trim, lowercase, strip special chars",Pass,business_name_matcher_test.dart
+Business Selection,BS-05,Business name normalize working - leading 'e' prefix stripped,Pass,business_name_matcher_test.dart
+Business Selection,BS-06,Business selection fails safely - no match returns null,Pass,business_name_matcher_test.dart
+Business Selection,BS-07,Business selection fails safely - empty intranet name returns null,Pass,business_name_matcher_test.dart
+Business Selection,BS-08,GetBusiness API binding working - ProjectBusiness fromJson,Pass,business_name_matcher_test.dart
+Business Selection,BS-09,GetBusiness API envelope binding working,Pass,business_name_matcher_test.dart
+Project Listing and Binding,PL-01,Project listing binding working - GetAllProjectList_new fields map correctly,Pass,project_item_test.dart
+Project Listing and Binding,PL-02,Project binding working - fallback to project_id when CRM_id missing,Pass,project_item_test.dart
+Project Listing and Binding,PL-03,Project model round-trip working - toJson / copyWith,Pass,project_item_test.dart
+Project Listing and Binding,PL-04,Project status binding working - status_id and count map correctly,Pass,project_status_test.dart
+Project Listing and Binding,PL-05,Project status binding working - string numbers coerced to int,Pass,project_status_test.dart
+Project Listing and Binding,PL-06,Project list filter working - empty filter has no active filters,Pass,project_list_filter_test.dart
+Project Listing and Binding,PL-07,Project list filter working - active filters detected when any field set,Pass,project_list_filter_test.dart
+Project Listing and Binding,PL-08,Project list filter working - copyWith update and clear,Pass,project_list_filter_test.dart
+Project Listing and Binding,PL-09,Task to project binding working - UserTaskItem converts to ProjectItem,Pass,user_task_item_test.dart
+Project Dashboard / Status Cards,PD-01,Dashboard summary binding working - nested JSON string list parsed,Pass,dashboard_parser_test.dart
+Project Dashboard / Status Cards,PD-02,Dashboard summary error handling working - empty data throws empty,Pass,dashboard_parser_test.dart
+Project Dashboard / Status Cards,PD-03,Dashboard summary error handling working - malformed JSON throws invalidJson,Pass,dashboard_parser_test.dart
+Project Dashboard / Status Cards,PD-04,Dashboard cards binding working - pending and confirmed counts map,Pass,dashboard_parser_test.dart
+Project Dashboard / Status Cards,PD-05,Dashboard cards calculation working - percentages zero-safe,Pass,dashboard_parser_test.dart
+Project Dashboard / Status Cards,PD-06,Task status card binding working - card ids map to GettaskbyUser Status,Pass,dashboard_status_ids_test.dart
+Project Dashboard / Status Cards,PD-07,Task status card detection working - isTaskCard for task status ids,Pass,dashboard_status_ids_test.dart
+Project Dashboard / Status Cards,PD-08,Missed deadline visibility working - only for pending project/task,Pass,dashboard_status_ids_test.dart
+Project Detail,DT-01,Project detail binding working - GetFranchiseeDetailInfoV1 envelope parsed,Pass,project_detail_test.dart
+Project Detail,DT-02,Project detail stale check working - synced yesterday marked stale for today,Pass,project_detail_test.dart
+Task Listing and Binding,TL-01,Task listing binding working - GettaskbyUser fields map correctly,Pass,user_task_item_test.dart
+Task Listing and Binding,TL-02,Task model round-trip working - toJson core keys,Pass,user_task_item_test.dart
+Task Listing and Binding,TL-03,Task summary binding working - C-IP-P format parsed,Pass,task_summary_test.dart
+Task Listing and Binding,TL-04,Task summary binding working - BPC format parsed,Pass,task_summary_test.dart
+Task Listing and Binding,TL-05,Task summary error handling working - empty and invalid handled,Pass,task_summary_test.dart
+Task Listing and Binding,TL-06,Task hierarchy binding working - nested data lists flattened,Pass,task_hierarchy_test.dart
+Task Listing and Binding,TL-07,Task hierarchy parent dates binding working,Pass,task_hierarchy_test.dart
+Task Listing and Binding,TL-08,Task tree binding working - roots and children mapped,Pass,task_hierarchy_test.dart
+Task Listing and Binding,TL-09,Task tree binding working - only parent_task_id 0 is root,Pass,task_hierarchy_test.dart
+Add New Task,AT-01,Add new task mode working - isEditMode false for create,Pass,add_task_args_test.dart
+Add New Task,AT-02,Add new task form working - standard priorities available,Pass,add_task_args_test.dart
+Add New Task,AT-03,Add new task form working - status labels cover known statuses,Pass,add_task_args_test.dart
+Add New Task,AT-04,Add new task API payload working - AddTaskRequest serializes keys,Pass,add_task_request_test.dart
+Add New Task,AT-05,Add new task response binding working - AddNewTask maps to HierarchyTask,Pass,task_hierarchy_test.dart
+Add New Task,AT-06,Add new task date format working - API uses yyyy-MM-dd,Pass,add_task_request_test.dart
+Update Task,UT-01,Update task mode working - isEditMode true when taskId > 0,Pass,add_task_args_test.dart
+Update Task,UT-02,Update task mode working - isEditMode true when seedTask present,Pass,add_task_args_test.dart
+Update Task,UT-03,Update task status API payload working - UpdateTaskStatusRequest serializes,Pass,add_task_request_test.dart
+Update Task,UT-04,Update task status label mapping working - id to UpdateTaskStatus label,Pass,add_task_request_test.dart
+Update Task,UT-05,Update task response binding working - update maps into HierarchyTask,Pass,task_hierarchy_test.dart
+Task Comments,CM-01,Task comments args binding working - task id and userId,Pass,task_comment_model_test.dart
+Task Comments,CM-02,Task comment display working - initials from senderName,Pass,task_comment_model_test.dart
+Task Comments,CM-03,Task comment delivery status update working,Pass,task_comment_model_test.dart
+Task Comments,CM-04,Task comment attachment open working - prefers remote url,Pass,task_comment_model_test.dart
+Task Comments,CM-05,Task comment attachment open working - falls back to localPath,Pass,task_comment_model_test.dart
+Task Comments,CM-06,Task comment attachment upload source detection working,Pass,task_comment_model_test.dart
+Task Comments,CM-07,Task comments payload merge working - oldest first; isMine by CreatedBy,Pass,task_comments_payload_test.dart
+Project Communication / Email,EM-01,Email body binding working - HTML body detected,Pass,project_email_and_utils_test.dart
+Project Communication / Email,EM-02,Email body binding working - plain text not treated as HTML,Pass,project_email_and_utils_test.dart
+Project Communication / Email,EM-03,Email body binding working - entity-encoded HTML unescaped,Pass,project_email_and_utils_test.dart
+Project Communication / Email,EM-04,Email preview working - long plain text truncated,Pass,project_email_and_utils_test.dart
+Shared Utils / Attachments / Dates,SU-01,Date display format working - dd-MM-yyyy,Pass,project_date_utils_test.dart
+Shared Utils / Attachments / Dates,SU-02,Date parse working - ISO and dd-MM-yyyy supported,Pass,project_email_and_utils_test.dart
+Shared Utils / Attachments / Dates,SU-03,Date time display working - readable datetime with time hint,Pass,project_email_and_utils_test.dart
+Shared Utils / Attachments / Dates,SU-04,Amount format working - Indian grouping,Pass,project_email_and_utils_test.dart
+Shared Utils / Attachments / Dates,SU-05,Attachment fileName binding working - last path segment,Pass,project_email_and_utils_test.dart
+Shared Utils / Attachments / Dates,SU-06,Attachment extension binding working - lowercase without dot,Pass,project_email_and_utils_test.dart

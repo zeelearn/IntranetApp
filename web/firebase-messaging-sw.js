@@ -39,123 +39,134 @@ self.addEventListener("notificationclick", function (event) {
   );
 });
 
+self.addEventListener('push', function (event) {
+  let payload;
+  try {
+    payload = event.data.json();
+  } catch (e) {
+    console.log("Push event data is not JSON", e);
+    return;
+  }
 
-messaging.onBackgroundMessage(async function (payload) {
+  console.log("Message receiving in firebase-messaging-sw.js file (native push) -", payload);
 
-
-  console.log("Message receiving in firebase-messaging-sw.js file -", payload);
+  // If there's no data payload, let Firebase handle it (e.g. standard notification)
+  if (!payload.data || !payload.data.title) {
+    return;
+  }
 
   const notificationTitle = payload.data.title;
-
   console.log('Notification title is - ', notificationTitle);
 
-  const notificationOptions = { body: payload.data.body, icon: 'https://zeelearn.com/wp-content/uploads/zeelearnlogo_new171.png', data: { url: payload.data.url }, };
-
-
-  let dbUserRequest = indexedDB.open('kidzeepref');
-
-  dbUserRequest.onerror = function (event) {
-    console.error("logindetails Failed to open database:", event.target.errorCode);
+  const notificationOptions = { 
+    body: payload.data.body, 
+    icon: 'https://zeelearn.com/wp-content/uploads/zeelearnlogo_new171.png', 
+    data: { url: payload.data.url } 
   };
 
-  dbUserRequest.onsuccess = function (dbvent) {
-
-    let db = dbvent.target.result;
-
-    let transaction = db.transaction(['box'], 'readwrite');
-    let objectStore = transaction.objectStore('box');
-
-    let getRequest = objectStore.get('kidzeepref');
-    getRequest.onsuccess = function (successevent) {
-      let userData = successevent.target.result;
-
-      let exists = Object.values(userData).includes("success");
-      if (exists != null) {
-        let parsedOfflineUserData = JSON.parse(userData);
-
-        console.log('Kidzee data after parsed  is - ', parsedOfflineUserData.empid);
-        console.log('Notification data after parsed  is - ', payload.data.empid);
-
-        if (payload.data.empid == parsedOfflineUserData.empid) {
-
-          e.waitUntil(self.registration.showNotification(notificationTitle, notificationOptions));
-        }
-        else {
-          console.log('User id not matching');
-
-        }
-      }
+  const showPromise = new Promise((resolve) => {
+    const showNotification = () => {
+      self.registration.showNotification(notificationTitle, notificationOptions)
+        .then(() => resolve())
+        .catch((e) => {
+          console.log('Error in showing notification - ', e);
+          resolve();
+        });
     };
-    getRequest.onerror = function (event) {
-      console.log("Error retrieving notifications:", event.target.error);
 
-    };
-  };
+    if (payload.data.user_id && !payload.data.employee_code) {
+      // Check logindetails
+      let dbUserRequest = indexedDB.open('logindetails');
+      dbUserRequest.onerror = function (err) {
+        console.error("logindetails Failed to open database:", err);
+        resolve();
+      };
+      dbUserRequest.onsuccess = function (dbvent) {
+        let db = dbvent.target.result;
+        if (!db.objectStoreNames.contains('box')) return resolve();
 
-  let dbUserRequestsaathi = indexedDB.open('logindetails');
+        let transaction = db.transaction(['box'], 'readonly');
+        let objectStore = transaction.objectStore('box');
+        
+        const getFromStore = (key) => new Promise((res) => {
+          let req = objectStore.get(key);
+          req.onsuccess = (e) => res(e.target.result);
+          req.onerror = () => res(null);
+        });
 
-  dbUserRequestsaathi.onerror = function (event) {
-    console.error("logindetails Failed to open database:", event.target.errorCode);
-  };
+        Promise.all([getFromStore('userId'), getFromStore('userData')]).then(([localUserId, localUserData]) => {
+          let matched = false;
+          
+          if (localUserId && payload.data.user_id == localUserId) {
+            console.log('User id matching on userId - ', payload.data.user_id);
+            matched = true;
+          } else if (localUserData) {
+            try {
+              let parsedOfflineUserData = JSON.parse(localUserData);
+              if (parsedOfflineUserData && parsedOfflineUserData.data && parsedOfflineUserData.data.user_info && parsedOfflineUserData.data.user_info[0]) {
+                if (payload.data.user_id == parsedOfflineUserData.data.user_info[0].user_id) {
+                  console.log('User id matching on parsed userData - ', payload.data.user_id);
+                  matched = true;
+                }
+              }
+            } catch (e) {
+              console.log('Failed to parse userData', e);
+            }
+          }
+          
+          if (matched) {
+            showNotification();
+          } else {
+            console.log('User id not matching or not found in logindetails.');
+            resolve();
+          }
+        });
+      };
+    } else {
+      // Check kidzeepref
+      let dbUserRequest = indexedDB.open('kidzeepref');
+      dbUserRequest.onerror = function (err) {
+        console.error("kidzeepref Failed to open database:", err);
+        resolve();
+      };
+      dbUserRequest.onsuccess = function (dbvent) {
+        let db = dbvent.target.result;
+        if (!db.objectStoreNames.contains('box')) return resolve();
 
-  dbUserRequestsaathi.onsuccess = function (dbvent) {
+        let transaction = db.transaction(['box'], 'readonly');
+        let objectStore = transaction.objectStore('box');
+        
+        const getFromStore = (key) => new Promise((res) => {
+          let req = objectStore.get(key);
+          req.onsuccess = (e) => res(e.target.result);
+          req.onerror = () => res(null);
+        });
+        
+        Promise.all([getFromStore('empid'), getFromStore('employee_Code')]).then(([localEmpid, localEmpCode]) => {
+          let shouldShow = false;
+          
+          if (payload.data.employee_code && payload.data.employee_code == localEmpCode) {
+            console.log('User id matching on employee_code - ', payload.data.employee_code);
+            shouldShow = true;
+          } else if (payload.data.empid && payload.data.empid == localEmpid) {
+            console.log('User id matching on empid - ', payload.data.empid);
+            shouldShow = true;
+          }
+          
+          if (shouldShow) {
+            showNotification();
+          } else {
+            console.log('User id not matching or not found in kidzeepref. Payload empid:', payload.data.empid, 'Payload empCode:', payload.data.employee_code, 'Local empid:', localEmpid, 'Local empCode:', localEmpCode);
+            resolve();
+          }
+        });
+      };
+    }
+  });
 
-    console.log("logindetails Database opened successfully");
-
-    let db = dbvent.target.result;
-
-    let transaction = db.transaction(['box'], 'readwrite');
-    let objectStore = transaction.objectStore('box');
-
-    let getRequest = objectStore.get('userData');
-    getRequest.onsuccess = function (successevent) {
-      let userData = successevent.target.result;
-
-      let exists = Object.values(userData).includes("success");
-      if (exists != null) {
-        let parsedOfflineUserData = JSON.parse(userData);
-
-        console.log('UserSSO data after parsed  is - ', parsedOfflineUserData.data.user_info[0].user_id);
-        console.log('Notification data after parsed  is - ', payload.data.user_id);
-
-        if (payload.data.user_id == parsedOfflineUserData.data.user_info[0].user_id) {
-
-          e.waitUntil(self.registration.showNotification(notificationTitle, notificationOptions));
-        }
-        else {
-          console.log('User id not matching');
-
-        }
-      }
-    };
-    getRequest.onerror = function (event) {
-      console.log("Error retrieving notifications:", event.target.error);
-
-    };
-  };
-
-
-  // console.log("Message receiving in firebase-messaging-sw.js file -", payload);
-  // const notificationTitle = payload.data.title;
-
-
-  // console.log('Notification title is - ', notificationTitle);
-
-  // const notificationOptions = {
-  //   body: payload.data.body,
-  //   icon: payload.data.logo || '/icons/Icon-192.png',
-  //   data: {
-  //     url: payload.data.url || '/'
-  //   },
-  //   image: payload.data.bigimage || undefined
-  // };
-
-  // const notificationOptions = { body: payload.data.body, icon: 'https://zeelearn.com/wp-content/uploads/zeelearnlogo_new171.png', data: { url: payload.data.url }, };
-
-  // self.registration.showNotification(notificationTitle, notificationOptions);
-
-
+  event.waitUntil(showPromise);
 });
+
 
 
 

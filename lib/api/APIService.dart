@@ -95,6 +95,8 @@ import 'package:hive/hive.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 
+import 'package:google_maps_webservice/src/places.dart';
+
 import '../pages/helper/LocalConstant.dart';
 import '../pages/helper/LocalStrings.dart';
 import '../pages/helper/utils.dart';
@@ -154,6 +156,73 @@ class APIService {
       } catch (_) {}
     } catch (e) {
       e.toString();
+    }
+  }
+
+  Future<void> subscribeToTopicForWeb(String token, String topic) async {
+    debugPrint('Messaging token is - $token');
+    if (kIsWeb) {
+      /* Below code subscribes to topic for web as normal way does not works. */
+      try {
+        /* https://7d7d75ce2c46.ngrok-free.app/subscribe?projectName=kidzee&topicname=kidzee&token=ePR0819hT_S00y2XLkHRT0:APA91bH_07X2_M5LsvsPa9NUVXikbbe-9UT2U7Y3VdEMqTdXL1Oe0ZaItsFQjrLCkDSLF7TywUkxpT5Va1lK9ZT8OEI0gGR0UVYZuQ4zlwmqLxoyIzkHjis */
+        var response = await http.get(
+          Uri.parse(
+              '$bpms_url/api/subscription/subscribe?projectName=intranet&topicname=$topic&token=$token'),
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        );
+
+        debugPrint(
+            'Response from subscribe to topic api is Api Service - ${response.body} and status is - ${response.statusCode} ');
+      } catch (e) {
+        debugPrint('Exception while subscribing for web - $e');
+      }
+    }
+  }
+
+  Future<Either<String, Prediction?>> getMatchingLocationList(
+      String address) async {
+    try {
+      var response = await http.get(
+        Uri.parse(
+            '$bpms_url/api/bp/map/place/autocomplete/json?input=$address'),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      );
+      debugPrint('Response from get matching location list api is - ${response.body} and status is - ${response.statusCode} ');
+      if (response.statusCode == 200) {
+         return Right(jsonDecode(response.body)['predictions'].isNotEmpty
+            ? Prediction.fromJson(jsonDecode(response.body)['predictions'][0])
+            : null);
+      } else {
+        return Left('Failed to get matching location list');
+      }
+    } catch (e) {
+      debugPrint('Exception while subscribing for web - $e');
+      return Left('Failed to get matching location list');
+    }
+  }
+
+  Future<void> unsubscribeToTopicForWeb(String topic, String? token) async {
+    if (token != null && token.isNotEmpty) {
+      /* Below code unsubscribes to topic for web as normal way does not works. */
+      try {
+        var response = await http.get(
+          Uri.parse(
+              '$bpms_url/api/subscription/unsubscribe?projectName=intranet&topicname=$topic&token=$token'),
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        );
+        debugPrint(
+            'Response from unsubscribe to topic api is - ${response.body} and status is - ${response.statusCode} ');
+      } catch (e) {
+        debugPrint('Exception while subscribing for web - $e');
+      }
+    } else {
+      debugPrint('FcmToken is null');
     }
   }
 
@@ -820,17 +889,14 @@ class APIService {
 
   Future<dynamic> getPJPList(PJPListRequest requestModel) async {
     try {
-      
       final response = await http.post(
           Uri.parse(url + LocalStrings.GET_PJP_LIST),
           headers: commonHeaders,
           body: requestModel.getJson());
-      
+
       if (response.statusCode == 200 || response.statusCode == 400) {
-        String data = response.body.replaceAll('null', '"NA"');
-      
         return PjpListResponse.fromJson(
-          json.decode(data),
+          json.decode(response.body),
         );
       } else {
         return null; //LoginResponseModel(token:"",Status:"Invalid/Wrong Login Details");
@@ -843,12 +909,11 @@ class APIService {
   Future<dynamic> getPJPExceptionalList(
       PJPExceptionalRequest requestModel) async {
     try {
-      
       final response = await http.post(
           Uri.parse(url + LocalStrings.GET_PJP_EXCEPTIONAL_LIST),
           headers: commonHeaders,
           body: requestModel.getJson());
-      
+
       if (response.statusCode == 200 || response.statusCode == 400) {
         return PjpExceptionalResponse.fromJson(
           json.decode(response.body),
@@ -867,12 +932,10 @@ class APIService {
           Uri.parse(url + LocalStrings.GET_PJP_REPORT),
           headers: commonHeaders,
           body: requestModel.getJson());
-      
+
       if (response.statusCode == 200 || response.statusCode == 400) {
-        String data = response.body.replaceAll('null', '"NA"');
-      
         return PjpListResponse.fromJson(
-          json.decode(data),
+          json.decode(response.body),
         );
       } else {
         return null;
@@ -892,14 +955,14 @@ class APIService {
           level: 3);
 
       if (response.statusCode == 200 || response.statusCode == 400) {
-        String data = response.body.replaceAll('null', '"NA"');
         return PjpListResponse.fromJson(
-          json.decode(data),
+          json.decode(response.body),
         );
       } else {
         return null;
       }
     } catch (e) {
+      debugPrint("Exception while fetching my team report - ${e.toString()}");
       e.toString();
     }
   }
@@ -935,16 +998,9 @@ class APIService {
           headers: commonHeaders,
           body: requestModel.getJson());
       if (response.statusCode == 200 || response.statusCode == 400) {
-        String data = response.body.replaceAll('null', 'NA');
-        if (response.body is GetAllCVFResponse) {
-          return GetAllCVFResponse.fromJson(
-            json.decode(data),
-          );
-        } else {
-          return GetAllCVFResponse.fromJson(
-            json.decode(response.body),
-          );
-        }
+        return GetAllCVFResponse.fromJson(
+          json.decode(response.body),
+        );
       } else {
         return null; //LoginResponseModel(token:"",Status:"Invalid/Wrong Login Details");
       }
@@ -1280,7 +1336,9 @@ class APIService {
       isVideoFile,
       (int bytes, int totalBytes) async {
         log('Uploading file progress in ApiService is - $bytes $totalBytes');
-        await progress!(bytes, totalBytes);
+        if (progress != null) {
+          await progress(bytes, totalBytes);
+        }
       },
     );
     if (isVideoFile) {
@@ -1433,10 +1491,22 @@ class APIService {
   Future<dynamic> insertTaskAttachment(
       InsertTaskAttachmentRequest requestModel) async {
     try {
-      final response = await http.post(
-          Uri.parse(bpms_url + LocalStrings.API_INSERT_ATTACHMENT),
-          headers: getHeader(''),
-          body: requestModel.toJson());
+      // Match web: …/commonapi/api/bp//InserttaskAttachment
+      final uri = Uri.parse(
+        '$bpms_url/${LocalStrings.API_INSERT_ATTACHMENT}'
+            .replaceAll('///', '//'),
+      );
+      final headers = {
+        ...getHeader(''),
+        'Accept': 'application/json, text/plain, */*',
+        'Authorization': 'Bearer admin-token',
+      };
+      final body = requestModel.toJson();
+      log('insertTaskAttachment url=$uri body=$body');
+      final response = await http.post(uri, headers: headers, body: body);
+      log(
+        'insertTaskAttachment status=${response.statusCode} body=${response.body}',
+      );
       if (response.statusCode == 200) {
         return InsertTaskAttachmentResponse.fromJson(
           json.decode(response.body) as Map<String, dynamic>,
@@ -1445,7 +1515,7 @@ class APIService {
         return null;
       }
     } catch (e) {
-      e.toString();
+      log('insertTaskAttachment error=$e');
       return null;
     }
   }

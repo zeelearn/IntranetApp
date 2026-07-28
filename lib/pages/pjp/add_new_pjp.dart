@@ -376,9 +376,9 @@ class _AddNewPJPState extends State<AddNewPJPScreen>
             addPJPinDB(1);
             String message = response.responseMessage ?? "Your PJP has been created successfully.";
             
-            // Utility.showMessageSingleButton(
-            //     context, "PJP Added successfully", this,
-            //     object: mPjpModel);
+            /* Utility.showMessageSingleButton(
+                context, message, this,
+                object: mPjpModel); */
 
             Utility().showPJPStatusDialog(
               pageContext: context,
@@ -473,7 +473,7 @@ class _AddNewPJPState extends State<AddNewPJPScreen>
 
   @override
   void onClick(int action, value) {
-    print("onClick action: $action, value: $value");
+    // print("onClick action: $action, value: $value");
     if (action == Utility.ACTION_OK) {
       Navigator.of(context).pop(value);
     } else if (action == Utility.ACTION_CCNCEL) {

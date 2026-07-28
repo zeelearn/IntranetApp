@@ -11,6 +11,7 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:lottie/lottie.dart';
 import 'package:order_tracker_zen/order_tracker_zen.dart';
+import 'package:Intranet/pages/widget/intranet_order_tracker.dart';
 
 /// CVF v2 accent — date/time, category, ref id.
 const Color _cvfAccent = Color(0xFF4B39EF);
@@ -98,7 +99,12 @@ class _CVFListScreenV2State extends State<CVFListScreenV2> {
             tooltip: 'Filter',
             onPressed: () => controller.showFilterSheet(context),
           ),
-          if (widget.pjpInfo!=null && widget.isViewOnly!=null && controller.showAddCvf && !widget.isViewOnly && widget.pjpInfo!.ApprovalStatus != 'Rejected' && widget.pjpInfo!.ApprovalStatus != 'Canceled')
+          if (widget.pjpInfo != null &&
+              widget.isViewOnly != null &&
+              controller.showAddCvf &&
+              !widget.isViewOnly &&
+              widget.pjpInfo!.ApprovalStatus != 'Rejected' &&
+              widget.pjpInfo!.ApprovalStatus != 'Canceled')
             IconButton(
               icon: const Icon(Icons.add_box),
               tooltip: 'ADD CVF',
@@ -171,7 +177,8 @@ class _LegendItem extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 6),
-        Text(label, style: const TextStyle(fontSize: 11, color: LightColor.grey)),
+        Text(label,
+            style: const TextStyle(fontSize: 11, color: LightColor.grey)),
       ],
     );
   }
@@ -228,37 +235,31 @@ class _CvfListBody extends StatelessWidget {
             );
           }
 
-          return RefreshIndicator(
-            onRefresh: controller.refresh,
-            color: Colors.white,
-            backgroundColor: kPrimaryLightColor,
-            child: ListView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.fromLTRB(0, 12, 0, 24),
-              children: [
-                if (activeFilter != CvfFilter.all)
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
-                    child: Align(
-                      alignment: Alignment.centerLeft,
-                      child: Chip(
-                        avatar: Icon(Icons.filter_alt,
-                            size: 18, color: kPrimaryLightColor),
-                        label: Text('Filter: ${controller.filterLabel}'),
-                        deleteIconColor: kPrimaryLightColor,
-                        onDeleted: () =>
-                            controller.filter.value = CvfFilter.all,
-                      ),
+          return ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.fromLTRB(0, 12, 0, 24),
+            children: [
+              if (activeFilter != CvfFilter.all)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Chip(
+                      avatar: Icon(Icons.filter_alt,
+                          size: 18, color: kPrimaryLightColor),
+                      label: Text('Filter: ${controller.filterLabel}'),
+                      deleteIconColor: kPrimaryLightColor,
+                      onDeleted: () => controller.filter.value = CvfFilter.all,
                     ),
                   ),
-                ...List.generate(items.length, (index) {
-                  return _CvfCard(
-                    controller: controller,
-                    cvf: controller.normalizeCvf(items[index]),
-                  );
-                }),
-              ],
-            ),
+                ),
+              ...List.generate(items.length, (index) {
+                return _CvfCard(
+                  controller: controller,
+                  cvf: controller.normalizeCvf(items[index]),
+                );
+              }),
+            ],
           );
         });
       },
@@ -380,74 +381,73 @@ class _CvfCard extends StatelessWidget {
       ),
       child: ClipRect(
         child: Stack(
-            children: [
-              Positioned(
-                left: 0,
-                top: 0,
-                bottom: 0,
-                child: Tooltip(
-                  message: controller.statusLabel(cvf),
-                  child: SizedBox(
-                    width: 1,
-                    child: ColoredBox(color: statusColor),
-                  ),
+          children: [
+            Positioned(
+              left: 0,
+              top: 0,
+              bottom: 0,
+              child: Tooltip(
+                message: controller.statusLabel(cvf),
+                child: SizedBox(
+                  width: 1,
+                  child: ColoredBox(color: statusColor),
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.only(left: 5),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    InkWell(
-                      onTap: () => controller.onCvfTap(context, cvf),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _CvfDateHeader(cvf: cvf),
-                          ListTile(
-                            contentPadding:
-                                const EdgeInsets.symmetric(horizontal: 12),
-                            title: Text(
-                              _title(cvf),
-                              style: const TextStyle(
-                                fontFamily: 'Lexend Deca',
-                                color: Color(0xFF090F13),
-                                fontSize: 18,
-                                fontWeight: FontWeight.w500,
-                              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(left: 5),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  InkWell(
+                    onTap: () => controller.onCvfTap(context, cvf),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _CvfDateHeader(cvf: cvf),
+                        ListTile(
+                          contentPadding:
+                              const EdgeInsets.symmetric(horizontal: 12),
+                          title: Text(
+                            _title(cvf),
+                            style: const TextStyle(
+                              fontFamily: 'Lexend Deca',
+                              color: Color(0xFF090F13),
+                              fontSize: 18,
+                              fontWeight: FontWeight.w500,
                             ),
-                            subtitle: Text(
-                              _subtitle(cvf),
-                              style: const TextStyle(
-                                fontFamily: 'Lexend Deca',
-                                color: LightColor.grey,
-                                fontSize: 14,
-                                fontWeight: FontWeight.normal,
-                              ),
-                            ),
-                            trailing: _CvfStatusTrailing(
-                                controller: controller, cvf: cvf),
                           ),
-                          if (cvf.cvfHistory != null &&
-                              cvf.cvfHistory!.isNotEmpty)
-                            _CvfHistoryBlock(cvf: cvf),
-                          _CvfRemarksBlock(controller: controller, cvf: cvf),
-                          if (cvf.purpose != null && cvf.purpose!.isNotEmpty)
-                            _CvfCategoryStrip(
-                                controller: controller, cvf: cvf),
-                          _CvfTimeline(cvf: cvf),
-                        ],
-                      ),
+                          subtitle: Text(
+                            _subtitle(cvf),
+                            style: const TextStyle(
+                              fontFamily: 'Lexend Deca',
+                              color: LightColor.grey,
+                              fontSize: 14,
+                              fontWeight: FontWeight.normal,
+                            ),
+                          ),
+                          trailing: _CvfStatusTrailing(
+                              controller: controller, cvf: cvf),
+                        ),
+                        if (cvf.cvfHistory != null &&
+                            cvf.cvfHistory!.isNotEmpty)
+                          _CvfHistoryBlock(cvf: cvf),
+                        _CvfRemarksBlock(controller: controller, cvf: cvf),
+                        if (cvf.purpose != null && cvf.purpose!.isNotEmpty)
+                          _CvfCategoryStrip(controller: controller, cvf: cvf),
+                        _CvfTimeline(cvf: cvf),
+                      ],
                     ),
-                    if (controller.showCardActions(cvf))
-                      _CvfCardActions(controller: controller, cvf: cvf),
-                  ],
-                ),
+                  ),
+                  if (controller.showCardActions(cvf))
+                    _CvfCardActions(controller: controller, cvf: cvf),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
-      );
+      ),
+    );
   }
 
   String _title(GetDetailedPJP cvf) {
@@ -473,9 +473,9 @@ class _CvfDateHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final dateText = Utility.shortDate(Utility.convertServerDate(cvf.visitDate));
-    final timeText =
-        '${Utility.shortTime(Utility.convertTime(cvf.visitTime))} '
+    final dateText =
+        Utility.shortDate(Utility.convertServerDate(cvf.visitDate));
+    final timeText = '${Utility.shortTime(Utility.convertTime(cvf.visitTime))} '
         '${Utility.shortTimeAMPM(Utility.convertTime(cvf.visitTime))}';
 
     return Padding(
@@ -513,6 +513,17 @@ class _CvfDateHeader extends StatelessWidget {
               ),
             ],
           ),
+          cvf.PJP_Id == null
+              ? SizedBox.shrink()
+              : Text(
+                  'PJP Id : ${cvf.PJP_Id ?? ''}',
+                  style: const TextStyle(
+                    fontFamily: 'Lexend Deca',
+                    color: _cvfAccent,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
           Text(
             'Ref Id : ${cvf.PJPCVF_Id}',
             style: const TextStyle(
@@ -614,10 +625,11 @@ class _CvfCardActions extends StatelessWidget {
 }
 
 class WebCardActions extends StatelessWidget {
-  const WebCardActions({required this.controller, required this.cvf});
+  const WebCardActions({required this.controller, required this.cvf, this.onVisitUpdated});
 
   final CVFController controller;
   final GetDetailedPJP cvf;
+  final Function(GetDetailedPJP)? onVisitUpdated;
 
   @override
   Widget build(BuildContext context) {
@@ -639,34 +651,40 @@ class WebCardActions extends StatelessWidget {
               icon: const Icon(Icons.map, size: 18, color: kPrimaryLightColor),
               label: const Text(
                 'Map',
-                style: TextStyle(color: kPrimaryLightColor, fontWeight: FontWeight.w600),
+                style: TextStyle(
+                    color: kPrimaryLightColor, fontWeight: FontWeight.w600),
               ),
             ),
           if (canRescheduleVisit)
             TextButton.icon(
-              onPressed: () => controller.showRescheduleDialog(context, cvf),
-              icon: const Icon(Icons.edit_calendar, size: 18, color: kPrimaryLightColor),
+              onPressed: () => controller.showRescheduleDialog(context, cvf, onVisitUpdated),
+              icon: const Icon(Icons.edit_calendar,
+                  size: 18, color: kPrimaryLightColor),
               label: const Text(
                 'Reschedule',
-                style: TextStyle(color: kPrimaryLightColor, fontWeight: FontWeight.w600),
+                style: TextStyle(
+                    color: kPrimaryLightColor, fontWeight: FontWeight.w600),
               ),
             ),
           if (canCancelVisit)
             TextButton.icon(
-              onPressed: () => controller.showCancelDialog(context, cvf),
+              onPressed: () => controller.showCancelDialog(context, cvf,onVisitUpdated),
               icon: const Icon(Icons.cancel, size: 18, color: Colors.red),
               label: const Text(
                 'Cancel CVF',
-                style: TextStyle(color: Colors.red, fontWeight: FontWeight.w600),
+                style:
+                    TextStyle(color: Colors.red, fontWeight: FontWeight.w600),
               ),
             ),
-          if(isCompleted)
+          if (isCompleted)
             TextButton.icon(
               onPressed: () => controller.openWebsiteReport(context, cvf),
-              icon: const Icon(Icons.category, size: 18, color: kPrimaryLightColor),
+              icon: const Icon(Icons.category,
+                  size: 18, color: kPrimaryLightColor),
               label: const Text(
                 'Report',
-                style: TextStyle(color: kPrimaryLightColor, fontWeight: FontWeight.w600),
+                style: TextStyle(
+                    color: kPrimaryLightColor, fontWeight: FontWeight.w600),
               ),
             ),
         ],
@@ -729,19 +747,21 @@ class _CvfRemarksBlock extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (cvf.remarks.isEmpty || cvf.remarks == 'NA') return const SizedBox.shrink();
+    if (cvf.remarks.isEmpty || cvf.remarks == 'NA')
+      return const SizedBox.shrink();
 
     final isCancel = controller.isCancelled(cvf);
-    final isReschedule = !isCancel &&
-        cvf.cvfHistory != null &&
-        cvf.cvfHistory!.isNotEmpty;
+    final isReschedule =
+        !isCancel && cvf.cvfHistory != null && cvf.cvfHistory!.isNotEmpty;
 
     if (!isCancel && !isReschedule) return const SizedBox.shrink();
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       child: Text(
-        isCancel ? 'Cancel Remark: ${cvf.remarks}' : 'Reschedule Remark: ${cvf.remarks}',
+        isCancel
+            ? 'Cancel Remark: ${cvf.remarks}'
+            : 'Reschedule Remark: ${cvf.remarks}',
         style: TextStyle(
           fontSize: 12,
           fontWeight: FontWeight.w500,
@@ -831,7 +851,7 @@ class _CvfTimeline extends StatelessWidget {
       width: double.infinity,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
-        child: OrderTrackerZen(tracker_data: trackerData),
+        child: IntranetOrderTrackerZen(tracker_data: trackerData),
       ),
     );
   }

@@ -189,6 +189,8 @@ class DBHelper {
       '${DBConstant.BUSINESS_ID} INT, '
       '${DBConstant.FRANCHISEE_NAME} TEXT, '
       '${DBConstant.FRANCHISEE_CODE} TEXT, '
+      '${DBConstant.franchiseelat} TEXT, '
+      '${DBConstant.franchiseelong} TEXT, '
       '${DBConstant.ZONE} TEXT, '
       '${DBConstant.STATE} TEXT, '
       '${DBConstant.CITY} TEXT)';
@@ -265,6 +267,12 @@ class DBHelper {
               if (old <= 15) {
                 //db.execute(CREATE_TABLE_CVF_FRANCHISEE);
                 db.execute(CREATE_TABLE_NOTIFICATION);
+              }
+              if(old <= 16){
+                db.execute(
+                    "ALTER TABLE ${LocalConstant.TABLE_CVF_FRANCHISEE} ADD COLUMN ${DBConstant.franchiseelat} TEXT;");
+                db.execute(
+                    "ALTER TABLE ${LocalConstant.TABLE_CVF_FRANCHISEE} ADD COLUMN ${DBConstant.franchiseelong} TEXT;");
               }
             }));
   }
@@ -497,8 +505,7 @@ class DBHelper {
         /*}else{
         }*/
       }
-    } else {
-    }
+    } else {}
     return response;
   }
 
@@ -521,11 +528,9 @@ class DBHelper {
               json.decode(obj),
             );
           }
-        } else {
-        }
+        } else {}
       }
-    } else {
-    }
+    } else {}
     return response;
   }
 
@@ -546,8 +551,7 @@ class DBHelper {
               actionType: map[DBConstant.ACTION_TYPE]));
         }
       }
-    } else {
-    }
+    } else {}
     return unSyncList;
   }
 
@@ -563,8 +567,7 @@ class DBHelper {
             map[DBConstant.CVF_ID].toString(), () => map[DBConstant.STATE]);
         mMap.putIfAbsent(map['date'].toString(), () => map['date']);
       }
-    } else {
-    }
+    } else {}
     return mMap;
   }
 
@@ -730,7 +733,9 @@ class DBHelper {
               franchiseeName: map[DBConstant.FRANCHISEE_NAME],
               franchiseeZone: map[DBConstant.ZONE],
               franchiseeState: map[DBConstant.STATE],
-              franchiseeCity: map[DBConstant.CITY]));
+              franchiseeCity: map[DBConstant.CITY],
+              franchiseelat: map[DBConstant.franchiseelat],
+              franchiseelong: map[DBConstant.franchiseelong]));
         }
         if (index > 50) {
           break;

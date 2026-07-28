@@ -19,7 +19,7 @@ import '../helper/LightColor.dart';
 import '../helper/LocalConstant.dart';
 import '../helper/constants.dart';
 import '../helper/utils.dart';
-import '../home/IntranetHomePage.dart';
+import 'package:Intranet/pages/home/v2/dashboard_screenv2.dart';
 import '../utils/theme/colors/light_colors.dart';
 import '../widget/MyWidget.dart';
 import '../widget/check/checkbox.dart';
@@ -696,7 +696,7 @@ class _PjpState extends State<NewPJP> {
           Navigator.push(
               context,
               MaterialPageRoute(
-                  builder: (context) => IntranetHomePage(userId: '')));
+                  builder: (context) => DashboardScreenV2(userId: '')));
         },
         label: const Text('Add New'),
         icon: const Icon(Icons.thumb_up),
@@ -944,3 +944,18 @@ class _PjpState extends State<NewPJP> {
     return code;
   }
 }
+
+/// Local calendar helpers previously imported transitively from
+/// `IntranetHomePage.dart`. Kept here so routing to `DashboardScreenV2`
+/// does not break this file.
+List<DateTime> daysInRange(DateTime first, DateTime last) {
+  final dayCount = last.difference(first).inDays + 1;
+  return List.generate(
+    dayCount,
+    (index) => DateTime.utc(first.year, first.month, first.day + index),
+  );
+}
+
+final kToday = DateTime.now();
+final kFirstDay = DateTime(kToday.year, kToday.month - 3, kToday.day);
+final kLastDay = DateTime(kToday.year, kToday.month + 2, kToday.day);

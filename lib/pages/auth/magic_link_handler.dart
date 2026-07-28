@@ -7,7 +7,7 @@ import '../../api/response/login_response.dart';
 import '../firebase/anylatics.dart';
 import '../helper/LocalConstant.dart';
 import '../helper/utils.dart';
-import '../home/IntranetHomePage.dart';
+import 'package:Intranet/pages/home/v2/dashboard_screenv2.dart';
 
 class MagicLinkHandler {
   static String? _lastHandledToken;
@@ -77,7 +77,7 @@ class MagicLinkHandler {
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
-                builder: (context) => IntranetHomePage(
+                builder: (context) => DashboardScreenV2(
                     userId: info.employeeId.toInt().toString())),
           );
         }

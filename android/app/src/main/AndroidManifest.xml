@@ -37,6 +37,16 @@
         <intent>
             <action android:name="android.support.customtabs.action.CustomTabsService" />
         </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <!-- If you don't know the MIME type in advance, set "mimeType" to "*/*". -->
+            <data android:mimeType="application/pdf" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.SEND" />
+            <!-- Replace with the MIME type that your app works with, if needed. -->
+            <data android:mimeType="image/jpeg" />
+        </intent>
     </queries>
 
     <application tools:replace="android:label" android:label="Intranet"
@@ -67,7 +77,23 @@
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:host="zllsaathi.zeelearn.com" />
+                <!-- <data android:host="zllsaathi.zeelearn.com" /> -->
+                <data
+                    android:scheme="https"
+                    android:host="intranetapp.zeelearn.com" />
+
+                <data
+                    android:scheme="https"
+                    android:host="zllsaathi.zeelearn.com" />
+
+                <data
+                    android:scheme="zeelearn"
+                    android:host="home"/>
+
+                <data
+                    android:scheme="https"
+                    android:host="staging.pentemind.com" />
+
                 <data android:scheme="https" />
                 <data android:scheme="http" />
             </intent-filter>

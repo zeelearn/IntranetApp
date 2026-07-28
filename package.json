@@ -1,0 +1,30 @@
+{
+  "name": "intranetapp",
+  "version": "1.0.0",
+  "description": "Intranet",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs",
+    "lib": "lib",
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zeelearn/IntranetApp.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/zeelearn/IntranetApp/issues"
+  },
+  "homepage": "https://github.com/zeelearn/IntranetApp#readme",
+  "dependencies": {
+    "express": "^5.2.1",
+    "http-proxy-middleware": "^4.2.0"
+  }
+}

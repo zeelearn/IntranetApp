@@ -16,11 +16,16 @@ class InsertTaskAttachmentRequest {
     userId = json['UserId'];
   }
 
+  /// Matches web payload: numeric `task_id` / `UserId`, string `file_path`.
   toJson() {
-    return jsonEncode({
-      'task_id': this.taskId,
-      'file_path': this.filePath,
-      'UserId': this.userId
-    });
+    return jsonEncode(toMap());
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'task_id': int.tryParse(taskId.toString()) ?? taskId,
+      'file_path': filePath,
+      'UserId': int.tryParse(userId.toString()) ?? userId,
+    };
   }
 }

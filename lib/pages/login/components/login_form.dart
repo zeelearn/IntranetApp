@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:Intranet/pages/home/IntranetHomePage.dart';
+import 'package:Intranet/pages/home/v2/dashboard_screenv2.dart';
 import 'package:Intranet/pages/widget/MyWebSiteView.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -255,7 +255,7 @@ class _LoginFormState extends State<LoginForm>
                 context,
                 MaterialPageRoute(
                     builder: (context) =>
-                        IntranetHomePage(userId: info.employeeId as String)),
+                        DashboardScreenV2(userId: info.employeeId as String)),
               );
             }
           }

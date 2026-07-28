@@ -51,6 +51,8 @@ class CVFController extends GetxController {
   final PJPInfo? pjpInfo;
   final bool isViewOnly;
 
+
+
   final cvfList = <GetDetailedPJP>[].obs;
   final isLoading = true.obs;
   final isUpdating = false.obs;
@@ -58,14 +60,18 @@ class CVFController extends GetxController {
   final offlineStatus = <String, String>{}.obs;
   final errorMessage = RxnString();
 
+  var currentPJP = <PJPInfo>[].obs;
+
   int employeeId = 0;
   int businessId = 0;
   late Box hiveBox;
 
   bool get isPjpMode => pjpInfo != null;
   bool get canAddCvf => isPjpMode && !isViewOnly && pjpInfo!.isSelfPJP != '0';
+
   /// Filter is available on both My CVF and PJP CVF lists.
   bool get showFilter => true;
+
   /// Show Add action unless screen is view-only (matches legacy CVF list).
   bool get showAddCvf => !isViewOnly;
   String get screenTitle => 'My CVF';
@@ -85,8 +91,7 @@ class CVFController extends GetxController {
     }
   }
 
-  bool _isMounted(BuildContext? context) =>
-      context != null && context.mounted;
+  bool _isMounted(BuildContext? context) => context != null && context.mounted;
 
   static bool isContextMounted(BuildContext? context) =>
       context != null && context.mounted;
@@ -174,8 +179,7 @@ class CVFController extends GetxController {
 
   Future<void> _fetchAllCvf() async {
     cvfList.clear();
-    final request =
-        GetAllCVF(Employee_id: employeeId, Business_id: businessId);
+    final request = GetAllCVF(Employee_id: employeeId, Business_id: businessId);
     final value = await APIService().getAllCVF(request);
     if (value is GetAllCVFResponse && value.responseData.isNotEmpty) {
       hiveBox.put(_cacheKey(), jsonEncode(value.toJson()));
@@ -221,17 +225,32 @@ class CVFController extends GetxController {
     final list = cvfList.toList();
     switch (filter.value) {
       case CvfFilter.completed:
-        return list.where((c) => c.Status == 'Completed').toList().reversed.toList();
+        return list
+            .where((c) => c.Status == 'Completed')
+            .toList()
+            .reversed
+            .toList();
       case CvfFilter.cancelled:
-        return list.where((c) => c.IsCancelled == true).toList().reversed.toList();
+        return list
+            .where((c) => c.IsCancelled == true)
+            .toList()
+            .reversed
+            .toList();
       case CvfFilter.checkIn:
         return list
-            .where((c) => c.approvalStatus.toLowerCase().contains('appro') && !c.IsCancelled && c.Status.trim() == 'Check In')
+            .where((c) =>
+                c.approvalStatus.toLowerCase().contains('appro') &&
+                !c.IsCancelled &&
+                c.Status.trim() == 'Check In')
             .toList()
             .reversed
             .toList();
       case CvfFilter.fillCvf:
-        return list.where((c) => !c.IsCancelled  && c.Status == 'FILL CVF').toList().reversed.toList();
+        return list
+            .where((c) => !c.IsCancelled && c.Status == 'FILL CVF')
+            .toList()
+            .reversed
+            .toList();
       case CvfFilter.all:
         return list.reversed.toList();
     }
@@ -265,8 +284,7 @@ class CVFController extends GetxController {
   bool isCancelled(GetDetailedPJP cvf) =>
       cvf.IsCancelled || cvf.Status == 'Cancelled';
 
-  bool isCompleted(GetDetailedPJP cvf) =>
-      cvf.Status == 'Completed';
+  bool isCompleted(GetDetailedPJP cvf) => cvf.Status == 'Completed';
 
   bool canManageVisit(GetDetailedPJP cvf) {
     if (isViewOnly) return false;
@@ -278,8 +296,10 @@ class CVFController extends GetxController {
     //print('canRescheduleOrCancel: ${cvf.PJPCVF_Id} ${cvf.Status}, ${cvf.approvalStatus}');
     if (!canManageVisit(cvf)) return false;
     //if (!isApproved(cvf)) return false;
-    if(cvf.approvalStatus == 'Rejected') return false;
-    return cvf.Status == 'FILL CVF' ||cvf.Status == 'Check In' || cvf.Status == 'NA';
+    if (cvf.approvalStatus == 'Rejected') return false;
+    return cvf.Status == 'FILL CVF' ||
+        cvf.Status == 'Check In' ||
+        cvf.Status == 'NA';
   }
 
   openWebsiteReport(BuildContext context, GetDetailedPJP cvf) {
@@ -403,7 +423,7 @@ class CVFController extends GetxController {
   }
 
   Future<void> checkIn(GetDetailedPJP cvf) async {
-    print('checkIn called from cvf_controller.dart for PJPCVF_Id: ${cvf.PJPCVF_Id}, Current Status: ${cvf.Status}');
+    // print('checkIn called from cvf_controller.dart for PJPCVF_Id: ${cvf.PJPCVF_Id}, Current Status: ${cvf.Status}');
     final context = Get.context;
     if (!_isMounted(context)) return;
 
@@ -443,7 +463,7 @@ class CVFController extends GetxController {
   Future<void> _updateCvfStatusOnline(GetDetailedPJP cvf) async {
     final nextStatus = _nextStatus(cvf.Status);
     final completer = Completer<void>();
-    print('Updating CVF Status Online _updateCvfStatusOnline for PJPCVF_Id: ${cvf.PJPCVF_Id}, Current Status: ${cvf.Status}, Next Status: $nextStatus');
+    // print('Updating CVF Status Online _updateCvfStatusOnline for PJPCVF_Id: ${cvf.PJPCVF_Id}, Current Status: ${cvf.Status}, Next Status: $nextStatus');
     IntranetServiceHandler.updateCVFStatus(
       employeeId,
       cvf,
@@ -465,8 +485,12 @@ class CVFController extends GetxController {
         title: const Text('Internet not avaliable'),
         content: const Text('Would you like to save CVF Offline'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('YES')),
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: const Text('YES')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Cancel')),
         ],
       ),
     );
@@ -480,12 +504,10 @@ class CVFController extends GetxController {
       DateTime: Utility.getDateTime(),
       Status: cvf.Status,
       Employee_id: employeeId,
-      Latitude: cvf.Status != 'FILL CVF'
-          ? cvf.Latitude
-          : location?.latitude ?? 0.0,
-      Longitude: cvf.Status != 'FILL CVF'
-          ? cvf.Longitude
-          : location?.longitude ?? 0.0,
+      Latitude:
+          cvf.Status != 'FILL CVF' ? cvf.Latitude : location?.latitude ?? 0.0,
+      Longitude:
+          cvf.Status != 'FILL CVF' ? cvf.Longitude : location?.longitude ?? 0.0,
       Address: address,
       CheckOutLatitude:
           cvf.Status == 'FILL CVF' ? location?.latitude ?? 0.0 : 0.0,
@@ -602,7 +624,9 @@ class CVFController extends GetxController {
   }
 
   void onCategoryTap(BuildContext context, GetDetailedPJP cvf) {
-    if (cvf.Status == 'Check In' ||
+    if (cvf.IsCancelled || cvf.Status == 'Cancelled') {
+      Utility.showMessage(context, 'This CVF is cancelled');
+    } else if (cvf.Status == 'Check In' ||
         cvf.Status == ' Check In' ||
         cvf.Status == 'NA') {
       Utility.showMessage(context, 'Please Click on Check In button');
@@ -636,7 +660,8 @@ class CVFController extends GetxController {
           _filterTile(ctx, CvfFilter.all, Icons.select_all, 'All'),
           _filterTile(ctx, CvfFilter.completed, Icons.check, 'Completed'),
           _filterTile(ctx, CvfFilter.checkIn, Icons.login, 'Check In'),
-          _filterTile(ctx, CvfFilter.fillCvf, Icons.pending_actions, 'FILL CVF'),
+          _filterTile(
+              ctx, CvfFilter.fillCvf, Icons.pending_actions, 'FILL CVF'),
           _filterTile(ctx, CvfFilter.cancelled, Icons.cancel, 'Cancelled'),
         ],
       ),
@@ -680,11 +705,12 @@ class CVFController extends GetxController {
               ),
             if (canRescheduleVisit)
               ListTile(
-                leading: const Icon(Icons.edit_calendar, color: CvfStatusColor.accent),
+                leading: const Icon(Icons.edit_calendar,
+                    color: CvfStatusColor.accent),
                 title: const Text('Reschedule'),
                 onTap: () {
                   Navigator.pop(ctx);
-                  showRescheduleDialog(context, cvf);
+                  showRescheduleDialog(context, cvf,null);
                 },
               ),
             if (canCancelVisit)
@@ -693,7 +719,7 @@ class CVFController extends GetxController {
                 title: const Text('Cancel CVF'),
                 onTap: () {
                   Navigator.pop(ctx);
-                  showCancelDialog(context, cvf);
+                  showCancelDialog(context, cvf,null);
                 },
               ),
           ],
@@ -709,12 +735,10 @@ class CVFController extends GetxController {
 
   bool showCardActions(GetDetailedPJP cvf) {
     if (isViewOnly || (isPjpMode && pjpInfo!.isSelfPJP == '0')) return false;
-    return hasLocation(cvf) ||
-        canReschedule(cvf) ||
-        canRescheduleOrCancel(cvf);
+    return hasLocation(cvf) || canReschedule(cvf) || canRescheduleOrCancel(cvf);
   }
 
-  void showCancelDialog(BuildContext context, GetDetailedPJP cvf) {
+  void showCancelDialog(BuildContext context, GetDetailedPJP cvf,Function(GetDetailedPJP)? onVisitUpdated) {
     final remarkController = TextEditingController();
     showDialog(
       context: context,
@@ -796,7 +820,7 @@ class CVFController extends GetxController {
                           return;
                         }
                         Navigator.pop(ctx);
-                        cancelCvf(cvf, remarkController.text.trim());
+                        cancelCvf(cvf, remarkController.text.trim(),onVisitUpdated);
                       },
                       icon: const Icon(Icons.check, size: 18),
                       label: const Text('Cancel CVF'),
@@ -811,15 +835,14 @@ class CVFController extends GetxController {
     );
   }
 
-  Future<void> cancelCvf(GetDetailedPJP cvf, String remark) async {
+  Future<void> cancelCvf(GetDetailedPJP cvf, String remark,Function(GetDetailedPJP)? onVisitUpdated) async {
     final context = Get.context;
     if (!_isMounted(context)) return;
     Utility.showLoaderDialog(context!);
     try {
       final docXml = _buildDocXml(cvf, remark);
-      final pjpId = isPjpMode
-          ? int.parse(pjpInfo!.PJP_Id)
-          : int.parse(cvf.PJP_Id ?? '0');
+      final pjpId =
+          isPjpMode ? int.parse(pjpInfo!.PJP_Id) : int.parse(cvf.PJP_Id ?? '0');
       final response =
           await APIService().cancelCVF(pjpId, docXml, employeeId, true);
       if (_isMounted(context) && Navigator.canPop(context)) {
@@ -827,8 +850,17 @@ class CVFController extends GetxController {
       }
       if (!_isMounted(context)) return;
       if (response != null) {
+        cvf.IsCancelled=true;
+        cvf.remarks = remark;
+        debugPrint('IsCancelled ${cvf.toJson()}');
+        debugPrint('isCancell ${cvf.IsCancelled}');
+        if(onVisitUpdated!=null){
+          debugPrint('isCancelling --- ${cvf.IsCancelled}');
+          onVisitUpdated!(cvf);
+        }
         Utility.showMessage(context, 'CVF Cancelled successfully');
         await loadData();
+        
       } else {
         Utility.showMessage(context, 'Failed to cancel CVF');
       }
@@ -864,8 +896,7 @@ class CVFController extends GetxController {
       _dateOnly(Utility.convertDate(cvf.visitDate));
 
   DateTime? _pjpRangeStart(GetDetailedPJP cvf) {
-    final from =
-        isPjpMode ? pjpInfo!.fromDate : (cvf.pjpFromDate ?? '');
+    final from = isPjpMode ? pjpInfo!.fromDate : (cvf.pjpFromDate ?? '');
     if (from.isEmpty || from == 'NA') return null;
     return _dateOnly(Utility.convertDate(from));
   }
@@ -925,9 +956,8 @@ class CVFController extends GetxController {
     final max = _rescheduleMaxDate(cvf);
 
     if (selected.isBefore(min)) {
-      final rangeEnd = max != null
-          ? DateFormat('dd-MMM-yyyy').format(max)
-          : 'end of PJP';
+      final rangeEnd =
+          max != null ? DateFormat('dd-MMM-yyyy').format(max) : 'end of PJP';
       return 'Reschedule date must be today or later within the PJP period '
           '(${DateFormat('dd-MMM-yyyy').format(min)} – $rangeEnd)';
     }
@@ -940,7 +970,7 @@ class CVFController extends GetxController {
     return null;
   }
 
-  void showRescheduleDialog(BuildContext context, GetDetailedPJP cvf) {
+  void showRescheduleDialog(BuildContext context, GetDetailedPJP cvf,Function(GetDetailedPJP)? onVisitUpdated) {
     if (!isPjpMode && !cvf.hasPjpRange) {
       Utility.showMessage(
           context, 'Cannot reschedule: PJP range not available.');
@@ -981,7 +1011,8 @@ class CVFController extends GetxController {
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setDialogState) => Dialog(
           clipBehavior: Clip.antiAlias,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 480),
             child: Column(
@@ -1018,7 +1049,8 @@ class CVFController extends GetxController {
                               color: kPrimaryLightColor.withValues(alpha: 0.08),
                               borderRadius: BorderRadius.circular(10),
                               border: Border.all(
-                                color: kPrimaryLightColor.withValues(alpha: 0.2),
+                                color:
+                                    kPrimaryLightColor.withValues(alpha: 0.2),
                               ),
                             ),
                             child: Row(
@@ -1071,17 +1103,16 @@ class CVFController extends GetxController {
                           onTap: () async {
                             final picked = await showDatePicker(
                               context: ctx,
-                              initialDate: _clampDate(
-                                  selectedDate, firstDate, lastDate),
+                              initialDate:
+                                  _clampDate(selectedDate, firstDate, lastDate),
                               firstDate: firstDate,
                               lastDate: lastDate,
                             );
                             if (picked != null) {
                               setDialogState(() {
                                 selectedDate = picked;
-                                dateController.text =
-                                    DateFormat('dd-MMM-yyyy')
-                                        .format(selectedDate);
+                                dateController.text = DateFormat('dd-MMM-yyyy')
+                                    .format(selectedDate);
                               });
                             }
                           },
@@ -1205,7 +1236,7 @@ class CVFController extends GetxController {
                             cvf,
                             selectedDate,
                             selectedTime,
-                            remarkController.text.trim(),
+                            remarkController.text.trim(),onVisitUpdated
                           );
                         },
                         icon: const Icon(Icons.event_repeat, size: 18),
@@ -1222,8 +1253,7 @@ class CVFController extends GetxController {
     );
   }
 
-  DateTime _clampDate(
-      DateTime selected, DateTime? first, DateTime? last) {
+  DateTime _clampDate(DateTime selected, DateTime? first, DateTime? last) {
     if (first != null && selected.isBefore(first)) return first;
     if (last != null && selected.isAfter(last)) return last;
     return selected;
@@ -1234,12 +1264,12 @@ class CVFController extends GetxController {
     DateTime newDate,
     TimeOfDay newTime,
     String remark,
+    Function(GetDetailedPJP)? onVisitUpdated
   ) async {
     final context = Get.context;
     if (!_isMounted(context)) return;
 
-    final validationError =
-        _validateRescheduleSelection(cvf, newDate, newTime);
+    final validationError = _validateRescheduleSelection(cvf, newDate, newTime);
     if (validationError != null) {
       Utility.showMessage(context!, validationError);
       return;
@@ -1255,9 +1285,8 @@ class CVFController extends GetxController {
         visitDate: visitDateFormatted,
         visitTime: visitTimeFormatted,
       );
-      final pjpId = isPjpMode
-          ? int.parse(pjpInfo!.PJP_Id)
-          : int.parse(cvf.PJP_Id ?? '0');
+      final pjpId =
+          isPjpMode ? int.parse(pjpInfo!.PJP_Id) : int.parse(cvf.PJP_Id ?? '0');
       final response =
           await APIService().cancelCVF(pjpId, docXml, employeeId, false);
       if (_isMounted(context) && Navigator.canPop(context)) {
@@ -1265,6 +1294,16 @@ class CVFController extends GetxController {
       }
       if (!_isMounted(context)) return;
       if (response != null) {
+        if(onVisitUpdated!=null){
+          if(cvf.cvfHistory ==null || cvf.cvfHistory!.isEmpty) {
+            cvf.cvfHistory = [];
+          }
+          cvf.cvfHistory!.add(CVFHistory(visitDate: cvf.visitDate, visitTime: cvf.visitTime, franchiseeId: cvf.franchiseeId, franchiseeCode: cvf.franchiseeCode, franchiseeName: cvf.franchiseeName, latitude: '${cvf.Latitude}', longitude: '${cvf.Longitude}', address: cvf.Address, remarks: remark));
+          cvf.visitDate = visitDateFormatted;
+          cvf.visitTime = visitTimeFormatted;
+          debugPrint('rescheduling ${cvf.toJson()}');
+          onVisitUpdated!(cvf);
+        }
         Utility.showMessage(context, 'CVF Rescheduled successfully');
         await loadData();
       } else {
@@ -1284,10 +1323,9 @@ class CVFController extends GetxController {
     String? visitDate,
     String? visitTime,
   }) {
-    final categoryId =
-        cvf.purpose != null && cvf.purpose!.isNotEmpty
-            ? cvf.purpose![0].categoryId
-            : '0';
+    final categoryId = cvf.purpose != null && cvf.purpose!.isNotEmpty
+        ? cvf.purpose![0].categoryId
+        : '0';
     return '<root><tblPJPCVF>'
         '<CVF_Id>${cvf.PJPCVF_Id}</CVF_Id>'
         '<Business_Id>$businessId</Business_Id>'
@@ -1347,7 +1385,8 @@ class _DismissListener implements onClickListener {
 }
 
 class _ServiceCallback implements onResponse {
-  _ServiceCallback({required this.onSuccessCallback, required this.onErrorCallback});
+  _ServiceCallback(
+      {required this.onSuccessCallback, required this.onErrorCallback});
   final void Function(dynamic) onSuccessCallback;
   final void Function(String) onErrorCallback;
 
