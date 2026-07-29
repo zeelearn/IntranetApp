@@ -61,3 +61,4 @@ pubspec.lock
 pubspec.lock
 
 /node_modules/
+.superpowers/

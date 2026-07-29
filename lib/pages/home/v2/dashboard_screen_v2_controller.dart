@@ -26,7 +26,7 @@ import 'package:Intranet/pages/model/filter.dart';
 import 'package:Intranet/pages/notification/UserNotification.dart';
 import 'package:Intranet/pages/pjp/cvf/v2/cvf.dart';
 import 'package:Intranet/pages/pjp/mypjp.dart';
-import 'package:Intranet/pages/pjp/pjp_list_manager.dart';
+import 'package:Intranet/pages/pjp/managers/pjp_approval.dart';
 import 'package:Intranet/pages/pjp/pjp_list_manager_exceptional.dart';
 import 'package:Intranet/pages/report/myreport.dart';
 import 'package:Intranet/pages/summary%20dashboard/summary_dashboard.dart';
@@ -632,7 +632,7 @@ class DashboardScreenV2Controller extends GetxController
     if (!validateBusiness('approvals_pjp')) return;
     await Navigator.of(Get.context!).push(
       MaterialPageRoute(
-        builder: (_) => PJPManagerScreen(employeeId: employeeId.value),
+        builder: (_) => const PjpApprovalPage(),
       ),
     );
   }
