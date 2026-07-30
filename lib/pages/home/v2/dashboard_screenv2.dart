@@ -50,7 +50,9 @@ class _DashboardScreenV2State extends State<DashboardScreenV2> {
 
   @override
   void dispose() {
-    Get.delete<DashboardScreenV2Controller>();
+    if (Get.isRegistered<DashboardScreenV2Controller>()) {
+      Get.delete<DashboardScreenV2Controller>(force: true);
+    }
     super.dispose();
   }
 

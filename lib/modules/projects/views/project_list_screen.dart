@@ -183,25 +183,46 @@ class ProjectListScreen extends StatelessWidget {
                             }
                             final project =
                                 controller.visibleProjects[index];
-                            return ProjectCard(
-                              project: project,
-                              index: index,
-                              statusLabel: controller.statusName,
-                              statusColor: controller.statusColor,
-                              showMissedDeadline:
-                                  DashboardStatusIds.showsMissedDeadline(
-                                controller.projectTeamStatus,
-                              ),
-                              onCardTap: () {
-                                controller.openTaskScreen(project, 0);
-                              },
-                              onCommunication: () =>
-                                  controller.onCommunication(project),
-                              onIndentDetails: () =>
-                                  controller.onIndentDetails(project),
-                              onDocuments: () =>
-                                  controller.onDocuments(project),
-                            );
+                            return Obx(() {
+                              final crmId = project.crmId;
+                              final cooldownHint =
+                                  controller.sendCredentialsCooldownHint(crmId);
+                              final sending =
+                                  controller.isSendingCredentials.value &&
+                                      controller.sendingCredentialsCrmId
+                                              .value ==
+                                          crmId;
+                              return ProjectCard(
+                                project: project,
+                                index: index,
+                                statusLabel: controller.statusName,
+                                statusColor: controller.statusColor,
+                                showMissedDeadline:
+                                    DashboardStatusIds.showsMissedDeadline(
+                                  controller.projectTeamStatus,
+                                ),
+                                onCardTap: () {
+                                  controller.openTaskScreen(project, 0);
+                                },
+                                onCommunication: () =>
+                                    controller.onCommunication(project),
+                                onIndentDetails: () =>
+                                    controller.onIndentDetails(project),
+                                onDocuments: () =>
+                                    controller.onDocuments(project),
+                                onViewReport: () =>
+                                    controller.viewReport(project),
+                                onSendCredentials: () => controller
+                                    .confirmAndSendCredentials(
+                                  context,
+                                  project,
+                                ),
+                                sendCredentialsEnabled:
+                                    controller.canSendCredentials(crmId),
+                                sendCredentialsHint: cooldownHint,
+                                isSendingCredentials: sending,
+                              );
+                            });
                           },
                         ),
                       );
@@ -216,27 +237,49 @@ class ProjectListScreen extends StatelessWidget {
                         crossAxisCount: columns,
                         crossAxisSpacing: 12,
                         mainAxisSpacing: 8,
-                        mainAxisExtent: columns >= 3 ? 300 : 320,
+                        mainAxisExtent: columns >= 3 ? 320 : 340,
                       ),
                       itemCount: controller.visibleProjects.length,
                       itemBuilder: (context, index) {
                         final project = controller.visibleProjects[index];
-                        return ProjectCard(
-                          project: project,
-                          index: index,
-                          statusLabel: controller.statusName,
-                          statusColor: controller.statusColor,
-                          showMissedDeadline:
-                              DashboardStatusIds.showsMissedDeadline(
-                            controller.projectTeamStatus,
-                          ),
-                          onCardTap: () => controller.openTaskScreen(project, 0),
-                          onCommunication: () =>
-                              controller.onCommunication(project),
-                          onIndentDetails: () =>
-                              controller.onIndentDetails(project),
-                          onDocuments: () => controller.onDocuments(project),
-                        );
+                        return Obx(() {
+                          final crmId = project.crmId;
+                          final cooldownHint =
+                              controller.sendCredentialsCooldownHint(crmId);
+                          final sending =
+                              controller.isSendingCredentials.value &&
+                                  controller.sendingCredentialsCrmId.value ==
+                                      crmId;
+                          return ProjectCard(
+                            project: project,
+                            index: index,
+                            statusLabel: controller.statusName,
+                            statusColor: controller.statusColor,
+                            showMissedDeadline:
+                                DashboardStatusIds.showsMissedDeadline(
+                              controller.projectTeamStatus,
+                            ),
+                            onCardTap: () =>
+                                controller.openTaskScreen(project, 0),
+                            onCommunication: () =>
+                                controller.onCommunication(project),
+                            onIndentDetails: () =>
+                                controller.onIndentDetails(project),
+                            onDocuments: () =>
+                                controller.onDocuments(project),
+                            onViewReport: () =>
+                                controller.viewReport(project),
+                            onSendCredentials: () =>
+                                controller.confirmAndSendCredentials(
+                              context,
+                              project,
+                            ),
+                            sendCredentialsEnabled:
+                                controller.canSendCredentials(crmId),
+                            sendCredentialsHint: cooldownHint,
+                            isSendingCredentials: sending,
+                          );
+                        });
                       },
                     );
                   },

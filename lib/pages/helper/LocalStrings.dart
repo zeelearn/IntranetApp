@@ -104,6 +104,16 @@ class LocalStrings {
   static const String API_SEND_CREDENTIALS = 'api/bp/SendTempCredentialsEmail';
   static const String API_BPMS_DELETETASK = 'api/bp//deletetask';
 
+  /// Kidzee branding APIs on kubapi (HTTPS) — works in browser (no local HTTP/SSL issues).
+  /// Header dbid = 0 for both get + insert.
+  static const String API_GET_BRANDING_PRODUCT =
+      '$bpms/api/kidzee//GetBrandingProduct';
+  static const String API_INSERT_BRANDING_INDENT =
+      '$bpms/api/kidzee//InsertBrandingIndent';
+  static const String kidzeeBrandingDbId = '0';
+  /// Default academic year for branding indent insert (API sample = 26).
+  static const int kidzeeBrandingAcademicYearId = 26;
+
   static const String API_ZOHO_RECIPIENT =
       'https://www.zohoapis.in/crm/v7/functions/get_zoho_sign_documnet_data/actions/execute?auth_type=apikey&zapikey=1003.cf825177f2ce96ebc934296577eac040.f9c4c7b8967068e0cafbd4e62b900368';
 

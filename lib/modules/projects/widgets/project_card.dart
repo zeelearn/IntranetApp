@@ -15,6 +15,11 @@ class ProjectCard extends StatelessWidget {
     required this.onIndentDetails,
     required this.onCardTap,
     required this.onDocuments,
+    required this.onViewReport,
+    required this.onSendCredentials,
+    this.sendCredentialsEnabled = true,
+    this.sendCredentialsHint,
+    this.isSendingCredentials = false,
     this.index = 0,
     this.showMissedDeadline = false,
   });
@@ -26,6 +31,11 @@ class ProjectCard extends StatelessWidget {
   final VoidCallback onIndentDetails;
   final VoidCallback onDocuments;
   final VoidCallback onCardTap;
+  final VoidCallback onViewReport;
+  final VoidCallback onSendCredentials;
+  final bool sendCredentialsEnabled;
+  final String? sendCredentialsHint;
+  final bool isSendingCredentials;
   final int index;
   final bool showMissedDeadline;
 
@@ -88,6 +98,26 @@ class ProjectCard extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
+                      _HeaderIconButton(
+                        tooltip: 'View Report',
+                        icon: Icons.bar_chart_rounded,
+                        color: DashboardColors.primary,
+                        onTap: onViewReport,
+                      ),
+                      _HeaderIconButton(
+                        tooltip: sendCredentialsEnabled
+                            ? 'Send Credentials'
+                            : (sendCredentialsHint ?? 'Cooldown active'),
+                        icon: isSendingCredentials
+                            ? Icons.hourglass_top_rounded
+                            : Icons.vpn_key_outlined,
+                        color: sendCredentialsEnabled
+                            ? DashboardColors.purple
+                            : DashboardColors.textMuted,
+                        enabled: sendCredentialsEnabled && !isSendingCredentials,
+                        onTap: onSendCredentials,
+                      ),
+                      const SizedBox(width: 8),
                       StatusBadge(label: chip, color: statusColor),
                     ],
                   ),
@@ -197,11 +227,55 @@ class ProjectCard extends StatelessWidget {
                       ),
                     ],
                   ),
+                  if (sendCredentialsHint != null &&
+                      !sendCredentialsEnabled) ...[
+                    const SizedBox(height: 6),
+                    Text(
+                      'Credentials cooldown: $sendCredentialsHint',
+                      style: GoogleFonts.poppins(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w500,
+                        color: DashboardColors.textMuted,
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _HeaderIconButton extends StatelessWidget {
+  const _HeaderIconButton({
+    required this.tooltip,
+    required this.icon,
+    required this.color,
+    required this.onTap,
+    this.enabled = true,
+  });
+
+  final String tooltip;
+  final IconData icon;
+  final Color color;
+  final VoidCallback onTap;
+  final bool enabled;
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      onPressed: enabled ? onTap : null,
+      tooltip: tooltip,
+      visualDensity: VisualDensity.compact,
+      padding: EdgeInsets.zero,
+      constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+      icon: Icon(
+        icon,
+        size: 20,
+        color: enabled ? color : color.withValues(alpha: 0.45),
       ),
     );
   }

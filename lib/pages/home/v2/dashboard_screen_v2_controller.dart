@@ -727,6 +727,7 @@ class DashboardScreenV2Controller extends GetxController
       ),
       (_) => false,
     );
+    Utility.disposeAllControllers();
   }
 
   Future<void> showBusinessPicker({required bool fromDrawer}) async {

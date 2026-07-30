@@ -83,11 +83,13 @@ class DashboardCardModel extends Equatable {
     return (count / total) * 100;
   }
 
-  /// Builds the eight Figma cards from a parsed [DashboardSummary].
+  /// Builds dashboard cards from a parsed [DashboardSummary].
+  /// [All Projects] is always first.
   static List<DashboardCardModel> fromSummary(DashboardSummary summary) {
     final totalProjects = summary.totalProject;
     final totalTasks = summary.totalTasks;
 
+    final allCount = summary.allProjectCount;
     final pendingCount = summary.countFor(summary.pendingProject);
     final confirmedCount = summary.countFor(summary.completedProject);
     final refundCount = summary.countFor(summary.refundedProject);
@@ -95,6 +97,21 @@ class DashboardCardModel extends Equatable {
     final notInterestedCount = summary.countFor(summary.notInterestedProject);
 
     return [
+      DashboardCardModel(
+        title: 'All Projects',
+        count: allCount,
+        percent: _percent(allCount, totalProjects > 0 ? totalProjects : allCount),
+        statusId: summary.statusIdFor(
+          summary.allProject,
+          DashboardStatusIds.allProject,
+        ),
+        statusName: 'All Projects',
+        chipLabel: 'ALL',
+        color: DashboardColors.textDark,
+        backgroundColor: const Color(0xFFE8EAF6),
+        icon: Icons.apps_rounded,
+        kind: DashboardCardKind.project,
+      ),
       DashboardCardModel(
         title: 'Pending Projects',
         count: pendingCount,

@@ -526,6 +526,7 @@ class _LoginPage extends State<LoginPage> {
             hive.put(LocalConstant.KEY_USER_PASSWORD, info.userPassword);
             hive.put(LocalConstant.KEY_DOB, info.employeeDateOfBirth);
             hive.put(LocalConstant.KEY_GRADE, info.employeeGrade);
+            hive.put(LocalConstant.KEY_ZONE, info.zone);
             hive.put(
                 LocalConstant.KEY_DATE_OF_MARRAGE, info.employeeDateOfMarriage);
             hive.put(LocalConstant.KEY_LOCATION, info.employeeLocation);

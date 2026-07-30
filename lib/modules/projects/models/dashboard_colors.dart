@@ -46,6 +46,7 @@ class DashboardColors {
 class DashboardStatusIds {
   DashboardStatusIds._();
 
+  static const int allProject = 0;
   static const int confirmedProject = 1;
   static const int notInterestedProject = 2;
   static const int rejectedProject = 3;

@@ -20,7 +20,8 @@ void main() {
     "RefundedProject":[{"status_id":4,"c":4}],
     "RejectedProject":[{"status_id":3,"c":6}],
     "PendingProject":[{"status_id":6,"c":354}],
-    "NotStartedProject":[{"status_id":5,"c":95}]
+    "NotStartedProject":[{"status_id":5,"c":95}],
+    "AllProject":[{"status_id":0,"c":1155}]
   }
 ]
 ''';
@@ -37,6 +38,8 @@ void main() {
       expect(summary.pendingTask, 395);
       expect(summary.countFor(summary.pendingProject), 354);
       expect(summary.countFor(summary.completedProject), 767);
+      expect(summary.countFor(summary.allProject), 1155);
+      expect(summary.allProjectCount, 1155);
     });
 
     test('throws invalidJson on malformed inner string', () {
@@ -81,8 +84,9 @@ void main() {
   group('DashboardCardModel.fromSummary', () {
     test('calculates percentages with zero-safe totals', () {
       final cards = DashboardCardModel.fromSummary(DashboardSummary.empty());
-      expect(cards.length, 8);
+      expect(cards.length, 9);
       expect(cards.every((c) => c.percent == 0), isTrue);
+      expect(cards.first.title, 'All Projects');
     });
 
     test('maps pending and confirmed counts', () {
@@ -92,6 +96,9 @@ void main() {
         'completedTask': 300,
         'InprogressTask': 100,
         'CancelledTask': 0,
+        'AllProject': [
+          {'status_id': 0, 'c': 1000}
+        ],
         'CompletedProject': [
           {'status_id': 1, 'c': 400}
         ],
@@ -113,6 +120,8 @@ void main() {
       });
 
       final cards = DashboardCardModel.fromSummary(parsed);
+      expect(cards.first.title, 'All Projects');
+      expect(cards.first.count, 1000);
       final pending = cards.firstWhere((c) => c.title == 'Pending Projects');
       final confirmed =
           cards.firstWhere((c) => c.title == 'Confirmed Projects');
@@ -125,6 +134,26 @@ void main() {
       expect(confirmed.percent, 40);
       expect(pendingTasks.statusId, 101);
       expect(pendingTasks.percent, 20);
+    });
+
+    test('AllProject falls back to TotalProject when list empty', () {
+      final parsed = DashboardSummary.fromJson({
+        'TotalProject': 500,
+        'pendingtask': 0,
+        'completedTask': 0,
+        'InprogressTask': 0,
+        'CancelledTask': 0,
+        'AllProject': [],
+        'CompletedProject': [],
+        'NotInterestedProject': [],
+        'RefundedProject': [],
+        'RejectedProject': [],
+        'PendingProject': [],
+        'NotStartedProject': [],
+      });
+      final cards = DashboardCardModel.fromSummary(parsed);
+      expect(cards.first.title, 'All Projects');
+      expect(cards.first.count, 500);
     });
   });
 }

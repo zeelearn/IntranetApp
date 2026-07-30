@@ -9,6 +9,7 @@ class DashboardSummary extends Equatable {
     required this.completedTask,
     required this.inProgressTask,
     required this.cancelledTask,
+    required this.allProject,
     required this.completedProject,
     required this.notInterestedProject,
     required this.refundedProject,
@@ -22,6 +23,7 @@ class DashboardSummary extends Equatable {
   final int completedTask;
   final int inProgressTask;
   final int cancelledTask;
+  final List<ProjectStatus> allProject;
   final List<ProjectStatus> completedProject;
   final List<ProjectStatus> notInterestedProject;
   final List<ProjectStatus> refundedProject;
@@ -35,6 +37,7 @@ class DashboardSummary extends Equatable {
         completedTask: 0,
         inProgressTask: 0,
         cancelledTask: 0,
+        allProject: [],
         completedProject: [],
         notInterestedProject: [],
         refundedProject: [],
@@ -50,6 +53,7 @@ class DashboardSummary extends Equatable {
       completedTask: _asInt(json['completedTask']),
       inProgressTask: _asInt(json['InprogressTask']),
       cancelledTask: _asInt(json['CancelledTask']),
+      allProject: _statusList(json['AllProject']),
       completedProject: _statusList(json['CompletedProject']),
       notInterestedProject: _statusList(json['NotInterestedProject']),
       refundedProject: _statusList(json['RefundedProject']),
@@ -65,6 +69,8 @@ class DashboardSummary extends Equatable {
         'completedTask': completedTask,
         'InprogressTask': inProgressTask,
         'CancelledTask': cancelledTask,
+        'AllProject':
+            allProject.map((e) => e.toJson()).toList(growable: false),
         'CompletedProject':
             completedProject.map((e) => e.toJson()).toList(growable: false),
         'NotInterestedProject': notInterestedProject
@@ -86,6 +92,7 @@ class DashboardSummary extends Equatable {
     int? completedTask,
     int? inProgressTask,
     int? cancelledTask,
+    List<ProjectStatus>? allProject,
     List<ProjectStatus>? completedProject,
     List<ProjectStatus>? notInterestedProject,
     List<ProjectStatus>? refundedProject,
@@ -99,6 +106,7 @@ class DashboardSummary extends Equatable {
       completedTask: completedTask ?? this.completedTask,
       inProgressTask: inProgressTask ?? this.inProgressTask,
       cancelledTask: cancelledTask ?? this.cancelledTask,
+      allProject: allProject ?? this.allProject,
       completedProject: completedProject ?? this.completedProject,
       notInterestedProject: notInterestedProject ?? this.notInterestedProject,
       refundedProject: refundedProject ?? this.refundedProject,
@@ -116,6 +124,13 @@ class DashboardSummary extends Equatable {
   int statusIdFor(List<ProjectStatus> list, int fallback) {
     if (list.isEmpty) return fallback;
     return list.first.statusId;
+  }
+
+  /// Prefer AllProject list count; fall back to TotalProject.
+  int get allProjectCount {
+    final fromList = countFor(allProject);
+    if (fromList > 0) return fromList;
+    return totalProject;
   }
 
   int get totalTasks =>
@@ -143,6 +158,7 @@ class DashboardSummary extends Equatable {
         completedTask,
         inProgressTask,
         cancelledTask,
+        allProject,
         completedProject,
         notInterestedProject,
         refundedProject,
