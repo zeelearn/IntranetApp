@@ -16,7 +16,13 @@ import 'package:hive/hive.dart';
 
 enum PjpApprovalStatusFilter { all, pending, approved, rejected }
 
-enum PjpApprovalSort { statusAsc, statusDesc, dateNewest, dateOldest }
+enum PjpApprovalSort {
+  pjpIdDesc,
+  statusAsc,
+  statusDesc,
+  dateNewest,
+  dateOldest,
+}
 
 enum PjpDatePreset {
   lastMonth,
@@ -47,12 +53,20 @@ class PjpApprovalController extends GetxController {
 
   final Rx<PjpApprovalStatusFilter> statusFilter =
       PjpApprovalStatusFilter.all.obs;
-  final Rx<PjpApprovalSort> sortBy = PjpApprovalSort.statusAsc.obs;
+  final Rx<PjpApprovalSort> sortBy = PjpApprovalSort.pjpIdDesc.obs;
   final Rx<PjpDatePreset> datePreset = PjpDatePreset.lastMonth.obs;
   final RxString searchQuery = ''.obs;
 
-  final Rx<DateTime> fromDate = DateTime.now().obs;
-  final Rx<DateTime> toDate = DateTime.now().obs;
+  final Rx<DateTime> fromDate =  DateTime(
+    DateTime.now().year,
+    DateTime.now().month - 6,
+    DateTime.now().day,
+  ).obs;
+  final Rx<DateTime> toDate = DateTime(
+    DateTime.now().year,
+    DateTime.now().month + 12,
+    DateTime.now().day,
+  ).obs;
 
   int employeeId = 0;
   int businessId = 0;
@@ -113,7 +127,7 @@ class PjpApprovalController extends GetxController {
     super.onInit();
     searchController = TextEditingController();
     searchController.addListener(_onSearchChanged);
-    _applyDatePreset(PjpDatePreset.lastMonth);
+    //_applyDatePreset(PjpDatePreset.lastMonth);
     _bootstrap();
   }
 
@@ -252,7 +266,7 @@ class PjpApprovalController extends GetxController {
   }
 
   Future<void> applyDatePreset(PjpDatePreset preset) async {
-    _applyDatePreset(preset);
+    //_applyDatePreset(preset);
     await loadPjps();
   }
 
@@ -359,7 +373,7 @@ class PjpApprovalController extends GetxController {
   void clearAllFilters() {
     statusFilter.value = PjpApprovalStatusFilter.all;
     selectedEmployees.clear();
-    sortBy.value = PjpApprovalSort.statusAsc;
+    sortBy.value = PjpApprovalSort.pjpIdDesc;
     searchController.clear();
     searchQuery.value = '';
     _applyFilters();
@@ -532,6 +546,8 @@ class PjpApprovalController extends GetxController {
 
   int _compare(PJPInfo a, PJPInfo b) {
     switch (sortBy.value) {
+      case PjpApprovalSort.pjpIdDesc:
+        return _pjpIdValue(b).compareTo(_pjpIdValue(a));
       case PjpApprovalSort.statusAsc:
         return _statusRank(a.ApprovalStatus)
             .compareTo(_statusRank(b.ApprovalStatus));
@@ -544,6 +560,8 @@ class PjpApprovalController extends GetxController {
         return a.fromDate.compareTo(b.fromDate);
     }
   }
+
+  int _pjpIdValue(PJPInfo pjp) => int.tryParse(pjp.PJP_Id.trim()) ?? 0;
 
   int _statusRank(String status) {
     final key = status.trim().toLowerCase();

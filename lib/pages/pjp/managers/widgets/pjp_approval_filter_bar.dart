@@ -66,20 +66,20 @@ class PjpApprovalFilterBar extends StatelessWidget {
             Obx(
               () => Row(
                 children: [
-                  Icon(Icons.calendar_month,
-                      size: 14, color: Colors.grey.shade600),
-                  const SizedBox(width: 4),
-                  Expanded(
-                    child: Text(
-                      '${controller.datePresetLabel} · ${Utility.convertShortDate(controller.fromDate.value)} → ${Utility.convertShortDate(controller.toDate.value)}',
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: Colors.grey.shade700,
-                        fontWeight: FontWeight.w600,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
+                  // Icon(Icons.calendar_month,
+                  //     size: 14, color: Colors.grey.shade600),
+                  // const SizedBox(width: 4),
+                  // Expanded(
+                  //   child: Text(
+                  //     '${controller.datePresetLabel} · ${Utility.convertShortDate(controller.fromDate.value)} → ${Utility.convertShortDate(controller.toDate.value)}',
+                  //     style: TextStyle(
+                  //       fontSize: 11,
+                  //       color: Colors.grey.shade700,
+                  //       fontWeight: FontWeight.w600,
+                  //     ),
+                  //     overflow: TextOverflow.ellipsis,
+                  //   ),
+                  // ),
                   if (controller.selectedEmployees.isNotEmpty)
                     Container(
                       margin: const EdgeInsets.only(left: 6),

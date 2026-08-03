@@ -76,75 +76,75 @@ class _PjpApprovalFilterSheet extends StatelessWidget {
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
                 children: [
-                  const _SectionTitle('Date Range'),
-                  const SizedBox(height: 8),
-                  Obx(() {
-                    return Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: [
-                        _PresetChip(
-                          label: 'Last Month',
-                          selected:
-                              controller.datePreset.value ==
-                              PjpDatePreset.lastMonth,
-                          onTap: () async {
-                            await controller
-                                .applyDatePreset(PjpDatePreset.lastMonth);
-                          },
-                        ),
-                        _PresetChip(
-                          label: 'Last 3 Months',
-                          selected:
-                              controller.datePreset.value ==
-                              PjpDatePreset.last3Months,
-                          onTap: () async {
-                            await controller
-                                .applyDatePreset(PjpDatePreset.last3Months);
-                          },
-                        ),
-                        _PresetChip(
-                          label: 'This Year',
-                          selected:
-                              controller.datePreset.value ==
-                              PjpDatePreset.thisYear,
-                          onTap: () async {
-                            await controller
-                                .applyDatePreset(PjpDatePreset.thisYear);
-                          },
-                        ),
-                        _PresetChip(
-                          label: 'Last Year',
-                          selected:
-                              controller.datePreset.value ==
-                              PjpDatePreset.lastYear,
-                          onTap: () async {
-                            await controller
-                                .applyDatePreset(PjpDatePreset.lastYear);
-                          },
-                        ),
-                        _PresetChip(
-                          label: 'Custom',
-                          selected:
-                              controller.datePreset.value ==
-                              PjpDatePreset.custom,
-                          onTap: () =>
-                              controller.pickCustomDateRange(context),
-                        ),
-                      ],
-                    );
-                  }),
-                  const SizedBox(height: 8),
-                  Obx(
-                    () => Text(
-                      '${Utility.convertShortDate(controller.fromDate.value)} → ${Utility.convertShortDate(controller.toDate.value)}',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey.shade700,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
+                  // const _SectionTitle('Date Range'),
+                  // const SizedBox(height: 8),
+                  // Obx(() {
+                  //   return Wrap(
+                  //     spacing: 8,
+                  //     runSpacing: 8,
+                  //     children: [
+                  //       _PresetChip(
+                  //         label: 'Last Month',
+                  //         selected:
+                  //             controller.datePreset.value ==
+                  //             PjpDatePreset.lastMonth,
+                  //         onTap: () async {
+                  //           await controller
+                  //               .applyDatePreset(PjpDatePreset.lastMonth);
+                  //         },
+                  //       ),
+                  //       _PresetChip(
+                  //         label: 'Last 3 Months',
+                  //         selected:
+                  //             controller.datePreset.value ==
+                  //             PjpDatePreset.last3Months,
+                  //         onTap: () async {
+                  //           await controller
+                  //               .applyDatePreset(PjpDatePreset.last3Months);
+                  //         },
+                  //       ),
+                  //       _PresetChip(
+                  //         label: 'This Year',
+                  //         selected:
+                  //             controller.datePreset.value ==
+                  //             PjpDatePreset.thisYear,
+                  //         onTap: () async {
+                  //           await controller
+                  //               .applyDatePreset(PjpDatePreset.thisYear);
+                  //         },
+                  //       ),
+                  //       _PresetChip(
+                  //         label: 'Last Year',
+                  //         selected:
+                  //             controller.datePreset.value ==
+                  //             PjpDatePreset.lastYear,
+                  //         onTap: () async {
+                  //           await controller
+                  //               .applyDatePreset(PjpDatePreset.lastYear);
+                  //         },
+                  //       ),
+                  //       _PresetChip(
+                  //         label: 'Custom',
+                  //         selected:
+                  //             controller.datePreset.value ==
+                  //             PjpDatePreset.custom,
+                  //         onTap: () =>
+                  //             controller.pickCustomDateRange(context),
+                  //       ),
+                  //     ],
+                  //   );
+                  // }),
+                  // const SizedBox(height: 8),
+                  // Obx(
+                  //   () => Text(
+                  //     '${Utility.convertShortDate(controller.fromDate.value)} → ${Utility.convertShortDate(controller.toDate.value)}',
+                  //     style: TextStyle(
+                  //       fontSize: 12,
+                  //       color: Colors.grey.shade700,
+                  //       fontWeight: FontWeight.w600,
+                  //     ),
+                  //   ),
+                  // ),
                   const SizedBox(height: 18),
                   const _SectionTitle('Status'),
                   const SizedBox(height: 8),
