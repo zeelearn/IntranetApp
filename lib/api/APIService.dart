@@ -191,9 +191,10 @@ class APIService {
           'Content-Type': 'application/json',
         },
       );
-      debugPrint('Response from get matching location list api is - ${response.body} and status is - ${response.statusCode} ');
+      debugPrint(
+          'Response from get matching location list api is - ${response.body} and status is - ${response.statusCode} ');
       if (response.statusCode == 200) {
-         return Right(jsonDecode(response.body)['predictions'].isNotEmpty
+        return Right(jsonDecode(response.body)['predictions'].isNotEmpty
             ? Prediction.fromJson(jsonDecode(response.body)['predictions'][0])
             : null);
       } else {
@@ -1186,7 +1187,12 @@ class APIService {
       final response = await http.post(Uri.parse(url + LocalStrings.UPDATE_FCM),
           headers: commonHeaders, body: requestModel.getJson());
       if (response.statusCode == 200 || response.statusCode == 400) {
-        if (response.body is FcmResponse) {
+        if (jsonDecode(response.body)?['statusCode'] == 200) {
+          await Hive.openBox(LocalConstant.KidzeeDB);
+          var hiveBox = Hive.box(LocalConstant.KidzeeDB);
+          // var oldoken = hiveBox.get(LocalConstant.KEY_FCM_ID);
+
+          await hiveBox.put(LocalConstant.KEY_FCM_ID, requestModel.FCM_Reg_ID);
           return FcmResponse.fromJson(
             json.decode(response.body),
           );
