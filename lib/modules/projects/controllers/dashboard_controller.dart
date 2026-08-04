@@ -12,6 +12,7 @@ import 'package:Intranet/modules/projects/models/quick_action_type.dart';
 import 'package:Intranet/modules/projects/repositories/dashboard_repository.dart';
 import 'package:Intranet/modules/projects/repositories/project_business_repository.dart';
 import 'package:Intranet/modules/projects/utils/business_name_matcher.dart';
+import 'package:Intranet/modules/projects/utils/projects_sidebar_roles.dart';
 import 'package:Intranet/pages/helper/LocalConstant.dart';
 import 'package:Intranet/pages/helper/utils.dart';
 
@@ -65,6 +66,15 @@ class DashboardController extends GetxController {
 
   /// AppBar subtitle: Designation | Role | Zone
   final RxString headerSubtitle = ''.obs;
+
+  /// Employee role from Hive (`KEY_EMP_TYPE`), e.g. MAN / BH / ZM.
+  final RxString employeeType = ''.obs;
+
+  /// Sidebar menu visibility — driven by [employeeType].
+  final RxBool showProjectsMenu = true.obs;
+  final RxBool showAllIndentsMenu = true.obs;
+  final RxBool showCenterKitReportMenu = true.obs;
+  final RxBool showVisualChartsMenu = false.obs;
 
   final RxBool isLoading = false.obs;
   final RxBool isRefreshing = false.obs;
@@ -123,6 +133,9 @@ class DashboardController extends GetxController {
         }
       }
 
+      employeeType.value = role;
+      _applySidebarMenuVisibility(role);
+
       final parts = <String>[
         if (designation.isNotEmpty) designation,
         if (role.isNotEmpty) role,
@@ -131,7 +144,18 @@ class DashboardController extends GetxController {
       headerSubtitle.value = parts.join(' | ');
     } catch (_) {
       headerSubtitle.value = '';
+      employeeType.value = '';
+      _applySidebarMenuVisibility('');
     }
+  }
+
+  void _applySidebarMenuVisibility(String role) {
+    showProjectsMenu.value = ProjectsSidebarRoles.canShowProjects(role);
+    showAllIndentsMenu.value = ProjectsSidebarRoles.canShowAllIndents(role);
+    showCenterKitReportMenu.value =
+        ProjectsSidebarRoles.canShowCenterKitReport(role);
+    showVisualChartsMenu.value =
+        ProjectsSidebarRoles.canShowVisualCharts(role);
   }
 
   @override

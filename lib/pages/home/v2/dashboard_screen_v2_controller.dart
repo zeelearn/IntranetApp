@@ -30,6 +30,7 @@ import 'package:Intranet/pages/pjp/managers/pjp_approval.dart';
 import 'package:Intranet/pages/pjp/pjp_list_manager_exceptional.dart';
 import 'package:Intranet/pages/report/myreport.dart';
 import 'package:Intranet/pages/summary%20dashboard/summary_dashboard.dart';
+import 'package:Intranet/pages/userinfo/employee_search_delegate.dart';
 import 'package:Intranet/pages/utils/util.dart';
 import 'package:Intranet/pages/widget/MyWebSiteView.dart';
 import 'package:Intranet/pages/widget/VideoPlayer.dart';
@@ -781,7 +782,14 @@ class DashboardScreenV2Controller extends GetxController
     );
   }
 
-  void onSearchTap() => _showComingSoon();
+  Future<void> onSearchTap() async {
+    final context = Get.context;
+    if (context == null) return;
+    await showSearch(
+      context: context,
+      delegate: EmployeeSearchDelegate(),
+    );
+  }
 
   void onCustomizeTap() => _showComingSoon();
 

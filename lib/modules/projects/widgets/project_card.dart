@@ -22,6 +22,7 @@ class ProjectCard extends StatelessWidget {
     this.isSendingCredentials = false,
     this.index = 0,
     this.showMissedDeadline = false,
+    this.compact = false,
   });
 
   final ProjectItem project;
@@ -38,6 +39,9 @@ class ProjectCard extends StatelessWidget {
   final bool isSendingCredentials;
   final int index;
   final bool showMissedDeadline;
+
+  /// When true, drops outer bottom margin (web/tablet grid uses spacing).
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
@@ -70,7 +74,7 @@ class ProjectCard extends StatelessWidget {
         ),
       ),
       child: Padding(
-        padding: const EdgeInsets.only(bottom: 12),
+        padding: EdgeInsets.only(bottom: compact ? 0 : 12),
         child: Material(
           color: Colors.white,
           elevation: 2,
@@ -78,9 +82,11 @@ class ProjectCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           child: InkWell(
             onTap: onCardTap,
+            borderRadius: BorderRadius.circular(16),
             child: Padding(
               padding: const EdgeInsets.fromLTRB(12, 12, 12, 10),
               child: Column(
+                mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
@@ -305,24 +311,27 @@ class _FooterActionButton extends StatelessWidget {
         minimumSize: const Size(0, 36),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 16, color: color),
-          const SizedBox(height: 2),
-          Text(
-            label,
-            textAlign: TextAlign.center,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: GoogleFonts.poppins(
-              fontSize: 8,
-              fontWeight: FontWeight.w600,
-              height: 1.1,
-              color: color,
+      child: Padding(
+        padding: const EdgeInsets.all(4.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 16, color: color),
+            const SizedBox(height: 2),
+            Text(
+              label,
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: GoogleFonts.poppins(
+                fontSize: 8,
+                fontWeight: FontWeight.w600,
+                height: 1.1,
+                color: color,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

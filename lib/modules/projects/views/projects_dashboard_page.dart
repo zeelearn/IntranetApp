@@ -170,6 +170,11 @@ class _ProjectsDashboardPageState extends State<ProjectsDashboardPage> {
               child: Obx(
                 () => ProjectsSidebar(
                   projectCards: controller.cards.toList(growable: false),
+                  showProjects: controller.showProjectsMenu.value,
+                  showAllIndents: controller.showAllIndentsMenu.value,
+                  showCenterKitReport:
+                      controller.showCenterKitReportMenu.value,
+                  showVisualCharts: controller.showVisualChartsMenu.value,
                   onProjectTap: (card) {
                     _closeDrawerIfOpen();
                     _handleCardTap(controller, card);
@@ -212,6 +217,11 @@ class _ProjectsDashboardPageState extends State<ProjectsDashboardPage> {
                   Obx(
                     () => ProjectsSidebar(
                       projectCards: controller.cards.toList(growable: false),
+                      showProjects: controller.showProjectsMenu.value,
+                      showAllIndents: controller.showAllIndentsMenu.value,
+                      showCenterKitReport:
+                          controller.showCenterKitReportMenu.value,
+                      showVisualCharts: controller.showVisualChartsMenu.value,
                       onProjectTap: (card) =>
                           _handleCardTap(controller, card),
                       onAllIndentsTap: _openAllIndents,
@@ -360,6 +370,8 @@ class _ProjectsDashboardPageState extends State<ProjectsDashboardPage> {
   }
 
   void _openVisualCharts() {
+    final controller = Get.find<DashboardController>(tag: _tag);
+    if (!controller.showVisualChartsMenu.value) return;
     VisualChartsScreen.openFromHive();
   }
 }

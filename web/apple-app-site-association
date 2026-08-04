@@ -1,0 +1,17 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": [
+          "TEAM_ID.com.zeelearn.ekidzee"
+        ],
+        "components": [
+          {
+            "/": "/*",
+            "comment": "Allow all URLs"
+          }
+        ]
+      }
+    ]
+  }
+}

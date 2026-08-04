@@ -6,7 +6,7 @@
 	<integer>12</integer>
 	<key>logs</key>
 	<dict>
-		<key>798C8E2C-C34C-45EB-8241-74AFB41209D8</key>
+		<key>556B33DD-0871-4A8C-B386-9831C4827D58</key>
 		<dict>
 			<key>className</key>
 			<string>IDECommandLineBuildLog</string>
@@ -15,7 +15,7 @@
 			<key>domainType</key>
 			<string>Xcode.IDEActivityLogDomainType.BuildLog</string>
 			<key>fileName</key>
-			<string>798C8E2C-C34C-45EB-8241-74AFB41209D8.xcactivitylog</string>
+			<string>556B33DD-0871-4A8C-B386-9831C4827D58.xcactivitylog</string>
 			<key>hasPrimaryLog</key>
 			<true/>
 			<key>primaryObservable</key>
@@ -34,19 +34,19 @@
 			<key>schemeIdentifier-containerName</key>
 			<string>Runner project</string>
 			<key>schemeIdentifier-schemeName</key>
-			<string>Runner</string>
+			<string>Flutter Assemble</string>
 			<key>schemeIdentifier-sharedScheme</key>
 			<integer>1</integer>
 			<key>signature</key>
-			<string>Cleaning workspace Runner with scheme Runner</string>
+			<string>Cleaning workspace Runner with scheme Flutter Assemble</string>
 			<key>timeStartedRecording</key>
-			<real>802690703.94176102</real>
+			<real>807433076.63525796</real>
 			<key>timeStoppedRecording</key>
-			<real>802690704.33056605</real>
+			<real>807433077.09659505</real>
 			<key>title</key>
-			<string>Cleaning workspace Runner with scheme Runner</string>
+			<string>Cleaning workspace Runner with scheme Flutter Assemble</string>
 			<key>uniqueIdentifier</key>
-			<string>798C8E2C-C34C-45EB-8241-74AFB41209D8</string>
+			<string>556B33DD-0871-4A8C-B386-9831C4827D58</string>
 		</dict>
 	</dict>
 </dict>

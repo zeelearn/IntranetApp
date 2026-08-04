@@ -4,6 +4,8 @@ import 'package:Intranet/modules/projects/models/dashboard_card_model.dart';
 import 'package:Intranet/modules/projects/models/dashboard_colors.dart';
 
 /// Left navigation matching the Projects admin menu design.
+///
+/// Menu visibility is controlled by the dashboard controller (user type).
 class ProjectsSidebar extends StatelessWidget {
   const ProjectsSidebar({
     super.key,
@@ -12,6 +14,10 @@ class ProjectsSidebar extends StatelessWidget {
     required this.onAllIndentsTap,
     required this.onCenterKitReportTap,
     required this.onVisualChartsTap,
+    this.showProjects = true,
+    this.showAllIndents = true,
+    this.showCenterKitReport = true,
+    this.showVisualCharts = false,
     this.width = 280,
   });
 
@@ -20,6 +26,10 @@ class ProjectsSidebar extends StatelessWidget {
   final VoidCallback onAllIndentsTap;
   final VoidCallback onCenterKitReportTap;
   final VoidCallback onVisualChartsTap;
+  final bool showProjects;
+  final bool showAllIndents;
+  final bool showCenterKitReport;
+  final bool showVisualCharts;
   final double width;
 
   static const _sectionBg = Color(0xFFE8EEF5);
@@ -33,6 +43,10 @@ class ProjectsSidebar extends StatelessWidget {
         .where((c) => c.kind == DashboardCardKind.task)
         .toList(growable: false);
 
+    final showIndentsSection = showAllIndents;
+    final showReportSection = showCenterKitReport;
+    final showAnalyticsSection = showVisualCharts;
+
     return Material(
       color: Colors.white,
       elevation: 1,
@@ -42,53 +56,64 @@ class ProjectsSidebar extends StatelessWidget {
           child: ListView(
             padding: const EdgeInsets.fromLTRB(0, 8, 0, 24),
             children: [
-              _SectionHeader(
-                icon: Icons.menu_book_outlined,
-                title: 'Projects',
-              ),
-              ...projects.map(
-                (card) => _SubMenuItem(
-                  label: card.title,
-                  count: card.count,
-                  onTap: () => onProjectTap(card),
+              if (showProjects) ...[
+                _SectionHeader(
+                  icon: Icons.menu_book_outlined,
+                  title: 'Projects',
                 ),
-              ),
-              if (tasks.isNotEmpty) ...[
-                ...tasks.map(
+                ...projects.map(
                   (card) => _SubMenuItem(
                     label: card.title,
                     count: card.count,
                     onTap: () => onProjectTap(card),
                   ),
                 ),
+                if (tasks.isNotEmpty) ...[
+                  ...tasks.map(
+                    (card) => _SubMenuItem(
+                      label: card.title,
+                      count: card.count,
+                      onTap: () => onProjectTap(card),
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 8),
               ],
-              const SizedBox(height: 8),
-              _SectionHeader(
-                icon: Icons.menu_book_outlined,
-                title: 'Indents',
-              ),
-              _SubMenuItem(
-                label: 'All Indents',
-                onTap: onAllIndentsTap,
-              ),
-              const SizedBox(height: 8),
-              _SectionHeader(
-                icon: Icons.menu_book_outlined,
-                title: 'Report',
-              ),
-              _SubMenuItem(
-                label: 'Center Kit Report',
-                onTap: onCenterKitReportTap,
-              ),
-              const SizedBox(height: 8),
-              _SectionHeader(
-                icon: Icons.monitor_heart_outlined,
-                title: 'Analytics',
-              ),
-              _SubMenuItem(
-                label: 'Visual Charts',
-                onTap: onVisualChartsTap,
-              ),
+              if (showIndentsSection) ...[
+                _SectionHeader(
+                  icon: Icons.menu_book_outlined,
+                  title: 'Indents',
+                ),
+                if (showAllIndents)
+                  _SubMenuItem(
+                    label: 'All Indents',
+                    onTap: onAllIndentsTap,
+                  ),
+                const SizedBox(height: 8),
+              ],
+              if (showReportSection) ...[
+                _SectionHeader(
+                  icon: Icons.menu_book_outlined,
+                  title: 'Report',
+                ),
+                if (showCenterKitReport)
+                  _SubMenuItem(
+                    label: 'Center Kit Report',
+                    onTap: onCenterKitReportTap,
+                  ),
+                const SizedBox(height: 8),
+              ],
+              if (showAnalyticsSection) ...[
+                _SectionHeader(
+                  icon: Icons.monitor_heart_outlined,
+                  title: 'Analytics',
+                ),
+                if (showVisualCharts)
+                  _SubMenuItem(
+                    label: 'Visual Charts',
+                    onTap: onVisualChartsTap,
+                  ),
+              ],
             ],
           ),
         ),
