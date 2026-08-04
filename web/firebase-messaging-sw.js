@@ -6,13 +6,13 @@ importScripts("https://www.gstatic.com/firebasejs/9.23.0/firebase-messaging-comp
 
 
 firebase.initializeApp({
-  apiKey: 'AIzaSyBl0E5LxXz3l6tdSSITpaEiA1sF6jPr4Mg',
-  appId: '1:92536473318:web:2bff6cb251cb0157179d27',
-  messagingSenderId: '92536473318',
-  projectId: 'intranetweb-68536',
-  authDomain: 'intranetweb-68536.firebaseapp.com',
-  storageBucket: 'intranetweb-68536.appspot.com',
-  measurementId: 'G-0934VN0XTW',
+  apiKey: 'AIzaSyDDvVRpknNCx8KTmy1TO-BXW6kPmzPEyNc',
+  appId: '1:411998223312:web:3ec3c688769d9aa2dd97d5',
+  messagingSenderId: '411998223312',
+  projectId: 'intranet-9fda2',
+  authDomain: 'intranet-9fda2.firebaseapp.com',
+  storageBucket: 'intranet-9fda2.appspot.com',
+  measurementId: 'G-5DZKG2P4P9',
 });
 
 
@@ -156,7 +156,7 @@ self.addEventListener('push', function (event) {
           if (shouldShow) {
             showNotification();
           } else {
-            console.log('User id not matching or not found in kidzeepref. Payload empid:', payload.data.empid, 'Payload empCode:', payload.data.employee_code, 'Local empid:', localEmpid, 'Local empCode:', localEmpCode);
+            console.log('User id not matching or not found in Intranet. Payload empid:', payload.data.empid, 'Payload empCode:', payload.data.employee_code, 'Local empid:', localEmpid, 'Local empCode:', localEmpCode);
             resolve();
           }
         });

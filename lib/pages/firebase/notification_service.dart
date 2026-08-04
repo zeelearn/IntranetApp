@@ -87,39 +87,8 @@ class NotificationService {
       [RemoteMessage? message]) async {
     String channel = LocalConstant.NOTIFICATION_CHANNEL;
     if (kIsWeb) {
-      ToastUtilityIntranet.showInfoToast(message?.data['body'] ?? '');
-      // if (context == null || !context.mounted) return;
-      /* ScaffoldMessenger.maybeOf(context)?.showSnackBar(SnackBar(
-          duration: Duration(seconds: 20),
-          showCloseIcon: false,
-          closeIconColor: Colors.redAccent,
-          backgroundColor: /* item.colorCode?.toColor() ?? */
-              kPrimaryLightColor,
-          margin: EdgeInsets.only(
-              left: MediaQuery.of(context).size.width / 2,
-              right: 10,
-              bottom: 20),
-          behavior: SnackBarBehavior.floating,
-          content: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              Text(
-                message.data['title'],
-                style: LightColors.subTextStyle.copyWith(color: Colors.white),
-              ),
-              SizedBox(
-                height: 5,
-              ),
-              Text(
-                message.data['body'],
-                style: LightColors.subTextStyle.copyWith(color: Colors.white),
-              ),
-              SizedBox(
-                height: 5,
-              ),
-            ],
-          ))); */
+      ToastUtilityIntranet.showInfoToast(
+          '${message?.data['title'] ?? ''}\n${message?.data['body'] ?? ''}');
     } else {
       AwesomeNotifications().createNotification(
           content: NotificationContent(
@@ -346,16 +315,34 @@ class NotificationService {
               message.data['title'], list.getBody(), message);
         } else if (message.data.containsKey('topic') &&
             message.data['topic'] != '') {
-          //identifyNotification(message);
-          //showNotification(message);
-          NotificationService notificationService = NotificationService();
-          notificationService.showSimpleNotification(
-              message.data['title'], message.data['body'], message);
+          var hiveBox = await Utility.openBox();
+
+          String employeeCode =
+              hiveBox.get(LocalConstant.KEY_EMPLOYEE_CODE) as String;
+          String empId = hiveBox.get(LocalConstant.KEY_EMPLOYEE_ID) as String;
+          if ((message.data.containsKey('employee_code') &&
+                  message.data['employee_code'] != employeeCode) ||
+              (message.data.containsKey('empid') &&
+                  message.data['empid'] != empId)) {
+            NotificationService notificationService = NotificationService();
+            notificationService.showSimpleNotification(
+                message.data['title'], message.data['body'], message);
+          }
         } else {
-          //showNotification(message);
-          NotificationService notificationService = NotificationService();
-          notificationService.showSimpleNotification(
-              message.data['title'], message.data['body'], message);
+          var hiveBox = await Utility.openBox();
+
+          String employeeCode =
+              hiveBox.get(LocalConstant.KEY_EMPLOYEE_CODE) as String;
+          String empId = hiveBox.get(LocalConstant.KEY_EMPLOYEE_ID) as String;
+          if ((message.data.containsKey('employee_code') &&
+                  message.data['employee_code'] == employeeCode) ||
+              (message.data.containsKey('empid') &&
+                  message.data['empid'] == empId)) {
+            //showNotification(message);
+            NotificationService notificationService = NotificationService();
+            notificationService.showSimpleNotification(
+                message.data['title'], message.data['body'], message);
+          }
         }
       }
     }
