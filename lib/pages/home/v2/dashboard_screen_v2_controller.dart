@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:Intranet/api/APIService.dart';
 import 'package:Intranet/api/ServiceHandler.dart';
 import 'package:Intranet/api/response/login_response.dart';
 import 'package:Intranet/main.dart' show NotificationController;
@@ -272,8 +273,9 @@ class DashboardScreenV2Controller extends GetxController
           ? imageUrl!
           : gender == 'Male'
               ? 'https://cdn-icons-png.flaticon.com/128/149/149071.png'
-              : gender == 'Female' ? 
-               'https://cdn-icons-png.flaticon.com/128/727/727393.png' : 'https://cdn-icons-png.flaticon.com/128/149/149071.png'; 
+              : gender == 'Female'
+                  ? 'https://cdn-icons-png.flaticon.com/128/727/727393.png'
+                  : 'https://cdn-icons-png.flaticon.com/128/149/149071.png';
 
       final encodedAvatar =
           box.get(LocalConstant.KEY_EMPLOYEE_AVTAR_LIST)?.toString();
@@ -489,8 +491,7 @@ class DashboardScreenV2Controller extends GetxController
 
   Future<void> loadNotificationCount() async {
     try {
-      final list =
-          await DBHelper().getData(LocalConstant.TABLE_NOTIFICATION);
+      final list = await DBHelper().getData(LocalConstant.TABLE_NOTIFICATION);
       notificationCount.value = list.length;
     } catch (error) {
       debugPrint('Dashboard V2 notification count failed: $error');
@@ -712,7 +713,17 @@ class DashboardScreenV2Controller extends GetxController
   Future<void> signOut() async {
     final context = Get.context!;
     final hiveBox = await Utility.openBox();
-    await Hive.openBox(LocalConstant.KidzeeDB);
+
+    if (kIsWeb) {
+      var oldtoken = hiveBox.get(LocalConstant.KEY_FCM_ID);
+      if (oldtoken != null && oldtoken.isNotEmpty) {
+        APIService().unsubscribeToTopicForWeb('saathi', oldtoken);
+        APIService().unsubscribeToTopicForWeb('intranet', oldtoken);
+      }
+    } else {
+      FirebaseMessaging.instance.unsubscribeFromTopic('saathi');
+      FirebaseMessaging.instance.unsubscribeFromTopic('intranet');
+    }
     await hiveBox.clear();
     await DBHelper().deleteAllData();
     await HiveDatabase.clear();
