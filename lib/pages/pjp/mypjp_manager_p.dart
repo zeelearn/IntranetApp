@@ -727,7 +727,7 @@ class _MyPjpListState extends State<MyPjpManPListScreen>
   @override
   void onSuccess(value) {
     //Navigator.of(context).pop();
-    // print('onSuccess called in mymanagers $value');
+    debugPrint('onSuccess called in mymanagers $value');
     isLoading = false;
     if (value is String) {
       //if (value == 'SUCCESS') Navigator.of(context).pop();
@@ -743,15 +743,19 @@ class _MyPjpListState extends State<MyPjpManPListScreen>
       }
     } else if (value is PjpListResponse) {
       PjpListResponse response = value;
+      debugPrint('in 746 PJP List response ');
       String json = jsonEncode(response);
       savePJPLocally(json);
       isLoading = false;
+      debugPrint('widget.mFilterSelection.type ${widget.mFilterSelection.type}');
       mPjpList.clear();
       if (response.responseData != null && response.responseData.length > 0) {
+        debugPrint('in 752 line ');
         if (response != null && response.responseData != null) {
-          if (widget.mFilterSelection == null ||
-              widget.mFilterSelection.type == FILTERStatus.MYTEAM) {
+          debugPrint('in 754 line ');
+          if (widget.mFilterSelection == null || widget.mFilterSelection.type == FILTERStatus.MYTEAM) {
             //mPjpList.addAll(response.responseData);
+            debugPrint('in 758 line MYTEAM');
             for (int index = 0; index < response.responseData.length; index++) {
               if (response.responseData[index].isSelfPJP == '0') {
                 //mPjpList.add(response.responseData[index]);
@@ -827,6 +831,7 @@ class _MyPjpListState extends State<MyPjpManPListScreen>
       Utility.onSuccessMessage(context, 'PJP Updated',
           'PJP status has been updated Successfully', this);
     }
+    debugPrint('in 832 line ${mPjpList.length}');
     if (!mounted) return;
     setState(() {
       //mPjpList.addAll(response.responseData);
@@ -865,6 +870,7 @@ class _MyPjpListState extends State<MyPjpManPListScreen>
 
   @override
   void onClick(int action, value) {
+    debugPrint('on Click ${action} ${value}');
     if (value is int) {
       // if (action == Utility.ACTION_OK && value == Utility.ACTION_REJECT) {
       //   approvePjpList(0);

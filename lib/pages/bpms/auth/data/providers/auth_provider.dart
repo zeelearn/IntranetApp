@@ -352,6 +352,7 @@ class AuthStateNotifier extends StateNotifier<AuthState> {
       resetWebUrl();
       Get.offAll(() => const LoginScreen(), routeName: '/');
     }
+    Utility.disposeAllControllers();
     /*  if (Platform.isAndroid) {
       Future.delayed(const Duration(milliseconds: 100), () {
         SystemChannels.platform.invokeMethod('SystemNavigator.pop');

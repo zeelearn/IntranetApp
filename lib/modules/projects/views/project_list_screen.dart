@@ -183,61 +183,146 @@ class ProjectListScreen extends StatelessWidget {
                             }
                             final project =
                                 controller.visibleProjects[index];
-                            return ProjectCard(
-                              project: project,
-                              index: index,
-                              statusLabel: controller.statusName,
-                              statusColor: controller.statusColor,
-                              showMissedDeadline:
-                                  DashboardStatusIds.showsMissedDeadline(
-                                controller.projectTeamStatus,
-                              ),
-                              onCardTap: () {
-                                controller.openTaskScreen(project, 0);
-                              },
-                              onCommunication: () =>
-                                  controller.onCommunication(project),
-                              onIndentDetails: () =>
-                                  controller.onIndentDetails(project),
-                              onDocuments: () =>
-                                  controller.onDocuments(project),
-                            );
+                            return Obx(() {
+                              final crmId = project.crmId;
+                              final cooldownHint =
+                                  controller.sendCredentialsCooldownHint(crmId);
+                              final sending =
+                                  controller.isSendingCredentials.value &&
+                                      controller.sendingCredentialsCrmId
+                                              .value ==
+                                          crmId;
+                              return ProjectCard(
+                                project: project,
+                                index: index,
+                                statusLabel: controller.statusName,
+                                statusColor: controller.statusColor,
+                                showMissedDeadline:
+                                    DashboardStatusIds.showsMissedDeadline(
+                                  controller.projectTeamStatus,
+                                ),
+                                onCardTap: () {
+                                  controller.openTaskScreen(project, 0);
+                                },
+                                onCommunication: () =>
+                                    controller.onCommunication(project),
+                                onIndentDetails: () =>
+                                    controller.onIndentDetails(project),
+                                onDocuments: () =>
+                                    controller.onDocuments(project),
+                                onViewReport: () =>
+                                    controller.viewReport(project),
+                                onSendCredentials: () => controller
+                                    .confirmAndSendCredentials(
+                                  context,
+                                  project,
+                                ),
+                                sendCredentialsEnabled:
+                                    controller.canSendCredentials(crmId),
+                                sendCredentialsHint: cooldownHint,
+                                isSendingCredentials: sending,
+                              );
+                            });
                           },
                         ),
                       );
                     }
 
-                    return GridView.builder(
-                      physics: const BouncingScrollPhysics(
-                        parent: AlwaysScrollableScrollPhysics(),
-                      ),
-                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: columns,
-                        crossAxisSpacing: 12,
-                        mainAxisSpacing: 8,
-                        mainAxisExtent: columns >= 3 ? 300 : 320,
-                      ),
-                      itemCount: controller.visibleProjects.length,
-                      itemBuilder: (context, index) {
-                        final project = controller.visibleProjects[index];
-                        return ProjectCard(
-                          project: project,
-                          index: index,
-                          statusLabel: controller.statusName,
-                          statusColor: controller.statusColor,
-                          showMissedDeadline:
-                              DashboardStatusIds.showsMissedDeadline(
-                            controller.projectTeamStatus,
-                          ),
-                          onCardTap: () => controller.openTaskScreen(project, 0),
-                          onCommunication: () =>
-                              controller.onCommunication(project),
-                          onIndentDetails: () =>
-                              controller.onIndentDetails(project),
-                          onDocuments: () => controller.onDocuments(project),
-                        );
+                    // Web/tablet: content-sized Wrap avoids fixed-height card
+                    // whitespace. Mobile (columns == 1) keeps ListView above.
+                    const horizontalPadding = 32.0;
+                    const crossSpacing = 12.0;
+                    const runSpacing = 12.0;
+                    final cardWidth = (width -
+                            horizontalPadding -
+                            crossSpacing * (columns - 1)) /
+                        columns;
+
+                    return NotificationListener<ScrollNotification>(
+                      onNotification: (n) {
+                        if (n.metrics.pixels >=
+                                n.metrics.maxScrollExtent - 200 &&
+                            controller.hasMore.value) {
+                          controller.loadMore();
+                        }
+                        return false;
                       },
+                      child: SingleChildScrollView(
+                        physics: const BouncingScrollPhysics(
+                          parent: AlwaysScrollableScrollPhysics(),
+                        ),
+                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Wrap(
+                              alignment: WrapAlignment.start,
+                              spacing: crossSpacing,
+                              runSpacing: runSpacing,
+                              children: [
+                                for (var index = 0;
+                                    index <
+                                        controller.visibleProjects.length;
+                                    index++)
+                                  SizedBox(
+                                    width: cardWidth,
+                                    child: Obx(() {
+                                      final project = controller
+                                          .visibleProjects[index];
+                                      final crmId = project.crmId;
+                                      final cooldownHint = controller
+                                          .sendCredentialsCooldownHint(
+                                        crmId,
+                                      );
+                                      final sending = controller
+                                              .isSendingCredentials.value &&
+                                          controller.sendingCredentialsCrmId
+                                                  .value ==
+                                              crmId;
+                                      return ProjectCard(
+                                        project: project,
+                                        index: index,
+                                        compact: true,
+                                        statusLabel: controller.statusName,
+                                        statusColor: controller.statusColor,
+                                        showMissedDeadline: DashboardStatusIds
+                                            .showsMissedDeadline(
+                                          controller.projectTeamStatus,
+                                        ),
+                                        onCardTap: () => controller
+                                            .openTaskScreen(project, 0),
+                                        onCommunication: () => controller
+                                            .onCommunication(project),
+                                        onIndentDetails: () => controller
+                                            .onIndentDetails(project),
+                                        onDocuments: () =>
+                                            controller.onDocuments(project),
+                                        onViewReport: () =>
+                                            controller.viewReport(project),
+                                        onSendCredentials: () => controller
+                                            .confirmAndSendCredentials(
+                                          context,
+                                          project,
+                                        ),
+                                        sendCredentialsEnabled: controller
+                                            .canSendCredentials(crmId),
+                                        sendCredentialsHint: cooldownHint,
+                                        isSendingCredentials: sending,
+                                      );
+                                    }),
+                                  ),
+                              ],
+                            ),
+                            if (controller.hasMore.value)
+                              const Padding(
+                                padding: EdgeInsets.all(16),
+                                child: Center(
+                                  child: Text('Loading more...'),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
                     );
                   },
                 ),

@@ -6,9 +6,11 @@ import 'package:Intranet/pages/bpms/update_task.dart';
 import 'package:Intranet/pages/helper/math_utils.dart';
 import 'package:Intranet/pages/utils/theme/colors/light_colors.dart';
 import 'package:Intranet/pages/widget/MyWebSiteView.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../api/APIService.dart';
 import '../../api/request/bpms/deletetask.dart';
@@ -347,12 +349,20 @@ class _BPMSProjects extends  ConsumerState<BPMSProjects> with WidgetsBindingObse
                               url: 'https://project.zeelearn.com/#/admin/projects/projectDetails/${model.FranchiseeId!}&${model.CRMId}&mobile&${frichiseeId}',
                             )));
                       } else if (index==1) {
-                        Navigator.of(context).push(MaterialPageRoute(
-                            builder: (BuildContext context) => MyWebsiteView(
-                              title: model.FranchiseeName!,
-                              url: 'https://chart.zeelearn.com/chart.html?pid=${model.CRMId}',
-                            )));
-                        //MyWebsiteView(title: model.FranchiseeName!, url: 'https://chart.zeelearn.com/chart.html?pid=${model.CRMId}',);
+                        final chartUrl =
+                            'https://chart.zeelearn.com/chart.html?pid=${model.CRMId}';
+                        if (kIsWeb) {
+                          launchUrl(
+                            Uri.parse(chartUrl),
+                            webOnlyWindowName: '_blank',
+                          );
+                        } else {
+                          Navigator.of(context).push(MaterialPageRoute(
+                              builder: (BuildContext context) => MyWebsiteView(
+                                title: model.FranchiseeName!,
+                                url: chartUrl,
+                              )));
+                        }
                       } else {
                         sendCredentials(model.CRMId);
                         //showImagePicker(3);

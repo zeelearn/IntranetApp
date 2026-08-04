@@ -69,6 +69,7 @@ class _PJPManagerScreen extends State<PJPManagerScreen>
   void initState() {
     _tabController = TabController(length: 2, vsync: this);
     super.initState();
+    debugPrint('opening PJP list manager screen');
     getUserInfo();
     updateFilter();
     _tabController.addListener(() {
@@ -102,12 +103,13 @@ class _PJPManagerScreen extends State<PJPManagerScreen>
 
   @override
   Widget build(BuildContext context) {
+    debugPrint('opening PJP list manager screen build method');
     return Scaffold(
         appBar: AppBar(
           title: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text("My PJP",style: LightColors.textHeaderStyleWhite),
+              Text("PJP Approval",style: LightColors.textHeaderStyleWhite),
               Padding(
                 padding: EdgeInsets.only(right: 3),
                 child: Container(

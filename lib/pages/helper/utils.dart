@@ -29,6 +29,7 @@ import '../utils/theme/colors/light_colors.dart';
 import 'LightColor.dart';
 import 'LocalConstant.dart';
 import 'window_close.dart';
+import 'package:get/get.dart';
 
 enum TaskPageStatus {
   all,
@@ -920,6 +921,16 @@ class Utility {
     );
   }
 
+  /// Disposes every GetX dependency (controllers/services/repos) so the next
+  /// login starts with a clean DI graph. Call from all logout paths.
+  static void disposeAllControllers() {
+    try {
+      Get.deleteAll(force: true);
+    } catch (e) {
+      debugPrint('disposeAllControllers: $e');
+    }
+  }
+
   static signOut(BuildContext context) async {
     var hiveBox = await Utility.openBox();
     await Hive.openBox(LocalConstant.KidzeeDB);
@@ -928,19 +939,14 @@ class Utility {
     DBHelper helper = DBHelper();
     helper.deleteAllData();
     await Future.delayed(const Duration(seconds: 1));
+    if (!context.mounted) return;
     Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(
           builder: (context) => IntroPage(),
         ),
         (route) => false);
-    /* if (Platform.isAndroid) {
-      Future.delayed(const Duration(milliseconds: 100), () {
-        SystemChannels.platform.invokeMethod('SystemNavigator.pop');
-      });
-    } else if (Platform.isIOS) {
-      exit(0);
-    } */
+    disposeAllControllers();
   }
 
   static onSuccessMessage(

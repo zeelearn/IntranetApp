@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:get/get.dart';
@@ -11,6 +12,9 @@ import 'package:Intranet/modules/projects/models/quick_action_type.dart';
 import 'package:Intranet/modules/projects/repositories/dashboard_repository.dart';
 import 'package:Intranet/modules/projects/repositories/project_business_repository.dart';
 import 'package:Intranet/modules/projects/utils/business_name_matcher.dart';
+import 'package:Intranet/modules/projects/utils/projects_sidebar_roles.dart';
+import 'package:Intranet/pages/helper/LocalConstant.dart';
+import 'package:Intranet/pages/helper/utils.dart';
 
 class DashboardController extends GetxController {
   DashboardController({
@@ -60,6 +64,18 @@ class DashboardController extends GetxController {
   final RxnInt selectedBusinessId = RxnInt();
   final RxString selectedBusinessLabel = 'All Business'.obs;
 
+  /// AppBar subtitle: Designation | Role | Zone
+  final RxString headerSubtitle = ''.obs;
+
+  /// Employee role from Hive (`KEY_EMP_TYPE`), e.g. MAN / BH / ZM.
+  final RxString employeeType = ''.obs;
+
+  /// Sidebar menu visibility — driven by [employeeType].
+  final RxBool showProjectsMenu = true.obs;
+  final RxBool showAllIndentsMenu = true.obs;
+  final RxBool showCenterKitReportMenu = true.obs;
+  final RxBool showVisualChartsMenu = false.obs;
+
   final RxBool isLoading = false.obs;
   final RxBool isRefreshing = false.obs;
   final RxBool isOffline = false.obs;
@@ -75,8 +91,71 @@ class DashboardController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    loadHeaderProfile();
     observeConnectivity();
     loadDashboard();
+  }
+
+  /// Loads designation, role, and zone for the AppBar subtitle.
+  Future<void> loadHeaderProfile() async {
+    try {
+      final box = await Utility.openBox();
+      var designation =
+          (box.get(LocalConstant.KEY_DESIGNATION)?.toString() ?? '').trim();
+      var role =
+          (box.get(LocalConstant.KEY_EMP_TYPE)?.toString() ?? '').trim();
+      var zone = (box.get(LocalConstant.KEY_ZONE)?.toString() ?? '').trim();
+
+      if (designation.isEmpty || role.isEmpty || zone.isEmpty) {
+        final loginRaw = box.get(LocalConstant.KEY_LOGIN_RESPONSE);
+        if (loginRaw != null && loginRaw.toString().trim().isNotEmpty) {
+          try {
+            final response = LoginResponseModel.fromJson(
+              json.decode(loginRaw.toString()),
+            );
+            final details = response.responseData.employeeDetails;
+            if (details.isNotEmpty) {
+              final info = details.first;
+              if (designation.isEmpty) {
+                designation = info.employeeDesignation.toString().trim();
+              }
+              if (role.isEmpty) {
+                role = info.employeeRoleName.toString().trim();
+              }
+              if (zone.isEmpty) {
+                zone = info.zone.toString().trim();
+              }
+              if (zone.isNotEmpty) {
+                await box.put(LocalConstant.KEY_ZONE, zone);
+              }
+            }
+          } catch (_) {}
+        }
+      }
+
+      employeeType.value = role;
+      _applySidebarMenuVisibility(role);
+
+      final parts = <String>[
+        if (designation.isNotEmpty) designation,
+        if (role.isNotEmpty) role,
+        if (zone.isNotEmpty) zone,
+      ];
+      headerSubtitle.value = parts.join(' | ');
+    } catch (_) {
+      headerSubtitle.value = '';
+      employeeType.value = '';
+      _applySidebarMenuVisibility('');
+    }
+  }
+
+  void _applySidebarMenuVisibility(String role) {
+    showProjectsMenu.value = ProjectsSidebarRoles.canShowProjects(role);
+    showAllIndentsMenu.value = ProjectsSidebarRoles.canShowAllIndents(role);
+    showCenterKitReportMenu.value =
+        ProjectsSidebarRoles.canShowCenterKitReport(role);
+    showVisualChartsMenu.value =
+        ProjectsSidebarRoles.canShowVisualCharts(role);
   }
 
   @override

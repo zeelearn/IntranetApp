@@ -2024,6 +2024,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
     hiveBox.close();
     await Future.delayed(const Duration(seconds: 1));
     resetWebUrl();
+    if (!mounted) return;
     Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(
@@ -2031,13 +2032,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
           settings: const RouteSettings(name: '/'),
         ),
         (route) => false);
-    /* if (Platform.isAndroid) {
-      Future.delayed(const Duration(milliseconds: 100), () {
-        SystemChannels.platform.invokeMethod('SystemNavigator.pop');
-      });
-    } else if (Platform.isIOS) {
-      exit(0);
-    } */
+    Utility.disposeAllControllers();
   }
 
   Widget _homeScreen(BuildContext context) {

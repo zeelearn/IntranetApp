@@ -60,19 +60,18 @@ class DashboardCard extends StatelessWidget {
             child: LayoutBuilder(
               builder: (context, constraints) {
                 final h = constraints.maxHeight;
-                final pad = compact
-                    ? (h < 110 ? 8.0 : 10.0)
-                    : 14.0;
-                final iconSize = compact
-                    ? (h < 110 ? 28.0 : 32.0)
-                    : 36.0;
-                final countSize = compact
-                    ? (h < 110 ? 18.0 : 22.0)
-                    : 26.0;
-                final titleSize = compact
-                    ? (h < 110 ? 10.0 : 11.0)
-                    : 12.0;
-                final captionSize = compact ? 10.0 : 11.0;
+                final tight = compact || h < 140;
+                final veryTight = h < 120;
+
+                final pad = veryTight ? 6.0 : (tight ? 8.0 : 14.0);
+                final iconSize = veryTight ? 24.0 : (tight ? 28.0 : 36.0);
+                final countSize = veryTight ? 16.0 : (tight ? 20.0 : 26.0);
+                final titleSize = veryTight ? 9.5 : (tight ? 10.5 : 12.0);
+                final captionSize = veryTight ? 9.0 : (tight ? 10.0 : 11.0);
+                final gapAfterHeader = veryTight ? 2.0 : (tight ? 3.0 : 10.0);
+                final gapAfterTitle = veryTight ? 1.0 : (tight ? 2.0 : 4.0);
+                final gapBeforeCaption = veryTight ? 2.0 : (tight ? 3.0 : 6.0);
+                final progressHeight = tight ? 3.5 : 6.0;
 
                 return Padding(
                   padding: EdgeInsets.all(pad),
@@ -97,8 +96,8 @@ class DashboardCard extends StatelessWidget {
                           const Spacer(),
                           Container(
                             padding: EdgeInsets.symmetric(
-                              horizontal: compact ? 6 : 8,
-                              vertical: compact ? 2 : 4,
+                              horizontal: tight ? 5 : 8,
+                              vertical: tight ? 1 : 4,
                             ),
                             decoration: BoxDecoration(
                               color: model.color,
@@ -108,50 +107,55 @@ class DashboardCard extends StatelessWidget {
                               model.chipLabel,
                               style: GoogleFonts.poppins(
                                 color: Colors.white,
-                                fontSize: compact ? 9 : 10,
+                                fontSize: tight ? 8.5 : 10,
                                 fontWeight: FontWeight.w700,
                               ),
                             ),
                           ),
                         ],
                       ),
-                      SizedBox(height: compact ? 4 : 10),
+                      SizedBox(height: gapAfterHeader),
                       Text(
                         model.title,
-                        maxLines: compact ? 1 : 2,
+                        maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: GoogleFonts.poppins(
                           fontSize: titleSize,
                           fontWeight: FontWeight.w500,
                           color: const Color(0xFF546E7A),
+                          height: 1.15,
                         ),
                       ),
-                      SizedBox(height: compact ? 2 : 4),
-                      FittedBox(
-                        fit: BoxFit.scaleDown,
-                        alignment: Alignment.centerLeft,
-                        child: Text(
-                          '${model.count}',
-                          style: GoogleFonts.poppins(
-                            fontSize: countSize,
-                            fontWeight: FontWeight.w700,
-                            color: const Color(0xFF1A237E),
-                            height: 1.1,
+                      SizedBox(height: gapAfterTitle),
+                      Expanded(
+                        child: Align(
+                          alignment: Alignment.topLeft,
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              '${model.count}',
+                              style: GoogleFonts.poppins(
+                                fontSize: countSize,
+                                fontWeight: FontWeight.w700,
+                                color: const Color(0xFF1A237E),
+                                height: 1.0,
+                              ),
+                            ),
                           ),
                         ),
                       ),
-                      const Spacer(),
                       ClipRRect(
                         borderRadius: BorderRadius.circular(4),
                         child: LinearProgressIndicator(
                           value: (model.percent / 100).clamp(0.0, 1.0),
-                          minHeight: compact ? 4 : 6,
+                          minHeight: progressHeight,
                           backgroundColor: model.backgroundColor,
                           valueColor:
                               AlwaysStoppedAnimation<Color>(model.color),
                         ),
                       ),
-                      SizedBox(height: compact ? 4 : 6),
+                      SizedBox(height: gapBeforeCaption),
                       Text(
                         model.percentLabel,
                         maxLines: 1,
@@ -159,6 +163,7 @@ class DashboardCard extends StatelessWidget {
                         style: GoogleFonts.poppins(
                           fontSize: captionSize,
                           color: const Color(0xFF78909C),
+                          height: 1.1,
                         ),
                       ),
                     ],

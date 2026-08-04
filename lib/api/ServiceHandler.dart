@@ -30,6 +30,7 @@ import 'APIService.dart';
 class IntranetServiceHandler {
   static loadPjpSummery(
       int employeeId, int pjpId, int bid, onResponse onResponse) {
+        debugPrint('IntranetServiceHandler loadPjpSummery for ${employeeId}');
     onResponse.onStart();
     PJPListRequest request = PJPListRequest(
         Employee_id: employeeId, PJP_id: pjpId, Business_id: bid);
@@ -37,17 +38,22 @@ class IntranetServiceHandler {
     apiService.getPJPList(request).then((value) {
       if (value != null) {
         if (value == null || value.responseData == null) {
+          debugPrint('PJP List not avaliable ');
           onResponse.onError('PJP List not avaliable ');
         } else if (value is PjpListResponse) {
           try {
+            debugPrint('PjpListResponse in response ${value} ');
             onResponse.onSuccess(value);
           } catch (e) {
+            debugPrint('PJP List not avaliable ${e.toString()} ');
             onResponse.onError('PJP List not avaliable ${e.toString()} ');
           }
         } else {
+          debugPrint('PJP List not avaliable else 52');
           onResponse.onError('PJP List not avaliable ');
         }
       } else {
+        debugPrint('PJP List not avaliable else 56');
         onResponse.onError('PJP List not avaliable ');
       }
     });

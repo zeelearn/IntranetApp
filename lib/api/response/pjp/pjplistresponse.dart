@@ -111,6 +111,7 @@ class PJPInfo {
   late String ApprovalStatus;
   String? managerName;
   String? zone;
+  String? employeeCode;
   List<GetDetailedPJP>? getDetailedPJP = [];
 
   PJPInfo(
@@ -124,6 +125,7 @@ class PJPInfo {
       required this.ApprovalStatus,
       this.zone,
       this.managerName,
+      this.employeeCode,
       this.getDetailedPJP});
 
   PJPInfo.fromJson(Map<String, dynamic> json) {
@@ -131,6 +133,11 @@ class PJPInfo {
       PJP_Id = (json['PJP_Id'] ?? json['pJPId'] ?? '').toString();
       displayName = json['DisplayName'] ?? 'NA';
       managerName = json['ManagerName'] ?? '';
+      employeeCode = (json['Employee_Code'] ??
+              json['employeeCode'] ??
+              json['EmployeeCode'] ??
+              '')
+          .toString();
       fromDate = json['FromDate'] ?? json['fromDate'] ?? '';
       toDate = json['ToDate'] ?? json['toDate'] ?? '';
       Status = json['Status'] ?? json['status'] ?? 'Check In';
@@ -176,10 +183,27 @@ class PJPInfo {
     data['Remarks'] = remarks;
     data['Zone'] = zone;
     data['isSelfPJP'] = isSelfPJP;
+    data['Employee_Code'] = employeeCode;
     if (getDetailedPJP != null) {
       data['GetDetailedPJP'] = getDetailedPJP!.map((v) => v.toJson()).toList();
     }
     return data;
+  }
+
+  int get cvfCount => getDetailedPJP?.length ?? 0;
+
+  List<String> get uniqueCategoryNames {
+    final names = <String>{};
+    for (final cvf in getDetailedPJP ?? const <GetDetailedPJP>[]) {
+      for (final purpose in cvf.purpose ?? const <Purpose>[]) {
+        final name = purpose.categoryName.trim();
+        if (name.isNotEmpty && name.toUpperCase() != 'NA') {
+          names.add(name);
+        }
+      }
+    }
+    final list = names.toList()..sort();
+    return list;
   }
 }
 

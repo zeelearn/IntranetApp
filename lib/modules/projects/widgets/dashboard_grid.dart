@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:Intranet/modules/projects/models/dashboard_card_model.dart';
 import 'package:Intranet/modules/projects/widgets/dashboard_card.dart';
@@ -16,6 +17,9 @@ class DashboardGrid extends StatelessWidget {
   /// When true and height is bounded, aspect ratio is derived so all cards
   /// fit the available height without scrolling.
   final bool expandToFit;
+
+  /// Caps stretched card height on web to avoid large empty white space.
+  static const double webMaxCellHeight = 150;
 
   static int crossAxisCountFor(double width) {
     if (width >= 1024) return 4;
@@ -44,6 +48,8 @@ class DashboardGrid extends StatelessWidget {
         final rowCount = (itemCount / crossAxisCount).ceil().clamp(1, itemCount);
 
         double aspectRatio;
+        var useScroll = false;
+
         if (expandToFit &&
             constraints.hasBoundedHeight &&
             constraints.maxHeight.isFinite &&
@@ -52,20 +58,28 @@ class DashboardGrid extends StatelessWidget {
           final totalSpacingV = spacing * (rowCount - 1);
           final cellWidth =
               (constraints.maxWidth - totalSpacingH) / crossAxisCount;
-          final cellHeight =
+          var cellHeight =
               (constraints.maxHeight - totalSpacingV) / rowCount;
-          aspectRatio =
-              cellHeight > 0 ? cellWidth / cellHeight : childAspectRatioFor(crossAxisCount);
+
+          // On web, stretched cards leave large empty white areas — cap height.
+          if (kIsWeb && cellHeight > webMaxCellHeight) {
+            cellHeight = webMaxCellHeight;
+            useScroll = true;
+          }
+
+          aspectRatio = cellHeight > 0
+              ? cellWidth / cellHeight
+              : childAspectRatioFor(crossAxisCount);
         } else {
           aspectRatio = childAspectRatioFor(crossAxisCount);
         }
 
-        return GridView.builder(
+        final grid = GridView.builder(
           padding: EdgeInsets.zero,
-          shrinkWrap: !expandToFit,
-          physics: expandToFit
+          shrinkWrap: !expandToFit || useScroll,
+          physics: (expandToFit && !useScroll)
               ? const NeverScrollableScrollPhysics()
-              : const NeverScrollableScrollPhysics(),
+              : const BouncingScrollPhysics(),
           itemCount: itemCount,
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: crossAxisCount,
@@ -83,6 +97,16 @@ class DashboardGrid extends StatelessWidget {
             );
           },
         );
+
+        if (useScroll &&
+            constraints.hasBoundedHeight &&
+            constraints.maxHeight.isFinite) {
+          return SizedBox(
+            height: constraints.maxHeight,
+            child: grid,
+          );
+        }
+        return grid;
       },
     );
   }

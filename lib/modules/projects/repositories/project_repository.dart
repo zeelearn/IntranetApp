@@ -1,6 +1,8 @@
 import 'package:Intranet/modules/projects/models/dashboard_failure.dart';
 import 'package:Intranet/modules/projects/models/project_item.dart';
 import 'package:Intranet/modules/projects/models/project_list_filter.dart';
+import 'package:Intranet/modules/projects/models/send_credentials_result.dart';
+import 'package:Intranet/modules/projects/services/credentials_cooldown_store.dart';
 import 'package:Intranet/modules/projects/services/project_local_service.dart';
 import 'package:Intranet/modules/projects/services/project_remote_service.dart';
 
@@ -8,13 +10,18 @@ class ProjectRepository {
   ProjectRepository({
     required ProjectRemoteService remoteService,
     required ProjectLocalService localService,
+    CredentialsCooldownStore? credentialsCooldownStore,
   })  : _remote = remoteService,
-        _local = localService;
+        _local = localService,
+        _cooldown = credentialsCooldownStore ?? CredentialsCooldownStore();
 
   final ProjectRemoteService _remote;
   final ProjectLocalService _local;
+  final CredentialsCooldownStore _cooldown;
 
   static const int defaultPageSize = 20;
+
+  CredentialsCooldownStore get credentialsCooldown => _cooldown;
 
   Future<List<ProjectItem>?> loadOffline({
     required int userId,
@@ -72,6 +79,27 @@ class ProjectRepository {
       }
       rethrow;
     }
+  }
+
+  Future<SendCredentialsResult> sendTempCredentials({
+    required String crmId,
+  }) async {
+    final canSend = await _cooldown.canSend(crmId);
+    if (!canSend) {
+      final left = await _cooldown.remaining(crmId);
+      final label = CredentialsCooldownStore.formatRemaining(
+        left ?? Duration.zero,
+      );
+      throw DashboardFailure(
+        type: DashboardFailureType.unknown,
+        message:
+            'Credentials were already sent. Please wait $label before sending again.',
+      );
+    }
+
+    final result = await _remote.sendTempCredentials(crmId: crmId);
+    await _cooldown.markSent(crmId);
+    return result;
   }
 
   /// Client-side search + filter. Pagination-ready (page/pageSize applied last).

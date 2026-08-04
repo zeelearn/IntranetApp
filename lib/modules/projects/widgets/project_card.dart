@@ -15,8 +15,14 @@ class ProjectCard extends StatelessWidget {
     required this.onIndentDetails,
     required this.onCardTap,
     required this.onDocuments,
+    required this.onViewReport,
+    required this.onSendCredentials,
+    this.sendCredentialsEnabled = true,
+    this.sendCredentialsHint,
+    this.isSendingCredentials = false,
     this.index = 0,
     this.showMissedDeadline = false,
+    this.compact = false,
   });
 
   final ProjectItem project;
@@ -26,8 +32,16 @@ class ProjectCard extends StatelessWidget {
   final VoidCallback onIndentDetails;
   final VoidCallback onDocuments;
   final VoidCallback onCardTap;
+  final VoidCallback onViewReport;
+  final VoidCallback onSendCredentials;
+  final bool sendCredentialsEnabled;
+  final String? sendCredentialsHint;
+  final bool isSendingCredentials;
   final int index;
   final bool showMissedDeadline;
+
+  /// When true, drops outer bottom margin (web/tablet grid uses spacing).
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
@@ -60,7 +74,7 @@ class ProjectCard extends StatelessWidget {
         ),
       ),
       child: Padding(
-        padding: const EdgeInsets.only(bottom: 12),
+        padding: EdgeInsets.only(bottom: compact ? 0 : 12),
         child: Material(
           color: Colors.white,
           elevation: 2,
@@ -68,9 +82,11 @@ class ProjectCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           child: InkWell(
             onTap: onCardTap,
+            borderRadius: BorderRadius.circular(16),
             child: Padding(
               padding: const EdgeInsets.fromLTRB(12, 12, 12, 10),
               child: Column(
+                mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
@@ -88,6 +104,26 @@ class ProjectCard extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
+                      _HeaderIconButton(
+                        tooltip: 'View Report',
+                        icon: Icons.bar_chart_rounded,
+                        color: DashboardColors.primary,
+                        onTap: onViewReport,
+                      ),
+                      _HeaderIconButton(
+                        tooltip: sendCredentialsEnabled
+                            ? 'Send Credentials'
+                            : (sendCredentialsHint ?? 'Cooldown active'),
+                        icon: isSendingCredentials
+                            ? Icons.hourglass_top_rounded
+                            : Icons.vpn_key_outlined,
+                        color: sendCredentialsEnabled
+                            ? DashboardColors.purple
+                            : DashboardColors.textMuted,
+                        enabled: sendCredentialsEnabled && !isSendingCredentials,
+                        onTap: onSendCredentials,
+                      ),
+                      const SizedBox(width: 8),
                       StatusBadge(label: chip, color: statusColor),
                     ],
                   ),
@@ -197,11 +233,55 @@ class ProjectCard extends StatelessWidget {
                       ),
                     ],
                   ),
+                  if (sendCredentialsHint != null &&
+                      !sendCredentialsEnabled) ...[
+                    const SizedBox(height: 6),
+                    Text(
+                      'Credentials cooldown: $sendCredentialsHint',
+                      style: GoogleFonts.poppins(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w500,
+                        color: DashboardColors.textMuted,
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _HeaderIconButton extends StatelessWidget {
+  const _HeaderIconButton({
+    required this.tooltip,
+    required this.icon,
+    required this.color,
+    required this.onTap,
+    this.enabled = true,
+  });
+
+  final String tooltip;
+  final IconData icon;
+  final Color color;
+  final VoidCallback onTap;
+  final bool enabled;
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      onPressed: enabled ? onTap : null,
+      tooltip: tooltip,
+      visualDensity: VisualDensity.compact,
+      padding: EdgeInsets.zero,
+      constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+      icon: Icon(
+        icon,
+        size: 20,
+        color: enabled ? color : color.withValues(alpha: 0.45),
       ),
     );
   }
@@ -231,24 +311,27 @@ class _FooterActionButton extends StatelessWidget {
         minimumSize: const Size(0, 36),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 16, color: color),
-          const SizedBox(height: 2),
-          Text(
-            label,
-            textAlign: TextAlign.center,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: GoogleFonts.poppins(
-              fontSize: 8,
-              fontWeight: FontWeight.w600,
-              height: 1.1,
-              color: color,
+      child: Padding(
+        padding: const EdgeInsets.all(4.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 16, color: color),
+            const SizedBox(height: 2),
+            Text(
+              label,
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: GoogleFonts.poppins(
+                fontSize: 8,
+                fontWeight: FontWeight.w600,
+                height: 1.1,
+                color: color,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

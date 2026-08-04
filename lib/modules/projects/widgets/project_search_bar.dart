@@ -6,13 +6,15 @@ class ProjectSearchBar extends StatefulWidget {
   const ProjectSearchBar({
     super.key,
     required this.onChanged,
-    required this.onFilterTap,
+    this.onFilterTap,
     this.hint = 'Search by CRM ID, Franchisee, Title...',
+    this.showFilter = true,
   });
 
   final ValueChanged<String> onChanged;
-  final VoidCallback onFilterTap;
+  final VoidCallback? onFilterTap;
   final String hint;
+  final bool showFilter;
 
   @override
   State<ProjectSearchBar> createState() => _ProjectSearchBarState();
@@ -72,28 +74,30 @@ class _ProjectSearchBarState extends State<ProjectSearchBar> {
               style: GoogleFonts.poppins(fontSize: 13),
             ),
           ),
-          const SizedBox(width: 8),
-          Material(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            child: InkWell(
-              onTap: widget.onFilterTap,
+          if (widget.showFilter && widget.onFilterTap != null) ...[
+            const SizedBox(width: 8),
+            Material(
+              color: Colors.white,
               borderRadius: BorderRadius.circular(12),
-              child: Container(
-                width: 48,
-                height: 48,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.grey.shade300),
-                ),
-                child: const Icon(
-                  Icons.tune_rounded,
-                  color: DashboardColors.primary,
+              child: InkWell(
+                onTap: widget.onFilterTap,
+                borderRadius: BorderRadius.circular(12),
+                child: Container(
+                  width: 48,
+                  height: 48,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.grey.shade300),
+                  ),
+                  child: const Icon(
+                    Icons.tune_rounded,
+                    color: DashboardColors.primary,
+                  ),
                 ),
               ),
             ),
-          ),
+          ],
         ],
       ),
     );

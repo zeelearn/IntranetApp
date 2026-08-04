@@ -17,7 +17,7 @@ class DashboardShimmer extends StatelessWidget {
         final crossAxisCount =
             DashboardGrid.crossAxisCountFor(constraints.maxWidth);
         const spacing = 10.0;
-        const itemCount = 8;
+        const itemCount = 9;
         final rowCount = (itemCount / crossAxisCount).ceil();
 
         double aspectRatio;

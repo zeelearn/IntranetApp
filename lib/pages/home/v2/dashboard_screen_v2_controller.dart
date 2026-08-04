@@ -27,10 +27,11 @@ import 'package:Intranet/pages/model/filter.dart';
 import 'package:Intranet/pages/notification/UserNotification.dart';
 import 'package:Intranet/pages/pjp/cvf/v2/cvf.dart';
 import 'package:Intranet/pages/pjp/mypjp.dart';
-import 'package:Intranet/pages/pjp/pjp_list_manager.dart';
+import 'package:Intranet/pages/pjp/managers/pjp_approval.dart';
 import 'package:Intranet/pages/pjp/pjp_list_manager_exceptional.dart';
 import 'package:Intranet/pages/report/myreport.dart';
 import 'package:Intranet/pages/summary%20dashboard/summary_dashboard.dart';
+import 'package:Intranet/pages/userinfo/employee_search_delegate.dart';
 import 'package:Intranet/pages/utils/util.dart';
 import 'package:Intranet/pages/widget/MyWebSiteView.dart';
 import 'package:Intranet/pages/widget/VideoPlayer.dart';
@@ -633,7 +634,7 @@ class DashboardScreenV2Controller extends GetxController
     if (!validateBusiness('approvals_pjp')) return;
     await Navigator.of(Get.context!).push(
       MaterialPageRoute(
-        builder: (_) => PJPManagerScreen(employeeId: employeeId.value),
+        builder: (_) => const PjpApprovalPage(),
       ),
     );
   }
@@ -738,6 +739,7 @@ class DashboardScreenV2Controller extends GetxController
       ),
       (_) => false,
     );
+    Utility.disposeAllControllers();
   }
 
   Future<void> showBusinessPicker({required bool fromDrawer}) async {
@@ -791,7 +793,14 @@ class DashboardScreenV2Controller extends GetxController
     );
   }
 
-  void onSearchTap() => _showComingSoon();
+  Future<void> onSearchTap() async {
+    final context = Get.context;
+    if (context == null) return;
+    await showSearch(
+      context: context,
+      delegate: EmployeeSearchDelegate(),
+    );
+  }
 
   void onCustomizeTap() => _showComingSoon();
 
