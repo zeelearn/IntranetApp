@@ -138,10 +138,10 @@ dependencies:
     #path: ../ZeeSathi
 
   expensestracker:
-    path: ../excepsesmanagement
-    # git:
-    #   url: https://github.com/ZeeLearnLtd/excepsesmanagement.git
-    #   ref: uat
+    #path: ../excepsesmanagement
+    git:
+      url: https://github.com/ZeeLearnLtd/excepsesmanagement.git
+      ref: uat
 
 
   fl_chart: ^1.2.0

@@ -40,3 +40,6 @@ adb shell pm reset-app-links com.zeelearn.intranet
 adb shell pm verify-app-links --re-verify com.zeelearn.intranet
 
 adb shell pm get-app-links com.zeelearn.intranet
+
+14002302
+140023021
