@@ -21,6 +21,7 @@ import 'package:Intranet/pages/pjp/cvf/CheckInModel.dart';
 import 'package:Intranet/pages/summary%20dashboard/summary_dashboard.dart';
 import 'package:Intranet/pages/theme/extention.dart';
 import 'package:Intranet/pages/utils/theme/colors/light_colors.dart';
+import 'package:Intranet/pages/widget/MyWebSiteView.dart';
 import 'package:Intranet/pages/widget/VideoPlayer.dart';
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -304,8 +305,36 @@ Future<void> main() async {
     // Set the background messaging handler early on, as a named top-level function
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-      Navigator.push(MyApp.navigatorKey.currentState!.context,
-          MaterialPageRoute(builder: (context) => const UserNotification()));
+      if (message.data['type'] != null && message.data['type'] == 'logout') {
+        Utility.signOut(MyApp.navigatorKey.currentState!.context);
+      } else if (message.data['type'] != null && message.data['type'] == 'td') {
+        // Util.openSaathiNotification(message);
+      } else if (message.data['type'] == 'EXPENSE') {
+        Navigator.push(
+            MyApp.navigatorKey.currentState!.context,
+            MaterialPageRoute(
+              builder: (context) => MyWebsiteView(
+                  title: message.data['title'] ?? 'Expense',
+                  url: message.data['url'] ?? ''),
+            ));
+      } else if (message.data['Video_path'] != null) {
+        Navigator.push(
+            MyApp.navigatorKey.currentState!.context,
+            MaterialPageRoute(
+                builder: (context) => VideoPlayer(
+                      Title: message.data['Video_path']!,
+                      path: message.data['Video_path']!,
+                    )));
+      } else if (message.data['url'] != null &&
+          message.data['url']!.isNotEmpty) {
+        Navigator.push(MyApp.navigatorKey.currentState!.context,
+            MaterialPageRoute(builder: (context) => const UserNotification()));
+      } else {
+        Navigator.push(MyApp.navigatorKey.currentState!.context,
+            MaterialPageRoute(builder: (context) => const UserNotification()));
+      }
+      /* Navigator.push(MyApp.navigatorKey.currentState!.context,
+          MaterialPageRoute(builder: (context) => const UserNotification())); */
     });
   }
   if (!kIsWeb) {
@@ -999,6 +1028,8 @@ class _MyAppState extends State<MyApp> {
 
 class NotificationController {
   static ReceivePort? receivePort;
+  static bool isAppFullyLoaded = false;
+  static ReceivedAction? coldStartAction;
   static Future<void> initializeIsolateReceivePort() async {
     receivePort = ReceivePort('Notification action port in main isolate')
       ..listen(
@@ -1072,7 +1103,16 @@ class NotificationController {
         receivedAction.actionType == ActionType.SilentBackgroundAction) {
       // For background actions, you must hold the execution until the end
       // await executeLongTaskInBackground();
-    } else if (receivedAction.payload != null &&
+      return;
+    }
+
+    if (!isAppFullyLoaded) {
+      coldStartAction = receivedAction;
+      debugPrint("Storing cold start action for DashboardScreenV2: ${receivedAction.id}");
+      return;
+    }
+
+    if (receivedAction.payload != null &&
         receivedAction.payload!['type'] != null &&
         receivedAction.payload!['type'] == 'logout') {
       Utility.signOut(MyApp.navigatorKey.currentState!.context);
@@ -1080,6 +1120,14 @@ class NotificationController {
         receivedAction.payload!['type'] != null &&
         receivedAction.payload!['type'] == 'td') {
       Util.openSaathiNotification(receivedAction);
+    } else if (receivedAction.payload?['type'] == 'EXPENSE') {
+      Navigator.push(
+          MyApp.navigatorKey.currentState!.context,
+          MaterialPageRoute(
+            builder: (context) => MyWebsiteView(
+                title: receivedAction.payload?['title'] ?? 'Expense',
+                url: receivedAction.payload?['url'] ?? ''),
+          ));
     } else if (receivedAction.payload != null &&
         receivedAction.payload!['Video_path'] != null) {
       Navigator.push(

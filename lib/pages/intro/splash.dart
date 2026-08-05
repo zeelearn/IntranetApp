@@ -11,6 +11,7 @@ import 'package:Intranet/pages/home/v2/dashboard_screenv2.dart';
 import 'intro.dart';
 import '../helper/web_helper.dart';
 import '../auth/magic_link_handler.dart';
+import 'package:Intranet/main.dart' show NotificationController;
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({this.receivedAction, Key? key}) : super(key: key);
@@ -56,16 +57,17 @@ class _SplashScreenState extends State<SplashScreen> {
     if (box.get(LocalConstant.KEY_BUSINESS_NAME) != null) {
       currentBusinessName = box.get(LocalConstant.KEY_BUSINESS_NAME).toString();
     }
+    final launchAction = widget.receivedAction ?? NotificationController.coldStartAction;
     if (displayName != '') {
       Timer(
-          Duration(seconds: 4),
+          Duration(seconds: launchAction != null ? 0 : 4),
           () => Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
                     builder: (context) =>
                         /*currentBusinessName==null || currentBusinessName.isEmpty ? LoginPage(isAutoLogin: true,) : */ DashboardScreenV2(
                           userId: '',
-                          receivedAction: widget.receivedAction,
+                          receivedAction: launchAction,
                         )),
               ));
     } else {

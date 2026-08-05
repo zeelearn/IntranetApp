@@ -19,6 +19,7 @@ import '../pjp/models/PjpModel.dart';
 import 'DBConstant.dart';
 import 'DatabaseHelper.dart';
 import 'LocalConstant.dart';
+import 'web_helper.dart';
 
 /*
  * Created by AbedElaziz Shehadeh on 1st March, 2020
@@ -207,6 +208,11 @@ class DBHelper {
   Future<sql.Database> get db async {
     if (_db != null) return _db;
     _db = await initDb();
+    try {
+      syncPendingNotifications();
+    } catch (e) {
+      debugPrint("Error running syncPendingNotifications: $e");
+    }
     return _db;
   }
 

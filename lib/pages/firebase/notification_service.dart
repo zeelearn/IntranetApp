@@ -229,7 +229,8 @@ class NotificationService {
     RemoteMessage message, {
     BuildContext? context,
   }) async {
-    debugPrint('parseNotification called in Intranet with message: ${message.data}');
+    debugPrint(
+        'parseNotification called in Intranet with message: ${message.data}');
     String cdate = DateFormat("yyyy-MM-dd hh:mm a").format(DateTime.now());
     String? imsageUrl = '';
     if (kIsWeb) {
@@ -273,6 +274,9 @@ class NotificationService {
       if (message.data.containsKey('type') && message.data['type'] == 'td') {
         debugPrint('parseNotification identifySaathiNotification called');
         identifySaathiNotification(message);
+      } else if (message.data.containsKey('type') &&
+          message.data['type']?.toString().toLowerCase() == 'expense') {
+        handleExpenseNotificatin(message);
       } else if (message.data.containsKey('topic')) {
         debugPrint('parseNotification identifyNotification topic called');
         identifyNotification(message);
@@ -308,7 +312,8 @@ class NotificationService {
         //helper.insert(LocalConstant.TABLE_NOTIFICATION, data);
         if (message.data.containsKey('type') &&
             message.data['type'] == 'BPMS') {
-              debugPrint('parseNotification BPMS notification detected. Processing body.');
+          debugPrint(
+              'parseNotification BPMS notification detected. Processing body.');
           BpmsNotificationModelList list = BpmsNotificationModelList.fromJson(
             json.decode(
                     '{"data":${message.data['body'].toString().replaceAll(',]', ']')}}')
@@ -333,8 +338,9 @@ class NotificationService {
             NotificationService notificationService = NotificationService();
             notificationService.showSimpleNotification(
                 message.data['title'], message.data['body'], message);
-          }else{
-            debugPrint('parseNotification: Employee code or empid does not match. Notification ignored.');
+          } else {
+            debugPrint(
+                'parseNotification: Employee code or empid does not match. Notification ignored.');
           }
         } else {
           var hiveBox = await Utility.openBox();
@@ -351,8 +357,9 @@ class NotificationService {
             NotificationService notificationService = NotificationService();
             notificationService.showSimpleNotification(
                 message.data['title'], message.data['body'], message);
-          }else{
-            debugPrint('parseNotification: Employee code or empid does not match. Notification ignored.');
+          } else {
+            debugPrint(
+                'parseNotification: Employee code or empid does not match. Notification ignored.');
           }
         }
       }
@@ -368,7 +375,8 @@ void identifySaathiNotification(RemoteMessage message,
   if (employeeCode.isNotEmpty &&
       message.data.containsKey('employee_code') &&
       message.data['employee_code'] == employeeCode) {
-        debugPrint('identifySaathiNotification: Employee code matches. Processing notification.');
+    debugPrint(
+        'identifySaathiNotification: Employee code matches. Processing notification.');
     DBHelper helper = DBHelper();
     Map<String, String> data = {};
     String cdate = DateFormat("yyyy-MM-dd hh:mm a").format(DateTime.now());
@@ -400,8 +408,57 @@ void identifySaathiNotification(RemoteMessage message,
 
     notificationService.showSimpleNotification(
         message.data['title'], message.data['body'], message);
-  }else{
-    debugPrint('identifySaathiNotification: Employee code does not match. Notification ignored.');
+  } else {
+    debugPrint(
+        'identifySaathiNotification: Employee code does not match. Notification ignored.');
+  }
+}
+
+void handleExpenseNotificatin(
+  RemoteMessage message,
+) async {
+  var hiveBox = await Utility.openBox();
+
+  String employeeCode = hiveBox.get(LocalConstant.KEY_EMPLOYEE_CODE) as String;
+  String empId = hiveBox.get(LocalConstant.KEY_EMPLOYEE_ID) as String;
+  if ((message.data.containsKey('employee_code') &&
+          message.data['employee_code'] == employeeCode) ||
+      (message.data.containsKey('empid') && message.data['empid'] == empId)) {
+    DBHelper helper = DBHelper();
+    Map<String, String> data = {};
+    String cdate = DateFormat("yyyy-MM-dd hh:mm a").format(DateTime.now());
+    data.putIfAbsent('title', () => message.data['title']);
+    data.putIfAbsent('description', () => message.data['body']);
+    data.putIfAbsent('type',
+        () => message.data.containsKey('type') ? message.data['type'] : '');
+    data.putIfAbsent('date', () => cdate);
+    data.putIfAbsent(
+        'imageurl',
+        () => message.data.containsKey('imageurl')
+            ? message.data['imageurl']
+            : '');
+    data.putIfAbsent(
+        'logoUrl',
+        () =>
+            message.data.containsKey('logoUrl') ? message.data['logoUrl'] : '');
+    data.putIfAbsent(
+        'bigImageUrl',
+        () => message.data.containsKey('bigimage')
+            ? message.data['bigimage'] as String
+            : '');
+    data.putIfAbsent(
+        'webViewLink',
+        () => message.data.containsKey('url')
+            ? message.data['url'] as String
+            : '');
+
+    helper.insert(LocalConstant.TABLE_NOTIFICATION, data);
+    NotificationService notificationService = NotificationService();
+    notificationService.showSimpleNotification(
+        message.data['title'], message.data['body'], message);
+  } else {
+    debugPrint(
+        'parseNotification: Employee code or empid does not match. Notification ignored.');
   }
 }
 
@@ -411,7 +468,8 @@ void identifyNotification(RemoteMessage message, [WidgetRef? ref]) async {
   if (userName.isNotEmpty &&
       message.data.containsKey('user_id') &&
       message.data['user_id'] == userName) {
-        debugPrint('identifyNotification: User ID matches. Processing notification.');
+    debugPrint(
+        'identifyNotification: User ID matches. Processing notification.');
     DBHelper helper = DBHelper();
     Map<String, String> data = {};
     String cdate = DateFormat("yyyy-MM-dd hh:mm a").format(DateTime.now());

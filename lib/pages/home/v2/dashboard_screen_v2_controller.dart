@@ -5,7 +5,7 @@ import 'dart:io';
 import 'package:Intranet/api/APIService.dart';
 import 'package:Intranet/api/ServiceHandler.dart';
 import 'package:Intranet/api/response/login_response.dart';
-import 'package:Intranet/main.dart' show NotificationController;
+import 'package:Intranet/main.dart' show NotificationController, MyApp;
 import 'package:Intranet/modules/projects/models/projects_entry_args.dart';
 import 'package:Intranet/modules/projects/views/projects_dashboard_page.dart';
 import 'package:Intranet/pages/bpms/bpms_dashboard.dart';
@@ -182,6 +182,46 @@ class DashboardScreenV2Controller extends GetxController
         await registerForegroundNotifications(employeeId.value.toString());
       }
       unawaited(getProfileImage());
+      RemoteMessage? message =
+          await FirebaseMessaging.instance.getInitialMessage();
+
+      // If the message also contains a data property with a "type" of "chat",
+      // navigate to a chat screen
+      if (message != null) {
+        if (message.data['type'] != null && message.data['type'] == 'logout') {
+          Utility.signOut(MyApp.navigatorKey.currentState!.context);
+        } else if (message.data['type'] != null &&
+            message.data['type'] == 'td') {
+          // Util.openSaathiNotification(message);
+        } else if (message.data['type'] == 'EXPENSE') {
+          Navigator.push(
+              MyApp.navigatorKey.currentState!.context,
+              MaterialPageRoute(
+                builder: (context) => MyWebsiteView(
+                    title: message.data['title'] ?? 'Expense',
+                    url: message.data['url'] ?? ''),
+              ));
+        } else if (message.data['Video_path'] != null) {
+          Navigator.push(
+              MyApp.navigatorKey.currentState!.context,
+              MaterialPageRoute(
+                  builder: (context) => VideoPlayer(
+                        Title: message.data['Video_path']!,
+                        path: message.data['Video_path']!,
+                      )));
+        } else if (message.data['url'] != null &&
+            message.data['url']!.isNotEmpty) {
+          Navigator.push(
+              MyApp.navigatorKey.currentState!.context,
+              MaterialPageRoute(
+                  builder: (context) => const UserNotification()));
+        } else {
+          Navigator.push(
+              MyApp.navigatorKey.currentState!.context,
+              MaterialPageRoute(
+                  builder: (context) => const UserNotification()));
+        }
+      }
     } finally {
       isLoading.value = false;
     }
@@ -194,8 +234,11 @@ class DashboardScreenV2Controller extends GetxController
     if (_shellBootstrapped) return;
     _shellBootstrapped = true;
 
+    NotificationController.isAppFullyLoaded = true;
     WidgetsBinding.instance.addObserver(this);
-    _handleReceivedAction();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _handleReceivedAction(context);
+    });
 
     await initFirebase();
     await NotificationController.initializeLocalNotifications();
@@ -221,14 +264,21 @@ class DashboardScreenV2Controller extends GetxController
     WidgetsBinding.instance.addPostFrameCallback((_) => _incomingLinkHandler());
   }
 
-  void _handleReceivedAction() {
+  void _handleReceivedAction(BuildContext context) {
     final action = receivedAction;
     final payload = action?.payload;
-    final context = Get.context;
-    if (context == null || payload == null) return;
+    if (payload == null) return;
 
     if (payload['type'] == 'td') {
       Util.openSaathiNotification(action!);
+    } else if (payload['type'] == 'EXPENSE') {
+      Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => MyWebsiteView(
+                title: payload['title'] ?? 'Expense',
+                url: payload['url'] ?? ''),
+          ));
     } else if (payload['Video_path'] != null) {
       Navigator.of(context).push(
         MaterialPageRoute(

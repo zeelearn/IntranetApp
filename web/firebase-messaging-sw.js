@@ -17,6 +17,50 @@ firebase.initializeApp({
 
 
 
+function storeNotificationInIndexedDB(data) {
+  return new Promise((resolve) => {
+    let req = indexedDB.open('background_notifications', 1);
+    req.onupgradeneeded = function (e) {
+      let db = e.target.result;
+      if (!db.objectStoreNames.contains('notifications')) {
+        db.createObjectStore('notifications', { keyPath: 'id', autoIncrement: true });
+      }
+    };
+    req.onsuccess = function (e) {
+      let db = e.target.result;
+      if (!db.objectStoreNames.contains('notifications')) {
+        resolve();
+        return;
+      }
+      let tx = db.transaction(['notifications'], 'readwrite');
+      let store = tx.objectStore('notifications');
+      let record = {
+        title: data.title || '',
+        description: data.body || data.description || '',
+        type: data.type || '',
+        date: new Date().toISOString(),
+        imageurl: data.url || data.imageurl || '',
+        logoUrl: data.logo || data.logoUrl || '',
+        bigImageUrl: data.bigimage || data.bigImageUrl || '',
+        webViewLink: data.url || data.webViewLink || ''
+      };
+      let addReq = store.add(record);
+      addReq.onsuccess = function () {
+        console.log("Successfully stored background notification in IndexedDB", record);
+        resolve();
+      };
+      addReq.onerror = function (err) {
+        console.error("Failed to add record to IndexedDB notifications store", err);
+        resolve();
+      };
+    };
+    req.onerror = function (err) {
+      console.error("Failed to open IndexedDB background_notifications", err);
+      resolve();
+    };
+  });
+}
+
 const messaging = firebase.messaging();
 
 self.addEventListener("notificationclick", function (event) {
@@ -66,12 +110,14 @@ self.addEventListener('push', function (event) {
 
   const showPromise = new Promise((resolve) => {
     const showNotification = () => {
-      self.registration.showNotification(notificationTitle, notificationOptions)
-        .then(() => resolve())
-        .catch((e) => {
-          console.log('Error in showing notification - ', e);
-          resolve();
-        });
+      storeNotificationInIndexedDB(payload.data).then(() => {
+        self.registration.showNotification(notificationTitle, notificationOptions)
+          .then(() => resolve())
+          .catch((e) => {
+            console.log('Error in showing notification - ', e);
+            resolve();
+          });
+      });
     };
 
     if (payload.data.user_id && !payload.data.employee_code) {

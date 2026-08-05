@@ -3,9 +3,11 @@ import 'dart:convert';
 import 'package:Intranet/pages/notification/NotificationModel.dart';
 import 'package:Intranet/pages/notification/bpms_card.dart';
 import 'package:Intranet/pages/utils/theme/colors/light_colors.dart';
+import 'package:Intranet/pages/widget/MyWebSiteView.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:hive/hive.dart';
 import 'package:intl/intl.dart';
 import 'package:lottie/lottie.dart';
 import 'package:saathi/screens/ticket/web/details.dart';
@@ -131,7 +133,7 @@ class _ListPageState extends State<UserNotification> {
             ],
           ),
 
-          onTap: () {
+          onTap: () async {
             if (notificationModel.notificationtype == 'td') {
               Navigator.push(
                   context,
@@ -144,6 +146,22 @@ class _ListPageState extends State<UserNotification> {
                             //role: routingData['r'],
                             //dashboardClickListener: arguments?.$2,
                           )));
+            } else if (notificationModel.notificationtype == 'EXPENSE') {
+              await Hive.openBox('kidzeepref');
+              var hive = Hive.box('kidzeepref');
+              String? token = hive.get('authtoken');
+              var uri = Uri.parse(notificationModel.webViewUrl);
+              debugPrint('Url is 1 - ${uri}');
+              var params = Map<String, String>.from(uri.queryParameters);
+              params['token'] = token ?? '';
+              uri = uri.replace(queryParameters: params);
+              debugPrint('Url is 2 - ${uri}');
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => MyWebsiteView(
+                        title: notificationModel.subject, url: uri.toString()),
+                  ));
             } else {
               Navigator.push(
                   context,
