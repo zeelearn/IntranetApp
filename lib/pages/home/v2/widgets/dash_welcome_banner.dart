@@ -192,3 +192,90 @@ class _WelcomeIllustration extends StatelessWidget {
     );
   }
 }
+
+
+// import 'package:Intranet/pages/home/v2/widgets/dash_v2_tokens.dart';
+// import 'package:flutter/material.dart';
+// import 'package:google_fonts/google_fonts.dart';
+
+// /// Dashboard ad banner — full-bleed image with an "Advertise" tag only.
+// class DashAdBanner extends StatelessWidget {
+//   const DashAdBanner({
+//     super.key,
+//     this.imageAsset = 'assets/images/img_intranetday.jpg',
+//     this.onTap,
+//   });
+
+//   final String imageAsset;
+//   final VoidCallback? onTap;
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return Material(
+//       color: Colors.transparent,
+//       child: InkWell(
+//         onTap: onTap,
+//         borderRadius: BorderRadius.circular(DashV2Colors.cardRadius),
+//         child: ClipRRect(
+//           borderRadius: BorderRadius.circular(DashV2Colors.cardRadius),
+//           child: AspectRatio(
+//             aspectRatio: 16 / 7,
+//             child: Stack(
+//               fit: StackFit.expand,
+//               children: [
+//                 Image.asset(
+//                   imageAsset,
+//                   fit: BoxFit.cover,
+//                   alignment: Alignment.center,
+//                   filterQuality: FilterQuality.medium,
+//                   errorBuilder: (_, __, ___) => Container(
+//                     color: DashV2Colors.bannerStart,
+//                     alignment: Alignment.center,
+//                     child: Icon(
+//                       Icons.image_outlined,
+//                       color: DashV2Colors.primary.withValues(alpha: 0.45),
+//                       size: 36,
+//                     ),
+//                   ),
+//                 ),
+//                 const Positioned(
+//                   top: 8,
+//                   right: 8,
+//                   child: _AdvertiseTag(),
+//                 ),
+//               ],
+//             ),
+//           ),
+//         ),
+//       ),
+//     );
+//   }
+// }
+
+// /// Backward-compatible alias for older references.
+// typedef DashWelcomeBanner = DashAdBanner;
+
+// class _AdvertiseTag extends StatelessWidget {
+//   const _AdvertiseTag();
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return Container(
+//       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+//       decoration: BoxDecoration(
+//         color: Colors.black.withValues(alpha: 0.55),
+//         borderRadius: BorderRadius.circular(4),
+//       ),
+//       child: Text(
+//         'Advertise',
+//         style: GoogleFonts.poppins(
+//           fontSize: 10,
+//           fontWeight: FontWeight.w600,
+//           color: Colors.white,
+//           height: 1.1,
+//           letterSpacing: 0.2,
+//         ),
+//       ),
+//     );
+//   }
+// }

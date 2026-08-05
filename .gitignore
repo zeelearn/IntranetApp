@@ -61,3 +61,5 @@ pubspec.lock
 pubspec.lock
 
 /node_modules/
+.superpowers/
+web/apple-app-site-association

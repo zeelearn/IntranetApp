@@ -24,3 +24,22 @@ flutter run -d chrome --web-server "--disable-web-security" --dart-define=IS_STA
 Value	Base64
 IS_STAGING=true	SVNfU1RBR0lORz10cnVl
 IS_STAGING=false	SVNfU1RBR0lORz1mYWxzZQ==
+
+
+sha256_cert_fingerprints
+
+keytool -list -v \
+-keystore /Users/sudhir.patil/Development/flutter/AppCode/UAT/IntranetApp/android/zeelearn_android.jks \
+-alias zeel
+
+
+adb shell pm reset-app-links com.zeelearn.intranet
+
+
+
+adb shell pm verify-app-links --re-verify com.zeelearn.intranet
+
+adb shell pm get-app-links com.zeelearn.intranet
+
+14002302
+140023021

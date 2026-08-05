@@ -325,6 +325,8 @@ class DBHelper {
         .delete(LocalConstant.TABLE_CVF_QUESTIONS, where: null, whereArgs: []);
     dbClient
         .delete(LocalConstant.TABLE_CVF_CATEGORY, where: null, whereArgs: []);
+    dbClient
+        .delete(LocalConstant.TABLE_NOTIFICATION, where: null, whereArgs: []);
   }
 
   /// delete data to db

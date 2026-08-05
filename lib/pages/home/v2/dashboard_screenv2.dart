@@ -50,7 +50,9 @@ class _DashboardScreenV2State extends State<DashboardScreenV2> {
 
   @override
   void dispose() {
-    Get.delete<DashboardScreenV2Controller>();
+    if (Get.isRegistered<DashboardScreenV2Controller>()) {
+      Get.delete<DashboardScreenV2Controller>(force: true);
+    }
     super.dispose();
   }
 
@@ -95,10 +97,11 @@ class _DashboardScreenV2State extends State<DashboardScreenV2> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              //const DashAdBanner(),
               const DashWelcomeBanner(),
               // const SizedBox(height: 18),
               // const DashKpiRow(),
-              const SizedBox(height: 18),
+              const SizedBox(height: 14),
               const DashQuickAccessGrid(),
               const SizedBox(height: 12),
             ],

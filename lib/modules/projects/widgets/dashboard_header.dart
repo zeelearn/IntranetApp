@@ -8,19 +8,24 @@ class DashboardHeader extends StatelessWidget {
   const DashboardHeader({
     super.key,
     required this.userName,
+    required this.subtitle,
     required this.businesses,
     required this.selectedBusinessId,
     required this.selectedBusinessLabel,
     required this.onBusinessChanged,
     this.onBackTap,
+    this.onMenuTap,
   });
 
   final String userName;
+  /// Designation | Role | Zone
+  final String subtitle;
   final List<BusinessApplications> businesses;
   final int? selectedBusinessId;
   final String selectedBusinessLabel;
   final ValueChanged<int?> onBusinessChanged;
   final VoidCallback? onBackTap;
+  final VoidCallback? onMenuTap;
 
   @override
   Widget build(BuildContext context) {
@@ -37,6 +42,11 @@ class DashboardHeader extends StatelessWidget {
               icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
               tooltip: 'Back',
             ),
+            IconButton(
+              onPressed: onMenuTap,
+              icon: const Icon(Icons.menu_rounded, color: Colors.white),
+              tooltip: 'Open menu',
+            ),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -51,18 +61,17 @@ class DashboardHeader extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  Text(
-                    selectedBusinessLabel.trim().isEmpty
-                        ? 'All Business'
-                        : selectedBusinessLabel.trim(),
-                    style: GoogleFonts.poppins(
-                      color: Colors.white.withValues(alpha: 0.9),
-                      fontSize: 12,
-                      fontWeight: FontWeight.w400,
+                  if (subtitle.trim().isNotEmpty)
+                    Text(
+                      subtitle.trim(),
+                      style: GoogleFonts.poppins(
+                        color: Colors.white.withValues(alpha: 0.9),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w400,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
                 ],
               ),
             ),

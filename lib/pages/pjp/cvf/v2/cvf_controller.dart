@@ -287,7 +287,7 @@ class CVFController extends GetxController {
   bool isCompleted(GetDetailedPJP cvf) => cvf.Status == 'Completed';
 
   bool canManageVisit(GetDetailedPJP cvf) {
-    if (isViewOnly) return false;
+    if (isViewOnly) return false; 
     if (isPjpMode && pjpInfo!.isSelfPJP == '0') return false;
     return !isCancelled(cvf);
   }

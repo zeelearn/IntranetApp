@@ -767,6 +767,10 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
+  StreamSubscription<Uri>? _appLinkSubscription;
+  Uri? _pendingDeepLink;
+  bool _handlingDeepLink = false;
+
   // This widget is the root of your application.
   @override
   void initState() {
@@ -774,26 +778,96 @@ class _MyAppState extends State<MyApp> {
     _initDeepLinks();
   }
 
-  void _initDeepLinks() {
+  @override
+  void dispose() {
+    _appLinkSubscription?.cancel();
+    super.dispose();
+  }
+
+  /// Production App Links bootstrap via [app_links].
+  ///
+  /// Requires `flutter_deeplinking_enabled=false` in AndroidManifest so Flutter's
+  /// built-in handler does not swallow the intent.
+  Future<void> _initDeepLinks() async {
+    if (kIsWeb) return;
+
     final appLinks = AppLinks();
 
-    // App was closed — opened by clicking the link
-    appLinks.getInitialLink().then((uri) {
-      if (uri != null) {
-        Future.delayed(Duration(milliseconds: 500), () {
-          if (MyApp.navigatorKey.currentContext != null) {
-            MagicLinkHandler.handle(uri, MyApp.navigatorKey.currentContext!);
-          }
-        });
+    try {
+      final initial = await appLinks.getInitialLink();
+      if (initial != null) {
+        debugPrint('AppLinks initial: $initial');
+        _queueDeepLink(initial);
       }
-    });
+    } catch (e, st) {
+      debugPrint('AppLinks getInitialLink failed: $e\n$st');
+    }
 
-    // App was already running — link clicked
-    appLinks.uriLinkStream.listen((uri) {
-      if (MyApp.navigatorKey.currentContext != null) {
-        MagicLinkHandler.handle(uri, MyApp.navigatorKey.currentContext!);
+    _appLinkSubscription = appLinks.uriLinkStream.listen(
+      (uri) {
+        debugPrint('AppLinks stream: $uri');
+        _queueDeepLink(uri);
+      },
+      onError: (Object e, StackTrace st) {
+        debugPrint('AppLinks stream error: $e\n$st');
+      },
+    );
+  }
+
+  void _queueDeepLink(Uri uri) {
+    _pendingDeepLink = uri;
+    _flushDeepLink();
+  }
+
+  /// Waits until [navigatorKey] has a context, then routes the link.
+  Future<void> _flushDeepLink() async {
+    if (_handlingDeepLink || _pendingDeepLink == null) return;
+    _handlingDeepLink = true;
+
+    try {
+      BuildContext? context;
+      for (var i = 0; i < 40; i++) {
+        context = MyApp.navigatorKey.currentContext;
+        if (context != null && context.mounted) break;
+        await Future<void>.delayed(const Duration(milliseconds: 150));
       }
-    });
+
+      final uri = _pendingDeepLink;
+      _pendingDeepLink = null;
+      if (uri == null || context == null || !context.mounted) return;
+
+      await _routeDeepLink(uri, context);
+    } finally {
+      _handlingDeepLink = false;
+      if (_pendingDeepLink != null) {
+        // A newer link arrived while we were handling the previous one.
+        unawaited(_flushDeepLink());
+      }
+    }
+  }
+
+  Future<void> _routeDeepLink(Uri uri, BuildContext context) async {
+    final host = uri.host.toLowerCase();
+    final isAppHost = host == 'intranetapp.zeelearn.com' ||
+        host == 'staging.pentemind.com' ||
+        host == 'zllsaathi.zeelearn.com' ||
+        uri.scheme == 'zeelearn';
+
+    if (!isAppHost) {
+      debugPrint('AppLinks ignored unknown host: $uri');
+      return;
+    }
+
+    // Magic login links carry ?t=… — handled by MagicLinkHandler.
+    final token = uri.queryParameters['t'];
+    if (token != null && token.isNotEmpty) {
+      await MagicLinkHandler.handle(uri, context);
+      return;
+    }
+
+    // Non-magic App Link: app is already open via the OS; no-op is fine.
+    // Ticket deep links are handled on the dashboard shell when logged in.
+    debugPrint('AppLinks opened app for: $uri');
   }
 
   @override

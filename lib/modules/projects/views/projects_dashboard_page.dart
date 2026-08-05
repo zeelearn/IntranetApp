@@ -8,14 +8,18 @@ import 'package:Intranet/modules/projects/models/dashboard_colors.dart';
 import 'package:Intranet/modules/projects/models/dashboard_failure.dart';
 import 'package:Intranet/modules/projects/models/projects_entry_args.dart';
 import 'package:Intranet/modules/projects/models/quick_action_type.dart';
+import 'package:Intranet/modules/projects/views/center_kit_report_screen.dart';
+import 'package:Intranet/modules/projects/views/indent_list_screen.dart';
 import 'package:Intranet/modules/projects/views/project_list_screen.dart';
 import 'package:Intranet/modules/projects/views/task_list_screen.dart';
+import 'package:Intranet/modules/projects/views/visual_charts_screen.dart';
 import 'package:Intranet/modules/projects/widgets/dashboard_empty_widget.dart';
 import 'package:Intranet/modules/projects/widgets/dashboard_error_widget.dart';
 import 'package:Intranet/modules/projects/widgets/dashboard_grid.dart';
 import 'package:Intranet/modules/projects/widgets/dashboard_header.dart';
 import 'package:Intranet/modules/projects/widgets/dashboard_shimmer.dart';
 import 'package:Intranet/modules/projects/widgets/offline_banner.dart';
+import 'package:Intranet/modules/projects/widgets/projects_sidebar.dart';
 
 /// Independent Projects Dashboard page (library entry point).
 ///
@@ -93,6 +97,10 @@ class ProjectsDashboardPage extends StatefulWidget {
 
 class _ProjectsDashboardPageState extends State<ProjectsDashboardPage> {
   late final String _tag;
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  bool _sidebarVisible = true;
+
+  static const double _wideBreakpoint = 900;
 
   @override
   void initState() {
@@ -116,6 +124,26 @@ class _ProjectsDashboardPageState extends State<ProjectsDashboardPage> {
     super.dispose();
   }
 
+  void _toggleMenu(bool isWide) {
+    if (isWide) {
+      setState(() => _sidebarVisible = !_sidebarVisible);
+    } else {
+      final scaffold = _scaffoldKey.currentState;
+      if (scaffold == null) return;
+      if (scaffold.isDrawerOpen) {
+        scaffold.closeDrawer();
+      } else {
+        scaffold.openDrawer();
+      }
+    }
+  }
+
+  void _closeDrawerIfOpen() {
+    if (_scaffoldKey.currentState?.isDrawerOpen ?? false) {
+      _scaffoldKey.currentState?.closeDrawer();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     if (!Get.isRegistered<DashboardController>(tag: _tag)) {
@@ -130,78 +158,139 @@ class _ProjectsDashboardPageState extends State<ProjectsDashboardPage> {
       ).dependencies();
     }
     final controller = Get.find<DashboardController>(tag: _tag);
+    final isWide = MediaQuery.sizeOf(context).width >= _wideBreakpoint;
 
     return Scaffold(
+      key: _scaffoldKey,
       backgroundColor: DashboardColors.scaffold,
+      drawer: isWide
+          ? null
+          : Drawer(
+              width: 300,
+              child: Obx(
+                () => ProjectsSidebar(
+                  projectCards: controller.cards.toList(growable: false),
+                  showProjects: controller.showProjectsMenu.value,
+                  showAllIndents: controller.showAllIndentsMenu.value,
+                  showCenterKitReport:
+                      controller.showCenterKitReportMenu.value,
+                  showVisualCharts: controller.showVisualChartsMenu.value,
+                  onProjectTap: (card) {
+                    _closeDrawerIfOpen();
+                    _handleCardTap(controller, card);
+                  },
+                  onAllIndentsTap: () {
+                    _closeDrawerIfOpen();
+                    _openAllIndents();
+                  },
+                  onCenterKitReportTap: () {
+                    _closeDrawerIfOpen();
+                    _openCenterKitReport();
+                  },
+                  onVisualChartsTap: () {
+                    _closeDrawerIfOpen();
+                    _openVisualCharts();
+                  },
+                ),
+              ),
+            ),
       body: Column(
         children: [
           Obx(
             () => DashboardHeader(
               userName: controller.userName,
+              subtitle: controller.headerSubtitle.value,
               businesses: controller.businesses.toList(growable: false),
               selectedBusinessId: controller.selectedBusinessId.value,
               selectedBusinessLabel: controller.selectedBusinessLabel.value,
               onBusinessChanged: controller.selectBusiness,
-              onBackTap: widget.onBackTap,
+              onBackTap: widget.onBackTap ??
+                  () => Navigator.of(context).maybePop(),
+              onMenuTap: () => _toggleMenu(isWide),
             ),
           ),
           Expanded(
-            child: Obx(() {
-              final isLoading = controller.isLoading.value;
-              final showOffline = controller.isOffline.value ||
-                  controller.servingFromCache.value;
-              // Touch reactive list so Obx rebuilds when cards arrive.
-              final cardCount = controller.cards.length;
-              final error = controller.errorMessage.value;
-
-              return RefreshIndicator(
-                color: DashboardColors.primary,
-                onRefresh: controller.refreshDashboard,
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    return SingleChildScrollView(
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      child: SizedBox(
-                        height: constraints.maxHeight,
-                        child: Center(
-                          child: ConstrainedBox(
-                            constraints: const BoxConstraints(maxWidth: 1200),
-                            child: Padding(
-                              padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  OfflineBanner(
-                                    visible: showOffline,
-                                    onRetry: controller.refreshDashboard,
-                                    message: controller.isOffline.value
-                                        ? 'You are offline. Showing cached data.'
-                                        : 'Showing cached data. Pull to refresh.',
-                                  ),
-                                  if (showOffline) const SizedBox(height: 8),
-                                  Expanded(
-                                    child: _buildBody(
-                                      controller,
-                                      isLoading: isLoading,
-                                      cardCount: cardCount,
-                                      error: error,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              );
-            }),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (isWide && _sidebarVisible)
+                  Obx(
+                    () => ProjectsSidebar(
+                      projectCards: controller.cards.toList(growable: false),
+                      showProjects: controller.showProjectsMenu.value,
+                      showAllIndents: controller.showAllIndentsMenu.value,
+                      showCenterKitReport:
+                          controller.showCenterKitReportMenu.value,
+                      showVisualCharts: controller.showVisualChartsMenu.value,
+                      onProjectTap: (card) =>
+                          _handleCardTap(controller, card),
+                      onAllIndentsTap: _openAllIndents,
+                      onCenterKitReportTap: _openCenterKitReport,
+                      onVisualChartsTap: _openVisualCharts,
+                    ),
+                  ),
+                Expanded(child: _buildMainContent(controller)),
+              ],
+            ),
           ),
         ],
       ),
     );
+  }
+
+  Widget _buildMainContent(DashboardController controller) {
+    return Obx(() {
+      final isLoading = controller.isLoading.value;
+      final showOffline =
+          controller.isOffline.value || controller.servingFromCache.value;
+      // Touch reactive list so Obx rebuilds when cards arrive.
+      final cardCount = controller.cards.length;
+      final error = controller.errorMessage.value;
+
+      return RefreshIndicator(
+        color: DashboardColors.primary,
+        onRefresh: controller.refreshDashboard,
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              child: SizedBox(
+                height: constraints.maxHeight,
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 1200),
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          OfflineBanner(
+                            visible: showOffline,
+                            onRetry: controller.refreshDashboard,
+                            message: controller.isOffline.value
+                                ? 'You are offline. Showing cached data.'
+                                : 'Showing cached data. Pull to refresh.',
+                          ),
+                          if (showOffline) const SizedBox(height: 8),
+                          Expanded(
+                            child: _buildBody(
+                              controller,
+                              isLoading: isLoading,
+                              cardCount: cardCount,
+                              error: error,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
+      );
+    });
   }
 
   Widget _buildBody(
@@ -262,5 +351,27 @@ class _ProjectsDashboardPageState extends State<ProjectsDashboardPage> {
       );
     }
     controller.handleCardTap(card);
+  }
+
+  void _openAllIndents() {
+    final controller = Get.find<DashboardController>(tag: _tag);
+    final businessId =
+        (controller.selectedBusinessId.value ?? widget.businessId ?? 1)
+            .toString();
+    IndentListScreen.open(
+      userId: widget.userId,
+      businessId: businessId,
+    );
+  }
+
+  void _openCenterKitReport() {
+    // API sample uses { "business_id": null } for full report.
+    CenterKitReportScreen.open(businessId: null);
+  }
+
+  void _openVisualCharts() {
+    final controller = Get.find<DashboardController>(tag: _tag);
+    if (!controller.showVisualChartsMenu.value) return;
+    VisualChartsScreen.openFromHive();
   }
 }

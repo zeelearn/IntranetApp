@@ -55,6 +55,8 @@ class MagicLinkHandler {
               info.employeeSuperiorId.toInt().toString());
           hive.put(LocalConstant.KEY_DEPARTMENT, info.employeeDepartmentName);
           hive.put(LocalConstant.KEY_DESIGNATION, info.employeeDesignation);
+          hive.put(LocalConstant.KEY_ZONE, info.zone);
+          hive.put(LocalConstant.KEY_EMP_TYPE, info.employeeRoleName);
           hive.put(LocalConstant.KEY_EMAIL, info.employeeEmailId);
           hive.put(LocalConstant.KEY_CONTACT, info.employeeContactNumber);
           hive.put(LocalConstant.KEY_IS_ACTIVE, info.isActive);

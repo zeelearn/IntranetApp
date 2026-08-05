@@ -87,39 +87,8 @@ class NotificationService {
       [RemoteMessage? message]) async {
     String channel = LocalConstant.NOTIFICATION_CHANNEL;
     if (kIsWeb) {
-      ToastUtilityIntranet.showInfoToast(message?.data['body'] ?? '');
-      // if (context == null || !context.mounted) return;
-      /* ScaffoldMessenger.maybeOf(context)?.showSnackBar(SnackBar(
-          duration: Duration(seconds: 20),
-          showCloseIcon: false,
-          closeIconColor: Colors.redAccent,
-          backgroundColor: /* item.colorCode?.toColor() ?? */
-              kPrimaryLightColor,
-          margin: EdgeInsets.only(
-              left: MediaQuery.of(context).size.width / 2,
-              right: 10,
-              bottom: 20),
-          behavior: SnackBarBehavior.floating,
-          content: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              Text(
-                message.data['title'],
-                style: LightColors.subTextStyle.copyWith(color: Colors.white),
-              ),
-              SizedBox(
-                height: 5,
-              ),
-              Text(
-                message.data['body'],
-                style: LightColors.subTextStyle.copyWith(color: Colors.white),
-              ),
-              SizedBox(
-                height: 5,
-              ),
-            ],
-          ))); */
+      ToastUtilityIntranet.showInfoToast(
+          '${message?.data['title'] ?? ''}\n${message?.data['body'] ?? ''}');
     } else {
       AwesomeNotifications().createNotification(
           content: NotificationContent(
@@ -260,7 +229,7 @@ class NotificationService {
     RemoteMessage message, {
     BuildContext? context,
   }) async {
-    // print('parse Notification 217');
+    debugPrint('parseNotification called in Intranet with message: ${message.data}');
     String cdate = DateFormat("yyyy-MM-dd hh:mm a").format(DateTime.now());
     String? imsageUrl = '';
     if (kIsWeb) {
@@ -272,6 +241,7 @@ class NotificationService {
     DBHelper helper = DBHelper();
     Map<String, String> data = {};
     if (message.notification != null) {
+      debugPrint('parseNotification SKIPPING NOTIFICATION ');
       data.putIfAbsent('title', () => message.notification?.title as String);
       data.putIfAbsent(
           'description', () => message.notification?.body as String);
@@ -293,7 +263,7 @@ class NotificationService {
           () => message.data.containsKey('url')
               ? message.data['url'] as String
               : '');
-      helper.insert(LocalConstant.TABLE_NOTIFICATION, data);
+      //helper.insert(LocalConstant.TABLE_NOTIFICATION, data);
       // NotificationService notificationService = NotificationService();
       // notificationService.showSimpleNotification(
       //     message.notification?.title as String,
@@ -301,8 +271,10 @@ class NotificationService {
       //     message);
     } else {
       if (message.data.containsKey('type') && message.data['type'] == 'td') {
+        debugPrint('parseNotification identifySaathiNotification called');
         identifySaathiNotification(message);
       } else if (message.data.containsKey('topic')) {
+        debugPrint('parseNotification identifyNotification topic called');
         identifyNotification(message);
       } else {
         data.putIfAbsent('title', () => message.data['title']);
@@ -333,29 +305,55 @@ class NotificationService {
             () => message.data.containsKey('url')
                 ? message.data['url'] as String
                 : '');
-        helper.insert(LocalConstant.TABLE_NOTIFICATION, data);
+        //helper.insert(LocalConstant.TABLE_NOTIFICATION, data);
         if (message.data.containsKey('type') &&
             message.data['type'] == 'BPMS') {
+              debugPrint('parseNotification BPMS notification detected. Processing body.');
           BpmsNotificationModelList list = BpmsNotificationModelList.fromJson(
             json.decode(
                     '{"data":${message.data['body'].toString().replaceAll(',]', ']')}}')
                 as Map<String, dynamic>,
           );
+          helper.insert(LocalConstant.TABLE_NOTIFICATION, data);
           NotificationService notificationService = NotificationService();
           notificationService.showSimpleNotification(
               message.data['title'], list.getBody(), message);
         } else if (message.data.containsKey('topic') &&
             message.data['topic'] != '') {
-          //identifyNotification(message);
-          //showNotification(message);
-          NotificationService notificationService = NotificationService();
-          notificationService.showSimpleNotification(
-              message.data['title'], message.data['body'], message);
+          var hiveBox = await Utility.openBox();
+
+          String employeeCode =
+              hiveBox.get(LocalConstant.KEY_EMPLOYEE_CODE) as String;
+          String empId = hiveBox.get(LocalConstant.KEY_EMPLOYEE_ID) as String;
+          if ((message.data.containsKey('employee_code') &&
+                  message.data['employee_code'] != employeeCode) ||
+              (message.data.containsKey('empid') &&
+                  message.data['empid'] != empId)) {
+            helper.insert(LocalConstant.TABLE_NOTIFICATION, data);
+            NotificationService notificationService = NotificationService();
+            notificationService.showSimpleNotification(
+                message.data['title'], message.data['body'], message);
+          }else{
+            debugPrint('parseNotification: Employee code or empid does not match. Notification ignored.');
+          }
         } else {
-          //showNotification(message);
-          NotificationService notificationService = NotificationService();
-          notificationService.showSimpleNotification(
-              message.data['title'], message.data['body'], message);
+          var hiveBox = await Utility.openBox();
+
+          String employeeCode =
+              hiveBox.get(LocalConstant.KEY_EMPLOYEE_CODE) as String;
+          String empId = hiveBox.get(LocalConstant.KEY_EMPLOYEE_ID) as String;
+          if ((message.data.containsKey('employee_code') &&
+                  message.data['employee_code'] == employeeCode) ||
+              (message.data.containsKey('empid') &&
+                  message.data['empid'] == empId)) {
+            //showNotification(message);
+            helper.insert(LocalConstant.TABLE_NOTIFICATION, data);
+            NotificationService notificationService = NotificationService();
+            notificationService.showSimpleNotification(
+                message.data['title'], message.data['body'], message);
+          }else{
+            debugPrint('parseNotification: Employee code or empid does not match. Notification ignored.');
+          }
         }
       }
     }
@@ -370,6 +368,7 @@ void identifySaathiNotification(RemoteMessage message,
   if (employeeCode.isNotEmpty &&
       message.data.containsKey('employee_code') &&
       message.data['employee_code'] == employeeCode) {
+        debugPrint('identifySaathiNotification: Employee code matches. Processing notification.');
     DBHelper helper = DBHelper();
     Map<String, String> data = {};
     String cdate = DateFormat("yyyy-MM-dd hh:mm a").format(DateTime.now());
@@ -401,6 +400,8 @@ void identifySaathiNotification(RemoteMessage message,
 
     notificationService.showSimpleNotification(
         message.data['title'], message.data['body'], message);
+  }else{
+    debugPrint('identifySaathiNotification: Employee code does not match. Notification ignored.');
   }
 }
 
@@ -410,6 +411,7 @@ void identifyNotification(RemoteMessage message, [WidgetRef? ref]) async {
   if (userName.isNotEmpty &&
       message.data.containsKey('user_id') &&
       message.data['user_id'] == userName) {
+        debugPrint('identifyNotification: User ID matches. Processing notification.');
     DBHelper helper = DBHelper();
     Map<String, String> data = {};
     String cdate = DateFormat("yyyy-MM-dd hh:mm a").format(DateTime.now());

@@ -1,0 +1,17 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": [
+          "CNB6YMJ899.com.zeelearn.intranet"
+        ],
+        "components": [
+          {
+            "/": "/*",
+            "comment": "Allow all URLs"
+          }
+        ]
+      }
+    ]
+  }
+}
