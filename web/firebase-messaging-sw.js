@@ -69,12 +69,12 @@ self.addEventListener("notificationclick", function (event) {
   const targetUrl = event.notification.data?.url || '/';
   event.waitUntil(
     clients.matchAll({ type: "window", includeUncontrolled: true }).then(windowClients => {
-      for (const client of windowClients) {
-        // Focus existing tab if same origin
-        if (client.url.includes(self.location.origin) && "focus" in client) {
-          return client.focus();
-        }
-      }
+      // for (const client of windowClients) {
+      //   // Focus existing tab if same origin
+      //   if (client.url.includes(self.location.origin) && "focus" in client) {
+      //     return client.focus();
+      //   }
+      // }
       // Always try openWindow — Chrome only blocks cross-origin in insecure mode
       return clients.openWindow(targetUrl).catch(err => {
         console.warn("openWindow blocked:", err);
