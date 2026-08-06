@@ -7,6 +7,7 @@ import 'package:Intranet/pages/utils/theme/colors/light_colors.dart';
 import 'package:Intranet/pages/utils/toast_utility.dart';
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter/foundation.dart';
@@ -87,8 +88,18 @@ class NotificationService {
       [RemoteMessage? message]) async {
     String channel = LocalConstant.NOTIFICATION_CHANNEL;
     if (kIsWeb) {
+      final url = message?.data['url'] as String?;
       ToastUtilityIntranet.showInfoToast(
-          '${message?.data['title'] ?? ''}\n${message?.data['body'] ?? ''}');
+        '${message?.data['title'] ?? ''}\n${message?.data['body'] ?? ''}',
+        onTap: () async {
+          if (url != null && url.isNotEmpty) {
+            final uri = Uri.parse(url);
+            if (await canLaunchUrl(uri)) {
+              await launchUrl(uri);
+            }
+          }
+        },
+      );
     } else {
       AwesomeNotifications().createNotification(
           content: NotificationContent(
