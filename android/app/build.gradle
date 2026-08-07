@@ -51,7 +51,7 @@ android {
         // For more information, see: https://docs.flutter.dev/deployment/android#reviewing-the-build-configuration.
         minSdkVersion flutter.minSdkVersion
         targetSdkVersion 36
-        versionCode 77
+        versionCode 78
         versionName '1.9.4' 
         manifestPlaceholders['foregroundServiceType'] = 'DataSync'
         multiDexEnabled true

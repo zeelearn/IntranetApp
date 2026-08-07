@@ -110,17 +110,9 @@ class NotificationService {
         notificationLayout: NotificationLayout.BigText,
         // summary: body,
         autoDismissible: true,
-        payload: {
-          'url': message != null ? (message.data['url'] ?? '') : '',
-          'type': message != null ? (message.data['type'] ?? '') : '',
-          'topic': message != null ? (message.data['topic'] ?? '') : '',
-          'bigimage': message != null ? (message.data['bigimage'] ?? '') : '',
-          'webViewLink':
-              message != null ? (message.data['webViewLink'] ?? '') : '',
-          'id': message != null ? (message.data['id'] ?? '') : '',
-          'employee_code':
-              message != null ? (message.data['employee_code'] ?? '') : ''
-        },
+        payload: message != null
+            ? Map<String, String>.from(message.data)
+            : {},
       ));
     }
   }
@@ -142,16 +134,9 @@ class NotificationService {
             icon: 'resource://drawable/app_logo',
             backgroundColor: Colors.white54,
             largeIcon: imageUrl,
-            payload: {
-              'url': message != null ? (message.data['url'] ?? '') : '',
-              'type': message != null ? (message.data['type'] ?? '') : '',
-              'topic': message != null ? (message.data['topic'] ?? '') : '',
-              'bigimage':
-                  message != null ? (message.data['bigimage'] ?? '') : '',
-              'id': message != null ? (message.data['id'] ?? '') : '',
-              'employee_code':
-                  message != null ? (message.data['employee_code'] ?? '') : ''
-            },
+            payload: message != null
+                ? Map<String, String>.from(message.data)
+                : {},
             notificationLayout: NotificationLayout.BigText,
             bigPicture: imageUrl),
       );
@@ -169,16 +154,9 @@ class NotificationService {
             backgroundColor: Colors.white54,
             largeIcon: imageUrl,
             notificationLayout: NotificationLayout.BigPicture,
-            payload: {
-              'url': message != null ? (message.data['url'] ?? '') : '',
-              'type': message != null ? (message.data['type'] ?? '') : '',
-              'topic': message != null ? (message.data['topic'] ?? '') : '',
-              'bigimage':
-                  message != null ? (message.data['bigimage'] ?? '') : '',
-              'id': message != null ? (message.data['id'] ?? '') : '',
-              'employee_code':
-                  message != null ? (message.data['employee_code'] ?? '') : ''
-            },
+            payload: message != null
+                ? Map<String, String>.from(message.data)
+                : {},
             bigPicture: imageUrl),
       );
     }
@@ -288,6 +266,9 @@ class NotificationService {
       } else if (message.data.containsKey('type') &&
           message.data['type']?.toString().toLowerCase() == 'expense') {
         handleExpenseNotificatin(message);
+      } else if (message.data.containsKey('type') &&
+          message.data['type']?.toString().toUpperCase() == 'PJP') {
+        handlePJPNotification(message);
       } else if (message.data.containsKey('topic')) {
         debugPrint('parseNotification identifyNotification topic called');
         identifyNotification(message);
@@ -470,6 +451,54 @@ void handleExpenseNotificatin(
   } else {
     debugPrint(
         'parseNotification: Employee code or empid does not match. Notification ignored.');
+  }
+}
+
+void handlePJPNotification(
+  RemoteMessage message,
+) async {
+  var hiveBox = await Utility.openBox();
+
+  String employeeCode = hiveBox.get(LocalConstant.KEY_EMPLOYEE_CODE) as String;
+  String empId = hiveBox.get(LocalConstant.KEY_EMPLOYEE_ID) as String;
+  if ((message.data.containsKey('employee_code') &&
+          message.data['employee_code'] == employeeCode) ||
+      (message.data.containsKey('empid') && message.data['empid'] == empId)) {
+    DBHelper helper = DBHelper();
+    Map<String, String> data = {};
+    String cdate = DateFormat("yyyy-MM-dd hh:mm a").format(DateTime.now());
+    data.putIfAbsent('title', () => message.data['title'] ?? '');
+    data.putIfAbsent('description', () => message.data['body'] ?? '');
+    data.putIfAbsent('type',
+        () => message.data.containsKey('type') ? message.data['type']! : '');
+    data.putIfAbsent('date', () => cdate);
+    data.putIfAbsent(
+        'imageurl',
+        () => message.data.containsKey('imageurl')
+            ? message.data['imageurl']!
+            : '');
+    data.putIfAbsent(
+        'logoUrl',
+        () =>
+            message.data.containsKey('logoUrl') ? message.data['logoUrl']! : '');
+    data.putIfAbsent(
+        'bigImageUrl',
+        () => message.data.containsKey('bigimage')
+            ? message.data['bigimage'] as String
+            : '');
+    data.putIfAbsent(
+        'webViewLink',
+        () => message.data.containsKey('url')
+            ? message.data['url'] as String
+            : '');
+
+    helper.insert(LocalConstant.TABLE_NOTIFICATION, data);
+    NotificationService notificationService = NotificationService();
+    notificationService.showSimpleNotification(
+        message.data['title'] ?? '', message.data['body'] ?? '', message);
+  } else {
+    debugPrint(
+        'parseNotification PJP: Employee code or empid does not match. Notification ignored.');
   }
 }
 

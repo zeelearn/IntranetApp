@@ -105,7 +105,11 @@ self.addEventListener('push', function (event) {
   const notificationOptions = { 
     body: payload.data.body, 
     icon: 'https://zeelearn.com/wp-content/uploads/zeelearnlogo_new171.png', 
-    data: { url: payload.data.url } 
+    data: Object.assign({}, payload.data, {
+      url: (payload.data.type === 'PJP' && payload.data.PjpId) 
+        ? ('/?type=PJP&PjpId=' + payload.data.PjpId) 
+        : (payload.data.url || '/')
+    })
   };
 
   const showPromise = new Promise((resolve) => {

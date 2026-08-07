@@ -247,6 +247,20 @@ class DashboardScreenV2Controller extends GetxController
       debugPrint('Dashboard V2: onMessageOpenedApp received');
       final ctx = Get.context;
       if (ctx == null) return;
+      if (message.data['type'] != null && message.data['type'] == 'PJP') {
+        final pjpId = message.data['PjpId'] ?? message.data['pjpId'] ?? '';
+        if (pjpId.isNotEmpty) {
+          await Navigator.of(ctx).push(
+            MaterialPageRoute(
+              builder: (_) => DayEventsScreen(
+                pjpId: pjpId,
+              ),
+            ),
+          );
+          await loadNotificationCount();
+          return;
+        }
+      }
       await Navigator.of(ctx).push(
         MaterialPageRoute(builder: (_) => const UserNotification()),
       );
@@ -258,6 +272,28 @@ class DashboardScreenV2Controller extends GetxController
         unawaited(checkForUpdate());
       } else if (Platform.isIOS) {
         unawaited(_verifyVersion(context));
+      }
+    } else {
+      try {
+        final uriStr = getBrowserUrl();
+        final uri = Uri.parse(uriStr);
+        if (uri.queryParameters['type'] == 'PJP') {
+          final pjpId = uri.queryParameters['PjpId'] ?? '';
+          if (pjpId.isNotEmpty) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => DayEventsScreen(
+                    pjpId: pjpId,
+                  ),
+                ),
+              );
+            });
+          }
+        }
+      } catch (e) {
+        debugPrint('Web PJP URL query parse error: $e');
       }
     }
 
@@ -271,6 +307,18 @@ class DashboardScreenV2Controller extends GetxController
 
     if (payload['type'] == 'td') {
       Util.openSaathiNotification(action!);
+    } else if (payload['type'] == 'PJP') {
+      final pjpId = payload['PjpId'] ?? payload['pjpId'] ?? '';
+      if (pjpId.isNotEmpty) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => DayEventsScreen(
+              pjpId: pjpId,
+            ),
+          ),
+        );
+      }
     } else if (payload['type'] == 'EXPENSE') {
       Navigator.push(
           context,

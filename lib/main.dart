@@ -309,6 +309,19 @@ Future<void> main() async {
         Utility.signOut(MyApp.navigatorKey.currentState!.context);
       } else if (message.data['type'] != null && message.data['type'] == 'td') {
         // Util.openSaathiNotification(message);
+      } else if (message.data['type'] != null &&
+          message.data['type'] == 'PJP') {
+        final pjpId = message.data['PjpId'] ?? message.data['pjpId'] ?? '';
+        if (pjpId.isNotEmpty) {
+          Navigator.push(
+            MyApp.navigatorKey.currentState!.context,
+            MaterialPageRoute(
+              builder: (context) => DayEventsScreen(
+                pjpId: pjpId,
+              ),
+            ),
+          );
+        }
       } else if (message.data['type'] == 'EXPENSE') {
         Navigator.push(
             MyApp.navigatorKey.currentState!.context,
@@ -1108,7 +1121,8 @@ class NotificationController {
 
     if (!isAppFullyLoaded) {
       coldStartAction = receivedAction;
-      debugPrint("Storing cold start action for DashboardScreenV2: ${receivedAction.id}");
+      debugPrint(
+          "Storing cold start action for DashboardScreenV2: ${receivedAction.id}");
       return;
     }
 
@@ -1120,6 +1134,23 @@ class NotificationController {
         receivedAction.payload!['type'] != null &&
         receivedAction.payload!['type'] == 'td') {
       Util.openSaathiNotification(receivedAction);
+    } else if (receivedAction.payload != null &&
+        receivedAction.payload!['type'] != null &&
+        receivedAction.payload!['type'] == 'PJP') {
+      final pjpId = receivedAction.payload?['PjpId'] ??
+          receivedAction.payload?['pjpId'] ??
+          receivedAction.payload?['pjpid'] ??
+          '';
+      if (pjpId.isNotEmpty) {
+        Navigator.push(
+          MyApp.navigatorKey.currentState!.context,
+          MaterialPageRoute(
+            builder: (context) => DayEventsScreen(
+              pjpId: pjpId,
+            ),
+          ),
+        );
+      }
     } else if (receivedAction.payload?['type'] == 'EXPENSE') {
       Navigator.push(
           MyApp.navigatorKey.currentState!.context,
