@@ -3563,12 +3563,14 @@ class _VisitTile extends StatelessWidget {
                       const Icon(Icons.access_time_rounded,
                           size: 11, color: _textSecondary),
                       const SizedBox(width: 4),
-                      Text(
-                        'Planned: ${DateFormat('EEEE, d MMMM yyyy').format(DateFormat('yyyy-MM-dd').parse(visit.visitDate))} at ${visit.visitTime}',
-                        style: GoogleFonts.inter(
-                            fontSize: 11,
-                            color: _textSecondary,
-                            fontWeight: FontWeight.w500),
+                      Expanded(
+                        child: Text(
+                          'Planned: ${DateFormat('EEEE, d MMMM yyyy').format(DateFormat('yyyy-MM-dd').parse(visit.visitDate))} at ${visit.visitTime}',
+                          style: GoogleFonts.inter(
+                              fontSize: 11,
+                              color: _textSecondary,
+                              fontWeight: FontWeight.w500),
+                        ),
                       ),
                     ],
                   ),

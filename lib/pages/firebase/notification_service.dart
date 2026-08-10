@@ -23,6 +23,7 @@ import '../helper/DatabaseHelper.dart';
 import '../helper/utils.dart';
 import '../model/bpms_notification_model.dart';
 import 'DetailsPage.dart';
+import 'package:Intranet/pages/summary%20dashboard/summary_dashboard.dart';
 
 class NotificationService {
   // Singleton pattern
@@ -89,10 +90,24 @@ class NotificationService {
     String channel = LocalConstant.NOTIFICATION_CHANNEL;
     if (kIsWeb) {
       final url = message?.data['url'] as String?;
+      final type = message?.data['type'];
+      final pjpId = message?.data['PjpId'] ?? message?.data['pjpId'] ?? message?.data['pjpid'] ?? '';
       ToastUtilityIntranet.showInfoToast(
         '${message?.data['title'] ?? ''}\n${message?.data['body'] ?? ''}',
         onTap: () async {
-          if (url != null && url.isNotEmpty) {
+          if (type == 'PJP' && pjpId.isNotEmpty) {
+            final context = MyApp.navigatorKey.currentState?.context;
+            if (context != null) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => DayEventsScreen(
+                    pjpId: pjpId,
+                  ),
+                ),
+              );
+            }
+          } else if (url != null && url.isNotEmpty) {
             final uri = Uri.parse(url);
             if (await canLaunchUrl(uri)) {
               await launchUrl(uri);
@@ -486,11 +501,10 @@ void handlePJPNotification(
         () => message.data.containsKey('bigimage')
             ? message.data['bigimage'] as String
             : '');
+    final pjpIdVal = message.data['PjpId'] ?? message.data['pjpId'] ?? message.data['pjpid'] ?? '';
     data.putIfAbsent(
         'webViewLink',
-        () => message.data.containsKey('url')
-            ? message.data['url'] as String
-            : '');
+        () => pjpIdVal);
 
     helper.insert(LocalConstant.TABLE_NOTIFICATION, data);
     NotificationService notificationService = NotificationService();

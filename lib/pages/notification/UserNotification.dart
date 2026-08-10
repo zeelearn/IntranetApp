@@ -18,6 +18,7 @@ import '../helper/LocalConstant.dart';
 import '../helper/constants.dart';
 import '../model/bpms_notification_model.dart';
 import 'DetailPage.dart';
+import 'package:Intranet/pages/summary%20dashboard/summary_dashboard.dart';
 
 class UserNotification extends StatefulWidget {
   const UserNotification({Key? key}) : super(key: key);
@@ -162,6 +163,17 @@ class _ListPageState extends State<UserNotification> {
                     builder: (context) => MyWebsiteView(
                         title: notificationModel.subject, url: uri.toString()),
                   ));
+            } else if (notificationModel.notificationtype == 'PJP') {
+              final pjpId = notificationModel.webViewUrl;
+              if (pjpId.isNotEmpty) {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => DayEventsScreen(
+                        pjpId: pjpId,
+                      ),
+                    ));
+              }
             } else {
               Navigator.push(
                   context,
