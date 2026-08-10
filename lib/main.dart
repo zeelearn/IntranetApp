@@ -131,8 +131,10 @@ part 'main.g.dart';
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  WidgetsFlutterBinding.ensureInitialized();
+  DartPluginRegistrant.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-
+  await NotificationController.initializeLocalNotifications();
   NotificationService().parseNotification(message);
 }
 
@@ -311,7 +313,7 @@ Future<void> main() async {
         // Util.openSaathiNotification(message);
       } else if (message.data['type'] != null &&
           message.data['type'] == 'PJP') {
-        final pjpId = message.data['PjpId'] ?? message.data['pjpId'] ?? '';
+        final pjpId = message.data['PjpId'] ?? message.data['pjpId'] ?? message.data['pjpid'] ?? '';
         if (pjpId.isNotEmpty) {
           Navigator.push(
             MyApp.navigatorKey.currentState!.context,

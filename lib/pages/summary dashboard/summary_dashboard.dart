@@ -2660,14 +2660,25 @@ class _DayEventsScreenState extends State<DayEventsScreen> {
         _currentEmpName = '$firstName $lastName'.trim();
       }
 
+      final now = DateTime.now();
+      final startSearch = now.subtract(const Duration(days: 365));
+      final endSearch = now.add(const Duration(days: 365));
+      final fromDateStr = DateFormat('yyyy-MM-dd').format(startSearch);
+      final toDateStr = DateFormat('yyyy-MM-dd').format(endSearch);
+
       final request = PJPReportRequest(
         employeeCode: _currentEmpCode,
         businessId: businessId.toString(),
+        fromDate: fromDateStr,
+        toDate: toDateStr,
         pjpId: int.parse(widget.pjpId!),
       );
       final value = await APIService().getPJPMYTEAMReport(request);
       if (value is PjpListResponse && value.responseData.isNotEmpty) {
-        final pjpInfo = value.responseData.first;
+        final pjpInfo = value.responseData.firstWhere(
+          (p) => p.PJP_Id.toString() == widget.pjpId.toString(),
+          orElse: () => value.responseData.first,
+        );
         final start = Utility.convertDate(pjpInfo.fromDate);
         final end = Utility.convertDate(pjpInfo.toDate);
 

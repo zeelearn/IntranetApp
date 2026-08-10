@@ -193,6 +193,18 @@ class DashboardScreenV2Controller extends GetxController
         } else if (message.data['type'] != null &&
             message.data['type'] == 'td') {
           // Util.openSaathiNotification(message);
+        } else if (message.data['type'] != null &&
+            message.data['type'] == 'PJP') {
+          final pjpId = message.data['PjpId'] ?? message.data['pjpId'] ?? message.data['pjpid'] ?? '';
+          if (pjpId.isNotEmpty) {
+            Navigator.push(
+                MyApp.navigatorKey.currentState!.context,
+                MaterialPageRoute(
+                  builder: (context) => DayEventsScreen(
+                    pjpId: pjpId,
+                  ),
+                ));
+          }
         } else if (message.data['type'] == 'EXPENSE') {
           Navigator.push(
               MyApp.navigatorKey.currentState!.context,
@@ -248,7 +260,7 @@ class DashboardScreenV2Controller extends GetxController
       final ctx = Get.context;
       if (ctx == null) return;
       if (message.data['type'] != null && message.data['type'] == 'PJP') {
-        final pjpId = message.data['PjpId'] ?? message.data['pjpId'] ?? '';
+        final pjpId = message.data['PjpId'] ?? message.data['pjpId'] ?? message.data['pjpid'] ?? '';
         if (pjpId.isNotEmpty) {
           await Navigator.of(ctx).push(
             MaterialPageRoute(
@@ -278,7 +290,7 @@ class DashboardScreenV2Controller extends GetxController
         final uriStr = getBrowserUrl();
         final uri = Uri.parse(uriStr);
         if (uri.queryParameters['type'] == 'PJP') {
-          final pjpId = uri.queryParameters['PjpId'] ?? '';
+          final pjpId = uri.queryParameters['PjpId'] ?? uri.queryParameters['pjpId'] ?? uri.queryParameters['pjpid'] ?? '';
           if (pjpId.isNotEmpty) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
               Navigator.push(
@@ -308,7 +320,7 @@ class DashboardScreenV2Controller extends GetxController
     if (payload['type'] == 'td') {
       Util.openSaathiNotification(action!);
     } else if (payload['type'] == 'PJP') {
-      final pjpId = payload['PjpId'] ?? payload['pjpId'] ?? '';
+      final pjpId = payload['PjpId'] ?? payload['pjpId'] ?? payload['pjpid'] ?? '';
       if (pjpId.isNotEmpty) {
         Navigator.push(
           context,
