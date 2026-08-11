@@ -570,9 +570,9 @@ void identifyNotification(RemoteMessage message, [WidgetRef? ref]) async {
           message.data['title'], message.data['body'], message);
     } else {
       //showNotification(message);
-      NotificationService notificationService = NotificationService();
-      notificationService.showSimpleNotification(
-          message.data['title'], message.data['body'], message);
+      // NotificationService notificationService = NotificationService();
+      // notificationService.showSimpleNotification(
+      //     message.data['title'], message.data['body'], message);
     }
   }
 }

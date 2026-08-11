@@ -52,7 +52,8 @@ class DBHelper {
       'logoUrl TEXT, '
       'bigImageUrl TEXT, '
       'webViewLink TEXT, '
-      'date TEXT)';
+      'date TEXT, '
+      'is_seen INTEGER DEFAULT 0)';
 
   static String CREATE_TABLE_CHECKIN =
       'CREATE TABLE IF NOT EXISTS  ${LocalConstant.TABLE_CHECKIN}'
@@ -231,7 +232,7 @@ class DBHelper {
     // open if found, create if not found for db
     return factory.openDatabase(dbPathStr,
         options: sql.OpenDatabaseOptions(
-            version: 16,
+            version: 17,
             onCreate: (db, version) {
               db.execute(CREATE_TABLE_ALL_EMPLOYEE);
               db.execute(CREATE_TABLE_NOTIFICATION);
@@ -279,6 +280,12 @@ class DBHelper {
                     "ALTER TABLE ${LocalConstant.TABLE_CVF_FRANCHISEE} ADD COLUMN ${DBConstant.franchiseelat} TEXT;");
                 db.execute(
                     "ALTER TABLE ${LocalConstant.TABLE_CVF_FRANCHISEE} ADD COLUMN ${DBConstant.franchiseelong} TEXT;");
+                try {
+                  db.execute(
+                      "ALTER TABLE ${LocalConstant.TABLE_NOTIFICATION} ADD COLUMN is_seen INTEGER DEFAULT 0;");
+                } catch (e) {
+                  debugPrint("Error migrating notification table: $e");
+                }
               }
             }));
   }
@@ -751,5 +758,43 @@ class DBHelper {
       }
     }
     return frichiseeList;
+  }
+
+  Future<int> getUnreadNotificationCount() async {
+    final dbClient = await db;
+    try {
+      final result = await dbClient.rawQuery(
+          'SELECT COUNT(*) FROM ${LocalConstant.TABLE_NOTIFICATION} WHERE is_seen = 0 OR is_seen IS NULL');
+      return sql.Sqflite.firstIntValue(result) ?? 0;
+    } catch (e) {
+      debugPrint('Error getting unread count: $e');
+      try {
+        final all = await dbClient.query(LocalConstant.TABLE_NOTIFICATION);
+        return all.length;
+      } catch (_) {
+        return 0;
+      }
+    }
+  }
+
+  Future<void> markNotificationAsRead(int id) async {
+    final dbClient = await db;
+    try {
+      await dbClient.rawUpdate(
+          'UPDATE ${LocalConstant.TABLE_NOTIFICATION} SET is_seen = 1 WHERE ${DBConstant.ID} = ?',
+          [id]);
+    } catch (e) {
+      debugPrint('Error marking notification as read: $e');
+    }
+  }
+
+  Future<void> markAllNotificationsAsRead() async {
+    final dbClient = await db;
+    try {
+      await dbClient.rawUpdate(
+          'UPDATE ${LocalConstant.TABLE_NOTIFICATION} SET is_seen = 1 WHERE is_seen = 0 OR is_seen IS NULL');
+    } catch (e) {
+      debugPrint('Error marking all notifications as read: $e');
+    }
   }
 }

@@ -45,12 +45,12 @@ class _WidgetTestController extends DashboardScreenV2Controller {
   }
 
   @override
-  void onSearchTap() {
+  Future<void> onSearchTap() async {
     searchTapCount++;
   }
 
   @override
-  void onNotificationsTap() {
+  Future<void> onNotificationsTap() async {
     notificationsTapCount++;
   }
 

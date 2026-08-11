@@ -102,12 +102,13 @@ self.addEventListener('push', function (event) {
   const notificationTitle = payload.data.title;
   console.log('Notification title is - ', notificationTitle);
 
+  const pjpIdVal = payload.data.PjpId || payload.data.pjpId || payload.data.pjpid || '';
   const notificationOptions = { 
     body: payload.data.body, 
     icon: 'https://zeelearn.com/wp-content/uploads/zeelearnlogo_new171.png', 
     data: Object.assign({}, payload.data, {
-      url: (payload.data.type === 'PJP' && payload.data.PjpId) 
-        ? ('/?type=PJP&PjpId=' + payload.data.PjpId) 
+      url: (payload.data.type === 'PJP' && pjpIdVal) 
+        ? ('/?type=PJP&PjpId=' + pjpIdVal) 
         : (payload.data.url || '/')
     })
   };

@@ -7,10 +7,19 @@ import 'package:path/path.dart';
 import '../model/bpms_notification_model.dart';
 
 class BPMSNotification extends StatefulWidget {
-  BPMSNotification({super.key,required this.bpmsList,required this.title,required this.time});
+  BPMSNotification({
+    super.key,
+    required this.bpmsList,
+    required this.title,
+    required this.time,
+    this.isSeen = 1,
+    this.onMarkAsRead,
+  });
   BpmsNotificationModelList bpmsList;
   String title;
   String time;
+  int isSeen;
+  VoidCallback? onMarkAsRead;
 
   @override
   State<BPMSNotification> createState() => _BPMSNotificationState();
@@ -34,6 +43,9 @@ class _BPMSNotificationState extends State<BPMSNotification> {
       shadowColor: LightColors.kRed,
       child: GestureDetector(
         onTap: (){
+          if (widget.onMarkAsRead != null) {
+            widget.onMarkAsRead!();
+          }
           Navigator.push(
             context,
             MaterialPageRoute(
@@ -49,6 +61,9 @@ class _BPMSNotificationState extends State<BPMSNotification> {
             Text('Due Date : ${model.due!}',style: LightColors.subtitleRedTextStyle,)
           ],),
           trailing: TextButton(child: Text('View',style: LightColors.titleRedTextStyle,),onPressed: (){
+            if (widget.onMarkAsRead != null) {
+              widget.onMarkAsRead!();
+            }
             Navigator.push(
               context,
               MaterialPageRoute(
@@ -63,21 +78,69 @@ class _BPMSNotificationState extends State<BPMSNotification> {
 
   @override
   Widget build(BuildContext context) {
+    final bool isUnread = widget.isSeen == 0;
     return Container(
       margin: EdgeInsets.only(left: 15,right: 15,bottom: 10),
       child: Card(
-        color: Colors.white,
-        shadowColor: LightColors.kLightRedMaterial,
-        elevation: 4,
-        child: Padding(padding: EdgeInsets.only(bottom: 15),child: ExpansionTile(
-          collapsedIconColor: Colors.black45,
-          iconColor: Colors.black45,
-
-          initiallyExpanded: true,
-          title: Text(widget.title,style: LightColors.titleTextStyle,),
-          subtitle: Text(widget.time,style:LightColors.smallTextStyle),
-          children: _generateList(context),
-        ),) ,
+        color: isUnread ? const Color(0xFFF4F8FF) : Colors.white,
+        shadowColor: isUnread ? Colors.blue.shade100 : LightColors.kLightRedMaterial,
+        elevation: isUnread ? 5 : 4,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: isUnread
+              ? BorderSide(color: Colors.blue.shade100, width: 1)
+              : BorderSide.none,
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (isUnread)
+                Container(
+                  width: 5,
+                  color: Colors.blue.shade600,
+                ),
+              Expanded(
+                child: Padding(
+                  padding: EdgeInsets.only(bottom: 15),
+                  child: ExpansionTile(
+                    collapsedIconColor: Colors.black45,
+                    iconColor: Colors.black45,
+                    initiallyExpanded: true,
+                    title: Row(
+                      children: [
+                        if (isUnread)
+                          Container(
+                            margin: const EdgeInsets.only(right: 8),
+                            width: 8,
+                            height: 8,
+                            decoration: const BoxDecoration(
+                              color: Colors.blue,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                        Expanded(
+                          child: Text(
+                            widget.title,
+                            style: LightColors.titleTextStyle,
+                          ),
+                        ),
+                      ],
+                    ),
+                    subtitle: Text(widget.time, style: LightColors.smallTextStyle),
+                    onExpansionChanged: (expanded) {
+                      if (widget.onMarkAsRead != null) {
+                        widget.onMarkAsRead!();
+                      }
+                    },
+                    children: _generateList(context),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

@@ -601,8 +601,8 @@ class DashboardScreenV2Controller extends GetxController
 
   Future<void> loadNotificationCount() async {
     try {
-      final list = await DBHelper().getData(LocalConstant.TABLE_NOTIFICATION);
-      notificationCount.value = list.length;
+      final count = await DBHelper().getUnreadNotificationCount();
+      notificationCount.value = count;
     } catch (error) {
       debugPrint('Dashboard V2 notification count failed: $error');
     }
