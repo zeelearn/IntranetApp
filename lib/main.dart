@@ -833,9 +833,11 @@ class _MyAppState extends State<MyApp> {
   /// Requires `flutter_deeplinking_enabled=false` in AndroidManifest so Flutter's
   /// built-in handler does not swallow the intent.
   Future<void> _initDeepLinks() async {
-    if (kIsWeb) return;
+    debugPrint('_initDeepLinks init');
+    //if (!kIsWeb) return;
 
     final appLinks = AppLinks();
+    debugPrint('_initDeepLinks appLinks: $appLinks');
 
     try {
       final initial = await appLinks.getInitialLink();
@@ -895,6 +897,7 @@ class _MyAppState extends State<MyApp> {
     final isAppHost = host == 'intranetapp.zeelearn.com' ||
         host == 'staging.pentemind.com' ||
         host == 'zllsaathi.zeelearn.com' ||
+        host.contains('localhost') ||
         uri.scheme == 'zeelearn';
 
     if (!isAppHost) {
@@ -904,6 +907,7 @@ class _MyAppState extends State<MyApp> {
 
     // Magic login links carry ?t=… — handled by MagicLinkHandler.
     final token = uri.queryParameters['t'];
+    debugPrint('AppLinks token: $token');
     if (token != null && token.isNotEmpty) {
       await MagicLinkHandler.handle(uri, context);
       return;

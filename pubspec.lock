@@ -237,10 +237,10 @@ packages:
     dependency: transitive
     description:
       name: camera_android_camerax
-      sha256: "30f34108480912ac444c7d3c942005abb8f42baf730bf6f81cedfbfa035b2c21"
+      sha256: "294b02ae027ad9edc98414a25f5e958d2dc6c65e9f102f21e2b36f0f558751eb"
       url: "https://pub.dev"
     source: hosted
-    version: "0.7.4+3"
+    version: "0.7.4+4"
   camera_avfoundation:
     dependency: transitive
     description:
@@ -261,10 +261,10 @@ packages:
     dependency: transitive
     description:
       name: camera_web
-      sha256: "1245a480a113437f8d46d19c0fb90cea9db921436d9cf2ba5fb11854a1312693"
+      sha256: "081441bd2f92b5841aa70ff4d6eddfe34078d97f9d085cc9e0f9d0102f145925"
       url: "https://pub.dev"
     source: hosted
-    version: "0.3.5+4"
+    version: "0.3.5+5"
   carousel_slider:
     dependency: transitive
     description:
@@ -629,9 +629,11 @@ packages:
   expensestracker:
     dependency: "direct main"
     description:
-      path: "../excepsesmanagement"
-      relative: true
-    source: path
+      path: "."
+      ref: uat
+      resolved-ref: c3e925079a7c61fe1e8838c1c228046eb6015911
+      url: "https://github.com/ZeeLearnLtd/excepsesmanagement.git"
+    source: git
     version: "1.0.2+11"
   fake_async:
     dependency: transitive
@@ -2322,10 +2324,10 @@ packages:
     dependency: transitive
     description:
       name: permission_handler_apple
-      sha256: "11b7e94a9d2fbee23c27f0cae0105c6266c03fd83b9a2eda6cf09141fc82624b"
+      sha256: "9239ec1147f2b798fb162e6c5c8f05fddd52c74fcead997a12bd619ace11582c"
       url: "https://pub.dev"
     source: hosted
-    version: "9.5.0"
+    version: "9.6.0"
   permission_handler_html:
     dependency: transitive
     description:
@@ -2585,12 +2587,10 @@ packages:
   saathi:
     dependency: "direct main"
     description:
-      path: "."
-      ref: uat
-      resolved-ref: ddec6f19630dfec216b2c20ef366dca0d9cdceaf
-      url: "https://github.com/ZeeLearnLtd/ZeeSathi.git"
-    source: git
-    version: "1.0.12+14"
+      path: "../../ZeeSathi"
+      relative: true
+    source: path
+    version: "1.0.0+2"
   sanitize_html:
     dependency: transitive
     description:
@@ -2920,10 +2920,10 @@ packages:
     dependency: "direct main"
     description:
       name: table_calendar
-      sha256: "0c0c6219878b363a2d5f40c7afb159d845f253d061dc3c822aa0d5fe0f721982"
+      sha256: f276347cad425ef837a41e8d9ad43f3ee7d59227aa4c36d7430607a5a18fa3b3
       url: "https://pub.dev"
     source: hosted
-    version: "3.2.0"
+    version: "3.2.1"
   term_glyph:
     dependency: transitive
     description:

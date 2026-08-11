@@ -698,8 +698,8 @@ class DashboardScreenV2Controller extends GetxController
     if (!validateBusiness('zll_saathi')) return;
     final box = await Utility.openBox();
     await Hive.openBox(LocalConstant.KidzeeDB);
-    final username =
-        box.get(LocalConstant.KEY_USER_NAME)?.toString() ?? userName.value;
+    final username =box.get(LocalConstant.KEY_USER_NAME)?.toString() ?? userName.value; 
+    debugPrint('opening the ZllSaathi with username: $username');
     ZllSaathi(Get.context!, username, profileAvatarBytes.value);
   }
 

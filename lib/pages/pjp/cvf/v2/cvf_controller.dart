@@ -19,6 +19,7 @@ import 'package:Intranet/pages/pjp/cvf/add_cvf.dart';
 import 'package:Intranet/pages/iface/onClick.dart';
 import 'package:Intranet/pages/iface/onResponse.dart';
 import 'package:Intranet/pages/pjp/cvf/cvf_questions.dart';
+import 'package:Intranet/pages/pjp/cvf/share_report/share_report.dart';
 import 'package:Intranet/pages/pjp/cvf/v2/cvf_location_map.dart';
 import 'package:Intranet/pages/widget/MyWebSiteView.dart';
 import 'package:Intranet/pages/widget/report.dart';
@@ -300,6 +301,51 @@ class CVFController extends GetxController {
     return cvf.Status == 'FILL CVF' ||
         cvf.Status == 'Check In' ||
         cvf.Status == 'NA';
+  }
+
+  Future<void> generateReportEmailBody(
+    BuildContext context,
+    GetDetailedPJP cvf,
+  ) async {
+    if (!isCompleted(cvf)) {
+      Utility.showMessage(
+        context,
+        'Share Report is available only after check-out.',
+      );
+      return;
+    }
+
+    var facilitator = '';
+    var facilitatorEmail = '';
+    try {
+      final first = (hiveBox.get(LocalConstant.KEY_FIRST_NAME) ?? '').toString();
+      final last = (hiveBox.get(LocalConstant.KEY_LAST_NAME) ?? '').toString();
+      facilitator = '$first $last'.trim();
+      if (facilitator.isEmpty) {
+        facilitator =
+            (hiveBox.get(LocalConstant.KEY_USER_NAME) ?? '').toString();
+      }
+      facilitatorEmail =
+          (hiveBox.get(LocalConstant.KEY_EMAIL) ?? '').toString().trim();
+    } catch (_) {}
+
+    // To/CC are static in the share UI (masked). Prefer franchisee/BP email
+    // when available on the visit payload; otherwise leave empty for backend.
+    final bpEmail = ''; // populate when franchisee email is available on CVF
+    final cc = <String>[
+      if (facilitatorEmail.isNotEmpty) facilitatorEmail,
+    ];
+
+    await ShareReportPage.open(
+      ShareReportArgs(
+        cvf: cvf,
+        pjp: pjpInfo ??
+            (currentPJP.isNotEmpty ? currentPJP.first : null),
+        facilitatorName: facilitator,
+        bpEmail: 'sudhir.patil@zeelearn.com',
+        ccEmails: ['hemant.jathar@zeelearn.com'], //cc,
+      ),
+    );
   }
 
   openWebsiteReport(BuildContext context, GetDetailedPJP cvf) {
