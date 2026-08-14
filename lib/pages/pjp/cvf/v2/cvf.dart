@@ -687,17 +687,22 @@ class WebCardActions extends StatelessWidget {
                     color: kPrimaryLightColor, fontWeight: FontWeight.w600),
               ),
             ),
-          // if (isCompleted)
-          //   TextButton.icon(
-          //     onPressed: () => controller.generateReportEmailBody(context, cvf),
-          //     icon: const Icon(Icons.share_outlined,
-          //         size: 18, color: kPrimaryLightColor),
-          //     label: const Text(
-          //       'Share Report',
-          //       style: TextStyle(
-          //           color: kPrimaryLightColor, fontWeight: FontWeight.w600),
-          //     ),
-          //   ),
+          if (isCompleted)
+            TextButton.icon(
+              onPressed: () => controller.generateReportEmailBody(context, cvf),
+              icon: Icon(
+                cvf.isEmailSubmitted
+                    ? Icons.mark_email_read_outlined
+                    : Icons.share_outlined,
+                size: 18,
+                color: kPrimaryLightColor,
+              ),
+              label: Text(
+                cvf.isEmailSubmitted ? 'View Share Report' : 'Share Report',
+                style: const TextStyle(
+                    color: kPrimaryLightColor, fontWeight: FontWeight.w600),
+              ),
+            ),
         ],
       ),
     );

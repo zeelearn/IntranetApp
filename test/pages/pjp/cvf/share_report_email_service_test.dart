@@ -49,7 +49,11 @@ void main() {
     expect(withData, contains('Good classroom environment'));
     expect(withData, contains('Infrastructure'));
     expect(withData, contains('Sudhir &lt;Patil&gt;'));
+    expect(withData, contains('Dear <strong>Sudhir &lt;Patil&gt;</strong>,'));
     expect(withData, contains('<strong>Namaste!</strong>'));
+    expect(withData, contains('Warm regards,'));
+    expect(withData, contains('<strong>Zee Learn Ltd</strong>'));
+    expect(withData, isNot(contains('Anurag Dixit')));
 
     final empty = service.generateEmailBody(
       bpName: 'Sudhir Patil',

@@ -1,5 +1,7 @@
 import 'package:Intranet/pages/helper/LocalConstant.dart';
+import 'package:Intranet/pages/helper/LocalStrings.dart';
 import 'package:Intranet/pages/pjp/cvf/share_report/models/share_report_args.dart';
+import 'package:Intranet/pages/pjp/cvf/share_report/models/share_report_email_data.dart';
 import 'package:Intranet/pages/pjp/cvf/share_report/models/teacher_observation_item.dart';
 import 'package:Intranet/pages/pjp/cvf/share_report/models/training_support_item.dart';
 import 'package:Intranet/pages/pjp/cvf/share_report/models/urgent_attention_item.dart';
@@ -34,17 +36,26 @@ class ShareReportController extends GetxController {
   final sectionError = ''.obs;
   final pdfAvailable = false.obs;
   final subject = ''.obs;
+  final attachmentUrl = ''.obs;
+
+  /// True when CVF already has a submitted share-report email.
+  final isAlreadySubmitted = false.obs;
+
+  /// Read-only UI when email was previously submitted.
+  final isReadOnly = false.obs;
 
   /// Forces preview rebuild when lists / text change.
   final previewTick = 0.obs;
 
   /// Static To / CC — not user-editable.
-  late final String toEmail;
-  late final List<String> ccEmails;
+  final toEmails = <String>[].obs;
+  final ccEmails = <String>[].obs;
 
   /// Logged-in user — shown in AppBar (dashboard style).
   final userDisplayName = ''.obs;
   final userDesignation = ''.obs;
+
+  int _empId = 0;
 
   String get centreName => args.centreName;
   String get bpName => args.bpName;
@@ -55,6 +66,12 @@ class ShareReportController extends GetxController {
   String get pjpId => args.pjpId;
   String get cvfId => args.cvfId;
   String get pdfFileName => args.pdfFileName;
+
+  /// Primary To address for UI chip (first recipient).
+  String get toEmail => toEmails.isEmpty ? 'xxx.@xxx.com' : toEmails.first;
+
+  bool get canSend =>
+      !isReadOnly.value && !isAlreadySubmitted.value && !isSending.value;
 
   @override
   void onInit() {
@@ -67,40 +84,56 @@ class ShareReportController extends GetxController {
   void _loadUserProfile() {
     try {
       final box = Hive.box(LocalConstant.KidzeeDB);
-      final first = (box.get(LocalConstant.KEY_FIRST_NAME) ?? '').toString().trim();
-      final last = (box.get(LocalConstant.KEY_LAST_NAME) ?? '').toString().trim();
+      final first =
+          (box.get(LocalConstant.KEY_FIRST_NAME) ?? '').toString().trim();
+      final last =
+          (box.get(LocalConstant.KEY_LAST_NAME) ?? '').toString().trim();
       var fullName = '$first $last'.trim();
       if (fullName.isEmpty) {
-        fullName = (box.get(LocalConstant.KEY_USER_NAME) ?? '').toString().trim();
+        fullName =
+            (box.get(LocalConstant.KEY_USER_NAME) ?? '').toString().trim();
       }
       userDisplayName.value = fullName;
       userDesignation.value =
           (box.get(LocalConstant.KEY_DESIGNATION) ?? '').toString().trim();
+      _empId = int.tryParse(
+            (box.get(LocalConstant.KEY_EMPLOYEE_ID) ?? '').toString().trim(),
+          ) ??
+          0;
     } catch (_) {
-      // Fall back to facilitator name from args when Hive is unavailable.
       if (args.facilitatorName.trim().isNotEmpty) {
         userDisplayName.value = args.facilitatorName.trim();
       }
     }
   }
 
-  void _bootstrap() {
+  Future<void> _bootstrap() async {
     isLoading.value = true;
+    sectionError.value = '';
     try {
       _loadUserProfile();
 
-      toEmail = args.bpEmail.trim().toLowerCase();
-      ccEmails = args.ccEmails
-          .map((e) => e.trim().toLowerCase())
-          .where((e) => e.isNotEmpty)
-          .toList(growable: false);
+      isAlreadySubmitted.value = args.cvf.isEmailSubmitted;
+      isReadOnly.value = args.cvf.isEmailSubmitted;
+
+      toEmails.assignAll(
+        args.bpEmail.trim().isEmpty
+            ? <String>[]
+            : [args.bpEmail.trim().toLowerCase()],
+      );
+      ccEmails.assignAll(
+        args.ccEmails
+            .map((e) => e.trim().toLowerCase())
+            .where((e) => e.isNotEmpty)
+            .toList(),
+      );
 
       subject.value = _emailService.defaultSubject(
         centreName: centreName,
         visitDateRaw: args.visitDateRaw,
       );
+      attachmentUrl.value = _defaultAttachmentUrl();
 
-      // Start with one empty row per section for faster entry.
       workingWell.assignAll([WorkingWellItem()]);
       urgentAttention.assignAll([UrgentAttentionItem()]);
       teacherObservation.assignAll([TeacherObservationItem()]);
@@ -108,24 +141,110 @@ class ShareReportController extends GetxController {
 
       pdfAvailable.value =
           args.isCheckedOut && cvfId.isNotEmpty && pjpId.isNotEmpty;
+
+      if (args.cvf.isEmailSubmitted) {
+        await _loadSubmittedReport();
+      }
+
       _bumpPreview();
     } finally {
       isLoading.value = false;
     }
   }
 
+  String _defaultAttachmentUrl() {
+    if (cvfId.isEmpty) return '';
+    return '${LocalStrings.CVF_REPORT_URL}$cvfId';
+  }
+
+  Future<void> _loadSubmittedReport() async {
+    if (_empId <= 0) {
+      sectionError.value =
+          'Unable to load submitted report: employee ID is missing.';
+      Get.snackbar(
+        'Error',
+        sectionError.value,
+        snackPosition: SnackPosition.BOTTOM,
+      );
+      return;
+    }
+    if (pjpId.isEmpty || cvfId.isEmpty) {
+      sectionError.value =
+          'Unable to load submitted report: PJP/CVF ID is missing.';
+      return;
+    }
+
+    final result = await _repository.getCvfReportApi(
+      empId: _empId,
+      pjpId: pjpId,
+      cvfId: cvfId,
+    );
+
+    if (!result.success || result.data == null) {
+      sectionError.value = result.message;
+      Get.snackbar(
+        'Unable to load report',
+        result.message,
+        snackPosition: SnackPosition.BOTTOM,
+        duration: const Duration(seconds: 4),
+      );
+      return;
+    }
+
+    _applyLoadedData(result.data!);
+  }
+
+  void _applyLoadedData(ShareReportEmailData data) {
+    if (data.to.isNotEmpty) {
+      toEmails.assignAll(data.to.map((e) => e.trim()).where((e) => e.isNotEmpty));
+    }
+    ccEmails.assignAll(data.cc.map((e) => e.trim()).where((e) => e.isNotEmpty));
+
+    if (data.subject.trim().isNotEmpty) {
+      subject.value = data.subject.trim();
+    }
+    if (data.attachmentUrl.trim().isNotEmpty) {
+      attachmentUrl.value = data.attachmentUrl.trim();
+      pdfAvailable.value = true;
+    }
+
+    workingWell.assignAll(
+      data.workingWell.isEmpty ? [WorkingWellItem()] : data.workingWell,
+    );
+    urgentAttention.assignAll(
+      data.urgentAttention.isEmpty
+          ? [UrgentAttentionItem()]
+          : data.urgentAttention,
+    );
+    teacherObservation.assignAll(
+      data.teacherObservation.isEmpty
+          ? [TeacherObservationItem()]
+          : data.teacherObservation,
+    );
+    trainingSupport.assignAll(
+      data.trainingSupport.isEmpty
+          ? [TrainingSupportItem()]
+          : data.trainingSupport,
+    );
+
+    isAlreadySubmitted.value = true;
+    isReadOnly.value = true;
+    sectionError.value = '';
+    _bumpPreview();
+  }
+
   // --- Dynamic rows ---
 
   void addWorkingWell() {
+    if (isReadOnly.value) return;
     workingWell.add(WorkingWellItem());
     _bumpPreview();
   }
 
   Future<void> removeWorkingWell(int index) async {
-    if (!_canRemove(workingWell, index)) return;
+    if (isReadOnly.value || !_canRemove(workingWell, index)) return;
     final item = workingWell[index];
-    if (item.observation.trim().isNotEmpty &&
-        !await _confirmDelete()) {
+    if (item.observation.trim().isNotEmpty && !await _confirmDelete()) {
       return;
     }
     workingWell.removeAt(index);
@@ -133,12 +252,13 @@ class ShareReportController extends GetxController {
   }
 
   void addUrgentAttention() {
+    if (isReadOnly.value) return;
     urgentAttention.add(UrgentAttentionItem());
     _bumpPreview();
   }
 
   Future<void> removeUrgentAttention(int index) async {
-    if (!_canRemove(urgentAttention, index)) return;
+    if (isReadOnly.value || !_canRemove(urgentAttention, index)) return;
     final item = urgentAttention[index];
     if ((item.areaOfConcern.trim().isNotEmpty ||
             item.timeline.trim().isNotEmpty) &&
@@ -150,12 +270,13 @@ class ShareReportController extends GetxController {
   }
 
   void addTeacherObservation() {
+    if (isReadOnly.value) return;
     teacherObservation.add(TeacherObservationItem());
     _bumpPreview();
   }
 
   Future<void> removeTeacherObservation(int index) async {
-    if (!_canRemove(teacherObservation, index)) return;
+    if (isReadOnly.value || !_canRemove(teacherObservation, index)) return;
     final item = teacherObservation[index];
     if ((item.teacherName.trim().isNotEmpty ||
             item.className.trim().isNotEmpty ||
@@ -168,12 +289,13 @@ class ShareReportController extends GetxController {
   }
 
   void addTrainingSupport() {
+    if (isReadOnly.value) return;
     trainingSupport.add(TrainingSupportItem());
     _bumpPreview();
   }
 
   Future<void> removeTrainingSupport(int index) async {
-    if (!_canRemove(trainingSupport, index)) return;
+    if (isReadOnly.value || !_canRemove(trainingSupport, index)) return;
     final item = trainingSupport[index];
     if (item.details.trim().isNotEmpty && !await _confirmDelete()) {
       return;
@@ -207,6 +329,10 @@ class ShareReportController extends GetxController {
 
   Future<void> confirmDiscard() async {
     if (isSending.value) return;
+    if (isReadOnly.value) {
+      Get.back(result: false);
+      return;
+    }
     final result = await Get.dialog<bool>(
       AlertDialog(
         title: const Text('Discard draft?'),
@@ -232,7 +358,10 @@ class ShareReportController extends GetxController {
     }
   }
 
-  void onRowEdited() => _bumpPreview();
+  void onRowEdited() {
+    if (isReadOnly.value) return;
+    _bumpPreview();
+  }
 
   // --- Email ---
 
@@ -249,29 +378,65 @@ class ShareReportController extends GetxController {
     );
   }
 
+  ShareReportEmailData buildSendPayload() {
+    
+    return ShareReportEmailData(
+      pjpId: pjpId,
+      cvfId: cvfId,
+      to: toEmails.toList(),
+      cc: ccEmails.toList(),
+      subject: subject.value.trim(),
+      body: generateEmailBody(),
+      isHtml: true,
+      contentType: 'text/html',
+      attachmentUrl: attachmentUrl.value.trim().isEmpty
+          ? _defaultAttachmentUrl()
+          : attachmentUrl.value.trim(),
+      workingWell: _emailService.filledWorkingWell(workingWell.toList()),
+      urgentAttention: _emailService.filledUrgent(urgentAttention.toList()),
+      teacherObservation:
+          _emailService.filledTeachers(teacherObservation.toList()),
+      trainingSupport: _emailService.filledTraining(trainingSupport.toList()),
+    );
+  }
+
   // --- Validation ---
 
   bool _isValidEmail(String email) {
+    final value = email.trim();
+    if (value.isEmpty) return false;
+    // Masked emails from list APIs (e.g. ki*********@******.com).
+    if (value.contains('*') && value.contains('@')) {
+      return RegExp(r'^[^@\s]+@[^@\s]+$').hasMatch(value);
+    }
     final regex = RegExp(
       r'^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@'
       r'[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}'
       r'[a-zA-Z0-9])?(?:\.[a-zA-Z0-9]'
       r'(?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$',
     );
-    return regex.hasMatch(email);
+    return regex.hasMatch(value);
   }
 
   String? validateAllSections() {
+    if (isAlreadySubmitted.value || isReadOnly.value) {
+      return 'This Centre Visit Report has already been shared.';
+    }
     if (pjpId.isEmpty) return 'PJP ID is missing.';
     if (cvfId.isEmpty) return 'CVF ID is missing.';
     if (!args.isCheckedOut) {
       return 'Share Report is available only after check-out.';
     }
-    if (!pdfAvailable.value) {
+    if (!pdfAvailable.value && attachmentUrl.value.trim().isEmpty) {
       return 'CVF report attachment is not available. Please try again.';
     }
-    if (toEmail.isEmpty || !_isValidEmail(toEmail)) {
-      return 'Recipient (To) email is not available for this centre.';
+    // if (toEmails.isEmpty) {
+    //   return 'Recipient (To) email is not available for this centre.';
+    // }
+    for (final to in toEmails) {
+      if (!_isValidEmail(to)) {
+        return 'Invalid recipient (To) email: $to';
+      }
     }
     for (final cc in ccEmails) {
       if (!_isValidEmail(cc)) {
@@ -365,9 +530,44 @@ class ShareReportController extends GetxController {
     return null;
   }
 
+  Future<bool> _confirmSendOnce() async {
+    final result = await Get.dialog<bool>(
+      AlertDialog(
+        title: const Text('Send report?'),
+        content: const Text(
+          'Once this Centre Visit Report is sent, it cannot be edited or '
+          'sent again. You will only be able to view the email preview.\n\n'
+          'Do you want to continue?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(result: false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Get.back(result: true),
+            child: const Text('Send Report'),
+          ),
+        ],
+      ),
+      barrierDismissible: false,
+    );
+    return result == true;
+  }
+
   Future<void> sendReport() async {
     FocusManager.instance.primaryFocus?.unfocus();
     if (isSending.value) return;
+
+    if (isAlreadySubmitted.value || isReadOnly.value) {
+      Get.snackbar(
+        'Already Sent',
+        'This report has already been shared. You can only view the preview.',
+        snackPosition: SnackPosition.BOTTOM,
+        duration: const Duration(seconds: 4),
+      );
+      return;
+    }
 
     final sectionMsg = validateAllSections();
     if (sectionMsg != null) {
@@ -382,19 +582,14 @@ class ShareReportController extends GetxController {
     }
     sectionError.value = '';
 
+    final confirmed = await _confirmSendOnce();
+    if (!confirmed) return;
+
     isSending.value = true;
     try {
-      final response = await _repository.shareReport(
-        pjpId: pjpId,
-        cvfId: cvfId,
-        to: toEmail,
-        cc: ccEmails,
-        subject: subject.value.trim(),
-        body: generateEmailBody(),
-        workingWell: workingWell.toList(),
-        urgentAttention: urgentAttention.toList(),
-        teacherObservation: teacherObservation.toList(),
-        trainingSupport: trainingSupport.toList(),
+      debugPrint(generateEmailBody());
+      final response = await _repository.sendReportApi(
+        data: buildSendPayload(),
       );
 
       if (!response.success) {
@@ -406,21 +601,32 @@ class ShareReportController extends GetxController {
         return;
       }
 
+      // One-time send: lock form permanently for this visit.
+      isAlreadySubmitted.value = true;
+      isReadOnly.value = true;
+      args.cvf.isEmailSubmitted = true;
+
       await Get.dialog(
         AlertDialog(
           title: const Text('Report Sent Successfully'),
-          content: const Text(
-            'The Centre Visit Report has been sent successfully.',
+          content: Text(
+            (response.message.isEmpty
+                    ? 'The Centre Visit Report has been sent successfully.'
+                    : response.message) +
+                '\n\nThis report can no longer be edited or sent again. '
+                    'You can continue viewing the email preview.',
           ),
           actions: [
             FilledButton(
               onPressed: () => Get.back(),
-              child: const Text('OK'),
+              child: const Text('View Preview'),
             ),
           ],
         ),
+        barrierDismissible: false,
       );
-      Get.back(result: true);
+      // Stay on page in read-only preview mode (no regenerate / resend).
+      _bumpPreview();
     } finally {
       isSending.value = false;
     }

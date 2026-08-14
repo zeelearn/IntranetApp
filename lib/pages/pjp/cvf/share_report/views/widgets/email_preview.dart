@@ -24,6 +24,7 @@ class EmailComposePanel extends StatelessWidget {
       assert(previewVersion >= 0);
       final sending = c.isSending.value;
       final pdfOk = c.pdfAvailable.value;
+      final canSend = c.canSend;
 
       final ww = emailSvc.filledWorkingWell(c.workingWell.toList());
       final ua = emailSvc.filledUrgent(c.urgentAttention.toList());
@@ -53,16 +54,32 @@ class EmailComposePanel extends StatelessWidget {
               _ComposeToolbar(
                 sending: sending,
                 showSend: showSendInPanel,
+                canSend: canSend,
                 onSend: c.sendReport,
                 onDiscard: c.confirmDiscard,
               ),
               const Divider(height: 1, color: ShareReportTheme.border),
               _MetaRow(
                 label: 'To',
-                child: _EmailChip(
-                  text: ShareReportTheme.maskEmail(c.toEmail),
-                  icon: Icons.lock_outline_rounded,
-                ),
+                child: c.toEmails.isEmpty
+                    ? Text(
+                        '—',
+                        style: ShareReportTheme.emailMeta.copyWith(
+                          color: ShareReportTheme.textSecondary,
+                        ),
+                      )
+                    : Wrap(
+                        spacing: 6,
+                        runSpacing: 6,
+                        children: c.toEmails
+                            .map(
+                              (e) => _EmailChip(
+                                text: ShareReportTheme.maskEmail(e),
+                                icon: Icons.lock_outline_rounded,
+                              ),
+                            )
+                            .toList(),
+                      ),
               ),
               const Divider(height: 1, color: ShareReportTheme.border),
               _MetaRow(
@@ -248,14 +265,9 @@ class EmailComposePanel extends StatelessWidget {
                         style: ShareReportTheme.emailBody,
                       ),
                       const SizedBox(height: 16),
-                      Text('Warm Regards,', style: ShareReportTheme.emailBody),
+                      Text('Warm regards,', style: ShareReportTheme.emailBody),
                       const SizedBox(height: 4),
-                      Text(
-                        c.facilitatorName.isEmpty
-                            ? 'Facilitator'
-                            : c.facilitatorName,
-                        style: _boldBody,
-                      ),
+                      Text('Zee Learn Ltd', style: _boldBody),
                     ],
                   ),
                 ),
@@ -267,7 +279,7 @@ class EmailComposePanel extends StatelessWidget {
                   child: Row(
                     children: [
                       FilledButton.icon(
-                        onPressed: sending ? null : c.sendReport,
+                        onPressed: canSend ? c.sendReport : null,
                         style: FilledButton.styleFrom(
                           backgroundColor: ShareReportTheme.primary,
                           foregroundColor: Colors.white,
@@ -290,7 +302,11 @@ class EmailComposePanel extends StatelessWidget {
                               )
                             : const Icon(Icons.send_rounded, size: 18),
                         label: Text(
-                          sending ? 'Sending…' : 'Send',
+                          sending
+                              ? 'Sending…'
+                              : c.isAlreadySubmitted.value
+                                  ? 'Already Sent'
+                                  : 'Send',
                           style: GoogleFonts.poppins(
                             fontWeight: FontWeight.w600,
                             fontSize: 14,
@@ -301,7 +317,7 @@ class EmailComposePanel extends StatelessWidget {
                       TextButton(
                         onPressed: sending ? null : c.confirmDiscard,
                         child: Text(
-                          'Discard',
+                          c.isReadOnly.value ? 'Close' : 'Discard',
                           style: GoogleFonts.poppins(
                             color: ShareReportTheme.textSecondary,
                             fontWeight: FontWeight.w500,
@@ -470,12 +486,14 @@ class _ComposeToolbar extends StatelessWidget {
   const _ComposeToolbar({
     required this.sending,
     required this.showSend,
+    required this.canSend,
     required this.onSend,
     required this.onDiscard,
   });
 
   final bool sending;
   final bool showSend;
+  final bool canSend;
   final VoidCallback onSend;
   final VoidCallback onDiscard;
 
@@ -504,13 +522,13 @@ class _ComposeToolbar extends StatelessWidget {
           ),
           if (showSend)
             IconButton(
-              tooltip: 'Send',
-              onPressed: sending ? null : onSend,
+              tooltip: canSend ? 'Send' : 'Already sent',
+              onPressed: canSend ? onSend : null,
               icon: Icon(
                 Icons.send_rounded,
-                color: sending
-                    ? ShareReportTheme.textSecondary
-                    : ShareReportTheme.primary,
+                color: canSend
+                    ? ShareReportTheme.primary
+                    : ShareReportTheme.textSecondary,
               ),
             ),
           IconButton(

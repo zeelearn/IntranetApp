@@ -119,4 +119,6 @@ class LocalStrings {
 
   static const String CVF_REPORT_URL = 'https://intranet.zeelearn.com/cvfreport.html?cid=';
   static const String SHARE_CVF_REPORT = '/api/cvf/share-report';
+  static const String GET_PJP_CVF_EMAIL = '/api/PJP/GetPJPCVFEmail';
+  static const String SEND_PJP_CVF_EMAIL = '/api/PJP/SendPJPCVFEmail';
 }

@@ -61,11 +61,13 @@ class ShareReportEmailService {
   }
 
   /// HTML email body used for API send and preview serialization.
+  ///
+  /// Greeting uses [bpName] (BusinessPartnerName). Sign-off is always Zee Learn Ltd.
   String generateEmailBody({
     required String bpName,
     required String centreName,
     required String visitDateRaw,
-    required String facilitatorName,
+    @Deprecated('Sign-off is fixed to Zee Learn Ltd') String facilitatorName = '',
     required List<WorkingWellItem> workingWell,
     required List<UrgentAttentionItem> urgentAttention,
     required List<TeacherObservationItem> teacherObservation,
@@ -75,10 +77,8 @@ class ShareReportEmailService {
     final partner = escapeHtml(
       bpName.trim().isEmpty ? 'Business Partner' : bpName.trim(),
     );
-    final facilitator = escapeHtml(
-      facilitatorName.trim().isEmpty ? 'Facilitator' : facilitatorName.trim(),
-    );
-    final centre = escapeHtml(centreName.trim().isEmpty ? 'Centre' : centreName.trim());
+    final centre =
+        escapeHtml(centreName.trim().isEmpty ? 'Centre' : centreName.trim());
     final visit = escapeHtml(visitDate);
 
     final ww = filledWorkingWell(workingWell);
@@ -183,8 +183,8 @@ class ShareReportEmailService {
                 We sincerely appreciate your continued support, collaboration, and commitment.
               </p>
               <p style="margin:0;font-size:14px;line-height:1.55;">
-                Warm Regards,<br>
-                <strong>$facilitator</strong>
+                Warm regards,<br>
+                <strong>Zee Learn Ltd</strong>
               </p>
             </td>
           </tr>

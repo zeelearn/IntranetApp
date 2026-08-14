@@ -329,9 +329,10 @@ class CVFController extends GetxController {
           (hiveBox.get(LocalConstant.KEY_EMAIL) ?? '').toString().trim();
     } catch (_) {}
 
-    // To/CC are static in the share UI (masked). Prefer franchisee/BP email
-    // when available on the visit payload; otherwise leave empty for backend.
-    final bpEmail = ''; // populate when franchisee email is available on CVF
+    // To/CC are static in the share UI (masked). Prefer BP email from CVF payload.
+    final bpEmail = cvf.hasBusinessPartnerEmail
+        ? cvf.businessPartnerEmail.trim()
+        : '';
     final cc = <String>[
       if (facilitatorEmail.isNotEmpty) facilitatorEmail,
     ];
@@ -342,8 +343,8 @@ class CVFController extends GetxController {
         pjp: pjpInfo ??
             (currentPJP.isNotEmpty ? currentPJP.first : null),
         facilitatorName: facilitator,
-        bpEmail: 'sudhir.patil@zeelearn.com',
-        ccEmails: ['hemant.jathar@zeelearn.com'], //cc,
+        bpEmail: bpEmail,
+        ccEmails: cc,
       ),
     );
   }

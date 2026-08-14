@@ -313,6 +313,15 @@ class GetDetailedPJP implements Comparable<GetDetailedPJP> {
   late bool isCompleted = false;
   late bool IsCancelled = false;
 
+  /// API: `"isEmailSubmitted": "0"|"1"` — true when share-report email already sent.
+  late bool isEmailSubmitted = false;
+
+  /// Business partner display name from API (`BusinessPartnerName`).
+  late String businessPartnerName = '';
+
+  /// Business partner email from API (`BusinessPartnerEmail`). May be masked.
+  late String businessPartnerEmail = '';
+
   late String approvalStatus = 'Pending';
 
   GetDetailedPJP(
@@ -350,6 +359,9 @@ class GetDetailedPJP implements Comparable<GetDetailedPJP> {
       required this.isCompleted,
       required this.IsCancelled,
       required this.approvalStatus,
+      this.isEmailSubmitted = false,
+      this.businessPartnerName = '',
+      this.businessPartnerEmail = '',
       this.cvfHistory});
 
   bool get hasPjpRange =>
@@ -358,6 +370,13 @@ class GetDetailedPJP implements Comparable<GetDetailedPJP> {
       pjpFromDate != 'NA' &&
       pjpToDate != 'NA';
 
+  /// True when BP email is present and usable for share-report To.
+  bool get hasBusinessPartnerEmail {
+    final e = businessPartnerEmail.trim();
+    if (e.isEmpty || e.toLowerCase() == 'null' || e == 'NA') return false;
+    return e.contains('@');
+  }
+
   @override
   int compareTo(GetDetailedPJP other) {
     if (int.parse(PJPCVF_Id) < int.parse(other.PJPCVF_Id)) {
@@ -365,6 +384,20 @@ class GetDetailedPJP implements Comparable<GetDetailedPJP> {
     } else {
       return 0;
     }
+  }
+
+  static String _asTrimmedString(dynamic value, {String fallback = ''}) {
+    if (value == null) return fallback;
+    final text = value.toString().trim();
+    if (text.isEmpty || text.toLowerCase() == 'null') return fallback;
+    return text;
+  }
+
+  static bool _asBoolFlag(dynamic value) {
+    if (value == null) return false;
+    if (value is bool) return value;
+    final text = value.toString().trim().toLowerCase();
+    return text == '1' || text == 'true' || text == 'yes';
   }
 
   GetDetailedPJP.fromJson(Map<String, dynamic> json) {
@@ -418,6 +451,16 @@ class GetDetailedPJP implements Comparable<GetDetailedPJP> {
               'Pending')
           .toString();
       remarks = (json['Remarks'] ?? json['remarks'] ?? '').toString();
+
+      isEmailSubmitted = _asBoolFlag(
+        json['isEmailSubmitted'] ?? json['IsEmailSubmitted'],
+      );
+      businessPartnerName = _asTrimmedString(
+        json['BusinessPartnerName'] ?? json['businessPartnerName'],
+      );
+      businessPartnerEmail = _asTrimmedString(
+        json['BusinessPartnerEmail'] ?? json['businessPartnerEmail'],
+      );
 
       purpose = <Purpose>[];
       final purposeData = json['Purpose'] ?? json['purpose'];
@@ -489,7 +532,10 @@ class GetDetailedPJP implements Comparable<GetDetailedPJP> {
     data['Remarks'] = remarks;
     data['approvalStatus'] = approvalStatus;
     data['IsCancelled'] = IsCancelled ? '1' : '0';
-    
+    data['isEmailSubmitted'] = isEmailSubmitted ? '1' : '0';
+    data['BusinessPartnerName'] = businessPartnerName;
+    data['BusinessPartnerEmail'] = businessPartnerEmail;
+
     if (purpose != null) {
       data['Purpose'] = purpose!.map((v) => v.toJson()).toList();
     } else {
