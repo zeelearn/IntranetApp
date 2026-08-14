@@ -6,7 +6,9 @@ import 'package:Intranet/pages/helper/constants.dart';
 import 'package:Intranet/pages/utils/theme/colors/light_colors.dart';
 import 'package:Intranet/pages/utils/toast_utility.dart';
 import 'package:awesome_notifications/awesome_notifications.dart';
+import 'package:expensestracker/presentation/pages/claim/courier_detail_page.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -91,7 +93,10 @@ class NotificationService {
     if (kIsWeb) {
       final url = message?.data['url'] as String?;
       final type = message?.data['type'];
-      final pjpId = message?.data['PjpId'] ?? message?.data['pjpId'] ?? message?.data['pjpid'] ?? '';
+      final pjpId = message?.data['PjpId'] ??
+          message?.data['pjpId'] ??
+          message?.data['pjpid'] ??
+          '';
       ToastUtilityIntranet.showInfoToast(
         '${message?.data['title'] ?? ''}\n${message?.data['body'] ?? ''}',
         onTap: () async {
@@ -103,6 +108,26 @@ class NotificationService {
                 MaterialPageRoute(
                   builder: (context) => DayEventsScreen(
                     pjpId: pjpId,
+                  ),
+                ),
+              );
+            }
+          } else if (type == 'EXPENSE-COURIER' &&
+              message?.data['cid'] != null) {
+            final claimId = message?.data['cid'];
+            final employeeCode = message?.data['employee_code'];
+            final isAccch = message?.data['isAccch'] ?? 'false';
+            final context = MyApp.navigatorKey.currentState?.context;
+            if (context != null) {
+              // Get.toNamed(
+              //     '/courier_detail?claimId=$claimId&eCode=$employeeCode&isAccch=$isAccch');
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => CourierDetailPage(
+                    claimId: int.tryParse(claimId),
+                    employeeCode: employeeCode,
+                    isAccch: bool.tryParse(isAccch.toString()) ?? false,
                   ),
                 ),
               );
@@ -125,9 +150,7 @@ class NotificationService {
         notificationLayout: NotificationLayout.BigText,
         // summary: body,
         autoDismissible: true,
-        payload: message != null
-            ? Map<String, String>.from(message.data)
-            : {},
+        payload: message != null ? Map<String, String>.from(message.data) : {},
       ));
     }
   }
@@ -149,9 +172,8 @@ class NotificationService {
             icon: 'resource://drawable/app_logo',
             backgroundColor: Colors.white54,
             largeIcon: imageUrl,
-            payload: message != null
-                ? Map<String, String>.from(message.data)
-                : {},
+            payload:
+                message != null ? Map<String, String>.from(message.data) : {},
             notificationLayout: NotificationLayout.BigText,
             bigPicture: imageUrl),
       );
@@ -169,9 +191,8 @@ class NotificationService {
             backgroundColor: Colors.white54,
             largeIcon: imageUrl,
             notificationLayout: NotificationLayout.BigPicture,
-            payload: message != null
-                ? Map<String, String>.from(message.data)
-                : {},
+            payload:
+                message != null ? Map<String, String>.from(message.data) : {},
             bigPicture: imageUrl),
       );
     }
@@ -280,6 +301,9 @@ class NotificationService {
         identifySaathiNotification(message);
       } else if (message.data.containsKey('type') &&
           message.data['type']?.toString().toLowerCase() == 'expense') {
+        handleExpenseNotificatin(message);
+      } else if (message.data.containsKey('type') &&
+          message.data['type']?.toString().toLowerCase() == 'expense-courier') {
         handleExpenseNotificatin(message);
       } else if (message.data.containsKey('type') &&
           message.data['type']?.toString().toUpperCase() == 'PJP') {
@@ -455,9 +479,18 @@ void handleExpenseNotificatin(
             : '');
     data.putIfAbsent(
         'webViewLink',
-        () => message.data.containsKey('url')
-            ? message.data['url'] as String
-            : '');
+        () {
+          String? url = message.data['url'] as String?;
+          if (url == null || url.isEmpty) {
+            if (message.data['type'] == 'EXPENSE-COURIER') {
+              final claimId = message.data['cid'] ?? message.data['claimId'] ?? message.data['claim_id'] ?? '';
+              final eCode = message.data['employee_code'] ?? message.data['eCode'] ?? message.data['e_code'] ?? '';
+              final isAccch = message.data['isAccch'] ?? message.data['is_accch'] ?? 'false';
+              url = '/#/courier_detail?claimId=$claimId&eCode=$eCode&isAccch=$isAccch';
+            }
+          }
+          return url ?? '';
+        });
 
     helper.insert(LocalConstant.TABLE_NOTIFICATION, data);
     NotificationService notificationService = NotificationService();
@@ -494,17 +527,19 @@ void handlePJPNotification(
             : '');
     data.putIfAbsent(
         'logoUrl',
-        () =>
-            message.data.containsKey('logoUrl') ? message.data['logoUrl']! : '');
+        () => message.data.containsKey('logoUrl')
+            ? message.data['logoUrl']!
+            : '');
     data.putIfAbsent(
         'bigImageUrl',
         () => message.data.containsKey('bigimage')
             ? message.data['bigimage'] as String
             : '');
-    final pjpIdVal = message.data['PjpId'] ?? message.data['pjpId'] ?? message.data['pjpid'] ?? '';
-    data.putIfAbsent(
-        'webViewLink',
-        () => pjpIdVal);
+    final pjpIdVal = message.data['PjpId'] ??
+        message.data['pjpId'] ??
+        message.data['pjpid'] ??
+        '';
+    data.putIfAbsent('webViewLink', () => pjpIdVal);
 
     helper.insert(LocalConstant.TABLE_NOTIFICATION, data);
     NotificationService notificationService = NotificationService();

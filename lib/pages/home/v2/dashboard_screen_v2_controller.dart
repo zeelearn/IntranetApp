@@ -43,6 +43,7 @@ import 'package:expensestracker/app/hiveDatabase/hive_database.dart';
 import 'package:expensestracker/presentation/app.dart' as expense_placeholder;
 import 'package:expensestracker/presentation/controllers/dashboard/dashboard_binding.dart';
 import 'package:expensestracker/presentation/controllers/dashboard/dashboard_page_controller.dart';
+import 'package:expensestracker/presentation/pages/claim/courier_detail_page.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
@@ -195,7 +196,10 @@ class DashboardScreenV2Controller extends GetxController
           // Util.openSaathiNotification(message);
         } else if (message.data['type'] != null &&
             message.data['type'] == 'PJP') {
-          final pjpId = message.data['PjpId'] ?? message.data['pjpId'] ?? message.data['pjpid'] ?? '';
+          final pjpId = message.data['PjpId'] ??
+              message.data['pjpId'] ??
+              message.data['pjpid'] ??
+              '';
           if (pjpId.isNotEmpty) {
             Navigator.push(
                 MyApp.navigatorKey.currentState!.context,
@@ -213,6 +217,23 @@ class DashboardScreenV2Controller extends GetxController
                     title: message.data['title'] ?? 'Expense',
                     url: message.data['url'] ?? ''),
               ));
+        } else if (message.data?['type'] == 'EXPENSE-COURIER') {
+          final claimid = message.data?['cid'];
+          final eCode = message.data?['employee_code'];
+          final isAccch = message.data?['isAccch'] ?? 'false';
+          debugPrint(
+              "Courier Notification: claimId=$claimid, eCode=$eCode, isAccch=$isAccch");
+          /*  Navigator.push(
+              MyApp.navigatorKey.currentState!.context,
+              MaterialPageRoute(
+                builder: (context) => CourierDetailPage(
+                  claimId: int.parse(claimid ?? '0'),
+                  employeeCode: eCode ?? '',
+                  isAccch: isAccch == 'true',
+                ),
+              )); */
+          Get.toNamed(
+              '/courier_detail?claimId=$claimid&eCode=$eCode&isAccch=$isAccch');
         } else if (message.data['Video_path'] != null) {
           Navigator.push(
               MyApp.navigatorKey.currentState!.context,
@@ -260,7 +281,10 @@ class DashboardScreenV2Controller extends GetxController
       final ctx = Get.context;
       if (ctx == null) return;
       if (message.data['type'] != null && message.data['type'] == 'PJP') {
-        final pjpId = message.data['PjpId'] ?? message.data['pjpId'] ?? message.data['pjpid'] ?? '';
+        final pjpId = message.data['PjpId'] ??
+            message.data['pjpId'] ??
+            message.data['pjpid'] ??
+            '';
         if (pjpId.isNotEmpty) {
           await Navigator.of(ctx).push(
             MaterialPageRoute(
@@ -290,7 +314,10 @@ class DashboardScreenV2Controller extends GetxController
         final uriStr = getBrowserUrl();
         final uri = Uri.parse(uriStr);
         if (uri.queryParameters['type'] == 'PJP') {
-          final pjpId = uri.queryParameters['PjpId'] ?? uri.queryParameters['pjpId'] ?? uri.queryParameters['pjpid'] ?? '';
+          final pjpId = uri.queryParameters['PjpId'] ??
+              uri.queryParameters['pjpId'] ??
+              uri.queryParameters['pjpid'] ??
+              '';
           if (pjpId.isNotEmpty) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
               Navigator.push(
@@ -320,7 +347,8 @@ class DashboardScreenV2Controller extends GetxController
     if (payload['type'] == 'td') {
       Util.openSaathiNotification(action!);
     } else if (payload['type'] == 'PJP') {
-      final pjpId = payload['PjpId'] ?? payload['pjpId'] ?? payload['pjpid'] ?? '';
+      final pjpId =
+          payload['PjpId'] ?? payload['pjpId'] ?? payload['pjpid'] ?? '';
       if (pjpId.isNotEmpty) {
         Navigator.push(
           context,
@@ -339,6 +367,22 @@ class DashboardScreenV2Controller extends GetxController
                 title: payload['title'] ?? 'Expense',
                 url: payload['url'] ?? ''),
           ));
+    } else if (payload['type'] == 'EXPENSE-COURIER') {
+      final claimIdStr = payload['cid'] ?? payload['claimId'] ?? payload['claim_id'];
+      final employeeCode = payload['employee_code'] ?? payload['eCode'] ?? payload['e_code'];
+      final isAccchStr = payload['isAccch'] ?? payload['is_accch'] ?? 'false';
+      final claimId = claimIdStr != null ? int.tryParse(claimIdStr.toString()) : null;
+      final isAccch = isAccchStr.toString() == 'true';
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => CourierDetailPage(
+            claimId: claimId,
+            employeeCode: employeeCode?.toString(),
+            isAccch: isAccch,
+          ),
+        ),
+      );
     } else if (payload['Video_path'] != null) {
       Navigator.of(context).push(
         MaterialPageRoute(
@@ -698,7 +742,8 @@ class DashboardScreenV2Controller extends GetxController
     if (!validateBusiness('zll_saathi')) return;
     final box = await Utility.openBox();
     await Hive.openBox(LocalConstant.KidzeeDB);
-    final username =box.get(LocalConstant.KEY_USER_NAME)?.toString() ?? userName.value; 
+    final username =
+        box.get(LocalConstant.KEY_USER_NAME)?.toString() ?? userName.value;
     debugPrint('opening the ZllSaathi with username: $username');
     ZllSaathi(Get.context!, username, profileAvatarBytes.value);
   }

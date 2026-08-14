@@ -108,7 +108,8 @@ self.addEventListener('push', function (event) {
     icon: 'https://zeelearn.com/wp-content/uploads/zeelearnlogo_new171.png', 
     data: Object.assign({}, payload.data, {
       url: (payload.data.type === 'PJP' && pjpIdVal) 
-        ? ('/?type=PJP&PjpId=' + pjpIdVal) 
+        ? ('/?type=PJP&PjpId=' + pjpIdVal) : (payload.data.type === 'EXPENSE-COURIER') 
+        ? ('/courier_detail?claimId=' + (payload.data.cid || payload.data.claimId || payload.data.claimID || '') + '&eCode=' + (payload.data.employee_code || payload.data.employeeCode || '') + '&isAccch=' + (payload.data.isAccch || ''))
         : (payload.data.url || '/')
     })
   };

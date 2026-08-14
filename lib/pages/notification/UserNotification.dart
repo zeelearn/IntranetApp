@@ -21,6 +21,7 @@ import '../helper/constants.dart';
 import '../model/bpms_notification_model.dart';
 import 'DetailPage.dart';
 import 'package:Intranet/pages/summary%20dashboard/summary_dashboard.dart';
+import 'package:expensestracker/presentation/pages/claim/courier_detail_page.dart';
 
 class UserNotification extends StatefulWidget {
   const UserNotification({Key? key}) : super(key: key);
@@ -211,6 +212,51 @@ class _ListPageState extends State<UserNotification> {
                     ),
                   ));
             }
+          } else if (notificationModel.notificationtype == 'EXPENSE-COURIER') {
+            final uri = Uri.parse(notificationModel.webViewUrl);
+            String? claimIdStr = uri.queryParameters['cid'] ?? uri.queryParameters['claim_id'] ?? uri.queryParameters['cid'];
+            String? employeeCode = uri.queryParameters['employee_code'] ?? uri.queryParameters['e_code'];
+            String? isAccchStr = uri.queryParameters['isAccch'] ?? uri.queryParameters['is_accch'];
+
+            if (uri.fragment.contains('/courier_detail')) {
+              final fragmentUri = Uri.parse(uri.fragment);
+              claimIdStr ??= fragmentUri.queryParameters['claimId'] ?? fragmentUri.queryParameters['claim_id'] ?? fragmentUri.queryParameters['cid'];
+              employeeCode ??= fragmentUri.queryParameters['eCode'] ?? fragmentUri.queryParameters['e_code'];
+              isAccchStr ??= fragmentUri.queryParameters['isAccch'] ?? fragmentUri.queryParameters['is_accch'];
+            }
+
+            int? claimId = claimIdStr != null ? int.tryParse(claimIdStr) : null;
+            final isAccch = isAccchStr == 'true';
+
+            // Regex fallback if parameters are missing from webViewUrl
+            if (claimId == null && notificationModel.message.isNotEmpty) {
+              final regExp = RegExp(r'Claim\s+(\d+)');
+              final match = regExp.firstMatch(notificationModel.message);
+              if (match != null) {
+                final extractedClaimId = match.group(1);
+                if (extractedClaimId != null) {
+                  claimId = int.tryParse(extractedClaimId);
+                }
+              }
+            }
+            if (employeeCode == null && notificationModel.message.isNotEmpty) {
+              final regExp = RegExp(r'\b(\d{8})\b');
+              final match = regExp.firstMatch(notificationModel.message);
+              if (match != null) {
+                employeeCode = match.group(1);
+              }
+            }
+
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => CourierDetailPage(
+                  claimId: claimId,
+                  employeeCode: employeeCode,
+                  isAccch: isAccch,
+                ),
+              ),
+            );
           } else {
             Navigator.push(
                 context,
