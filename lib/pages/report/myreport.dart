@@ -41,13 +41,13 @@ class _MyReportScreenState extends State<MyReportsScreen>
       extendBodyBehindAppBar: true,
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: Text('My Reports'),
+        title: Text('My Reports'),centerTitle: false,
         // You can add title here
         leading: new IconButton(
-          icon: new Icon(Icons.arrow_back_ios, color: Colors.black),
+          icon: new Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        backgroundColor: Colors.blue.withOpacity(0.7),
+        backgroundColor: kPrimaryLightColor,
         //You can make this transparent
         elevation: 0.0, //No shadow
       ),

@@ -198,7 +198,7 @@ class MyWebsiteViewState extends State<MyWebsiteView> {
             ? null
             : AppBar(
                 backgroundColor: kPrimaryLightColor,
-                leadingWidth: 30,
+                leadingWidth: 30,centerTitle: false,
                 title: Text(
                   widget.title,
                   style: Theme.of(context)
@@ -209,7 +209,7 @@ class MyWebsiteViewState extends State<MyWebsiteView> {
                 leading: Padding(
                   padding: const EdgeInsets.all(0.0),
                   child: IconButton(
-                    icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
+                    icon: const Icon(Icons.arrow_back, color: Colors.white),
                     onPressed: () async {
                       setState(() {
                         _canPop = true;

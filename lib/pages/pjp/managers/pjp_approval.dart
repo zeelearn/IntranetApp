@@ -135,7 +135,8 @@ class _PjpApprovalBody extends StatelessWidget {
       if (controller.visiblePjps.isEmpty) {
         return _EmptyState(
           icon: Icons.assignment_outlined,
-          title: 'No team PJPs found',
+          title:
+              'No ${controller.statusFilter.value == PjpApprovalStatusFilter.pending ? 'pending' : controller.statusFilter.value == PjpApprovalStatusFilter.rejected ? 'rejected' : controller.statusFilter.value == PjpApprovalStatusFilter.approved ? 'approved' : 'Team'} PJPs found',
           subtitle: 'No PJPs match the selected filters and date range.',
           actionLabel: 'Refresh',
           onAction: () => controller.refreshList(),
