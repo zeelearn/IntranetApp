@@ -430,13 +430,13 @@ class CVFController extends GetxController {
       if (isPjpMode) {
         Utility.showMessageSingleButton(
           context,
-          'This pjp is not approved yet, Please connect with your manager',
+          'This PJP is pending approval',
           _DismissListener(),
         );
       } else {
         Utility.showMessage(
           context,
-          'PJP not yet approve, Please connect with your manager',
+          'This PJP is pending approval',
         );
       }
       return;

@@ -649,7 +649,7 @@ class WebCardActions extends StatelessWidget {
           if (hasMap)
             TextButton.icon(
               onPressed: () => controller.openLocationMap(context, cvf),
-              icon: const Icon(Icons.map, size: 18, color: kPrimaryLightColor),
+              icon: const Icon(Icons.location_on, size: 18, color: kPrimaryLightColor),
               label: const Text(
                 'Map',
                 style: TextStyle(

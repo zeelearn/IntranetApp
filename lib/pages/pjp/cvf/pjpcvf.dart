@@ -487,7 +487,9 @@ class _MyCVFListScreen extends State<CVFListScreen>
           } else {
             Utility.showMessageSingleButton(
                 context,
-                'This pjp is not approved yet, Please connect with your manager',
+                widget.mPjpInfo.isSelfPJP == '1'
+                    ? 'This PJP is not approved yet, Please connect with your manager'
+                    : 'This PJP is pending approval',
                 this);
           }
           return;
