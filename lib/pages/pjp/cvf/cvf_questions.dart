@@ -1537,7 +1537,7 @@ class _QuestionListScreenState extends State<QuestionListScreen>
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
-                padding: EdgeInsets.only(left: 15, right: 15, bottom: 25),
+                padding: EdgeInsets.only(left: 15, right: 15,top: 25, bottom: 25),
                 child: Column(
                   children: [
                     TextFormField(
