@@ -317,10 +317,13 @@ class DashboardScreenV2Controller extends GetxController
     final payload = action?.payload;
     if (payload == null) return;
 
-    if (payload['type'] == 'td') {
+    final type = payload['type']?.toString().toUpperCase();
+
+    if (type == 'TD') {
       Util.openSaathiNotification(action!);
-    } else if (payload['type'] == 'PJP') {
-      final pjpId = payload['PjpId'] ?? payload['pjpId'] ?? payload['pjpid'] ?? '';
+    } else if (type == 'PJP') {
+      final pjpId =
+          payload['PjpId'] ?? payload['pjpId'] ?? payload['pjpid'] ?? '';
       if (pjpId.isNotEmpty) {
         Navigator.push(
           context,
@@ -331,7 +334,7 @@ class DashboardScreenV2Controller extends GetxController
           ),
         );
       }
-    } else if (payload['type'] == 'EXPENSE') {
+    } else if (type == 'EXPENSE') {
       Navigator.push(
           context,
           MaterialPageRoute(
@@ -339,6 +342,22 @@ class DashboardScreenV2Controller extends GetxController
                 title: payload['title'] ?? 'Expense',
                 url: payload['url'] ?? ''),
           ));
+    } else if (type == 'EXPENSE-COURIER') {
+      final claimIdStr = payload['cid'] ?? payload['claimId'] ?? payload['claim_id'];
+      final employeeCode = payload['employee_code'] ?? payload['eCode'] ?? payload['e_code'];
+      final isAccchStr = payload['isAccch'] ?? payload['is_accch'] ?? 'false';
+      final claimId = claimIdStr != null ? int.tryParse(claimIdStr.toString()) : null;
+      final isAccch = isAccchStr.toString() == 'true';
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => CourierDetailPage(
+            claimId: claimId,
+            employeeCode: employeeCode?.toString(),
+            isAccch: isAccch,
+          ),
+        ),
+      );
     } else if (payload['Video_path'] != null) {
       Navigator.of(context).push(
         MaterialPageRoute(

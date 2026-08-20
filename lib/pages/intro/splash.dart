@@ -60,6 +60,62 @@ class _SplashScreenState extends State<SplashScreen> {
     }
     final launchAction = widget.receivedAction ?? NotificationController.coldStartAction;
     if (displayName != '') {
+      if (kIsWeb) {
+        final uriStr = getBrowserUrl();
+        debugPrint('SplashScreen: uriStr: $uriStr');
+        final uri = Uri.parse(uriStr);
+        if (uri.path.contains('/courier_detail') || 
+            uri.fragment.contains('/courier_detail') || 
+            uri.queryParameters['type'] == 'courier_detail') {
+          String? claimIdStr = uri.queryParameters['cid'] ?? uri.queryParameters['claimId'] ?? uri.queryParameters['claim_id'];
+          String? employeeCode = uri.queryParameters['eCode'] ?? uri.queryParameters['e_code'];
+          String? isAccchStr = uri.queryParameters['isAccch'] ?? uri.queryParameters['is_accch'];
+
+          if (uri.fragment.contains('/courier_detail')) {
+            final fragmentUri = Uri.parse(uri.fragment);
+            claimIdStr ??= fragmentUri.queryParameters['cid'] ?? fragmentUri.queryParameters['claimId'] ?? fragmentUri.queryParameters['claim_id'];
+            employeeCode ??= fragmentUri.queryParameters['eCode'] ?? fragmentUri.queryParameters['e_code'];
+            isAccchStr ??= fragmentUri.queryParameters['isAccch'] ?? fragmentUri.queryParameters['is_accch'];
+          }
+
+          final claimId = claimIdStr != null ? int.tryParse(claimIdStr) : null;
+          final isAccch = isAccchStr == 'true';
+
+          // resetWebUrl(); // Clear both path and query parameters from the browser address bar
+
+          Timer(
+            Duration(seconds: launchAction != null ? 0 : 2),
+            () {
+              final navState = MyApp.navigatorKey.currentState;
+              if (navState != null) {
+                navState.pushReplacement(
+                  MaterialPageRoute(
+                    builder: (context) => DashboardScreenV2(
+                      userId: '',
+                      receivedAction: widget.receivedAction ?? NotificationController.coldStartAction,
+                    ),
+                  ),
+                );
+                navState.push(
+                  MaterialPageRoute(
+                    builder: (context) => CourierDetailPage(
+                      claimId: claimId,
+                      employeeCode: employeeCode,
+                      isAccch: isAccch,
+                    ),
+                  ),
+                );
+                // Also clear query parameters/paths after navigation transition finishes
+                Future.delayed(const Duration(milliseconds: 500), () {
+                  resetWebUrl();
+                });
+              }
+            },
+          );
+          return;
+        }
+      }
+
       Timer(
           Duration(seconds: launchAction != null ? 0 : 4),
           () => Navigator.pushReplacement(
@@ -68,7 +124,7 @@ class _SplashScreenState extends State<SplashScreen> {
                     builder: (context) =>
                         /*currentBusinessName==null || currentBusinessName.isEmpty ? LoginPage(isAutoLogin: true,) : */ DashboardScreenV2(
                           userId: '',
-                          receivedAction: launchAction,
+                          receivedAction: widget.receivedAction ?? NotificationController.coldStartAction,
                         )),
               ));
     } else {

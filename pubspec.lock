@@ -629,11 +629,9 @@ packages:
   expensestracker:
     dependency: "direct main"
     description:
-      path: "."
-      ref: uat
-      resolved-ref: c3e925079a7c61fe1e8838c1c228046eb6015911
-      url: "https://github.com/ZeeLearnLtd/excepsesmanagement.git"
-    source: git
+      path: "../excepsesmanagement"
+      relative: true
+    source: path
     version: "1.0.2+11"
   fake_async:
     dependency: transitive
@@ -2587,10 +2585,12 @@ packages:
   saathi:
     dependency: "direct main"
     description:
-      path: "../../ZeeSathi"
-      relative: true
-    source: path
-    version: "1.0.0+2"
+      path: "."
+      ref: uat
+      resolved-ref: ddec6f19630dfec216b2c20ef366dca0d9cdceaf
+      url: "https://github.com/ZeeLearnLtd/ZeeSathi.git"
+    source: git
+    version: "1.0.12+14"
   sanitize_html:
     dependency: transitive
     description:
