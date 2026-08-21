@@ -24,6 +24,7 @@ import 'package:Intranet/pages/utils/theme/colors/light_colors.dart';
 import 'package:Intranet/pages/widget/MyWebSiteView.dart';
 import 'package:Intranet/pages/widget/VideoPlayer.dart';
 import 'package:awesome_notifications/awesome_notifications.dart';
+import 'package:expensestracker/presentation/pages/claim/courier_detail_page.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';

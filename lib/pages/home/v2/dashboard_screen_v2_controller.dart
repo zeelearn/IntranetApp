@@ -43,6 +43,7 @@ import 'package:expensestracker/app/hiveDatabase/hive_database.dart';
 import 'package:expensestracker/presentation/app.dart' as expense_placeholder;
 import 'package:expensestracker/presentation/controllers/dashboard/dashboard_binding.dart';
 import 'package:expensestracker/presentation/controllers/dashboard/dashboard_page_controller.dart';
+import 'package:expensestracker/presentation/pages/claim/courier_detail_page.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
@@ -858,6 +859,7 @@ class DashboardScreenV2Controller extends GetxController
     await HiveDatabase.clear();
     expense_placeholder.clearAllExpenseControllers();
     await hiveBox.close();
+    await AwesomeNotifications().cancelAll();
     await Future<void>.delayed(const Duration(seconds: 1));
     resetWebUrl();
     if (!context.mounted) return;

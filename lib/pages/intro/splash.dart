@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:awesome_notifications/awesome_notifications.dart';
+import 'package:expensestracker/presentation/pages/claim/courier_detail_page.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
@@ -11,7 +12,7 @@ import 'package:Intranet/pages/home/v2/dashboard_screenv2.dart';
 import 'intro.dart';
 import '../helper/web_helper.dart';
 import '../auth/magic_link_handler.dart';
-import 'package:Intranet/main.dart' show NotificationController;
+import 'package:Intranet/main.dart' show NotificationController, MyApp;
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({this.receivedAction, Key? key}) : super(key: key);
