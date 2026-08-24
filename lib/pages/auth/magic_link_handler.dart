@@ -13,8 +13,8 @@ class MagicLinkHandler {
   static String? _lastHandledToken;
 
   static Future<void> handle(Uri uri, BuildContext context) async {
-    final token = uri.queryParameters['t'];
-    final source = uri.queryParameters['s'];
+    final token = uri.queryParameters['t'] ?? uri.queryParameters['token'];
+    final source = uri.queryParameters['s'] ?? uri.queryParameters['source'];
 
     if (token == null || token.isEmpty) {
       return; // Not a magic link
@@ -71,9 +71,14 @@ class MagicLinkHandler {
           hive.put(LocalConstant.KEY_LOCATION, info.employeeLocation);
           hive.put(LocalConstant.KEY_GENDER, info.gender);
 
-          FirebaseAnalyticsUtils.sendEvent(info.userName);
+           FirebaseAnalyticsUtils.sendEvent(info.userName);
           hive.put(LocalConstant.KEY_LOGIN_RESPONSE, jsonEncode(value));
           hive.put(LocalConstant.KEY_AUTH_TOKEN, info.token);
+          if (source == 'intranet_web') {
+            hive.put('is_intranet_web', true);
+          } else {
+            hive.put('is_intranet_web', false);
+          }
 
           Navigator.pop(context); // close loader
           Navigator.pushReplacement(

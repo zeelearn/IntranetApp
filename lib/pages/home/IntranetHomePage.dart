@@ -2016,6 +2016,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
   signOut() async {
     var hiveBox = await Utility.openBox();
     await Hive.openBox(LocalConstant.KidzeeDB);
+    final isIntranetWeb = hiveBox.get('is_intranet_web') == true;
     hiveBox.clear();
     DBHelper helper = DBHelper();
     helper.deleteAllData();
@@ -2024,6 +2025,10 @@ class _IntranetHomePageState extends State<IntranetHomePage>
     hiveBox.close();
     await Future.delayed(const Duration(seconds: 1));
     resetWebUrl();
+    if (kIsWeb && isIntranetWeb) {
+      closeBrowserTab();
+      return;
+    }
     if (!mounted) return;
     Navigator.pushAndRemoveUntil(
         context,

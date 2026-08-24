@@ -108,6 +108,7 @@ class DashboardScreenV2Controller extends GetxController
   final notificationCount = 0.obs;
   final isLoading = false.obs;
   final dateRangeLabel = 'May 20 – May 26, 2024'.obs;
+  final showNotificationBanner = false.obs;
 
   final kpiStats = <DashKpiStat>[].obs;
   final projectStatusSegments = <DashChartSegment>[].obs;
@@ -141,6 +142,12 @@ class DashboardScreenV2Controller extends GetxController
     super.onInit();
     seedPlaceholders();
     unawaited(_initialize());
+    if (kIsWeb) {
+      final permission = getWebNotificationPermissionState();
+      if (permission != 'granted') {
+        showNotificationBanner.value = true;
+      }
+    }
   }
 
   @override
@@ -854,6 +861,7 @@ class DashboardScreenV2Controller extends GetxController
       FirebaseMessaging.instance.unsubscribeFromTopic('saathi');
       FirebaseMessaging.instance.unsubscribeFromTopic('intranet');
     }
+    final isIntranetWeb = hiveBox.get('is_intranet_web') == true;
     await hiveBox.clear();
     await DBHelper().deleteAllData();
     await HiveDatabase.clear();
@@ -862,6 +870,10 @@ class DashboardScreenV2Controller extends GetxController
     await AwesomeNotifications().cancelAll();
     await Future<void>.delayed(const Duration(seconds: 1));
     resetWebUrl();
+    if (kIsWeb && isIntranetWeb) {
+      closeBrowserTab();
+      return;
+    }
     if (!context.mounted) return;
     await Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute(

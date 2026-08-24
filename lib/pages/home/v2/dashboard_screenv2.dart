@@ -11,7 +11,13 @@ import 'package:Intranet/pages/home/v2/widgets/dash_web_top_bar.dart';
 import 'package:Intranet/pages/home/v2/widgets/dash_welcome_banner.dart';
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:Intranet/pages/firebase/notification.dart';
+import 'package:Intranet/pages/helper/web_helper.dart';
+import 'package:Intranet/pages/helper/LocalConstant.dart';
+import 'package:Intranet/pages/helper/utils.dart';
 
 /// Dashboard Screen V2 — GetX-driven home shell that replaces
 /// [Intranet/pages/home/IntranetHomePage.dart] as the post-login entry.
@@ -97,6 +103,18 @@ class _DashboardScreenV2State extends State<DashboardScreenV2> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              Obx(() {
+                if (!controller.showNotificationBanner.value) {
+                  return const SizedBox.shrink();
+                }
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _buildNotificationBanner(context),
+                    const SizedBox(height: 14),
+                  ],
+                );
+              }),
               //const DashAdBanner(),
               const DashWelcomeBanner(),
               // const SizedBox(height: 18),
@@ -134,6 +152,18 @@ class _DashboardScreenV2State extends State<DashboardScreenV2> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        Obx(() {
+                          if (!controller.showNotificationBanner.value) {
+                            return const SizedBox.shrink();
+                          }
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              _buildNotificationBanner(context),
+                              const SizedBox(height: 16),
+                            ],
+                          );
+                        }),
                         //const DashKpiRow(variant: DashKpiVariant.web),
                         //const SizedBox(height: 24),
                         _buildQuickAccessSection(),
@@ -148,6 +178,171 @@ class _DashboardScreenV2State extends State<DashboardScreenV2> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildNotificationBanner(BuildContext context) {
+    final permission = getWebNotificationPermissionState();
+    final isBlocked = permission == 'denied';
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final useVerticalLayout = constraints.maxWidth < 600;
+
+        final content = Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'Turn on notifications',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 15,
+                color: Color(0xFF1D2C4F),
+              ),
+            ),
+            const SizedBox(height: 4),
+            RichText(
+              text: TextSpan(
+                style: const TextStyle(
+                  fontSize: 13,
+                  color: Colors.black87,
+                  height: 1.4,
+                ),
+                children: [
+                  const TextSpan(
+                    text: 'Get real-time alerts for approvals, messages and updates — even when this tab is in the background. ',
+                  ),
+                  if (isBlocked)
+                    const TextSpan(
+                      text: 'Notifications are blocked — allow them for this site in your browser settings.',
+                      style: TextStyle(
+                        color: Colors.red,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ],
+        );
+
+        final actions = Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF0071e3),
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                elevation: 0,
+              ),
+              onPressed: () async {
+                if (isBlocked) {
+                  showDialog(
+                    context: context,
+                    builder: (ctx) => AlertDialog(
+                      title: const Text('Notifications Blocked'),
+                      content: const Text(
+                        'Notifications are blocked in your browser settings.\n\nTo enable them:\n1. Click the site settings icon (lock/sliders icon) on the left of the URL bar.\n2. Toggle Notification permission to "Allow".',
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(ctx),
+                          child: const Text('OK'),
+                        ),
+                      ],
+                    ),
+                  );
+                } else {
+                  await FirebaseMessaging.instance.requestPermission(
+                    alert: true,
+                    badge: true,
+                    sound: true,
+                  );
+                  final newPermission = getWebNotificationPermissionState();
+                  if (newPermission == 'granted') {
+                    controller.showNotificationBanner.value = false;
+                    final box = await Utility.openBox();
+                    final empId = box.get(LocalConstant.KEY_EMPLOYEE_ID) ?? '';
+                    FCM().setNotifications(empId.toString(), 'web_device', 'browser');
+                  } else if (newPermission == 'denied') {
+                    controller.showNotificationBanner.value = false;
+                    controller.showNotificationBanner.value = true;
+                  }
+                }
+              },
+              child: const Text(
+                'Enable',
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+              ),
+            ),
+            const SizedBox(width: 12),
+            TextButton(
+              style: TextButton.styleFrom(
+                foregroundColor: const Color(0xFF0071e3),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              ),
+              onPressed: () {
+                controller.showNotificationBanner.value = false;
+              },
+              child: const Text(
+                'Not now',
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+              ),
+            ),
+          ],
+        );
+
+        return Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF0F5FF),
+            border: Border.all(color: const Color(0xFFADC6FF)),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: useVerticalLayout
+              ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Icon(
+                          Icons.notifications_active_rounded,
+                          color: Colors.amber,
+                          size: 24,
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(child: content),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [actions],
+                    ),
+                  ],
+                )
+              : Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Icon(
+                      Icons.notifications_active_rounded,
+                      color: Colors.amber,
+                      size: 24,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(child: content),
+                    const SizedBox(width: 16),
+                    actions,
+                  ],
+                ),
+        );
+      },
     );
   }
 

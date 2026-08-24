@@ -42,6 +42,10 @@ class FCM {
           // Set up a periodic check to fetch and register token if it failed initially
           Timer.periodic(const Duration(seconds: 15), (timer) async {
             try {
+              if (!Hive.isBoxOpen(LocalConstant.KidzeeDB)) {
+                timer.cancel();
+                return;
+              }
               var hiveBox = Hive.box(LocalConstant.KidzeeDB);
               var oldToken = hiveBox.get(LocalConstant.KEY_FCM_ID);
               if (oldToken != null && oldToken.toString().isNotEmpty) {
