@@ -126,14 +126,27 @@ class EmailComposePanel extends StatelessWidget {
                     ),
                     const SizedBox(width: 8),
                     Expanded(
-                      child: Text(
-                        c.pdfFileName,
-                        style: GoogleFonts.poppins(
-                          fontSize: 12.5,
-                          fontWeight: FontWeight.w500,
-                          color: pdfOk
-                              ? ShareReportTheme.primary
-                              : Colors.red.shade700,
+                      child: InkWell(
+                        onTap: c.canOpenAttachment
+                            ? c.openAttachmentPreview
+                            : null,
+                        borderRadius: BorderRadius.circular(4),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 2),
+                          child: Text(
+                            c.pdfFileName,
+                            style: GoogleFonts.poppins(
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.w500,
+                              color: pdfOk
+                                  ? ShareReportTheme.primary
+                                  : Colors.red.shade700,
+                              decoration: c.canOpenAttachment
+                                  ? TextDecoration.underline
+                                  : TextDecoration.none,
+                              decorationColor: ShareReportTheme.primary,
+                            ),
+                          ),
                         ),
                       ),
                     ),

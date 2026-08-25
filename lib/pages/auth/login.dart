@@ -15,6 +15,7 @@ import '../../api/request/login_request.dart';
 import '../../api/response/login_response.dart';
 import '../helper/LightColor.dart';
 import '../helper/LocalConstant.dart';
+import '../helper/mobile_applications_store.dart';
 import '../helper/utils.dart';
 import 'package:Intranet/pages/home/v2/dashboard_screenv2.dart';
 import '../login/PrivacyPolicyScreen.dart';
@@ -540,6 +541,10 @@ class _LoginPage extends State<LoginPage> {
             hive.put(LocalConstant.KEY_LOGIN_RESPONSE, jsonEncode(value));
             List<BusinessApplications> businessapplications =
                   value.responseData.businessApplications;
+            await MobileApplicationsStore.save(
+              hive,
+              value.responseData.myMobileApplications,
+            );
             // if (businessapplications.isEmpty) {
             //   hive.clear();
             //   Utility.showMessage(context,

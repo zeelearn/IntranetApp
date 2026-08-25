@@ -12,6 +12,7 @@ import 'package:Intranet/pages/bpms/bpms_dashboard.dart';
 import 'package:Intranet/pages/firebase/storageutil.dart';
 import 'package:Intranet/pages/helper/DatabaseHelper.dart';
 import 'package:Intranet/pages/helper/LocalConstant.dart';
+import 'package:Intranet/pages/helper/mobile_applications_store.dart';
 import 'package:Intranet/pages/helper/utils.dart';
 import 'package:Intranet/pages/helper/web_helper.dart';
 import 'package:Intranet/pages/home/change_password_request.dart';
@@ -55,6 +56,7 @@ import 'package:hive/hive.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:in_app_update/in_app_update.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:saathi/zllsaathi.dart';
 
 import '../../firebase/notification.dart';
@@ -95,6 +97,7 @@ class DashboardScreenV2Controller extends GetxController
   final businessId = 0.obs;
   final businessName = 'Select Business'.obs;
   final businessApplications = <BusinessApplications>[].obs;
+  final myMobileApplications = <MyMobileApplication>[].obs;
   final isBpms = false.obs;
 
   final profileImageUrl =
@@ -105,6 +108,7 @@ class DashboardScreenV2Controller extends GetxController
   final sidebarExpanded = true.obs;
   final selectedNav = 'dashboard'.obs;
   final notificationCount = 0.obs;
+  final showNotificationPermissionAlert = false.obs;
   final isLoading = false.obs;
   final dateRangeLabel = 'May 20 – May 26, 2024'.obs;
 
@@ -129,11 +133,18 @@ class DashboardScreenV2Controller extends GetxController
 
   bool get isBusinessMapped => businessId.value != 0;
 
-  List<DashQuickAccessItem> get quickAccessItems =>
-      DashV2MenuCatalog.visibleQuickAccess(
-        isBpms: isBpms.value,
-        employeeCode: employeeCode.value,
-      );
+  List<DashQuickAccessItem> get quickAccessItems {
+    // Touch reactive list so Obx rebuilds when apps load.
+    final mobileNames = myMobileApplications
+        .map((e) => e.normalizedName)
+        .where(MobileApplicationsStore.dashboardMenuNames.contains)
+        .toSet();
+    return DashV2MenuCatalog.visibleQuickAccess(
+      isBpms: isBpms.value,
+      employeeCode: employeeCode.value,
+      mobileAppNames: mobileNames,
+    );
+  }
 
   @override
   void onInit() {
@@ -155,6 +166,7 @@ class DashboardScreenV2Controller extends GetxController
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       unawaited(loadNotificationCount());
+      unawaited(checkNotificationPermission());
       if (!kDebugMode && !kIsWeb) {
         if (Platform.isAndroid) {
           unawaited(checkForUpdate());
@@ -171,6 +183,7 @@ class DashboardScreenV2Controller extends GetxController
     try {
       await loadUserFromHive();
       await loadBusinessApplications();
+      await loadMyMobileApplications();
       if (Get.isRegistered<DashboardPageController>() &&
           employeeCode.value.isNotEmpty) {
         Get.find<DashboardPageController>()
@@ -199,6 +212,7 @@ class DashboardScreenV2Controller extends GetxController
 
     await initFirebase();
     await NotificationController.initializeLocalNotifications();
+    await checkNotificationPermission();
     _messageOpenedAppSubscription =
         FirebaseMessaging.onMessageOpenedApp.listen((message) async {
       debugPrint('Dashboard V2: onMessageOpenedApp received');
@@ -219,6 +233,87 @@ class DashboardScreenV2Controller extends GetxController
     }
 
     WidgetsBinding.instance.addPostFrameCallback((_) => _incomingLinkHandler());
+  }
+
+  /// Returns true when the OS / browser has granted notification permission.
+  Future<bool> areNotificationsAllowed() async {
+    try {
+      final settings =
+          await FirebaseMessaging.instance.getNotificationSettings();
+      if (settings.authorizationStatus == AuthorizationStatus.authorized ||
+          settings.authorizationStatus == AuthorizationStatus.provisional) {
+        return true;
+      }
+      if (settings.authorizationStatus == AuthorizationStatus.denied) {
+        return false;
+      }
+    } catch (_) {}
+
+    if (!kIsWeb) {
+      try {
+        final status = await Permission.notification.status;
+        if (status.isGranted || status.isLimited) return true;
+        if (status.isDenied ||
+            status.isPermanentlyDenied ||
+            status.isRestricted) {
+          return false;
+        }
+      } catch (_) {}
+
+      try {
+        return await AwesomeNotifications().isNotificationAllowed();
+      } catch (_) {}
+    }
+
+    return false;
+  }
+
+  /// Updates [showNotificationPermissionAlert] after checking permission.
+  Future<void> checkNotificationPermission() async {
+    final allowed = await areNotificationsAllowed();
+    showNotificationPermissionAlert.value = !allowed;
+  }
+
+  /// Opens notification / app settings (all platforms). Web re-requests
+  /// permission since browsers do not expose a settings deep-link.
+  Future<void> onNotificationPermissionAlertTap() async {
+    if (kIsWeb) {
+      try {
+        await FirebaseMessaging.instance.requestPermission(
+          alert: true,
+          announcement: false,
+          badge: true,
+          carPlay: false,
+          criticalAlert: false,
+          provisional: false,
+          sound: true,
+        );
+      } catch (_) {}
+      await checkNotificationPermission();
+      if (showNotificationPermissionAlert.value) {
+        Get.snackbar(
+          'Enable notifications',
+          'Allow notifications for this site in your browser settings.',
+          snackPosition: SnackPosition.BOTTOM,
+          duration: const Duration(seconds: 4),
+        );
+      }
+      return;
+    }
+
+    try {
+      final status = await Permission.notification.status;
+      if (status.isDenied && !status.isPermanentlyDenied) {
+        final result = await Permission.notification.request();
+        if (result.isGranted) {
+          showNotificationPermissionAlert.value = false;
+          return;
+        }
+      }
+    } catch (_) {}
+
+    await Utility.openSetting();
+    await checkNotificationPermission();
   }
 
   void _handleReceivedAction() {
@@ -368,6 +463,22 @@ class DashboardScreenV2Controller extends GetxController
       }
     } catch (error) {
       debugPrint('Dashboard V2 business load failed: $error');
+    }
+  }
+
+  Future<void> loadMyMobileApplications() async {
+    try {
+      final box = await Utility.openBox();
+      final apps = MobileApplicationsStore.loadWithFallback(box);
+      myMobileApplications.assignAll(apps);
+
+      // Backfill dedicated Hive key when apps were only in login response.
+      if (MobileApplicationsStore.load(box).isEmpty && apps.isNotEmpty) {
+        await MobileApplicationsStore.save(box, apps);
+      }
+    } catch (error) {
+      debugPrint('Dashboard V2 mobile applications load failed: $error');
+      myMobileApplications.clear();
     }
   }
 
@@ -630,6 +741,38 @@ class DashboardScreenV2Controller extends GetxController
     );
   }
 
+  Future<void> openBpManagement() async {
+    await _openMobileApplication(MobileApplicationsStore.bpManagement);
+  }
+
+  Future<void> _openMobileApplication(String businessName) async {
+    final app = MobileApplicationsStore.findByName(
+      myMobileApplications.toList(),
+      businessName,
+    );
+    if (app == null) {
+      Utility.showMessage(
+        Get.context!,
+        '$businessName is not available for your account.',
+      );
+      return;
+    }
+
+    final url = app.launchUrl;
+    debugPrint('Opening mobile application: $businessName, URL: $url');
+    final context = Get.context;
+    if (context == null) return;
+
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => MyWebsiteView(
+          title: app.normalizedName,
+          url: url,
+        ),
+      ),
+    );
+  }
+
   Future<void> openPjpApprovals() async {
     if (!validateBusiness('approvals_pjp')) return;
     await Navigator.of(Get.context!).push(
@@ -667,6 +810,8 @@ class DashboardScreenV2Controller extends GetxController
         await openPjpDashboard();
       case 'notiflow':
         await openNotiflow();
+      case 'bp_management':
+        await openBpManagement();
       default:
         debugPrint('Dashboard V2: unknown quick access key: $key');
     }

@@ -8,6 +8,9 @@ import 'package:Intranet/pages/pjp/cvf/share_report/models/urgent_attention_item
 import 'package:Intranet/pages/pjp/cvf/share_report/models/working_well_item.dart';
 import 'package:Intranet/pages/pjp/cvf/share_report/repositories/share_report_repository.dart';
 import 'package:Intranet/pages/pjp/cvf/share_report/services/share_report_email_service.dart';
+import 'package:Intranet/pages/widget/MyWebSiteView.dart';
+import 'package:Intranet/pages/widget/report.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
@@ -67,11 +70,32 @@ class ShareReportController extends GetxController {
   String get cvfId => args.cvfId;
   String get pdfFileName => args.pdfFileName;
 
+  /// True when [attachmentUrl] can be opened in a WebView.
+  bool get canOpenAttachment => attachmentUrl.value.trim().isNotEmpty;
+
   /// Primary To address for UI chip (first recipient).
   String get toEmail => toEmails.isEmpty ? 'xxx.@xxx.com' : toEmails.first;
 
   bool get canSend =>
       !isReadOnly.value && !isAlreadySubmitted.value && !isSending.value;
+
+  /// Opens [attachmentUrl] in a WebView when not blank (mail preview PDF tap).
+  void openAttachmentPreview() {
+    final url = attachmentUrl.value.trim();
+    if (url.isEmpty) return;
+
+    if (kIsWeb) {
+      Get.to(
+        () => MyWebsiteView(
+          title: pdfFileName,
+          url: url,
+        ),
+      );
+      return;
+    }
+
+    Get.to(() => CVFReportWebView(url: url));
+  }
 
   @override
   void onInit() {

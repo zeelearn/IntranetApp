@@ -256,14 +256,14 @@ final localhostServer =
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  if (kSilenceConsoleLogs) {
+    _silenceConsoleLogs();
+  }
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     // Uncomment if you also want upside-down portrait on supported devices:
     // DeviceOrientation.portraitDown,
   ]);
-  if (kReleaseMode) {
-    debugPrint = (String? message, {int? wrapWidth}) {};
-  }
   // await dotenv.load(fileName: ".env");
 
   pdfrxFlutterInitialize();
@@ -280,7 +280,10 @@ Future<void> main() async {
   }
 
   if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
-    await InAppWebViewController.setWebContentsDebuggingEnabled(kDebugMode);
+    // Only force WebView debug off when console silencing is enabled.
+    if (kSilenceConsoleLogs) {
+      await InAppWebViewController.setWebContentsDebuggingEnabled(false);
+    }
   }
 
   if (!kIsWeb) {
@@ -356,22 +359,70 @@ Future<void> main() async {
   //await initializeService();
   //runApp(const MyApp());
   ReceivedAction? receivedNotification = await getInitNotif();
-  runApp(MultiBlocProvider(
-    providers: [
-      BlocProvider<GetplandetailsCubit>(
-        create: (BuildContext context) => GetplandetailsCubit(),
-      ),
-      BlocProvider<GetvisitplannercvfCubit>(
-        create: (BuildContext context) => GetvisitplannercvfCubit(),
-      ),
-    ],
-    child: ProviderScope(
-      child: /* acceptedNotification ? const UserNotification() : */
-          MyApp(
-        receivedAction: receivedNotification,
-      ),
-    ),
-  ));
+  runZonedGuarded(
+    () {
+      runApp(MultiBlocProvider(
+        providers: [
+          BlocProvider<GetplandetailsCubit>(
+            create: (BuildContext context) => GetplandetailsCubit(),
+          ),
+          BlocProvider<GetvisitplannercvfCubit>(
+            create: (BuildContext context) => GetvisitplannercvfCubit(),
+          ),
+        ],
+        child: ProviderScope(
+          child: /* acceptedNotification ? const UserNotification() : */
+              MyApp(
+            receivedAction: receivedNotification,
+          ),
+        ),
+      ));
+    },
+    (error, stack) {
+      if (kSilenceConsoleLogs) {
+        // Errors are still reported to FlutterError / Crashlytics handlers.
+        // Console dump is suppressed via [_silenceConsoleLogs].
+        return;
+      }
+      FlutterError.reportError(
+        FlutterErrorDetails(
+          exception: error,
+          stack: stack,
+          library: 'main zone',
+        ),
+      );
+    },
+    zoneSpecification: kSilenceConsoleLogs
+        ? ZoneSpecification(
+            print: (self, parent, zone, line) {
+              // Swallow print() output.
+            },
+          )
+        : null,
+  );
+}
+
+/// When `true`:
+/// - [debugPrint] → no-op
+/// - [print] → swallowed via zone
+/// - GetX logs → disabled
+/// - InAppWebView debug → off
+/// - FlutterError console dumps → suppressed
+///
+/// Default `false` so console logging stays enabled during development.
+const bool kSilenceConsoleLogs = true;
+
+/// Disables Flutter / GetX / print console noise when [kSilenceConsoleLogs] is on.
+void _silenceConsoleLogs() {
+  debugPrint = (String? message, {int? wrapWidth}) {};
+
+  // Suppress framework error dumps to the console.
+  FlutterError.onError = (FlutterErrorDetails details) {
+    // Keep Crashlytics / custom handlers if registered later; no console dump.
+  };
+
+  // GetX logger
+  Get.config(enableLog: false);
 }
 
 _requestPermission() async {

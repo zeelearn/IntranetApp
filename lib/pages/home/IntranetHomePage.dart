@@ -240,7 +240,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
                     index++) {
                   //BP Management
                   if (businessApplications[index].businessName ==
-                      'BP Management') {
+                      'Prospect Management') {
                     isBpms = true;
                     hive.put(
                         LocalConstant.KEY_FRANCHISEE_ID,
