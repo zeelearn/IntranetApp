@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:Intranet/pages/helper/constants.dart';
 import 'package:Intranet/pages/home/v2/dash_v2_menu_catalog.dart';
 import 'package:Intranet/pages/home/v2/dashboard_screen_v2_controller.dart';
 import 'package:Intranet/pages/home/v2/widgets/dash_v2_tokens.dart';
@@ -35,11 +36,11 @@ class DashWebTopBar extends StatelessWidget {
               //   ),
               // ),
               // const SizedBox(width: 20),
-              
+
               Expanded(
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 520),
-                  child : Obx(
+                  child: Obx(
                     () => Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -99,8 +100,9 @@ class DashWebTopBar extends StatelessWidget {
                       controller.notificationCount.value > 99
                           ? '99+'
                           : '${controller.notificationCount.value}',
+                      style: const TextStyle(fontSize: 10, color: Colors.white),
                     ),
-                    backgroundColor: DashV2Colors.red,
+                    backgroundColor: kPrimaryLightColor,
                     child: const Icon(Icons.notifications_none_rounded),
                   ),
                 ),
