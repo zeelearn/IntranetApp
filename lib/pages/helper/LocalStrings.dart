@@ -14,7 +14,6 @@ class LocalStrings {
   static const kGoogleApiKey = "AIzaSyD-x4HqYO1O0kwDpkxIc128nM4f1bZ3oDM";
   static const String GET_TOKEN = "/snltoken";
   static const String GET_LOGIN = '/api/Account/Login';
-  static const String GET_MAGIC_LOGIN = '/api/Account/MagicLogin';
   static const String GET_ATTENDANCE_SUMMERY =
       '/api/EmployeeInfo/GetAttendance';
   static const String GET_LEAVE_SUMMERY = '/api/EmployeeInfo/CheckLeaveBalance';

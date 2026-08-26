@@ -5,7 +5,7 @@ import 'dart:io';
 import 'package:Intranet/api/APIService.dart';
 import 'package:Intranet/api/ServiceHandler.dart';
 import 'package:Intranet/api/response/login_response.dart';
-import 'package:Intranet/main.dart' show NotificationController;
+import 'package:Intranet/main.dart' show NotificationController, MyApp;
 import 'package:Intranet/modules/projects/models/projects_entry_args.dart';
 import 'package:Intranet/modules/projects/views/projects_dashboard_page.dart';
 import 'package:Intranet/pages/bpms/bpms_dashboard.dart';
@@ -43,6 +43,7 @@ import 'package:expensestracker/app/hiveDatabase/hive_database.dart';
 import 'package:expensestracker/presentation/app.dart' as expense_placeholder;
 import 'package:expensestracker/presentation/controllers/dashboard/dashboard_binding.dart';
 import 'package:expensestracker/presentation/controllers/dashboard/dashboard_page_controller.dart';
+import 'package:expensestracker/presentation/pages/claim/courier_detail_page.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
@@ -182,6 +183,58 @@ class DashboardScreenV2Controller extends GetxController
         await registerForegroundNotifications(employeeId.value.toString());
       }
       unawaited(getProfileImage());
+      RemoteMessage? message =
+          await FirebaseMessaging.instance.getInitialMessage();
+
+      // If the message also contains a data property with a "type" of "chat",
+      // navigate to a chat screen
+      if (message != null) {
+        if (message.data['type'] != null && message.data['type'] == 'logout') {
+          Utility.signOut(MyApp.navigatorKey.currentState!.context);
+        } else if (message.data['type'] != null &&
+            message.data['type'] == 'td') {
+          // Util.openSaathiNotification(message);
+        } else if (message.data['type'] != null &&
+            message.data['type'] == 'PJP') {
+          final pjpId = message.data['PjpId'] ?? message.data['pjpId'] ?? message.data['pjpid'] ?? '';
+          if (pjpId.isNotEmpty) {
+            Navigator.push(
+                MyApp.navigatorKey.currentState!.context,
+                MaterialPageRoute(
+                  builder: (context) => DayEventsScreen(
+                    pjpId: pjpId,
+                  ),
+                ));
+          }
+        } else if (message.data['type'] == 'EXPENSE') {
+          Navigator.push(
+              MyApp.navigatorKey.currentState!.context,
+              MaterialPageRoute(
+                builder: (context) => MyWebsiteView(
+                    title: message.data['title'] ?? 'Expense',
+                    url: message.data['url'] ?? ''),
+              ));
+        } else if (message.data['Video_path'] != null) {
+          Navigator.push(
+              MyApp.navigatorKey.currentState!.context,
+              MaterialPageRoute(
+                  builder: (context) => VideoPlayer(
+                        Title: message.data['Video_path']!,
+                        path: message.data['Video_path']!,
+                      )));
+        } else if (message.data['url'] != null &&
+            message.data['url']!.isNotEmpty) {
+          Navigator.push(
+              MyApp.navigatorKey.currentState!.context,
+              MaterialPageRoute(
+                  builder: (context) => const UserNotification()));
+        } else {
+          Navigator.push(
+              MyApp.navigatorKey.currentState!.context,
+              MaterialPageRoute(
+                  builder: (context) => const UserNotification()));
+        }
+      }
     } finally {
       isLoading.value = false;
     }
@@ -194,8 +247,11 @@ class DashboardScreenV2Controller extends GetxController
     if (_shellBootstrapped) return;
     _shellBootstrapped = true;
 
+    NotificationController.isAppFullyLoaded = true;
     WidgetsBinding.instance.addObserver(this);
-    _handleReceivedAction();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _handleReceivedAction(context);
+    });
 
     await initFirebase();
     await NotificationController.initializeLocalNotifications();
@@ -204,6 +260,20 @@ class DashboardScreenV2Controller extends GetxController
       debugPrint('Dashboard V2: onMessageOpenedApp received');
       final ctx = Get.context;
       if (ctx == null) return;
+      if (message.data['type'] != null && message.data['type'] == 'PJP') {
+        final pjpId = message.data['PjpId'] ?? message.data['pjpId'] ?? message.data['pjpid'] ?? '';
+        if (pjpId.isNotEmpty) {
+          await Navigator.of(ctx).push(
+            MaterialPageRoute(
+              builder: (_) => DayEventsScreen(
+                pjpId: pjpId,
+              ),
+            ),
+          );
+          await loadNotificationCount();
+          return;
+        }
+      }
       await Navigator.of(ctx).push(
         MaterialPageRoute(builder: (_) => const UserNotification()),
       );
@@ -216,19 +286,79 @@ class DashboardScreenV2Controller extends GetxController
       } else if (Platform.isIOS) {
         unawaited(_verifyVersion(context));
       }
+    } else {
+      try {
+        final uriStr = getBrowserUrl();
+        final uri = Uri.parse(uriStr);
+        if (uri.queryParameters['type'] == 'PJP') {
+          final pjpId = uri.queryParameters['PjpId'] ?? uri.queryParameters['pjpId'] ?? uri.queryParameters['pjpid'] ?? '';
+          if (pjpId.isNotEmpty) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => DayEventsScreen(
+                    pjpId: pjpId,
+                  ),
+                ),
+              );
+            });
+          }
+        }
+      } catch (e) {
+        debugPrint('Web PJP URL query parse error: $e');
+      }
     }
 
     WidgetsBinding.instance.addPostFrameCallback((_) => _incomingLinkHandler());
   }
 
-  void _handleReceivedAction() {
+  void _handleReceivedAction(BuildContext context) {
     final action = receivedAction;
     final payload = action?.payload;
-    final context = Get.context;
-    if (context == null || payload == null) return;
+    if (payload == null) return;
 
-    if (payload['type'] == 'td') {
+    final type = payload['type']?.toString().toUpperCase();
+
+    if (type == 'TD') {
       Util.openSaathiNotification(action!);
+    } else if (type == 'PJP') {
+      final pjpId =
+          payload['PjpId'] ?? payload['pjpId'] ?? payload['pjpid'] ?? '';
+      if (pjpId.isNotEmpty) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => DayEventsScreen(
+              pjpId: pjpId,
+            ),
+          ),
+        );
+      }
+    } else if (type == 'EXPENSE') {
+      Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => MyWebsiteView(
+                title: payload['title'] ?? 'Expense',
+                url: payload['url'] ?? ''),
+          ));
+    } else if (type == 'EXPENSE-COURIER') {
+      final claimIdStr = payload['cid'] ?? payload['claimId'] ?? payload['claim_id'];
+      final employeeCode = payload['employee_code'] ?? payload['eCode'] ?? payload['e_code'];
+      final isAccchStr = payload['isAccch'] ?? payload['is_accch'] ?? 'false';
+      final claimId = claimIdStr != null ? int.tryParse(claimIdStr.toString()) : null;
+      final isAccch = isAccchStr.toString() == 'true';
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => CourierDetailPage(
+            claimId: claimId,
+            employeeCode: employeeCode?.toString(),
+            isAccch: isAccch,
+          ),
+        ),
+      );
     } else if (payload['Video_path'] != null) {
       Navigator.of(context).push(
         MaterialPageRoute(
@@ -491,8 +621,8 @@ class DashboardScreenV2Controller extends GetxController
 
   Future<void> loadNotificationCount() async {
     try {
-      final list = await DBHelper().getData(LocalConstant.TABLE_NOTIFICATION);
-      notificationCount.value = list.length;
+      final count = await DBHelper().getUnreadNotificationCount();
+      notificationCount.value = count;
     } catch (error) {
       debugPrint('Dashboard V2 notification count failed: $error');
     }
@@ -729,6 +859,7 @@ class DashboardScreenV2Controller extends GetxController
     await HiveDatabase.clear();
     expense_placeholder.clearAllExpenseControllers();
     await hiveBox.close();
+    await AwesomeNotifications().cancelAll();
     await Future<void>.delayed(const Duration(seconds: 1));
     resetWebUrl();
     if (!context.mounted) return;

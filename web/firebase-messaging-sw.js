@@ -17,6 +17,50 @@ firebase.initializeApp({
 
 
 
+function storeNotificationInIndexedDB(data) {
+  return new Promise((resolve) => {
+    let req = indexedDB.open('background_notifications', 1);
+    req.onupgradeneeded = function (e) {
+      let db = e.target.result;
+      if (!db.objectStoreNames.contains('notifications')) {
+        db.createObjectStore('notifications', { keyPath: 'id', autoIncrement: true });
+      }
+    };
+    req.onsuccess = function (e) {
+      let db = e.target.result;
+      if (!db.objectStoreNames.contains('notifications')) {
+        resolve();
+        return;
+      }
+      let tx = db.transaction(['notifications'], 'readwrite');
+      let store = tx.objectStore('notifications');
+      let record = {
+        title: data.title || '',
+        description: data.body || data.description || '',
+        type: data.type || '',
+        date: new Date().toISOString(),
+        imageurl: data.url || data.imageurl || '',
+        logoUrl: data.logo || data.logoUrl || '',
+        bigImageUrl: data.bigimage || data.bigImageUrl || '',
+        webViewLink: data.url || data.webViewLink || ''
+      };
+      let addReq = store.add(record);
+      addReq.onsuccess = function () {
+        console.log("Successfully stored background notification in IndexedDB", record);
+        resolve();
+      };
+      addReq.onerror = function (err) {
+        console.error("Failed to add record to IndexedDB notifications store", err);
+        resolve();
+      };
+    };
+    req.onerror = function (err) {
+      console.error("Failed to open IndexedDB background_notifications", err);
+      resolve();
+    };
+  });
+}
+
 const messaging = firebase.messaging();
 
 self.addEventListener("notificationclick", function (event) {
@@ -25,12 +69,12 @@ self.addEventListener("notificationclick", function (event) {
   const targetUrl = event.notification.data?.url || '/';
   event.waitUntil(
     clients.matchAll({ type: "window", includeUncontrolled: true }).then(windowClients => {
-      for (const client of windowClients) {
-        // Focus existing tab if same origin
-        if (client.url.includes(self.location.origin) && "focus" in client) {
-          return client.focus();
-        }
-      }
+      // for (const client of windowClients) {
+      //   // Focus existing tab if same origin
+      //   if (client.url.includes(self.location.origin) && "focus" in client) {
+      //     return client.focus();
+      //   }
+      // }
       // Always try openWindow — Chrome only blocks cross-origin in insecure mode
       return clients.openWindow(targetUrl).catch(err => {
         console.warn("openWindow blocked:", err);
@@ -58,20 +102,27 @@ self.addEventListener('push', function (event) {
   const notificationTitle = payload.data.title;
   console.log('Notification title is - ', notificationTitle);
 
+  const pjpIdVal = payload.data.PjpId || payload.data.pjpId || payload.data.pjpid || '';
   const notificationOptions = { 
     body: payload.data.body, 
     icon: 'https://zeelearn.com/wp-content/uploads/zeelearnlogo_new171.png', 
-    data: { url: payload.data.url } 
+    data: Object.assign({}, payload.data, {
+      url: (payload.data.type === 'PJP' && pjpIdVal) 
+        ? ('/?type=PJP&PjpId=' + pjpIdVal) 
+        : (payload.data.url || '/')
+    })
   };
 
   const showPromise = new Promise((resolve) => {
     const showNotification = () => {
-      self.registration.showNotification(notificationTitle, notificationOptions)
-        .then(() => resolve())
-        .catch((e) => {
-          console.log('Error in showing notification - ', e);
-          resolve();
-        });
+      storeNotificationInIndexedDB(payload.data).then(() => {
+        self.registration.showNotification(notificationTitle, notificationOptions)
+          .then(() => resolve())
+          .catch((e) => {
+            console.log('Error in showing notification - ', e);
+            resolve();
+          });
+      });
     };
 
     if (payload.data.user_id && !payload.data.employee_code) {

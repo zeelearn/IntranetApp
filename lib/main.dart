@@ -21,8 +21,10 @@ import 'package:Intranet/pages/pjp/cvf/CheckInModel.dart';
 import 'package:Intranet/pages/summary%20dashboard/summary_dashboard.dart';
 import 'package:Intranet/pages/theme/extention.dart';
 import 'package:Intranet/pages/utils/theme/colors/light_colors.dart';
+import 'package:Intranet/pages/widget/MyWebSiteView.dart';
 import 'package:Intranet/pages/widget/VideoPlayer.dart';
 import 'package:awesome_notifications/awesome_notifications.dart';
+import 'package:expensestracker/presentation/pages/claim/courier_detail_page.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
@@ -130,8 +132,10 @@ part 'main.g.dart';
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  WidgetsFlutterBinding.ensureInitialized();
+  DartPluginRegistrant.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-
+  await NotificationController.initializeLocalNotifications();
   NotificationService().parseNotification(message);
 }
 
@@ -295,7 +299,7 @@ Future<void> main() async {
   // }
 
   NotificationController.startListeningNotificationEvents();
-  await NotificationController.initializeLocalNotifications();
+  await NotificationController.initializeLocalNotifications(requestPermission: true);
 
   if (!kIsWeb) {
     await NotificationController.initializeIsolateReceivePort();
@@ -304,8 +308,49 @@ Future<void> main() async {
     // Set the background messaging handler early on, as a named top-level function
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-      Navigator.push(MyApp.navigatorKey.currentState!.context,
-          MaterialPageRoute(builder: (context) => const UserNotification()));
+      if (message.data['type'] != null && message.data['type'] == 'logout') {
+        Utility.signOut(MyApp.navigatorKey.currentState!.context);
+      } else if (message.data['type'] != null && message.data['type'] == 'td') {
+        // Util.openSaathiNotification(message);
+      } else if (message.data['type'] != null &&
+          message.data['type'] == 'PJP') {
+        final pjpId = message.data['PjpId'] ?? message.data['pjpId'] ?? message.data['pjpid'] ?? '';
+        if (pjpId.isNotEmpty) {
+          Navigator.push(
+            MyApp.navigatorKey.currentState!.context,
+            MaterialPageRoute(
+              builder: (context) => DayEventsScreen(
+                pjpId: pjpId,
+              ),
+            ),
+          );
+        }
+      } else if (message.data['type'] == 'EXPENSE') {
+        Navigator.push(
+            MyApp.navigatorKey.currentState!.context,
+            MaterialPageRoute(
+              builder: (context) => MyWebsiteView(
+                  title: message.data['title'] ?? 'Expense',
+                  url: message.data['url'] ?? ''),
+            ));
+      } else if (message.data['Video_path'] != null) {
+        Navigator.push(
+            MyApp.navigatorKey.currentState!.context,
+            MaterialPageRoute(
+                builder: (context) => VideoPlayer(
+                      Title: message.data['Video_path']!,
+                      path: message.data['Video_path']!,
+                    )));
+      } else if (message.data['url'] != null &&
+          message.data['url']!.isNotEmpty) {
+        Navigator.push(MyApp.navigatorKey.currentState!.context,
+            MaterialPageRoute(builder: (context) => const UserNotification()));
+      } else {
+        Navigator.push(MyApp.navigatorKey.currentState!.context,
+            MaterialPageRoute(builder: (context) => const UserNotification()));
+      }
+      /* Navigator.push(MyApp.navigatorKey.currentState!.context,
+          MaterialPageRoute(builder: (context) => const UserNotification())); */
     });
   }
   if (!kIsWeb) {
@@ -744,10 +789,28 @@ Future _showNotificationWithDefaultSound(
         NOTIFICATION_BIG_PICTURE: imageUrl
       };
 
-      AwesomeNotifications()
-          .createNotificationFromJsonData(notificationAdapter);
+      try {
+        bool isAllowed = await AwesomeNotifications().isNotificationAllowed();
+        if (isAllowed) {
+          await AwesomeNotifications()
+              .createNotificationFromJsonData(notificationAdapter);
+        } else {
+          debugPrint('AwesomeNotifications: notification not allowed');
+        }
+      } catch (e) {
+        debugPrint('AwesomeNotifications createNotification error: $e');
+      }
     } else {
-      AwesomeNotifications().createNotificationFromJsonData(message.data);
+      try {
+        bool isAllowed = await AwesomeNotifications().isNotificationAllowed();
+        if (isAllowed) {
+          await AwesomeNotifications().createNotificationFromJsonData(message.data);
+        } else {
+          debugPrint('AwesomeNotifications: notification not allowed');
+        }
+      } catch (e) {
+        debugPrint('AwesomeNotifications createNotification error: $e');
+      }
     }
   } else {
     NotificationService notificationService = NotificationService();
@@ -1003,6 +1066,8 @@ class _MyAppState extends State<MyApp> {
 
 class NotificationController {
   static ReceivePort? receivePort;
+  static bool isAppFullyLoaded = false;
+  static ReceivedAction? coldStartAction;
   static Future<void> initializeIsolateReceivePort() async {
     receivePort = ReceivePort('Notification action port in main isolate')
       ..listen(
@@ -1033,9 +1098,9 @@ class NotificationController {
   ///     INITIALIZATIONS
   ///  *********************************************
   ///
-  static Future<void> initializeLocalNotifications() async {
+  static Future<void> initializeLocalNotifications({bool requestPermission = false}) async {
     await AwesomeNotifications().initialize(
-        null, //'resource://drawable/res_app_icon',//
+        'resource://drawable/ic_notification',
         [
           NotificationChannel(
               channelKey: LocalConstant.NOTIFICATION_CHANNEL,
@@ -1045,15 +1110,37 @@ class NotificationController {
               onlyAlertOnce: true,
               importance: NotificationImportance.High,
               defaultPrivacy: NotificationPrivacy.Private,
-              defaultColor: Colors.deepPurple,
+              defaultColor: kPrimaryLightColor,
               channelShowBadge: true,
-              ledColor: Colors.deepPurple)
+              ledColor: kPrimaryLightColor),
+          NotificationChannel(
+              channelKey: 'big_picture',
+              channelName: 'Big Picture Notifications',
+              channelDescription: "Big picture notifications for Intranet",
+              playSound: true,
+              onlyAlertOnce: true,
+              importance: NotificationImportance.High,
+              defaultPrivacy: NotificationPrivacy.Private,
+              defaultColor: kPrimaryLightColor,
+              channelShowBadge: true,
+              ledColor: kPrimaryLightColor)
         ],
         debug: true);
 
     // Get initial notification action is optional
     initialAction = await AwesomeNotifications()
         .getInitialNotificationAction(removeFromActionEvents: false);
+
+    if (requestPermission) {
+      try {
+        bool isAllowed = await AwesomeNotifications().isNotificationAllowed();
+        if (!isAllowed) {
+          await AwesomeNotifications().requestPermissionToSendNotifications();
+        }
+      } catch (e) {
+        debugPrint('Error requesting notification permission: $e');
+      }
+    }
   }
 
   ///  *********************************************
@@ -1076,14 +1163,62 @@ class NotificationController {
         receivedAction.actionType == ActionType.SilentBackgroundAction) {
       // For background actions, you must hold the execution until the end
       // await executeLongTaskInBackground();
-    } else if (receivedAction.payload != null &&
-        receivedAction.payload!['type'] != null &&
-        receivedAction.payload!['type'] == 'logout') {
+      return;
+    }
+
+    if (!isAppFullyLoaded) {
+      coldStartAction = receivedAction;
+      debugPrint(
+          "Storing cold start action for DashboardScreenV2: ${receivedAction.id}");
+      return;
+    }
+
+    final payload = receivedAction.payload;
+    if (payload == null) return;
+    final type = payload['type']?.toString().toUpperCase();
+
+    if (type == 'LOGOUT') {
       Utility.signOut(MyApp.navigatorKey.currentState!.context);
-    } else if (receivedAction.payload != null &&
-        receivedAction.payload!['type'] != null &&
-        receivedAction.payload!['type'] == 'td') {
+    } else if (type == 'TD') {
       Util.openSaathiNotification(receivedAction);
+    } else if (type == 'PJP') {
+      final pjpId = payload['PjpId'] ??
+          payload['pjpId'] ??
+          payload['pjpid'] ??
+          '';
+      if (pjpId.isNotEmpty) {
+        Navigator.push(
+          MyApp.navigatorKey.currentState!.context,
+          MaterialPageRoute(
+            builder: (context) => DayEventsScreen(
+              pjpId: pjpId,
+            ),
+          ),
+        );
+      }
+    } else if (type == 'EXPENSE-COURIER') {
+      final claimid = receivedAction.payload?['cid'] ?? receivedAction.payload?['claimId'] ?? receivedAction.payload?['claim_id'];
+      final eCode = receivedAction.payload?['employee_code'];
+      final isAccch = receivedAction.payload?['isAccch'] ?? 'false';
+      debugPrint(
+          "Courier Notification: claimId=$claimid, eCode=$eCode, isAccch=$isAccch");
+      Navigator.push(
+          MyApp.navigatorKey.currentState!.context,
+          MaterialPageRoute(
+            builder: (context) => CourierDetailPage(
+              claimId: claimid != null ? int.tryParse(claimid) : null,
+              employeeCode: eCode,
+              isAccch: isAccch == 'true',
+            ),
+          ));
+    } else if (type == 'EXPENSE') {
+      Navigator.push(
+          MyApp.navigatorKey.currentState!.context,
+          MaterialPageRoute(
+            builder: (context) => MyWebsiteView(
+                title: receivedAction.payload?['title'] ?? 'Expense',
+                url: receivedAction.payload?['url'] ?? ''),
+          ));
     } else if (receivedAction.payload != null &&
         receivedAction.payload!['Video_path'] != null) {
       Navigator.push(
