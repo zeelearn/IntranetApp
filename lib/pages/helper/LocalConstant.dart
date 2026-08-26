@@ -24,7 +24,7 @@ class LocalConstant {
   static const String KEY_EMPLOYEE_ID = "empid";
   static const String KEY_EMPLOYEE_AVTAR = "empavtar";
   static const String KEY_EMPLOYEE_AVTAR_LIST = "empavtar_list";
-  static const String KEY_FCM_ID = "fcmid";
+  static const String KEY_FCM_ID = "fcmidv1";
   static const String KEY_EMPLOYEE_CODE = "employee_Code";
   static const String KEY_FIRST_NAME = "employee_FirstName";
   static const String KEY_LAST_NAME = "employee_LastName";
