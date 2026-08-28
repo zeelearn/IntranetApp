@@ -1,5 +1,7 @@
 import 'package:Intranet/pages/helper/LocalConstant.dart';
 import 'package:Intranet/pages/helper/LocalStrings.dart';
+import 'package:Intranet/pages/pjp/cvf/share_report/models/cvf_internal_data.dart';
+import 'package:Intranet/pages/pjp/cvf/share_report/models/enrolment_status_item.dart';
 import 'package:Intranet/pages/pjp/cvf/share_report/models/share_report_args.dart';
 import 'package:Intranet/pages/pjp/cvf/share_report/models/share_report_email_data.dart';
 import 'package:Intranet/pages/pjp/cvf/share_report/models/teacher_observation_item.dart';
@@ -14,6 +16,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
+import 'package:intl/intl.dart';
 
 class ShareReportController extends GetxController {
   ShareReportController({
@@ -33,6 +36,15 @@ class ShareReportController extends GetxController {
   final urgentAttention = <UrgentAttentionItem>[].obs;
   final teacherObservation = <TeacherObservationItem>[].obs;
   final trainingSupport = <TrainingSupportItem>[].obs;
+
+  /// Enrolment Status — fixed PLAY GROUP / NURSERY / JR / SR rows.
+  final enrolmentStatus = <EnrolmentStatusRow>[].obs;
+
+  /// Full `internal_data[0]` from GetPJPCVFEmail (branding + matrix source).
+  final internalData = Rxn<CvfInternalData>();
+
+  /// Bumps branding matrix rebuild after head/reg edits.
+  final enrolmentMatrixTick = 0.obs;
 
   final isSending = false.obs;
   final isLoading = false.obs;
@@ -131,6 +143,14 @@ class ShareReportController extends GetxController {
     }
   }
 
+  bool get brandingUpgraded =>
+      internalData.value?.brandingUpgraded ?? false;
+
+  String get brandingLabel =>
+      internalData.value?.requestedPenteMind.trim().isNotEmpty == true
+          ? internalData.value!.requestedPenteMind.trim()
+          : 'No';
+
   Future<void> _bootstrap() async {
     isLoading.value = true;
     sectionError.value = '';
@@ -162,13 +182,15 @@ class ShareReportController extends GetxController {
       urgentAttention.assignAll([UrgentAttentionItem()]);
       teacherObservation.assignAll([TeacherObservationItem()]);
       trainingSupport.assignAll([TrainingSupportItem()]);
+      enrolmentStatus.assignAll(<EnrolmentStatusRow>[]);
+      internalData.value = null;
 
       pdfAvailable.value =
           args.isCheckedOut && cvfId.isNotEmpty && pjpId.isNotEmpty;
 
-      if (args.cvf.isEmailSubmitted) {
-        await _loadSubmittedReport();
-      }
+      // Always load GetPJPCVFEmail — internal_data drives enrolment tables
+      // for both draft and submitted reports.
+      await _loadCvfEmailPayload();
 
       _bumpPreview();
     } finally {
@@ -181,20 +203,23 @@ class ShareReportController extends GetxController {
     return '${LocalStrings.CVF_REPORT_URL}$cvfId';
   }
 
-  Future<void> _loadSubmittedReport() async {
+  Future<void> _loadCvfEmailPayload() async {
     if (_empId <= 0) {
-      sectionError.value =
-          'Unable to load submitted report: employee ID is missing.';
-      Get.snackbar(
-        'Error',
-        sectionError.value,
-        snackPosition: SnackPosition.BOTTOM,
-      );
+      if (args.cvf.isEmailSubmitted) {
+        sectionError.value =
+            'Unable to load report: employee ID is missing.';
+        Get.snackbar(
+          'Error',
+          sectionError.value,
+          snackPosition: SnackPosition.BOTTOM,
+        );
+      }
       return;
     }
     if (pjpId.isEmpty || cvfId.isEmpty) {
-      sectionError.value =
-          'Unable to load submitted report: PJP/CVF ID is missing.';
+      if (args.cvf.isEmailSubmitted) {
+        sectionError.value = 'Unable to load report: PJP/CVF ID is missing.';
+      }
       return;
     }
 
@@ -205,13 +230,16 @@ class ShareReportController extends GetxController {
     );
 
     if (!result.success || result.data == null) {
-      sectionError.value = result.message;
-      Get.snackbar(
-        'Unable to load report',
-        result.message,
-        snackPosition: SnackPosition.BOTTOM,
-        duration: const Duration(seconds: 4),
-      );
+      // Draft compose can continue without email payload; submitted must show error.
+      if (args.cvf.isEmailSubmitted) {
+        sectionError.value = result.message;
+        Get.snackbar(
+          'Unable to load report',
+          result.message,
+          snackPosition: SnackPosition.BOTTOM,
+          duration: const Duration(seconds: 4),
+        );
+      }
       return;
     }
 
@@ -222,7 +250,9 @@ class ShareReportController extends GetxController {
     if (data.to.isNotEmpty) {
       toEmails.assignAll(data.to.map((e) => e.trim()).where((e) => e.isNotEmpty));
     }
-    ccEmails.assignAll(data.cc.map((e) => e.trim()).where((e) => e.isNotEmpty));
+    if (data.cc.isNotEmpty) {
+      ccEmails.assignAll(data.cc.map((e) => e.trim()).where((e) => e.isNotEmpty));
+    }
 
     if (data.subject.trim().isNotEmpty) {
       subject.value = data.subject.trim();
@@ -232,29 +262,56 @@ class ShareReportController extends GetxController {
       pdfAvailable.value = true;
     }
 
-    workingWell.assignAll(
-      data.workingWell.isEmpty ? [WorkingWellItem()] : data.workingWell,
-    );
-    urgentAttention.assignAll(
-      data.urgentAttention.isEmpty
-          ? [UrgentAttentionItem()]
-          : data.urgentAttention,
-    );
-    teacherObservation.assignAll(
-      data.teacherObservation.isEmpty
-          ? [TeacherObservationItem()]
-          : data.teacherObservation,
-    );
-    trainingSupport.assignAll(
-      data.trainingSupport.isEmpty
-          ? [TrainingSupportItem()]
-          : data.trainingSupport,
-    );
+    if (data.workingWell.isNotEmpty) {
+      workingWell.assignAll(data.workingWell);
+    }
+    if (data.urgentAttention.isNotEmpty) {
+      urgentAttention.assignAll(data.urgentAttention);
+    }
+    if (data.teacherObservation.isNotEmpty) {
+      for (final t in data.teacherObservation) {
+        t.appStatus =
+            TeacherObservationItem.normalizeAppStatus(t.appStatus);
+      }
+      teacherObservation.assignAll(data.teacherObservation);
+    }
+    if (data.trainingSupport.isNotEmpty) {
+      trainingSupport.assignAll(data.trainingSupport);
+    }
 
-    isAlreadySubmitted.value = true;
-    isReadOnly.value = true;
+    if (data.enrolmentStatus.isNotEmpty) {
+      enrolmentStatus.assignAll(data.enrolmentStatus);
+    } else {
+      enrolmentStatus.assignAll(<EnrolmentStatusRow>[]);
+    }
+
+    internalData.value = data.internalData;
+    enrolmentMatrixTick.value++;
+
+    final submitted = args.cvf.isEmailSubmitted ||
+        (data.internalData?.isSubmitted ?? false);
+    isAlreadySubmitted.value = submitted;
+    isReadOnly.value = submitted;
     sectionError.value = '';
     _bumpPreview();
+  }
+
+  void onHeadCountChanged(int classId, String raw) {
+    if (isReadOnly.value) return;
+    final data = internalData.value;
+    if (data == null) return;
+    data.setHeadCount(classId, int.tryParse(raw.trim()) ?? 0);
+    enrolmentMatrixTick.value++;
+    onRowEdited();
+  }
+
+  void onRegCountChanged(int classId, String raw) {
+    if (isReadOnly.value) return;
+    final data = internalData.value;
+    if (data == null) return;
+    data.setRegCount(classId, int.tryParse(raw.trim()) ?? 0);
+    enrolmentMatrixTick.value++;
+    onRowEdited();
   }
 
   // --- Dynamic rows ---
@@ -402,8 +459,15 @@ class ShareReportController extends GetxController {
     );
   }
 
+  void _syncEnrolmentIntoInternalData() {
+    final data = internalData.value;
+    if (data == null) return;
+    data.enrStatusArray =
+        EnrolmentStatusRow.toEnrStatusArray(enrolmentStatus.toList());
+  }
+
   ShareReportEmailData buildSendPayload() {
-    
+    _syncEnrolmentIntoInternalData();
     return ShareReportEmailData(
       pjpId: pjpId,
       cvfId: cvfId,
@@ -413,14 +477,14 @@ class ShareReportController extends GetxController {
       body: generateEmailBody(),
       isHtml: true,
       contentType: 'text/html',
-      attachmentUrl: attachmentUrl.value.trim().isEmpty
-          ? _defaultAttachmentUrl()
-          : attachmentUrl.value.trim(),
+      attachmentUrl: '',
       workingWell: _emailService.filledWorkingWell(workingWell.toList()),
       urgentAttention: _emailService.filledUrgent(urgentAttention.toList()),
       teacherObservation:
           _emailService.filledTeachers(teacherObservation.toList()),
       trainingSupport: _emailService.filledTraining(trainingSupport.toList()),
+      enrolmentStatus: enrolmentStatus.toList(),
+      internalData: internalData.value,
     );
   }
 
@@ -505,9 +569,14 @@ class ShareReportController extends GetxController {
     }
 
     for (var i = 0; i < teacherObservation.length; i++) {
-      final n = teacherObservation[i].teacherName.trim();
-      final c = teacherObservation[i].className.trim();
-      final s = teacherObservation[i].appStatus.trim();
+      final item = teacherObservation[i];
+      // Re-normalize in case of stale / mixed-case drafts.
+      item.appStatus =
+          TeacherObservationItem.normalizeAppStatus(item.appStatus);
+
+      final n = item.teacherName.trim();
+      final c = item.className.trim();
+      final s = item.appStatus;
       if (n.isEmpty) {
         return 'Teacher Observation #${i + 1}: Teacher Name is required.';
       }
@@ -520,8 +589,9 @@ class ShareReportController extends GetxController {
       if (c.length > 100) {
         return 'Teacher Observation #${i + 1}: Class max 100 characters.';
       }
-      if (s.isEmpty) {
-        return 'Teacher Observation #${i + 1}: App Status is required.';
+      if (s.isEmpty || !item.hasValidAppStatus) {
+        return 'Teacher Observation #${i + 1}: App Status must be '
+            '${TeacherObservationItem.appStatusOptions.join(', ')}.';
       }
     }
 
@@ -538,6 +608,9 @@ class ShareReportController extends GetxController {
       }
     }
 
+    final enrolmentError = _validateEnrolmentSections();
+    if (enrolmentError != null) return enrolmentError;
+
     if (workingWell.isEmpty) {
       return "Add at least one What's Working Well entry.";
     }
@@ -551,6 +624,99 @@ class ShareReportController extends GetxController {
       return 'Add at least one Training & Support entry.';
     }
 
+    return null;
+  }
+
+  String? _validateEnrolmentSections() {
+    for (var i = 0; i < enrolmentStatus.length; i++) {
+      final row = enrolmentStatus[i];
+      final rowLabel = EnrolmentStatusRow.displayText(row.batch).isEmpty
+          ? 'Enrolment Status #${i + 1}'
+          : EnrolmentStatusRow.displayText(row.batch);
+
+      final totalErr = _validateNonNegativeInt(
+        row.totalChildren,
+        label: '$rowLabel — Total No of Children',
+        required: false,
+        max: 9999,
+      );
+      if (totalErr != null) return totalErr;
+
+      if (!row.hasAnyValue) continue;
+
+      final name = row.teacherName.trim();
+      if (name.isEmpty) {
+        return '$rowLabel: Teacher Name is required when details are entered.';
+      }
+      if (name.length > 100) {
+        return '$rowLabel: Teacher Name max 100 characters.';
+      }
+
+      final doj = row.dateOfJoining.trim();
+      if (doj.isNotEmpty && !_isValidDoj(doj)) {
+        return '$rowLabel: Date of Joining is invalid.';
+      }
+
+      final tt = row.tutelageTrained.trim().toUpperCase();
+      if (tt.isNotEmpty && tt != 'Y' && tt != 'N') {
+        return '$rowLabel: Tutelage must be Y or N.';
+      }
+
+      final pto = row.ptoScore.trim();
+      if (pto.isNotEmpty) {
+        final score = double.tryParse(pto);
+        if (score == null) {
+          return '$rowLabel: PTO Score must be a number.';
+        }
+        if (score < 0 || score > 100) {
+          return '$rowLabel: PTO Score must be between 0 and 100.';
+        }
+      }
+    }
+
+    final data = internalData.value;
+    if (data == null || data.headCnt.isEmpty) {
+      return null;
+    }
+
+    for (final cls in data.headCnt) {
+      final hc = cls.cnt;
+      if (hc != null && (hc < 0 || hc > 9999)) {
+        return 'Head Count (${cls.className}) must be between 0 and 9999.';
+      }
+      final rc = data.regCountOrNull(cls.classId);
+      if (rc != null && (rc < 0 || rc > 9999)) {
+        return 'Register Count (${cls.className}) must be between 0 and 9999.';
+      }
+    }
+
+    return null;
+  }
+
+  bool _isValidDoj(String raw) {
+    for (final pattern in const ['dd-MM-yyyy', 'dd-MMM-yyyy', 'yyyy-MM-dd']) {
+      try {
+        DateFormat(pattern).parseStrict(raw);
+        return true;
+      } catch (_) {}
+    }
+    return false;
+  }
+
+  String? _validateNonNegativeInt(
+    String raw, {
+    required String label,
+    required bool required,
+    int max = 9999,
+  }) {
+    final value = raw.trim();
+    if (value.isEmpty) {
+      return required ? '$label is required.' : null;
+    }
+    final n = int.tryParse(value);
+    if (n == null) return '$label must be a whole number.';
+    if (n < 0) return '$label cannot be negative.';
+    if (n > max) return '$label cannot exceed $max.';
     return null;
   }
 

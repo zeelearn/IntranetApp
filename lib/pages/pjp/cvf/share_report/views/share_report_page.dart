@@ -1,7 +1,9 @@
 import 'package:Intranet/pages/pjp/cvf/share_report/controllers/share_report_controller.dart';
 import 'package:Intranet/pages/pjp/cvf/share_report/models/share_report_args.dart';
+import 'package:Intranet/pages/pjp/cvf/share_report/views/widgets/branding_enrolment_section.dart';
 import 'package:Intranet/pages/pjp/cvf/share_report/views/widgets/cvf_info_card.dart';
 import 'package:Intranet/pages/pjp/cvf/share_report/views/widgets/email_preview.dart';
+import 'package:Intranet/pages/pjp/cvf/share_report/views/widgets/enrolment_status_section.dart';
 import 'package:Intranet/pages/pjp/cvf/share_report/views/widgets/share_report_theme.dart';
 import 'package:Intranet/pages/pjp/cvf/share_report/views/widgets/teacher_observation_section.dart';
 import 'package:Intranet/pages/pjp/cvf/share_report/views/widgets/training_support_section.dart';
@@ -328,6 +330,10 @@ class _FormPane extends StatelessWidget {
                       title: 'Training & Support Provided',
                       child: TrainingSupportSection(hideTitle: true),
                     ),
+                    SizedBox(height: 12),
+                    EnrolmentStatusSection(),
+                    SizedBox(height: 16),
+                    BrandingEnrolmentSection(),
                   ],
                 ),
               ),

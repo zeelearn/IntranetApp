@@ -1,3 +1,5 @@
+import 'package:Intranet/pages/pjp/cvf/share_report/models/cvf_internal_data.dart';
+import 'package:Intranet/pages/pjp/cvf/share_report/models/enrolment_status_item.dart';
 import 'package:Intranet/pages/pjp/cvf/share_report/models/teacher_observation_item.dart';
 import 'package:Intranet/pages/pjp/cvf/share_report/models/training_support_item.dart';
 import 'package:Intranet/pages/pjp/cvf/share_report/models/urgent_attention_item.dart';
@@ -5,7 +7,7 @@ import 'package:Intranet/pages/pjp/cvf/share_report/models/working_well_item.dar
 
 /// Parsed payload from `GetPJPCVFEmail` / body for `SendPJPCVFEmail`.
 class ShareReportEmailData {
-  const ShareReportEmailData({
+  ShareReportEmailData({
     this.pjpId = '',
     this.cvfId = '',
     this.to = const [],
@@ -19,6 +21,8 @@ class ShareReportEmailData {
     this.urgentAttention = const [],
     this.teacherObservation = const [],
     this.trainingSupport = const [],
+    this.enrolmentStatus = const [],
+    this.internalData,
   });
 
   final String pjpId;
@@ -34,8 +38,17 @@ class ShareReportEmailData {
   final List<UrgentAttentionItem> urgentAttention;
   final List<TeacherObservationItem> teacherObservation;
   final List<TrainingSupportItem> trainingSupport;
+  final List<EnrolmentStatusRow> enrolmentStatus;
+  final CvfInternalData? internalData;
 
   factory ShareReportEmailData.fromJson(Map<String, dynamic> json) {
+    final internal = CvfInternalData.firstFrom(
+      json['internal_data'] ?? json['internalData'],
+    );
+    final enrolmentFromInternal = internal == null
+        ? const <EnrolmentStatusRow>[]
+        : EnrolmentStatusRow.fromEnrStatusArray(internal.enrStatusArray);
+
     return ShareReportEmailData(
       pjpId: _str(json['PJP_Id'] ?? json['pjp_Id']),
       cvfId: _str(json['PJPCVF_Id'] ?? json['pjpcvf_Id']),
@@ -63,19 +76,23 @@ class ShareReportEmailData {
       trainingSupport: _parseTraining(
         json['tasp'] ?? json['TrainingAndSupportProvided'],
       ),
+      enrolmentStatus: enrolmentFromInternal.isNotEmpty
+          ? enrolmentFromInternal
+          : const [],
+      internalData: internal,
     );
   }
 
   /// Inner JSON object expected by SendPJPCVFEmail (`InputData` string).
-  ///
-  /// Shape:
-  /// - `www` / `tasp`: `List<String>`
-  /// - `ua`: `List<{aoc, tl}>`
-  /// - `to`: `List<{tn, class, app}>`
-  /// - `Body`: always blank (preview-only)
   Map<String, dynamic> toApiPayload() {
+    final internal = internalData;
+    if (internal != null) {
+      internal.enrStatusArray =
+          EnrolmentStatusRow.toEnrStatusArray(enrolmentStatus);
+    }
+
     return <String, dynamic>{
-      'PJP_Id': pjpId,
+      'PJP_Id':  pjpId,
       'PJPCVF_Id': cvfId,
       'To': to,
       'CC': cc,
@@ -100,6 +117,7 @@ class ShareReportEmailData {
           .map((e) => e.toApiString())
           .where((e) => e.isNotEmpty)
           .toList(),
+      if (internal != null) 'internal_data': [internal.toJson()],
     };
   }
 

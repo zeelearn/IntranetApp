@@ -432,6 +432,71 @@ class _PreviewTable extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final wide = headers.length > 5;
+    final table = Table(
+      border: TableBorder(
+        horizontalInside: BorderSide(color: ShareReportTheme.border),
+        verticalInside:
+            BorderSide(color: ShareReportTheme.border.withValues(alpha: 0.8)),
+      ),
+      defaultColumnWidth: wide
+          ? const FixedColumnWidth(78)
+          : const FlexColumnWidth(),
+      columnWidths: wide
+          ? {
+              0: FixedColumnWidth(
+                headers.first.trim().isEmpty ? 150 : 110,
+              ),
+            }
+          : {
+              0: const FixedColumnWidth(40),
+              for (var i = 1; i < headers.length; i++)
+                i: const FlexColumnWidth(),
+            },
+      children: [
+        TableRow(
+          decoration:
+              const BoxDecoration(color: ShareReportTheme.composeHeader),
+          children: [
+            for (final h in headers)
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
+                child: Text(
+                  h,
+                  style: GoogleFonts.poppins(
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.w700,
+                    color: ShareReportTheme.textSecondary,
+                  ),
+                ),
+              ),
+          ],
+        ),
+        for (var r = 0; r < rows.length; r++)
+          TableRow(
+            decoration: BoxDecoration(
+              color: r.isEven ? Colors.white : const Color(0xFFFAFBFC),
+            ),
+            children: [
+              for (final cell in rows[r])
+                Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 6, vertical: 7),
+                  child: Text(
+                    cell,
+                    style: GoogleFonts.poppins(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w400,
+                      color: ShareReportTheme.textPrimary,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+      ],
+    );
+
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
@@ -439,58 +504,12 @@ class _PreviewTable extends StatelessWidget {
         borderRadius: BorderRadius.circular(8),
       ),
       clipBehavior: Clip.antiAlias,
-      child: Table(
-        border: TableBorder(
-          horizontalInside: BorderSide(color: ShareReportTheme.border),
-          verticalInside:
-              BorderSide(color: ShareReportTheme.border.withValues(alpha: 0.8)),
-        ),
-        columnWidths: {
-          0: const FixedColumnWidth(40),
-          for (var i = 1; i < headers.length; i++) i: const FlexColumnWidth(),
-        },
-        children: [
-          TableRow(
-            decoration: const BoxDecoration(color: ShareReportTheme.composeHeader),
-            children: [
-              for (final h in headers)
-                Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                  child: Text(
-                    h,
-                    style: GoogleFonts.poppins(
-                      fontSize: 11.5,
-                      fontWeight: FontWeight.w700,
-                      color: ShareReportTheme.textSecondary,
-                    ),
-                  ),
-                ),
-            ],
-          ),
-          for (var r = 0; r < rows.length; r++)
-            TableRow(
-              decoration: BoxDecoration(
-                color: r.isEven ? Colors.white : const Color(0xFFFAFBFC),
-              ),
-              children: [
-                for (final cell in rows[r])
-                  Padding(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                    child: Text(
-                      cell,
-                      style: GoogleFonts.poppins(
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.w400,
-                        color: ShareReportTheme.textPrimary,
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-        ],
-      ),
+      child: wide
+          ? SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: table,
+            )
+          : table,
     );
   }
 }

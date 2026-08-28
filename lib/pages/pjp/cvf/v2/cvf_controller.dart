@@ -6,7 +6,7 @@ import 'package:Intranet/api/ServiceHandler.dart';
 import 'package:Intranet/api/request/cvf/get_cvf_request.dart';
 import 'package:Intranet/api/request/cvf/update_cvf_status_request.dart';
 import 'package:Intranet/api/request/pjp/get_pjp_list_request.dart';
-import 'package:Intranet/api/response/cvf/get_all_cvf.dart';
+import 'package:Intranet/api/response/cvf/get_all_cvf.dart' hide Purpose;
 import 'package:Intranet/api/response/pjp/pjplistresponse.dart';
 import 'package:Intranet/pages/firebase/anylatics.dart';
 import 'package:Intranet/pages/helper/DatabaseHelper.dart';
@@ -64,7 +64,12 @@ class CVFController extends GetxController {
   var currentPJP = <PJPInfo>[].obs;
 
   int employeeId = 0;
-  int businessId = 0;
+
+  /// Reactive so Share Report visibility rebuilds when hive value resolves.
+  final businessIdRx = 0.obs;
+  int get businessId => businessIdRx.value;
+  set businessId(int value) => businessIdRx.value = value;
+
   late Box hiveBox;
 
   bool get isPjpMode => pjpInfo != null;
@@ -104,12 +109,31 @@ class CVFController extends GetxController {
   }
 
   Future<void> _initUser() async {
-    hiveBox = Hive.box(LocalConstant.KidzeeDB);
-    await Hive.openBox(LocalConstant.KidzeeDB);
-    employeeId =
-        int.parse(hiveBox.get(LocalConstant.KEY_EMPLOYEE_ID) as String);
-    businessId = hiveBox.get(LocalConstant.KEY_BUSINESS_ID);
-    await loadData();
+    try {
+      hiveBox = await Utility.openBox();
+      await Hive.openBox(LocalConstant.KidzeeDB);
+      employeeId = int.tryParse(
+            hiveBox.get(LocalConstant.KEY_EMPLOYEE_ID)?.toString() ?? '',
+          ) ??
+          0;
+      businessId = _parseBusinessId(
+        hiveBox.get(LocalConstant.KEY_BUSINESS_ID),
+      );
+      await loadData();
+    } catch (e, st) {
+      debugPrint('CVFController._initUser failed: $e\n$st');
+      isLoading.value = false;
+      errorMessage.value = 'Unable to load user session. Please try again.';
+    }
+  }
+
+  static int _parseBusinessId(dynamic raw) {
+    if (raw == null) return 0;
+    if (raw is int) return raw;
+    if (raw is num) return raw.toInt();
+    final text = raw.toString().trim();
+    if (text.isEmpty || text.toLowerCase() == 'null') return 0;
+    return int.tryParse(text) ?? double.tryParse(text)?.toInt() ?? 0;
   }
 
   String _cacheKey() {
@@ -122,10 +146,14 @@ class CVFController extends GetxController {
   Future<void> loadData() async {
     isLoading.value = true;
     errorMessage.value = null;
-    final helper = DBHelper();
-    offlineStatus.assignAll(await helper.getCheckInStatus());
 
     try {
+      // Re-resolve business id every load (avoids first-open miss).
+      if (hiveBox.isOpen) {
+        final bid = _parseBusinessId(hiveBox.get(LocalConstant.KEY_BUSINESS_ID));
+        if (bid != 0) businessId = bid;
+      }
+
       final hasInternet = await Utility.isInternet();
       if (hasInternet) {
         await _fetchFromApi();
@@ -137,7 +165,13 @@ class CVFController extends GetxController {
         errorMessage.value = 'Unable to load CVF list. Please try again.';
       }
     } finally {
+      // Offline map is only for in-progress local check-ins — refresh after
+      // API so stale rows do not affect the first paint of Share Report.
+      try {
+        offlineStatus.assignAll(await DBHelper().getCheckInStatus());
+      } catch (_) {}
       isLoading.value = false;
+      cvfList.refresh();
     }
   }
 
@@ -203,7 +237,11 @@ class CVFController extends GetxController {
   }
 
   Future<void> _applyPjpResponse(PjpListResponse response) async {
-    hiveBox.put(_cacheKey(), jsonEncode(response));
+    try {
+      hiveBox.put(_cacheKey(), jsonEncode(response.toJson()));
+    } catch (e) {
+      debugPrint('CVF cache write failed: $e');
+    }
     cvfList.clear();
     final helper = DBHelper();
     for (final item in response.responseData) {
@@ -258,9 +296,19 @@ class CVFController extends GetxController {
   }
 
   GetDetailedPJP normalizeCvf(GetDetailedPJP cvf) {
-    if (cvf.Status.trim() == 'NA') cvf.Status = 'Check In';
-    if (offlineStatus.containsKey(cvf.PJPCVF_Id)) {
-      cvf.Status = offlineStatus[cvf.PJPCVF_Id]!;
+    final serverStatus = cvf.Status.toString().trim();
+    final serverLower = serverStatus.toLowerCase();
+    if (serverLower == 'na') cvf.Status = 'Check In';
+
+    // Stale offline check-in rows must never hide a Completed visit on first
+    // paint (that was hiding Share Report until the user re-opened the list).
+    final offline = offlineStatus[cvf.PJPCVF_Id];
+    if (offline != null &&
+        offline.trim().isNotEmpty &&
+        serverLower != 'completed' &&
+        serverLower != 'cancelled' &&
+        !cvf.IsCancelled) {
+      cvf.Status = offline.trim();
       if (offlineStatus.containsKey('date')) {
         cvf.DateTimeIn = offlineStatus['date']!;
       }
@@ -283,9 +331,75 @@ class CVFController extends GetxController {
   }
 
   bool isCancelled(GetDetailedPJP cvf) =>
-      cvf.IsCancelled || cvf.Status == 'Cancelled';
+      cvf.IsCancelled || cvf.Status.toString().trim() == 'Cancelled';
 
-  bool isCompleted(GetDetailedPJP cvf) => cvf.Status == 'Completed';
+  bool isCompleted(GetDetailedPJP cvf) =>
+      cvf.Status.toString().trim().toLowerCase() == 'completed';
+
+  /// Kidzee business id — Share Report is limited to this business.
+  static const int kidzeeBusinessId = 1;
+
+  /// Purpose category that enables Share Report (substring match).
+  static const String centreVisitFormCategory = 'Centre Visit Form';
+
+  /// Share Report: completed Kidzee Centre Visit Form CVF.
+  ///
+  /// First list payloads often omit `Purpose` or send a stale offline status;
+  /// those cases previously hid the button until the user re-opened the page.
+  bool canShareReport(GetDetailedPJP cvf) {
+    if (!isCompleted(cvf)) return false;
+    if (!_isKidzeeBusiness) return false;
+
+    final purposes = cvf.purpose ?? const <Purpose>[];
+    // Missing purpose on first API/cache paint → still show the button.
+    if (purposes.isEmpty) return true;
+
+    if (_hasCentreVisitFormPurpose(cvf)) return true;
+
+    // Broader match for casing / naming variants from different APIs.
+    for (final p in purposes) {
+      final name = p.categoryName.toLowerCase().trim();
+      if (name.contains('centre visit') ||
+          name.contains('center visit') ||
+          name == 'cvf' ||
+          name.contains('cvf ')) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  bool get _isKidzeeBusiness {
+    if (businessId == kidzeeBusinessId) return true;
+    try {
+      if (hiveBox.isOpen) {
+        final fromHive =
+            _parseBusinessId(hiveBox.get(LocalConstant.KEY_BUSINESS_ID));
+        if (fromHive != 0) {
+          businessId = fromHive;
+        }
+        if (businessId == kidzeeBusinessId) return true;
+
+        final name =
+            (hiveBox.get(LocalConstant.KEY_BUSINESS_NAME) ?? '')
+                .toString()
+                .toLowerCase();
+        if (name.contains('kidzee')) return true;
+      }
+    } catch (_) {}
+    return false;
+  }
+
+  bool _hasCentreVisitFormPurpose(GetDetailedPJP cvf) {
+    final needle = centreVisitFormCategory.toLowerCase();
+    final purposes = cvf.purpose ?? const <Purpose>[];
+    if (purposes.any(
+      (p) => p.categoryName.toLowerCase().contains(needle),
+    )) {
+      return true;
+    }
+    return cvf.ActivityTitle.toLowerCase().contains(needle);
+  }
 
   bool canManageVisit(GetDetailedPJP cvf) {
     if (isViewOnly) return false; 
@@ -307,10 +421,11 @@ class CVFController extends GetxController {
     BuildContext context,
     GetDetailedPJP cvf,
   ) async {
-    if (!isCompleted(cvf)) {
+    if (!canShareReport(cvf)) {
       Utility.showMessage(
         context,
-        'Share Report is available only after check-out.',
+        'Share Report is available only for Kidzee Centre Visit Form '
+        'after check-out.',
       );
       return;
     }
@@ -781,8 +896,17 @@ class CVFController extends GetxController {
       (cvf.LatitudeOut != 0 || cvf.LongitudeOut != 0);
 
   bool showCardActions(GetDetailedPJP cvf) {
-    if (isViewOnly || (isPjpMode && pjpInfo!.isSelfPJP == '0')) return false;
-    return hasLocation(cvf) || canReschedule(cvf) || canRescheduleOrCancel(cvf);
+    if (isViewOnly || (isPjpMode && pjpInfo!.isSelfPJP.toString().trim() == '0')) {
+      // Still allow Share Report for completed Kidzee CVFs in view-only / team.
+      return canShareReport(cvf);
+    }
+    // Completed visits must still show Report / Share Report even when map
+    // coordinates are missing on the first load after check-out.
+    return hasLocation(cvf) ||
+        canReschedule(cvf) ||
+        canRescheduleOrCancel(cvf) ||
+        isCompleted(cvf) ||
+        canShareReport(cvf);
   }
 
   void showCancelDialog(BuildContext context, GetDetailedPJP cvf,Function(GetDetailedPJP)? onVisitUpdated) {

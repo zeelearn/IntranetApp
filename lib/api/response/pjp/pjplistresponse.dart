@@ -412,7 +412,7 @@ class GetDetailedPJP implements Comparable<GetDetailedPJP> {
           (json['Visit_Time'] ?? json['visit_Time']) == "1900-01-01T00:00:00"
               ? 'NA'
               : (json['Visit_Time'] ?? json['visit_Time'] ?? 'NA').toString();
-      Status = json['Status'] ?? (json['status'] ?? 'Check In');
+      Status = (json['Status'] ?? json['status'] ?? 'Check In').toString();
       franchiseeCode =
           json['Franchisee_Code'] ?? json['franchisee_Code'] ?? 'NA';
       franchiseeId = json['Franchisee_Id'] ?? json['franchisee_Id'] ?? 'NA';
