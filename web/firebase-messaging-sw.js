@@ -17,13 +17,13 @@ firebase.initializeApp({
 
 
 
-function storeNotificationInIndexedDB(data) {
+function storeNotificationInIndexedDB(data, messageId) {
   return new Promise((resolve) => {
     let req = indexedDB.open('background_notifications', 1);
     req.onupgradeneeded = function (e) {
       let db = e.target.result;
       if (!db.objectStoreNames.contains('notifications')) {
-        db.createObjectStore('notifications', { keyPath: 'id', autoIncrement: true });
+        db.createObjectStore('notifications', { keyPath: 'id' });
       }
     };
     req.onsuccess = function (e) {
@@ -35,6 +35,8 @@ function storeNotificationInIndexedDB(data) {
       let tx = db.transaction(['notifications'], 'readwrite');
       let store = tx.objectStore('notifications');
       let record = {
+        id: messageId || (data.title + '_' + (data.body || '') + '_' + (data.date || Date.now())),
+        message_id: messageId || '',
         title: data.title || '',
         description: data.body || data.description || '',
         type: data.type || '',
@@ -44,13 +46,13 @@ function storeNotificationInIndexedDB(data) {
         bigImageUrl: data.bigimage || data.bigImageUrl || '',
         webViewLink: data.url || data.webViewLink || ''
       };
-      let addReq = store.add(record);
-      addReq.onsuccess = function () {
+      let putReq = store.put(record);
+      putReq.onsuccess = function () {
         console.log("Successfully stored background notification in IndexedDB", record);
         resolve();
       };
-      addReq.onerror = function (err) {
-        console.error("Failed to add record to IndexedDB notifications store", err);
+      putReq.onerror = function (err) {
+        console.error("Failed to put record to IndexedDB notifications store", err);
         resolve();
       };
     };
@@ -102,10 +104,13 @@ self.addEventListener('push', function (event) {
   const notificationTitle = payload.data.title;
   console.log('Notification title is - ', notificationTitle);
 
+  const messageId = payload.fcmMessageId || payload.messageId || payload.data?.fcmMessageId || payload.data?.messageId || payload.data?.id || (payload.data.title + '_' + (payload.data.body || ''));
+
   const pjpIdVal = payload.data.PjpId || payload.data.pjpId || payload.data.pjpid || '';
   const notificationOptions = {
     body: payload.data.body,
     icon: 'https://zeelearn.com/wp-content/uploads/zeelearnlogo_new171.png',
+    tag: messageId,
     data: Object.assign({}, payload.data, {
       url: (payload.data.type === 'PJP' && pjpIdVal)
         ? ('/?type=PJP&PjpId=' + pjpIdVal) : (payload.data.type === 'EXPENSE-COURIER')
@@ -116,7 +121,7 @@ self.addEventListener('push', function (event) {
 
   const showPromise = new Promise((resolve) => {
     const showNotification = () => {
-      storeNotificationInIndexedDB(payload.data).then(() => {
+      storeNotificationInIndexedDB(payload.data, messageId).then(() => {
         self.registration.showNotification(notificationTitle, notificationOptions)
           .then(() => resolve())
           .catch((e) => {

@@ -178,6 +178,8 @@ showNotification(RemoteMessage message) async {
     }
     _showNotificationWithDefaultSound(message, title, body);
   } catch (_) {}
+  final messageId = NotificationService.extractMessageId(message);
+  data['message_id'] = messageId;
   data.putIfAbsent('title',
       () => title.isNotEmpty ? title : message.data['title'] as String);
   data.putIfAbsent(

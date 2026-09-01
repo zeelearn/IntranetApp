@@ -38,7 +38,9 @@ Future<void> syncPendingNotifications() async {
         final bigImageUrl = item['bigImageUrl'] ?? '';
         final webViewLink = item['webViewLink'] ?? '';
 
+        final messageId = item['message_id']?.toString() ?? item['id']?.toString() ?? '';
         Map<String, Object> data = {
+          if (messageId.isNotEmpty) 'message_id': messageId,
           'title': title,
           'description': description,
           'type': type,

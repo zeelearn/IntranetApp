@@ -246,31 +246,44 @@ class NotificationService {
     await flutterLocalNotificationsPlugin.cancelAll();
   }
 
+  static String extractMessageId(RemoteMessage message) {
+    if (message.messageId != null && message.messageId!.isNotEmpty) {
+      return message.messageId!;
+    }
+    if (message.data.containsKey('fcmMessageId') &&
+        message.data['fcmMessageId'] != null &&
+        message.data['fcmMessageId'].toString().isNotEmpty) {
+      return message.data['fcmMessageId'].toString();
+    }
+    if (message.data.containsKey('messageId') &&
+        message.data['messageId'] != null &&
+        message.data['messageId'].toString().isNotEmpty) {
+      return message.data['messageId'].toString();
+    }
+    if (message.data.containsKey('id') &&
+        message.data['id'] != null &&
+        message.data['id'].toString().isNotEmpty) {
+      return message.data['id'].toString();
+    }
+    final time = message.sentTime?.millisecondsSinceEpoch ?? DateTime.now().millisecondsSinceEpoch;
+    final title = message.data['title'] ?? message.notification?.title ?? '';
+    final body = message.data['body'] ?? message.notification?.body ?? '';
+    return '${time}_${title}_${body}';
+  }
+
   void parseNotification(
     RemoteMessage message, {
     BuildContext? context,
   }) async {
-    final messageId = message.messageId;
-    if (messageId != null) {
-      if (_processedMessageIds.contains(messageId)) {
-        debugPrint('parseNotification: Duplicate message detected (ID: $messageId). Skipping.');
-        return;
-      }
-      _processedMessageIds.add(messageId);
-      Future.delayed(const Duration(seconds: 10), () {
-        _processedMessageIds.remove(messageId);
-      });
-    } else {
-      final payloadHash = '${message.sentTime?.millisecondsSinceEpoch}_${message.data.toString()}';
-      if (_processedMessageIds.contains(payloadHash)) {
-        debugPrint('parseNotification: Duplicate payload detected. Skipping.');
-        return;
-      }
-      _processedMessageIds.add(payloadHash);
-      Future.delayed(const Duration(seconds: 10), () {
-        _processedMessageIds.remove(payloadHash);
-      });
+    final messageId = extractMessageId(message);
+    if (_processedMessageIds.contains(messageId)) {
+      debugPrint('parseNotification: Duplicate message detected (ID: $messageId). Skipping.');
+      return;
     }
+    _processedMessageIds.add(messageId);
+    Future.delayed(const Duration(seconds: 30), () {
+      _processedMessageIds.remove(messageId);
+    });
 
     debugPrint(
         'parseNotification called in Intranet with message: ${message.data}');
@@ -284,6 +297,7 @@ class NotificationService {
     }
     DBHelper helper = DBHelper();
     Map<String, String> data = {};
+    data['message_id'] = messageId;
     if (message.notification != null) {
       debugPrint('parseNotification SKIPPING NOTIFICATION ');
       data.putIfAbsent('title', () => message.notification?.title as String);
@@ -426,6 +440,8 @@ void identifySaathiNotification(RemoteMessage message,
     DBHelper helper = DBHelper();
     Map<String, String> data = {};
     String cdate = DateFormat("yyyy-MM-dd hh:mm a").format(DateTime.now());
+    final messageId = NotificationService.extractMessageId(message);
+    data['message_id'] = messageId;
     data.putIfAbsent('title', () => message.data['title']);
     data.putIfAbsent('description', () => message.data['body']);
     data.putIfAbsent('type',
@@ -473,6 +489,8 @@ void handleExpenseNotificatin(
     DBHelper helper = DBHelper();
     Map<String, String> data = {};
     String cdate = DateFormat("yyyy-MM-dd hh:mm a").format(DateTime.now());
+    final messageId = NotificationService.extractMessageId(message);
+    data['message_id'] = messageId;
     data.putIfAbsent('title', () => message.data['title']);
     data.putIfAbsent('description', () => message.data['body']);
     data.putIfAbsent('type',
@@ -521,6 +539,8 @@ void handlePJPNotification(
     DBHelper helper = DBHelper();
     Map<String, String> data = {};
     String cdate = DateFormat("yyyy-MM-dd hh:mm a").format(DateTime.now());
+    final messageId = NotificationService.extractMessageId(message);
+    data['message_id'] = messageId;
     data.putIfAbsent('title', () => message.data['title'] ?? '');
     data.putIfAbsent('description', () => message.data['body'] ?? '');
     data.putIfAbsent('type',
@@ -566,6 +586,8 @@ void identifyNotification(RemoteMessage message, [WidgetRef? ref]) async {
     DBHelper helper = DBHelper();
     Map<String, String> data = {};
     String cdate = DateFormat("yyyy-MM-dd hh:mm a").format(DateTime.now());
+    final messageId = NotificationService.extractMessageId(message);
+    data['message_id'] = messageId;
     data.putIfAbsent('title', () => message.data['title']);
     data.putIfAbsent('description', () => message.data['body']);
     data.putIfAbsent('type',
