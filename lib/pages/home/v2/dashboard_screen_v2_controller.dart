@@ -44,6 +44,7 @@ import 'package:expensestracker/presentation/app.dart' as expense_placeholder;
 import 'package:expensestracker/presentation/controllers/dashboard/dashboard_binding.dart';
 import 'package:expensestracker/presentation/controllers/dashboard/dashboard_page_controller.dart';
 import 'package:expensestracker/presentation/pages/claim/courier_detail_page.dart';
+import 'package:expensestracker/presentation/pages/claim/courier_detail_page.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
@@ -344,9 +345,11 @@ class DashboardScreenV2Controller extends GetxController
     final payload = action?.payload;
     if (payload == null) return;
 
-    if (payload['type'] == 'td') {
+    final type = payload['type']?.toString().toUpperCase();
+
+    if (type == 'TD') {
       Util.openSaathiNotification(action!);
-    } else if (payload['type'] == 'PJP') {
+    } else if (type == 'PJP') {
       final pjpId =
           payload['PjpId'] ?? payload['pjpId'] ?? payload['pjpid'] ?? '';
       if (pjpId.isNotEmpty) {
@@ -359,7 +362,7 @@ class DashboardScreenV2Controller extends GetxController
           ),
         );
       }
-    } else if (payload['type'] == 'EXPENSE') {
+    } else if (type == 'EXPENSE') {
       Navigator.push(
           context,
           MaterialPageRoute(
@@ -367,7 +370,7 @@ class DashboardScreenV2Controller extends GetxController
                 title: payload['title'] ?? 'Expense',
                 url: payload['url'] ?? ''),
           ));
-    } else if (payload['type'] == 'EXPENSE-COURIER') {
+    } else if (type == 'EXPENSE-COURIER') {
       final claimIdStr = payload['cid'] ?? payload['claimId'] ?? payload['claim_id'];
       final employeeCode = payload['employee_code'] ?? payload['eCode'] ?? payload['e_code'];
       final isAccchStr = payload['isAccch'] ?? payload['is_accch'] ?? 'false';
@@ -879,11 +882,13 @@ class DashboardScreenV2Controller extends GetxController
       FirebaseMessaging.instance.unsubscribeFromTopic('saathi');
       FirebaseMessaging.instance.unsubscribeFromTopic('intranet');
     }
+     await FirebaseMessaging.instance.deleteToken();
     await hiveBox.clear();
     await DBHelper().deleteAllData();
     await HiveDatabase.clear();
     expense_placeholder.clearAllExpenseControllers();
     await hiveBox.close();
+    await AwesomeNotifications().cancelAll();
     await Future<void>.delayed(const Duration(seconds: 1));
     resetWebUrl();
     if (!context.mounted) return;

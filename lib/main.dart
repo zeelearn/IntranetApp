@@ -25,6 +25,7 @@ import 'package:Intranet/pages/widget/MyWebSiteView.dart';
 import 'package:Intranet/pages/widget/VideoPlayer.dart';
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:expensestracker/presentation/pages/claim/courier_detail_page.dart';
+import 'package:expensestracker/presentation/pages/claim/courier_detail_page.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
@@ -310,7 +311,7 @@ Future<void> main() async {
   // }
 
   NotificationController.startListeningNotificationEvents();
-  await NotificationController.initializeLocalNotifications();
+  await NotificationController.initializeLocalNotifications(requestPermission: true);
 
   if (!kIsWeb) {
     await NotificationController.initializeIsolateReceivePort();
@@ -817,10 +818,28 @@ Future _showNotificationWithDefaultSound(
         NOTIFICATION_BIG_PICTURE: imageUrl
       };
 
-      AwesomeNotifications()
-          .createNotificationFromJsonData(notificationAdapter);
+      try {
+        bool isAllowed = await AwesomeNotifications().isNotificationAllowed();
+        if (isAllowed) {
+          await AwesomeNotifications()
+              .createNotificationFromJsonData(notificationAdapter);
+        } else {
+          debugPrint('AwesomeNotifications: notification not allowed');
+        }
+      } catch (e) {
+        debugPrint('AwesomeNotifications createNotification error: $e');
+      }
     } else {
-      AwesomeNotifications().createNotificationFromJsonData(message.data);
+      try {
+        bool isAllowed = await AwesomeNotifications().isNotificationAllowed();
+        if (isAllowed) {
+          await AwesomeNotifications().createNotificationFromJsonData(message.data);
+        } else {
+          debugPrint('AwesomeNotifications: notification not allowed');
+        }
+      } catch (e) {
+        debugPrint('AwesomeNotifications createNotification error: $e');
+      }
     }
   } else {
     NotificationService notificationService = NotificationService();
@@ -1126,9 +1145,9 @@ class NotificationController {
   ///     INITIALIZATIONS
   ///  *********************************************
   ///
-  static Future<void> initializeLocalNotifications() async {
+  static Future<void> initializeLocalNotifications({bool requestPermission = false}) async {
     await AwesomeNotifications().initialize(
-        null, //'resource://drawable/res_app_icon',//
+        'resource://drawable/ic_notification',
         [
           NotificationChannel(
               channelKey: LocalConstant.NOTIFICATION_CHANNEL,
@@ -1138,15 +1157,37 @@ class NotificationController {
               onlyAlertOnce: true,
               importance: NotificationImportance.High,
               defaultPrivacy: NotificationPrivacy.Private,
-              defaultColor: Colors.deepPurple,
+              defaultColor: kPrimaryLightColor,
               channelShowBadge: true,
-              ledColor: Colors.deepPurple)
+              ledColor: kPrimaryLightColor),
+          NotificationChannel(
+              channelKey: 'big_picture',
+              channelName: 'Big Picture Notifications',
+              channelDescription: "Big picture notifications for Intranet",
+              playSound: true,
+              onlyAlertOnce: true,
+              importance: NotificationImportance.High,
+              defaultPrivacy: NotificationPrivacy.Private,
+              defaultColor: kPrimaryLightColor,
+              channelShowBadge: true,
+              ledColor: kPrimaryLightColor)
         ],
         debug: true);
 
     // Get initial notification action is optional
     initialAction = await AwesomeNotifications()
         .getInitialNotificationAction(removeFromActionEvents: false);
+
+    if (requestPermission) {
+      try {
+        bool isAllowed = await AwesomeNotifications().isNotificationAllowed();
+        if (!isAllowed) {
+          await AwesomeNotifications().requestPermissionToSendNotifications();
+        }
+      } catch (e) {
+        debugPrint('Error requesting notification permission: $e');
+      }
+    }
   }
 
   ///  *********************************************
@@ -1179,20 +1220,18 @@ class NotificationController {
       return;
     }
 
-    if (receivedAction.payload != null &&
-        receivedAction.payload!['type'] != null &&
-        receivedAction.payload!['type'] == 'logout') {
+    final payload = receivedAction.payload;
+    if (payload == null) return;
+    final type = payload['type']?.toString().toUpperCase();
+
+    if (type == 'LOGOUT') {
       Utility.signOut(MyApp.navigatorKey.currentState!.context);
-    } else if (receivedAction.payload != null &&
-        receivedAction.payload!['type'] != null &&
-        receivedAction.payload!['type'] == 'td') {
+    } else if (type == 'TD') {
       Util.openSaathiNotification(receivedAction);
-    } else if (receivedAction.payload != null &&
-        receivedAction.payload!['type'] != null &&
-        receivedAction.payload!['type'] == 'PJP') {
-      final pjpId = receivedAction.payload?['PjpId'] ??
-          receivedAction.payload?['pjpId'] ??
-          receivedAction.payload?['pjpid'] ??
+    } else if (type == 'PJP') {
+      final pjpId = payload['PjpId'] ??
+          payload['pjpId'] ??
+          payload['pjpid'] ??
           '';
       if (pjpId.isNotEmpty) {
         Navigator.push(
@@ -1204,7 +1243,7 @@ class NotificationController {
           ),
         );
       }
-    } else if (receivedAction.payload?['type'] == 'EXPENSE-COURIER') {
+    } else if (type == 'EXPENSE-COURIER') {
       final claimid = receivedAction.payload?['cid'] ?? receivedAction.payload?['claimId'] ?? receivedAction.payload?['claim_id'];
       final eCode = receivedAction.payload?['employee_code'];
       final isAccch = receivedAction.payload?['isAccch'] ?? 'false';
@@ -1219,7 +1258,7 @@ class NotificationController {
               isAccch: isAccch == 'true',
             ),
           ));
-    } else if (receivedAction.payload?['type'] == 'EXPENSE') {
+    } else if (type == 'EXPENSE') {
       Navigator.push(
           MyApp.navigatorKey.currentState!.context,
           MaterialPageRoute(

@@ -103,14 +103,14 @@ self.addEventListener('push', function (event) {
   console.log('Notification title is - ', notificationTitle);
 
   const pjpIdVal = payload.data.PjpId || payload.data.pjpId || payload.data.pjpid || '';
-  const notificationOptions = { 
-    body: payload.data.body, 
-    icon: 'https://zeelearn.com/wp-content/uploads/zeelearnlogo_new171.png', 
+  const notificationOptions = {
+    body: payload.data.body,
+    icon: 'https://zeelearn.com/wp-content/uploads/zeelearnlogo_new171.png',
     data: Object.assign({}, payload.data, {
-      url: (payload.data.type === 'PJP' && pjpIdVal) 
-        ? ('/?type=PJP&PjpId=' + pjpIdVal) : (payload.data.type === 'EXPENSE-COURIER') 
-        ? ('/courier_detail?claimId=' + (payload.data.cid || payload.data.claimId || payload.data.claimID || '') + '&eCode=' + (payload.data.employee_code || payload.data.employeeCode || '') + '&isAccch=' + (payload.data.isAccch || ''))
-        : (payload.data.url || '/')
+      url: (payload.data.type === 'PJP' && pjpIdVal)
+        ? ('/?type=PJP&PjpId=' + pjpIdVal) : (payload.data.type === 'EXPENSE-COURIER')
+          ? ('/courier_detail?claimId=' + (payload.data.cid || payload.data.claimId || payload.data.claimID || '') + '&eCode=' + (payload.data.employee_code || payload.data.employeeCode || '') + '&isAccch=' + (payload.data.isAccch || ''))
+          : (payload.data.url || '/')
     })
   };
 
@@ -139,7 +139,7 @@ self.addEventListener('push', function (event) {
 
         let transaction = db.transaction(['box'], 'readonly');
         let objectStore = transaction.objectStore('box');
-        
+
         const getFromStore = (key) => new Promise((res) => {
           let req = objectStore.get(key);
           req.onsuccess = (e) => res(e.target.result);
@@ -148,7 +148,7 @@ self.addEventListener('push', function (event) {
 
         Promise.all([getFromStore('userId'), getFromStore('userData')]).then(([localUserId, localUserData]) => {
           let matched = false;
-          
+
           if (localUserId && payload.data.user_id == localUserId) {
             console.log('User id matching on userId - ', payload.data.user_id);
             matched = true;
@@ -165,7 +165,7 @@ self.addEventListener('push', function (event) {
               console.log('Failed to parse userData', e);
             }
           }
-          
+
           if (matched) {
             showNotification();
           } else {
@@ -187,16 +187,16 @@ self.addEventListener('push', function (event) {
 
         let transaction = db.transaction(['box'], 'readonly');
         let objectStore = transaction.objectStore('box');
-        
+
         const getFromStore = (key) => new Promise((res) => {
           let req = objectStore.get(key);
           req.onsuccess = (e) => res(e.target.result);
           req.onerror = () => res(null);
         });
-        
+
         Promise.all([getFromStore('empid'), getFromStore('employee_Code')]).then(([localEmpid, localEmpCode]) => {
           let shouldShow = false;
-          
+
           if (payload.data.employee_code && payload.data.employee_code == localEmpCode) {
             console.log('User id matching on employee_code - ', payload.data.employee_code);
             shouldShow = true;
@@ -204,7 +204,7 @@ self.addEventListener('push', function (event) {
             console.log('User id matching on empid - ', payload.data.empid);
             shouldShow = true;
           }
-          
+
           if (shouldShow) {
             showNotification();
           } else {

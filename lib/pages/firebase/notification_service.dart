@@ -28,6 +28,9 @@ import 'DetailsPage.dart';
 import 'package:Intranet/pages/summary%20dashboard/summary_dashboard.dart';
 
 class NotificationService {
+  // Deduplication set for processing message events
+  static final Set<String> _processedMessageIds = {};
+
   // Singleton pattern
   static final NotificationService _notificationService =
       NotificationService._internal();
@@ -141,17 +144,26 @@ class NotificationService {
         },
       );
     } else {
-      AwesomeNotifications().createNotification(
-          content: NotificationContent(
-        id: -1,
-        channelKey: channel,
-        title: title,
-        body: Utility.removeAllHtmlTags(body),
-        notificationLayout: NotificationLayout.BigText,
-        // summary: body,
-        autoDismissible: true,
-        payload: message != null ? Map<String, String>.from(message.data) : {},
-      ));
+      try {
+        bool isAllowed = await AwesomeNotifications().isNotificationAllowed();
+        if (!isAllowed) {
+          debugPrint('AwesomeNotifications: notification not allowed');
+          return;
+        }
+        await AwesomeNotifications().createNotification(
+            content: NotificationContent(
+          id: -1,
+          channelKey: channel,
+          title: title,
+          body: Utility.removeAllHtmlTags(body),
+          notificationLayout: NotificationLayout.BigText,
+          // summary: body,
+          autoDismissible: true,
+          payload: message != null ? Map<String, String>.from(message.data) : {},
+        ));
+      } catch (e) {
+        debugPrint('AwesomeNotifications createNotification error: $e');
+      }
     }
   }
 
@@ -159,42 +171,51 @@ class NotificationService {
       bool showBigTextNotification,
       [RemoteMessage? message]) async {
     String channel = LocalConstant.NOTIFICATION_CHANNEL;
-    if (showBigTextNotification) {
-      await AwesomeNotifications().createNotification(
-        content: NotificationContent(
-            id: -1,
-            channelKey: 'big_picture',
-            title: title,
-            body: Utility.removeAllHtmlTags(body),
-            badge: 4,
-            // summary: body,
-            autoDismissible: true,
-            icon: 'resource://drawable/app_logo',
-            backgroundColor: Colors.white54,
-            largeIcon: imageUrl,
-            payload:
-                message != null ? Map<String, String>.from(message.data) : {},
-            notificationLayout: NotificationLayout.BigText,
-            bigPicture: imageUrl),
-      );
-    } else {
-      await AwesomeNotifications().createNotification(
-        content: NotificationContent(
-            id: -1,
-            channelKey: 'big_picture',
-            title: title,
-            body: Utility.removeAllHtmlTags(body),
-            badge: 4,
-            // summary: body,
-            autoDismissible: true,
-            icon: 'resource://drawable/app_logo',
-            backgroundColor: Colors.white54,
-            largeIcon: imageUrl,
-            notificationLayout: NotificationLayout.BigPicture,
-            payload:
-                message != null ? Map<String, String>.from(message.data) : {},
-            bigPicture: imageUrl),
-      );
+    try {
+      bool isAllowed = await AwesomeNotifications().isNotificationAllowed();
+      if (!isAllowed) {
+        debugPrint('AwesomeNotifications: notification not allowed');
+        return;
+      }
+      if (showBigTextNotification) {
+        await AwesomeNotifications().createNotification(
+          content: NotificationContent(
+              id: -1,
+              channelKey: 'big_picture',
+              title: title,
+              body: Utility.removeAllHtmlTags(body),
+              badge: 4,
+              // summary: body,
+              autoDismissible: true,
+              icon: 'resource://drawable/ic_notification',
+              backgroundColor: kPrimaryLightColor,
+              largeIcon: imageUrl,
+              payload:
+                  message != null ? Map<String, String>.from(message.data) : {},
+              notificationLayout: NotificationLayout.BigText,
+              bigPicture: imageUrl),
+        );
+      } else {
+        await AwesomeNotifications().createNotification(
+          content: NotificationContent(
+              id: -1,
+              channelKey: 'big_picture',
+              title: title,
+              body: Utility.removeAllHtmlTags(body),
+              badge: 4,
+              // summary: body,
+              autoDismissible: true,
+              icon: 'resource://drawable/ic_notification',
+              backgroundColor: kPrimaryLightColor,
+              largeIcon: imageUrl,
+              notificationLayout: NotificationLayout.BigPicture,
+              payload:
+                  message != null ? Map<String, String>.from(message.data) : {},
+              bigPicture: imageUrl),
+        );
+      }
+    } catch (e) {
+      debugPrint('AwesomeNotifications createNotification error: $e');
     }
   }
 
@@ -254,6 +275,28 @@ class NotificationService {
     RemoteMessage message, {
     BuildContext? context,
   }) async {
+    final messageId = message.messageId;
+    if (messageId != null) {
+      if (_processedMessageIds.contains(messageId)) {
+        debugPrint('parseNotification: Duplicate message detected (ID: $messageId). Skipping.');
+        return;
+      }
+      _processedMessageIds.add(messageId);
+      Future.delayed(const Duration(seconds: 10), () {
+        _processedMessageIds.remove(messageId);
+      });
+    } else {
+      final payloadHash = '${message.sentTime?.millisecondsSinceEpoch}_${message.data.toString()}';
+      if (_processedMessageIds.contains(payloadHash)) {
+        debugPrint('parseNotification: Duplicate payload detected. Skipping.');
+        return;
+      }
+      _processedMessageIds.add(payloadHash);
+      Future.delayed(const Duration(seconds: 10), () {
+        _processedMessageIds.remove(payloadHash);
+      });
+    }
+
     debugPrint(
         'parseNotification called in Intranet with message: ${message.data}');
     String cdate = DateFormat("yyyy-MM-dd hh:mm a").format(DateTime.now());
