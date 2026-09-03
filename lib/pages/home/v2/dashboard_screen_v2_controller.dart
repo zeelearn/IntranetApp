@@ -854,6 +854,7 @@ class DashboardScreenV2Controller extends GetxController
       FirebaseMessaging.instance.unsubscribeFromTopic('saathi');
       FirebaseMessaging.instance.unsubscribeFromTopic('intranet');
     }
+     await FirebaseMessaging.instance.deleteToken();
     await hiveBox.clear();
     await DBHelper().deleteAllData();
     await HiveDatabase.clear();
