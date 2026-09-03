@@ -10,6 +10,15 @@ void resetWebUrl() {
   html.window.history.replaceState(null, '', '/');
 }
 
+void closeWebTab() {
+  try {
+    html.window.open('', '_self');
+    html.window.close();
+  } catch (e) {
+    debugPrint('closeWebTab error: $e');
+  }
+}
+
 Future<void> syncPendingNotifications() async {
   try {
     final idbFactory = html.window.indexedDB;

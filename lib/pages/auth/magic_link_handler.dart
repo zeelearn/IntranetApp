@@ -13,8 +13,8 @@ class MagicLinkHandler {
   static String? _lastHandledToken;
 
   static Future<void> handle(Uri uri, BuildContext context) async {
-    final token = uri.queryParameters['t'];
-    final source = uri.queryParameters['s'];
+    final token = uri.queryParameters['t'] ?? uri.queryParameters['token'];
+    final source = uri.queryParameters['s'] ?? uri.queryParameters['source'];
 
     if (token == null || token.isEmpty) {
       return; // Not a magic link
@@ -74,6 +74,10 @@ class MagicLinkHandler {
           FirebaseAnalyticsUtils.sendEvent(info.userName);
           hive.put(LocalConstant.KEY_LOGIN_RESPONSE, jsonEncode(value));
           hive.put(LocalConstant.KEY_AUTH_TOKEN, info.token);
+          hive.put(LocalConstant.KEY_IS_MAGIC_LINK, true);
+          if (source != null && source.isNotEmpty) {
+            hive.put(LocalConstant.KEY_LOGIN_SOURCE, source);
+          }
 
           Navigator.pop(context); // close loader
           Navigator.pushReplacement(

@@ -538,6 +538,8 @@ class _LoginPage extends State<LoginPage> {
 
             FirebaseAnalyticsUtils.sendEvent(info.userName);
             hive.put(LocalConstant.KEY_LOGIN_RESPONSE, jsonEncode(value));
+            hive.put(LocalConstant.KEY_IS_MAGIC_LINK, false);
+            hive.delete(LocalConstant.KEY_LOGIN_SOURCE);
             List<BusinessApplications> businessapplications =
                   value.responseData.businessApplications;
             // if (businessapplications.isEmpty) {

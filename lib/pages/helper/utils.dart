@@ -28,6 +28,7 @@ import '../intro/intro.dart';
 import '../utils/theme/colors/light_colors.dart';
 import 'LightColor.dart';
 import 'LocalConstant.dart';
+import 'web_helper.dart';
 import 'window_close.dart';
 import 'package:get/get.dart';
 
@@ -933,12 +934,21 @@ class Utility {
 
   static signOut(BuildContext context) async {
     var hiveBox = await Utility.openBox();
+    final bool isFromMagicLink =
+        hiveBox.get(LocalConstant.KEY_IS_MAGIC_LINK) == true ||
+            hiveBox.get(LocalConstant.KEY_LOGIN_SOURCE) == 'intranet_web';
     await Hive.openBox(LocalConstant.KidzeeDB);
     hiveBox.clear();
     hiveBox.close();
     DBHelper helper = DBHelper();
     helper.deleteAllData();
     await Future.delayed(const Duration(seconds: 1));
+    if (kIsWeb && isFromMagicLink) {
+      resetWebUrl();
+      closeWebTab();
+      disposeAllControllers();
+      return;
+    }
     if (!context.mounted) return;
     Navigator.pushAndRemoveUntil(
         context,

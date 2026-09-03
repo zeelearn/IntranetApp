@@ -844,6 +844,10 @@ class DashboardScreenV2Controller extends GetxController
     final context = Get.context!;
     final hiveBox = await Utility.openBox();
 
+    final bool isFromMagicLink =
+        hiveBox.get(LocalConstant.KEY_IS_MAGIC_LINK) == true ||
+            hiveBox.get(LocalConstant.KEY_LOGIN_SOURCE) == 'intranet_web';
+
     if (kIsWeb) {
       var oldtoken = hiveBox.get(LocalConstant.KEY_FCM_ID);
       if (oldtoken != null && oldtoken.isNotEmpty) {
@@ -854,7 +858,7 @@ class DashboardScreenV2Controller extends GetxController
       FirebaseMessaging.instance.unsubscribeFromTopic('saathi');
       FirebaseMessaging.instance.unsubscribeFromTopic('intranet');
     }
-     await FirebaseMessaging.instance.deleteToken();
+    await FirebaseMessaging.instance.deleteToken();
     await hiveBox.clear();
     await DBHelper().deleteAllData();
     await HiveDatabase.clear();
@@ -863,6 +867,13 @@ class DashboardScreenV2Controller extends GetxController
     await AwesomeNotifications().cancelAll();
     await Future<void>.delayed(const Duration(seconds: 1));
     resetWebUrl();
+
+    if (kIsWeb && isFromMagicLink) {
+      closeWebTab();
+      Utility.disposeAllControllers();
+      return;
+    }
+
     if (!context.mounted) return;
     await Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute(

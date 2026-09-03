@@ -41,7 +41,8 @@ class _SplashScreenState extends State<SplashScreen> {
       final uriStr = getBrowserUrl();
       debugPrint('SplashScreen: uriStr: $uriStr');
       final uri = Uri.parse(uriStr);
-      if (uri.queryParameters.containsKey('token')) {
+      if (uri.queryParameters.containsKey('token') ||
+          uri.queryParameters.containsKey('t')) {
         MagicLinkHandler.handle(uri, context);
         return; // skip normal session check
       }

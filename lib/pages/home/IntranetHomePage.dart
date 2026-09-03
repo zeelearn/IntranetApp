@@ -2015,6 +2015,9 @@ class _IntranetHomePageState extends State<IntranetHomePage>
 
   signOut() async {
     var hiveBox = await Utility.openBox();
+    final bool isFromMagicLink =
+        hiveBox.get(LocalConstant.KEY_IS_MAGIC_LINK) == true ||
+            hiveBox.get(LocalConstant.KEY_LOGIN_SOURCE) == 'intranet_web';
     await Hive.openBox(LocalConstant.KidzeeDB);
     hiveBox.clear();
     DBHelper helper = DBHelper();
@@ -2024,6 +2027,11 @@ class _IntranetHomePageState extends State<IntranetHomePage>
     hiveBox.close();
     await Future.delayed(const Duration(seconds: 1));
     resetWebUrl();
+    if (kIsWeb && isFromMagicLink) {
+      closeWebTab();
+      Utility.disposeAllControllers();
+      return;
+    }
     if (!mounted) return;
     Navigator.pushAndRemoveUntil(
         context,

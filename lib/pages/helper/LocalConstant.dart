@@ -60,6 +60,8 @@ class LocalConstant {
   static const String KEY_MY_CVF = "mycvf";
 
   static const String KEY_AUTH_TOKEN = "authtoken";
+  static const String KEY_LOGIN_SOURCE = "login_source";
+  static const String KEY_IS_MAGIC_LINK = "is_magic_link";
 
   static const int ACTION_BACK = 999;
 
