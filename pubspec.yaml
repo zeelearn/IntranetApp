@@ -110,7 +110,7 @@ dependencies:
   chewie: ^1.5.0
   flutter_widget_from_html_core: ^0.17.0
   # flutter_widget_from_html_core: ^0.15.1
-  flutter_html: ^3.0.0-alpha.6
+  flutter_html: ^3.0.0
   dropdown_search: ^5.0.6
 
   #calendar_date_picker2: ^1.1.5
@@ -153,6 +153,7 @@ dependencies:
   
 
 dependency_overrides:
+  html: 0.15.6
   #share_plus: ^10.0.2
   package_info_plus: ^4.0.0
   pdfrx: ^2.2.24
