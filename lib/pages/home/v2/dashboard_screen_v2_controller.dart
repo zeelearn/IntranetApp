@@ -59,6 +59,7 @@ import 'package:in_app_update/in_app_update.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:saathi/zllsaathi.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../firebase/notification.dart';
 import '../../firebase/notification_service.dart';
@@ -327,38 +328,6 @@ class DashboardScreenV2Controller extends GetxController
     WidgetsBinding.instance.addPostFrameCallback((_) => _incomingLinkHandler());
   }
 
-  /// Returns true when the OS / browser has granted notification permission.
-  Future<bool> areNotificationsAllowed() async {
-    try {
-      final settings =
-          await FirebaseMessaging.instance.getNotificationSettings();
-      if (settings.authorizationStatus == AuthorizationStatus.authorized ||
-          settings.authorizationStatus == AuthorizationStatus.provisional) {
-        return true;
-      }
-      if (settings.authorizationStatus == AuthorizationStatus.denied) {
-        return false;
-      }
-    } catch (_) {}
-
-    if (!kIsWeb) {
-      try {
-        final status = await Permission.notification.status;
-        if (status.isGranted || status.isLimited) return true;
-        if (status.isDenied ||
-            status.isPermanentlyDenied ||
-            status.isRestricted) {
-          return false;
-        }
-      } catch (_) {}
-
-      try {
-        return await AwesomeNotifications().isNotificationAllowed();
-      } catch (_) {}
-    }
-
-    return false;
-  }
 
   /// Updates [showNotificationPermissionAlert] after checking permission.
   Future<void> checkNotificationPermission() async {
@@ -441,53 +410,9 @@ class DashboardScreenV2Controller extends GetxController
     return false;
   }
 
-  /// Updates [showNotificationPermissionAlert] after checking permission.
-  Future<void> checkNotificationPermission() async {
-    final allowed = await areNotificationsAllowed();
-    showNotificationPermissionAlert.value = !allowed;
-  }
+ 
 
-  /// Opens notification / app settings (all platforms). Web re-requests
-  /// permission since browsers do not expose a settings deep-link.
-  Future<void> onNotificationPermissionAlertTap() async {
-    if (kIsWeb) {
-      try {
-        await FirebaseMessaging.instance.requestPermission(
-          alert: true,
-          announcement: false,
-          badge: true,
-          carPlay: false,
-          criticalAlert: false,
-          provisional: false,
-          sound: true,
-        );
-      } catch (_) {}
-      await checkNotificationPermission();
-      if (showNotificationPermissionAlert.value) {
-        Get.snackbar(
-          'Enable notifications',
-          'Allow notifications for this site in your browser settings.',
-          snackPosition: SnackPosition.BOTTOM,
-          duration: const Duration(seconds: 4),
-        );
-      }
-      return;
-    }
-
-    try {
-      final status = await Permission.notification.status;
-      if (status.isDenied && !status.isPermanentlyDenied) {
-        final result = await Permission.notification.request();
-        if (result.isGranted) {
-          showNotificationPermissionAlert.value = false;
-          return;
-        }
-      }
-    } catch (_) {}
-
-    await Utility.openSetting();
-    await checkNotificationPermission();
-  }
+  
 
   void _handleReceivedAction(BuildContext context) {
     final action = receivedAction;
@@ -973,6 +898,20 @@ class DashboardScreenV2Controller extends GetxController
     debugPrint('Opening mobile application: $businessName, URL: $url');
     final context = Get.context;
     if (context == null) return;
+
+    if(kIsWeb){
+      final uri = Uri.tryParse(url);
+      if (uri == null) {
+        Utility.showMessage(context, 'Invalid Create Contracts URL.');
+        return;
+      }
+      await launchUrl(
+        uri,
+        mode: LaunchMode.platformDefault,
+        webOnlyWindowName: '_blank',
+      );
+      return;
+    }
 
     await Navigator.of(context).push(
       MaterialPageRoute(

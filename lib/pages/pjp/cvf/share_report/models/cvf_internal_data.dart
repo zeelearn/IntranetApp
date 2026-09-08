@@ -1,4 +1,9 @@
 // Models for GetPJPCVFEmail.responseData.internal_data[].
+//
+// Note: some API builds return nested arrays as JSON *strings*
+// (e.g. enr_status_array: "[{...}]") instead of real arrays.
+import 'dart:convert';
+
 class CvfClassInfo {
   CvfClassInfo({
     required this.classId,
@@ -406,14 +411,15 @@ class CvfInternalData {
   }
 
   static CvfInternalData? firstFrom(dynamic raw) {
-    if (raw is List && raw.isNotEmpty) {
-      final first = raw.first;
+    final decoded = _decodeJsonValue(raw);
+    if (decoded is List && decoded.isNotEmpty) {
+      final first = decoded.first;
       if (first is Map) {
         return CvfInternalData.fromJson(Map<String, dynamic>.from(first));
       }
     }
-    if (raw is Map) {
-      return CvfInternalData.fromJson(Map<String, dynamic>.from(raw));
+    if (decoded is Map) {
+      return CvfInternalData.fromJson(Map<String, dynamic>.from(decoded));
     }
     return null;
   }
@@ -454,14 +460,44 @@ bool _asBool(dynamic value, {bool fallback = false}) {
   return fallback;
 }
 
+/// Decodes API values that may be a List/Map **or** a JSON string of one.
+dynamic _decodeJsonValue(dynamic raw) {
+  if (raw == null) return null;
+  if (raw is List || raw is Map) return raw;
+  if (raw is! String) return raw;
+
+  final text = raw.trim();
+  if (text.isEmpty || text.toLowerCase() == 'null' || text == 'NA') {
+    return null;
+  }
+  // Only attempt decode for JSON array/object payloads.
+  if (!(text.startsWith('[') || text.startsWith('{'))) {
+    return raw;
+  }
+  try {
+    return jsonDecode(text);
+  } catch (_) {
+    return raw;
+  }
+}
+
 List<T> _mapList<T>(
   dynamic raw,
   T Function(Map<String, dynamic>) mapper,
 ) {
-  if (raw is! List) return const [];
+  final decoded = _decodeJsonValue(raw);
+  if (decoded is! List) return const [];
   final out = <T>[];
-  for (final e in raw) {
-    if (e is Map) out.add(mapper(Map<String, dynamic>.from(e)));
+  for (final e in decoded) {
+    if (e is Map) {
+      out.add(mapper(Map<String, dynamic>.from(e)));
+    } else if (e is String) {
+      // Nested double-encoding: list item itself is a JSON object string.
+      final item = _decodeJsonValue(e);
+      if (item is Map) {
+        out.add(mapper(Map<String, dynamic>.from(item)));
+      }
+    }
   }
   return out;
 }

@@ -165,7 +165,7 @@ class DashV2MenuCatalog {
       if (mobileAppNames.contains(MobileApplicationsStore.bpManagement))
         _bpManagement,
       if (notiflowAccessList.contains(employeeCode)) _notiflow,
-      if (isBpms) _pjpCvfApprovalExp,
+      //if (isBpms) _pjpCvfApprovalExp,
       _myReport,
     ];
   }
