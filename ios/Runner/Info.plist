@@ -41,13 +41,13 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSCameraUsageDescription</key>
-	<string>This app requires access to the camera.</string>
+	<string>We use the camera to let you capture photos for upload them as part of app features.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>$(PRODUCT_NAME) needs Location access for getting location!</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>$(PRODUCT_NAME) needs Location access for getting location!</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>This app requires access to the photo library.</string>
+	<string>We use your photo library to let you select photos and upload them as part of app features.</string>
 	<key>NSCalendarsUsageDescription</key>
 	<string>Access most functions for calendar viewing and editing.</string>
 	<key>NSContactsUsageDescription</key>

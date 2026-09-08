@@ -28,35 +28,55 @@ class LoginResponseModel {
 }
 
 class ResponseData {
-  ResponseData(
-      {required this.employeeDetails,
-      required this.employeeRoles,
-      required this.businessApplications});
+  ResponseData({
+    required this.employeeDetails,
+    required this.employeeRoles,
+    required this.businessApplications,
+    this.myMobileApplications = const [],
+  });
   late final List<EmployeeDetails> employeeDetails;
   late final List<EmployeeRoles> employeeRoles;
   late final List<BusinessApplications> businessApplications;
+  late final List<MyMobileApplication> myMobileApplications;
 
   ResponseData.fromJson(Map<String, dynamic> json) {
     try {
-      employeeDetails = List.from(json['employeeDetails'])
+      employeeDetails = List.from(json['employeeDetails'] ?? const [])
           .map((e) => EmployeeDetails.fromJson(e))
           .toList();
-      employeeRoles = List.from(json['employeeRoles'])
+      employeeRoles = List.from(json['employeeRoles'] ?? const [])
           .map((e) => EmployeeRoles.fromJson(e))
           .toList();
-    } catch (_) {}
+    } catch (_) {
+      employeeDetails = [];
+      employeeRoles = [];
+    }
     businessApplications = [];
     if (json['businessApplications'] is List) {
       json['businessApplications'].forEach((v) {
         try {
-          businessApplications.add(new BusinessApplications.fromJson(v));
+          businessApplications.add(BusinessApplications.fromJson(v));
         } catch (_) {}
       });
-    } else {
-      businessApplications
-          .add(BusinessApplications.fromJson(json['businessApplications']));
+    } else if (json['businessApplications'] is Map) {
+      try {
+        businessApplications
+            .add(BusinessApplications.fromJson(json['businessApplications']));
+      } catch (_) {}
     }
-    //businessApplications = List.from(json['businessApplications']).map((e)=>BusinessApplications.fromJson(e)).toList();
+
+    myMobileApplications = [];
+    final mobileRaw = json['myMobileApplications'];
+    if (mobileRaw is List) {
+      for (final v in mobileRaw) {
+        try {
+          if (v is Map) {
+            myMobileApplications
+                .add(MyMobileApplication.fromJson(Map<String, dynamic>.from(v)));
+          }
+        } catch (_) {}
+      }
+    }
   }
 
   Map<String, dynamic> toJson() {
@@ -65,7 +85,9 @@ class ResponseData {
     _data['employeeRoles'] = employeeRoles.map((e) => e.toJson()).toList();
     _data['businessApplications'] =
         businessApplications.map((e) => e.toJson()).toList();
-    return _data; //jsonEncode(businessApplications);
+    _data['myMobileApplications'] =
+        myMobileApplications.map((e) => e.toJson()).toList();
+    return _data;
   }
 }
 
@@ -310,6 +332,77 @@ class BusinessApplications {
     _data['footer_Path'] = footerPath;
     _data['path'] = path;
     return _data;
+  }
+}
+
+/// Apps from login `myMobileApplications` — used for dashboard deep-links.
+class MyMobileApplication {
+  MyMobileApplication({
+    required this.businessId,
+    required this.employeeId,
+    required this.businessName,
+    required this.imageUrl,
+    required this.path,
+    this.headerPath,
+    this.footerPath,
+  });
+
+  final int businessId;
+  final String employeeId;
+  final String businessName;
+  final String imageUrl;
+  final String? headerPath;
+  final String? footerPath;
+  final String path;
+
+  /// Normalized display name for matching.
+  String get normalizedName => businessName.trim();
+
+  /// Trimmed launch URL from API `path`.
+  String get launchUrl => path.trim();
+
+  bool get hasValidLaunchUrl {
+    final url = launchUrl;
+    if (url.isEmpty || url.toLowerCase() == 'null') return false;
+    return url.startsWith('http://') || url.startsWith('https://');
+  }
+
+  factory MyMobileApplication.fromJson(Map<String, dynamic> json) {
+    return MyMobileApplication(
+      businessId: _asInt(json['business_ID'] ?? json['business_Id']),
+      employeeId: (json['employee_Id'] ?? json['employeeId'] ?? '').toString(),
+      businessName:
+          (json['business_Name'] ?? json['businessName'] ?? '').toString().trim(),
+      imageUrl: (json['imageURL'] ??
+              json['imageUrl'] ??
+              json['logo_Path'] ??
+              '')
+          .toString()
+          .trim(),
+      headerPath: json['header_Path']?.toString(),
+      footerPath: json['footer_Path']?.toString(),
+      path: (json['path'] ?? '').toString(),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
+      'business_ID': businessId,
+      'employee_Id': employeeId,
+      'business_Name': businessName,
+      'imageURL': imageUrl,
+      'header_Path': headerPath,
+      'footer_Path': footerPath,
+      'path': path,
+    };
+  }
+
+  static int _asInt(dynamic value) {
+    if (value == null) return 0;
+    if (value is int) return value;
+    if (value is double) return value.toInt();
+    if (value is num) return value.toInt();
+    return int.tryParse(value.toString().trim()) ?? 0;
   }
 }
 

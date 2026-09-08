@@ -11,6 +11,7 @@ import '../../../api/request/login_request.dart';
 import '../../../api/response/login_response.dart';
 import '../../helper/LocalConstant.dart';
 import '../../helper/constants.dart';
+import '../../helper/mobile_applications_store.dart';
 import '../../helper/utils.dart';
 import '../PrivacyPolicyScreen.dart';
 
@@ -236,6 +237,10 @@ class _LoginFormState extends State<LoginForm>
 
               List<BusinessApplications> businessapplications =
                   value.responseData.businessApplications;
+              MobileApplicationsStore.save(
+                hiveBox,
+                value.responseData.myMobileApplications,
+              );
               // if (businessapplications.isEmpty) {
               //   hiveBox.clear();
               //   Utility.showMessage(context,
