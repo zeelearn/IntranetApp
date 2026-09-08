@@ -14,10 +14,12 @@ class ProjectsSidebar extends StatelessWidget {
     required this.onAllIndentsTap,
     required this.onCenterKitReportTap,
     required this.onVisualChartsTap,
+    required this.onConfigurationTap,
     this.showProjects = true,
     this.showAllIndents = true,
     this.showCenterKitReport = true,
     this.showVisualCharts = false,
+    this.showConfiguration = false,
     this.width = 280,
   });
 
@@ -26,10 +28,12 @@ class ProjectsSidebar extends StatelessWidget {
   final VoidCallback onAllIndentsTap;
   final VoidCallback onCenterKitReportTap;
   final VoidCallback onVisualChartsTap;
+  final VoidCallback onConfigurationTap;
   final bool showProjects;
   final bool showAllIndents;
   final bool showCenterKitReport;
   final bool showVisualCharts;
+  final bool showConfiguration;
   final double width;
 
   static const _sectionBg = Color(0xFFE8EEF5);
@@ -46,6 +50,7 @@ class ProjectsSidebar extends StatelessWidget {
     final showIndentsSection = showAllIndents;
     final showReportSection = showCenterKitReport;
     final showAnalyticsSection = showVisualCharts;
+    final showConfigurationSection = showConfiguration;
 
     return Material(
       color: Colors.white,
@@ -113,6 +118,17 @@ class ProjectsSidebar extends StatelessWidget {
                     label: 'Visual Charts',
                     onTap: onVisualChartsTap,
                   ),
+                const SizedBox(height: 8),
+              ],
+              if (showConfigurationSection) ...[
+                _SectionHeader(
+                  icon: Icons.settings_outlined,
+                  title: 'Configuration',
+                ),
+                _SubMenuItem(
+                  label: 'Configuration',
+                  onTap: onConfigurationTap,
+                ),
               ],
             ],
           ),

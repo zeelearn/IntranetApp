@@ -75,6 +75,7 @@ class DashboardController extends GetxController {
   final RxBool showAllIndentsMenu = true.obs;
   final RxBool showCenterKitReportMenu = true.obs;
   final RxBool showVisualChartsMenu = false.obs;
+  final RxBool showConfigurationMenu = false.obs;
 
   final RxBool isLoading = false.obs;
   final RxBool isRefreshing = false.obs;
@@ -156,6 +157,8 @@ class DashboardController extends GetxController {
         ProjectsSidebarRoles.canShowCenterKitReport(role);
     showVisualChartsMenu.value =
         ProjectsSidebarRoles.canShowVisualCharts(role);
+    showConfigurationMenu.value =
+        ProjectsSidebarRoles.canShowConfiguration(role);
   }
 
   @override

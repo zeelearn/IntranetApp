@@ -10,6 +10,7 @@ import 'package:Intranet/modules/projects/models/projects_entry_args.dart';
 import 'package:Intranet/modules/projects/models/quick_action_type.dart';
 import 'package:Intranet/modules/projects/views/center_kit_report_screen.dart';
 import 'package:Intranet/modules/projects/views/indent_list_screen.dart';
+import 'package:Intranet/modules/projects/views/project_configuration_screen.dart';
 import 'package:Intranet/modules/projects/views/project_list_screen.dart';
 import 'package:Intranet/modules/projects/views/task_list_screen.dart';
 import 'package:Intranet/modules/projects/views/visual_charts_screen.dart';
@@ -175,6 +176,7 @@ class _ProjectsDashboardPageState extends State<ProjectsDashboardPage> {
                   showCenterKitReport:
                       controller.showCenterKitReportMenu.value,
                   showVisualCharts: controller.showVisualChartsMenu.value,
+                  showConfiguration: controller.showConfigurationMenu.value,
                   onProjectTap: (card) {
                     _closeDrawerIfOpen();
                     _handleCardTap(controller, card);
@@ -190,6 +192,10 @@ class _ProjectsDashboardPageState extends State<ProjectsDashboardPage> {
                   onVisualChartsTap: () {
                     _closeDrawerIfOpen();
                     _openVisualCharts();
+                  },
+                  onConfigurationTap: () {
+                    _closeDrawerIfOpen();
+                    _openConfiguration();
                   },
                 ),
               ),
@@ -222,11 +228,13 @@ class _ProjectsDashboardPageState extends State<ProjectsDashboardPage> {
                       showCenterKitReport:
                           controller.showCenterKitReportMenu.value,
                       showVisualCharts: controller.showVisualChartsMenu.value,
+                      showConfiguration: controller.showConfigurationMenu.value,
                       onProjectTap: (card) =>
                           _handleCardTap(controller, card),
                       onAllIndentsTap: _openAllIndents,
                       onCenterKitReportTap: _openCenterKitReport,
                       onVisualChartsTap: _openVisualCharts,
+                      onConfigurationTap: _openConfiguration,
                     ),
                   ),
                 Expanded(child: _buildMainContent(controller)),
@@ -373,5 +381,11 @@ class _ProjectsDashboardPageState extends State<ProjectsDashboardPage> {
     final controller = Get.find<DashboardController>(tag: _tag);
     if (!controller.showVisualChartsMenu.value) return;
     VisualChartsScreen.openFromHive();
+  }
+
+  Future<void> _openConfiguration() async {
+    final controller = Get.find<DashboardController>(tag: _tag);
+    if (!controller.showConfigurationMenu.value) return;
+    await ProjectConfigurationScreen.openFromHive();
   }
 }
