@@ -11,6 +11,16 @@ void main() {
       }
     });
 
+    test('allows Configuration for BH only', () {
+      expect(ProjectsSidebarRoles.canShowConfiguration('BH'), isTrue);
+      expect(ProjectsSidebarRoles.canShowConfiguration('bh'), isTrue);
+      expect(ProjectsSidebarRoles.canShowConfiguration('MAN'), isFalse);
+      expect(ProjectsSidebarRoles.canShowConfiguration('ZM'), isFalse);
+      expect(ProjectsSidebarRoles.canShowConfiguration('EMP'), isFalse);
+      expect(ProjectsSidebarRoles.canShowConfiguration(''), isFalse);
+      expect(ProjectsSidebarRoles.canShowConfiguration(null), isFalse);
+    });
+
     test('allows Visual Charts for MAN, BH, ZM only', () {
       expect(ProjectsSidebarRoles.canShowVisualCharts('MAN'), isTrue);
       expect(ProjectsSidebarRoles.canShowVisualCharts('BH'), isTrue);

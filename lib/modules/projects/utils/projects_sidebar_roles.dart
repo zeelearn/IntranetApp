@@ -5,6 +5,8 @@ class ProjectsSidebarRoles {
   /// Visual Charts: MAN, BH, ZM only.
   static const visualChartsRoles = {'MAN', 'BH', 'ZM'};
 
+  static const configurationRoles = {'BH'};
+
   static String normalize(String? employeeType) =>
       (employeeType ?? '').trim().toUpperCase();
 
@@ -20,5 +22,9 @@ class ProjectsSidebarRoles {
   /// True when [employeeType] is MAN, BH, or ZM (case-insensitive).
   static bool canShowVisualCharts(String? employeeType) {
     return visualChartsRoles.contains(normalize(employeeType));
+  }
+
+  static bool canShowConfiguration(String? employeeType) {
+    return configurationRoles.contains(normalize(employeeType));
   }
 }
