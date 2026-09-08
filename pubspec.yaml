@@ -15,7 +15,7 @@ publish_to: "none" # Remove this line if you wish to publish to pub.dev
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 1.0.60+63
+version: 1.0.50+54
 
 environment:
   sdk: ">=3.2.3 <4.0.0"
@@ -110,7 +110,7 @@ dependencies:
   chewie: ^1.5.0
   flutter_widget_from_html_core: ^0.17.0
   # flutter_widget_from_html_core: ^0.15.1
-  flutter_html: ^3.0.0-alpha.6
+  flutter_html: ^3.0.0
   dropdown_search: ^5.0.6
 
   #calendar_date_picker2: ^1.1.5
@@ -138,10 +138,10 @@ dependencies:
     # path: ../../ZeeSathi
 
   expensestracker:
-    path: ../excepsesmanagement
-    # git:
-    #   url: https://github.com/ZeeLearnLtd/excepsesmanagement.git
-    #   ref: uat
+    #path: ../excepsesmanagement
+    git:
+      url: https://github.com/ZeeLearnLtd/excepsesmanagement.git
+      ref: uat
 
 
   fl_chart: ^1.2.0
@@ -153,6 +153,7 @@ dependencies:
   
 
 dependency_overrides:
+  html: 0.15.6
   #share_plus: ^10.0.2
   package_info_plus: ^4.0.0
   pdfrx: ^2.2.24

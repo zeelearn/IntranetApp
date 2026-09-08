@@ -6,4 +6,7 @@ class TrainingSupportItem {
   Map<String, dynamic> toJson() => {
         'Details': details.trim(),
       };
+
+  /// API list item format for Send/Get PJPCVFEmail.
+  String toApiString() => details.trim();
 }

@@ -69,6 +69,11 @@ class _CVFListScreenV2State extends State<CVFListScreenV2> {
   void initState() {
     super.initState();
     _tag = widget.pjpInfo?.PJP_Id ?? 'all_cvf';
+    // Always start fresh — a leftover GetX instance can keep stale offline
+    // status / businessId and hide Share Report on the first open.
+    if (Get.isRegistered<CVFController>(tag: _tag)) {
+      Get.delete<CVFController>(tag: _tag, force: true);
+    }
     controller = Get.put(
       CVFController(pjpInfo: widget.pjpInfo, isViewOnly: widget.isViewOnly),
       tag: _tag,
@@ -77,7 +82,9 @@ class _CVFListScreenV2State extends State<CVFListScreenV2> {
 
   @override
   void dispose() {
-    Get.delete<CVFController>(tag: _tag);
+    if (Get.isRegistered<CVFController>(tag: _tag)) {
+      Get.delete<CVFController>(tag: _tag, force: true);
+    }
     super.dispose();
   }
 
@@ -202,6 +209,8 @@ class _CvfListBody extends StatelessWidget {
           final _ = controller.cvfList.length;
           final activeFilter = controller.filter.value;
           controller.offlineStatus.length;
+          // Watch business id so Share Report appears once Kidzee id resolves.
+          controller.businessIdRx.value;
 
           if (loading) {
             return const Center(child: CircularProgressIndicator());
@@ -439,7 +448,8 @@ class _CvfCard extends StatelessWidget {
                       ],
                     ),
                   ),
-                  if (controller.showCardActions(cvf))
+                  if (controller.showCardActions(cvf) ||
+                      controller.canShareReport(cvf))
                     _CvfCardActions(controller: controller, cvf: cvf),
                 ],
               ),
@@ -687,14 +697,19 @@ class WebCardActions extends StatelessWidget {
                     color: kPrimaryLightColor, fontWeight: FontWeight.w600),
               ),
             ),
-          // if (isCompleted)
+          // if (controller.canShareReport(cvf))
           //   TextButton.icon(
           //     onPressed: () => controller.generateReportEmailBody(context, cvf),
-          //     icon: const Icon(Icons.share_outlined,
-          //         size: 18, color: kPrimaryLightColor),
-          //     label: const Text(
-          //       'Share Report',
-          //       style: TextStyle(
+          //     icon: Icon(
+          //       cvf.isEmailSubmitted
+          //           ? Icons.mark_email_read_outlined
+          //           : Icons.share_outlined,
+          //       size: 18,
+          //       color: kPrimaryLightColor,
+          //     ),
+          //     label: Text(
+          //       cvf.isEmailSubmitted ? 'View Share Report' : 'Share Report',
+          //       style: const TextStyle(
           //           color: kPrimaryLightColor, fontWeight: FontWeight.w600),
           //     ),
           //   ),

@@ -24,6 +24,7 @@ class EmailComposePanel extends StatelessWidget {
       assert(previewVersion >= 0);
       final sending = c.isSending.value;
       final pdfOk = c.pdfAvailable.value;
+      final canSend = c.canSend;
 
       final ww = emailSvc.filledWorkingWell(c.workingWell.toList());
       final ua = emailSvc.filledUrgent(c.urgentAttention.toList());
@@ -53,16 +54,32 @@ class EmailComposePanel extends StatelessWidget {
               _ComposeToolbar(
                 sending: sending,
                 showSend: showSendInPanel,
+                canSend: canSend,
                 onSend: c.sendReport,
                 onDiscard: c.confirmDiscard,
               ),
               const Divider(height: 1, color: ShareReportTheme.border),
               _MetaRow(
                 label: 'To',
-                child: _EmailChip(
-                  text: ShareReportTheme.maskEmail(c.toEmail),
-                  icon: Icons.lock_outline_rounded,
-                ),
+                child: c.toEmails.isEmpty
+                    ? Text(
+                        '—',
+                        style: ShareReportTheme.emailMeta.copyWith(
+                          color: ShareReportTheme.textSecondary,
+                        ),
+                      )
+                    : Wrap(
+                        spacing: 6,
+                        runSpacing: 6,
+                        children: c.toEmails
+                            .map(
+                              (e) => _EmailChip(
+                                text: ShareReportTheme.maskEmail(e),
+                                icon: Icons.lock_outline_rounded,
+                              ),
+                            )
+                            .toList(),
+                      ),
               ),
               const Divider(height: 1, color: ShareReportTheme.border),
               _MetaRow(
@@ -109,14 +126,27 @@ class EmailComposePanel extends StatelessWidget {
                     ),
                     const SizedBox(width: 8),
                     Expanded(
-                      child: Text(
-                        c.pdfFileName,
-                        style: GoogleFonts.poppins(
-                          fontSize: 12.5,
-                          fontWeight: FontWeight.w500,
-                          color: pdfOk
-                              ? ShareReportTheme.primary
-                              : Colors.red.shade700,
+                      child: InkWell(
+                        onTap: c.canOpenAttachment
+                            ? c.openAttachmentPreview
+                            : null,
+                        borderRadius: BorderRadius.circular(4),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 2),
+                          child: Text(
+                            c.pdfFileName,
+                            style: GoogleFonts.poppins(
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.w500,
+                              color: pdfOk
+                                  ? ShareReportTheme.primary
+                                  : Colors.red.shade700,
+                              decoration: c.canOpenAttachment
+                                  ? TextDecoration.underline
+                                  : TextDecoration.none,
+                              decorationColor: ShareReportTheme.primary,
+                            ),
+                          ),
                         ),
                       ),
                     ),
@@ -248,14 +278,9 @@ class EmailComposePanel extends StatelessWidget {
                         style: ShareReportTheme.emailBody,
                       ),
                       const SizedBox(height: 16),
-                      Text('Warm Regards,', style: ShareReportTheme.emailBody),
+                      Text('Warm regards,', style: ShareReportTheme.emailBody),
                       const SizedBox(height: 4),
-                      Text(
-                        c.facilitatorName.isEmpty
-                            ? 'Facilitator'
-                            : c.facilitatorName,
-                        style: _boldBody,
-                      ),
+                      Text('Zee Learn Ltd', style: _boldBody),
                     ],
                   ),
                 ),
@@ -267,7 +292,7 @@ class EmailComposePanel extends StatelessWidget {
                   child: Row(
                     children: [
                       FilledButton.icon(
-                        onPressed: sending ? null : c.sendReport,
+                        onPressed: canSend ? c.sendReport : null,
                         style: FilledButton.styleFrom(
                           backgroundColor: ShareReportTheme.primary,
                           foregroundColor: Colors.white,
@@ -290,7 +315,11 @@ class EmailComposePanel extends StatelessWidget {
                               )
                             : const Icon(Icons.send_rounded, size: 18),
                         label: Text(
-                          sending ? 'Sending…' : 'Send',
+                          sending
+                              ? 'Sending…'
+                              : c.isAlreadySubmitted.value
+                                  ? 'Already Sent'
+                                  : 'Send',
                           style: GoogleFonts.poppins(
                             fontWeight: FontWeight.w600,
                             fontSize: 14,
@@ -301,7 +330,7 @@ class EmailComposePanel extends StatelessWidget {
                       TextButton(
                         onPressed: sending ? null : c.confirmDiscard,
                         child: Text(
-                          'Discard',
+                          c.isReadOnly.value ? 'Close' : 'Discard',
                           style: GoogleFonts.poppins(
                             color: ShareReportTheme.textSecondary,
                             fontWeight: FontWeight.w500,
@@ -403,6 +432,71 @@ class _PreviewTable extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final wide = headers.length > 5;
+    final table = Table(
+      border: TableBorder(
+        horizontalInside: BorderSide(color: ShareReportTheme.border),
+        verticalInside:
+            BorderSide(color: ShareReportTheme.border.withValues(alpha: 0.8)),
+      ),
+      defaultColumnWidth: wide
+          ? const FixedColumnWidth(78)
+          : const FlexColumnWidth(),
+      columnWidths: wide
+          ? {
+              0: FixedColumnWidth(
+                headers.first.trim().isEmpty ? 150 : 110,
+              ),
+            }
+          : {
+              0: const FixedColumnWidth(40),
+              for (var i = 1; i < headers.length; i++)
+                i: const FlexColumnWidth(),
+            },
+      children: [
+        TableRow(
+          decoration:
+              const BoxDecoration(color: ShareReportTheme.composeHeader),
+          children: [
+            for (final h in headers)
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
+                child: Text(
+                  h,
+                  style: GoogleFonts.poppins(
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.w700,
+                    color: ShareReportTheme.textSecondary,
+                  ),
+                ),
+              ),
+          ],
+        ),
+        for (var r = 0; r < rows.length; r++)
+          TableRow(
+            decoration: BoxDecoration(
+              color: r.isEven ? Colors.white : const Color(0xFFFAFBFC),
+            ),
+            children: [
+              for (final cell in rows[r])
+                Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 6, vertical: 7),
+                  child: Text(
+                    cell,
+                    style: GoogleFonts.poppins(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w400,
+                      color: ShareReportTheme.textPrimary,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+      ],
+    );
+
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
@@ -410,58 +504,12 @@ class _PreviewTable extends StatelessWidget {
         borderRadius: BorderRadius.circular(8),
       ),
       clipBehavior: Clip.antiAlias,
-      child: Table(
-        border: TableBorder(
-          horizontalInside: BorderSide(color: ShareReportTheme.border),
-          verticalInside:
-              BorderSide(color: ShareReportTheme.border.withValues(alpha: 0.8)),
-        ),
-        columnWidths: {
-          0: const FixedColumnWidth(40),
-          for (var i = 1; i < headers.length; i++) i: const FlexColumnWidth(),
-        },
-        children: [
-          TableRow(
-            decoration: const BoxDecoration(color: ShareReportTheme.composeHeader),
-            children: [
-              for (final h in headers)
-                Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                  child: Text(
-                    h,
-                    style: GoogleFonts.poppins(
-                      fontSize: 11.5,
-                      fontWeight: FontWeight.w700,
-                      color: ShareReportTheme.textSecondary,
-                    ),
-                  ),
-                ),
-            ],
-          ),
-          for (var r = 0; r < rows.length; r++)
-            TableRow(
-              decoration: BoxDecoration(
-                color: r.isEven ? Colors.white : const Color(0xFFFAFBFC),
-              ),
-              children: [
-                for (final cell in rows[r])
-                  Padding(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                    child: Text(
-                      cell,
-                      style: GoogleFonts.poppins(
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.w400,
-                        color: ShareReportTheme.textPrimary,
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-        ],
-      ),
+      child: wide
+          ? SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: table,
+            )
+          : table,
     );
   }
 }
@@ -470,12 +518,14 @@ class _ComposeToolbar extends StatelessWidget {
   const _ComposeToolbar({
     required this.sending,
     required this.showSend,
+    required this.canSend,
     required this.onSend,
     required this.onDiscard,
   });
 
   final bool sending;
   final bool showSend;
+  final bool canSend;
   final VoidCallback onSend;
   final VoidCallback onDiscard;
 
@@ -504,13 +554,13 @@ class _ComposeToolbar extends StatelessWidget {
           ),
           if (showSend)
             IconButton(
-              tooltip: 'Send',
-              onPressed: sending ? null : onSend,
+              tooltip: canSend ? 'Send' : 'Already sent',
+              onPressed: canSend ? onSend : null,
               icon: Icon(
                 Icons.send_rounded,
-                color: sending
-                    ? ShareReportTheme.textSecondary
-                    : ShareReportTheme.primary,
+                color: canSend
+                    ? ShareReportTheme.primary
+                    : ShareReportTheme.textSecondary,
               ),
             ),
           IconButton(

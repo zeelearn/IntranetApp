@@ -1,7 +1,9 @@
 import 'package:Intranet/pages/pjp/cvf/share_report/controllers/share_report_controller.dart';
 import 'package:Intranet/pages/pjp/cvf/share_report/models/share_report_args.dart';
+import 'package:Intranet/pages/pjp/cvf/share_report/views/widgets/branding_enrolment_section.dart';
 import 'package:Intranet/pages/pjp/cvf/share_report/views/widgets/cvf_info_card.dart';
 import 'package:Intranet/pages/pjp/cvf/share_report/views/widgets/email_preview.dart';
+import 'package:Intranet/pages/pjp/cvf/share_report/views/widgets/enrolment_status_section.dart';
 import 'package:Intranet/pages/pjp/cvf/share_report/views/widgets/share_report_theme.dart';
 import 'package:Intranet/pages/pjp/cvf/share_report/views/widgets/teacher_observation_section.dart';
 import 'package:Intranet/pages/pjp/cvf/share_report/views/widgets/training_support_section.dart';
@@ -183,6 +185,8 @@ class _NarrowLayout extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
             child: Obx(() {
               final sending = controller.isSending.value;
+              final canSend = controller.canSend;
+              final submitted = controller.isAlreadySubmitted.value;
               return Row(
                 children: [
                   Expanded(
@@ -190,7 +194,7 @@ class _NarrowLayout extends StatelessWidget {
                       onPressed:
                           sending ? null : controller.confirmDiscard,
                       child: Text(
-                        'Discard',
+                        controller.isReadOnly.value ? 'Close' : 'Discard',
                         style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
                       ),
                     ),
@@ -199,7 +203,7 @@ class _NarrowLayout extends StatelessWidget {
                   Expanded(
                     flex: 2,
                     child: FilledButton.icon(
-                      onPressed: sending ? null : controller.sendReport,
+                      onPressed: canSend ? controller.sendReport : null,
                       style: FilledButton.styleFrom(
                         backgroundColor: ShareReportTheme.primary,
                         minimumSize: const Size.fromHeight(46),
@@ -218,7 +222,11 @@ class _NarrowLayout extends StatelessWidget {
                             )
                           : const Icon(Icons.send_rounded, size: 18),
                       label: Text(
-                        sending ? 'Sending…' : 'Send Report',
+                        sending
+                            ? 'Sending…'
+                            : submitted
+                                ? 'Already Sent'
+                                : 'Send Report',
                         style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
                       ),
                     ),
@@ -245,34 +253,92 @@ class _FormPane extends StatelessWidget {
       child: ListView(
         padding: const EdgeInsets.fromLTRB(14, 12, 14, 24),
         children: [
+          Obx(() {
+            if (!controller.isAlreadySubmitted.value) {
+              return const SizedBox.shrink();
+            }
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Container(
+                width: double.infinity,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFE8F5E9),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: const Color(0xFFA5D6A7)),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.mark_email_read_outlined,
+                        size: 18, color: Colors.green.shade800),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'This Centre Visit Report has already been shared. '
+                        'Details below are read-only.',
+                        style: GoogleFonts.poppins(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.green.shade900,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }),
           Text('Visit observations', style: ShareReportTheme.title),
           const SizedBox(height: 4),
-          Text(
-            'Enter details below — the email preview updates as you type.',
-            style: ShareReportTheme.label,
+          Obx(
+            () => Text(
+              controller.isReadOnly.value
+                  ? 'Submitted report — preview only. Editing and resend are disabled.'
+                  : 'Enter details below — the email preview updates as you type.',
+              style: ShareReportTheme.label,
+            ),
           ),
           const SizedBox(height: 12),
-          const CvfInfoCard(),
-          const SizedBox(height: 16),
-          const _SectionShell(
-            title: "What's Working Well",
-            child: WorkingWellSection(hideTitle: true),
-          ),
-          const SizedBox(height: 12),
-          const _SectionShell(
-            title: 'Urgent Attention',
-            child: UrgentAttentionSection(hideTitle: true),
-          ),
-          const SizedBox(height: 12),
-          const _SectionShell(
-            title: 'Teacher Observation',
-            child: TeacherObservationSection(hideTitle: true),
-          ),
-          const SizedBox(height: 12),
-          const _SectionShell(
-            title: 'Training & Support Provided',
-            child: TrainingSupportSection(hideTitle: true),
-          ),
+          Obx(() {
+            final readOnly = controller.isReadOnly.value;
+            return AbsorbPointer(
+              absorbing: readOnly,
+              child: Opacity(
+                opacity: readOnly ? 0.85 : 1,
+                child: const Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    CvfInfoCard(),
+                    SizedBox(height: 16),
+                    _SectionShell(
+                      title: "What's Working Well",
+                      child: WorkingWellSection(hideTitle: true),
+                    ),
+                    SizedBox(height: 12),
+                    _SectionShell(
+                      title: 'Urgent Attention',
+                      child: UrgentAttentionSection(hideTitle: true),
+                    ),
+                    SizedBox(height: 12),
+                    _SectionShell(
+                      title: 'Teacher Observation',
+                      child: TeacherObservationSection(hideTitle: true),
+                    ),
+                    SizedBox(height: 12),
+                    _SectionShell(
+                      title: 'Training & Support Provided',
+                      child: TrainingSupportSection(hideTitle: true),
+                    ),
+                    SizedBox(height: 12),
+                    EnrolmentStatusSection(),
+                    SizedBox(height: 16),
+                    BrandingEnrolmentSection(),
+                  ],
+                ),
+              ),
+            );
+          }),
           Obx(() {
             final err = controller.sectionError.value;
             if (err.isEmpty) return const SizedBox.shrink();

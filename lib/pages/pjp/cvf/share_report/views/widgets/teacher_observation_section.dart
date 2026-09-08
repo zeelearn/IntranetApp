@@ -70,10 +70,12 @@ class TeacherObservationSection extends StatelessWidget {
                     },
                   ),
                   DropdownButtonFormField<String>(
-                    key: ValueKey('to_status_$i-${items[i].appStatus}'),
-                    initialValue: items[i].appStatus.isEmpty
-                        ? null
-                        : items[i].appStatus,
+                    key: ValueKey(
+                      'to_status_$i-${items[i].dropdownAppStatus ?? 'none'}',
+                    ),
+                    // Always use a value that exists in [items] (or null).
+                    // API may return "active" / mixed casing — normalized in model.
+                    initialValue: items[i].dropdownAppStatus,
                     isExpanded: true,
                     style: shareReportCellTextStyle(),
                     decoration: shareReportCellDecoration(hint: 'Status *'),
@@ -86,8 +88,15 @@ class TeacherObservationSection extends StatelessWidget {
                         )
                         .toList(),
                     onChanged: (v) {
-                      items[i].appStatus = v ?? '';
+                      items[i].appStatus =
+                          TeacherObservationItem.normalizeAppStatus(v);
                       c.onRowEdited();
+                    },
+                    validator: (_) {
+                      if (!items[i].hasValidAppStatus) {
+                        return 'Select status';
+                      }
+                      return null;
                     },
                   ),
                   IconButton(
