@@ -6,6 +6,7 @@ import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 import '../../main.dart';
 import '../helper/LocalConstant.dart';
+import '../helper/constants.dart';
 import 'UserNotification.dart';
 
 class NotificationService {
@@ -116,74 +117,92 @@ class NotificationService {
   showSimpleNotification(String title, String body,
       [RemoteMessage? message]) async {
     String channel = LocalConstant.NOTIFICATION_CHANNEL;
-    AwesomeNotifications().createNotification(
-        content: NotificationContent(
-      id: -1,
-      channelKey: channel,
-      title: title,
-      body: body,
-      payload: {
-        'url': message != null ? (message.data['url'] ?? '') : '',
-        'type': message != null ? (message.data['type'] ?? '') : '',
-        'topic': message != null ? (message.data['topic'] ?? '') : '',
-        'bigimage': message != null ? (message.data['bigimage'] ?? '') : '',
-        'id': message != null ? (message.data['id'] ?? '') : '',
-        'employee_code':
-            message != null ? (message.data['employee_code'] ?? '') : ''
-      },
-    ));
+    try {
+      bool isAllowed = await AwesomeNotifications().isNotificationAllowed();
+      if (!isAllowed) {
+        debugPrint('AwesomeNotifications: notification not allowed');
+        return;
+      }
+      await AwesomeNotifications().createNotification(
+          content: NotificationContent(
+        id: -1,
+        channelKey: channel,
+        title: title,
+        body: body,
+        payload: {
+          'url': message != null ? (message.data['url'] ?? '') : '',
+          'type': message != null ? (message.data['type'] ?? '') : '',
+          'topic': message != null ? (message.data['topic'] ?? '') : '',
+          'bigimage': message != null ? (message.data['bigimage'] ?? '') : '',
+          'id': message != null ? (message.data['id'] ?? '') : '',
+          'employee_code':
+              message != null ? (message.data['employee_code'] ?? '') : ''
+        },
+      ));
+    } catch (e) {
+      debugPrint('AwesomeNotifications createNotification error: $e');
+    }
   }
 
   showBigNotification(String title, String body, String logo, String imageUrl,
       bool showBigTextNotification,
       [RemoteMessage? message]) async {
     String channel = LocalConstant.NOTIFICATION_CHANNEL;
-    if (showBigTextNotification) {
-      await AwesomeNotifications().createNotification(
-        content: NotificationContent(
-            id: -1,
-            channelKey: 'big_picture',
-            title: title,
-            body: body,
-            badge: 4,
-            // summary: body,
-            autoDismissible: true,
-            icon: 'resource://drawable/app_logo',
-            backgroundColor: Colors.white54,
-            largeIcon: imageUrl,
-            payload: {
-              'url': message != null ? (message.data['url'] ?? '') : '',
-              'type': message != null ? (message.data['type'] ?? '') : '',
-              'topic': message != null ? (message.data['topic'] ?? '') : '',
-              'bigimage':
-                  message != null ? (message.data['bigimage'] ?? '') : ''
-            },
-            notificationLayout: NotificationLayout.BigText,
-            bigPicture: imageUrl),
-      );
-    } else {
-      await AwesomeNotifications().createNotification(
-        content: NotificationContent(
-            id: -1,
-            channelKey: 'big_picture',
-            title: title,
-            body: body,
-            badge: 4,
-            // summary: body,
-            autoDismissible: true,
-            icon: 'resource://drawable/app_logo',
-            backgroundColor: Colors.white54,
-            largeIcon: imageUrl,
-            notificationLayout: NotificationLayout.BigPicture,
-            payload: {
-              'url': message != null ? (message.data['url'] ?? '') : '',
-              'type': message != null ? (message.data['type'] ?? '') : '',
-              'topic': message != null ? (message.data['topic'] ?? '') : '',
-              'bigimage':
-                  message != null ? (message.data['bigimage'] ?? '') : ''
-            },
-            bigPicture: imageUrl),
-      );
+    try {
+      bool isAllowed = await AwesomeNotifications().isNotificationAllowed();
+      if (!isAllowed) {
+        debugPrint('AwesomeNotifications: notification not allowed');
+        return;
+      }
+      if (showBigTextNotification) {
+        await AwesomeNotifications().createNotification(
+          content: NotificationContent(
+              id: -1,
+              channelKey: 'big_picture',
+              title: title,
+              body: body,
+              badge: 4,
+              // summary: body,
+              autoDismissible: true,
+              icon: 'resource://drawable/ic_notification',
+              backgroundColor: kPrimaryLightColor,
+              largeIcon: imageUrl,
+              payload: {
+                'url': message != null ? (message.data['url'] ?? '') : '',
+                'type': message != null ? (message.data['type'] ?? '') : '',
+                'topic': message != null ? (message.data['topic'] ?? '') : '',
+                'bigimage':
+                    message != null ? (message.data['bigimage'] ?? '') : ''
+              },
+              notificationLayout: NotificationLayout.BigText,
+              bigPicture: imageUrl),
+        );
+      } else {
+        await AwesomeNotifications().createNotification(
+          content: NotificationContent(
+              id: -1,
+              channelKey: 'big_picture',
+              title: title,
+              body: body,
+              badge: 4,
+              // summary: body,
+              autoDismissible: true,
+              icon: 'resource://drawable/ic_notification',
+              backgroundColor: kPrimaryLightColor,
+              largeIcon: imageUrl,
+              notificationLayout: NotificationLayout.BigPicture,
+              payload: {
+                'url': message != null ? (message.data['url'] ?? '') : '',
+                'type': message != null ? (message.data['type'] ?? '') : '',
+                'topic': message != null ? (message.data['topic'] ?? '') : '',
+                'bigimage':
+                    message != null ? (message.data['bigimage'] ?? '') : ''
+              },
+              bigPicture: imageUrl),
+        );
+      }
+    } catch (e) {
+      debugPrint('AwesomeNotifications createNotification error: $e');
     }
   }
 
@@ -234,8 +253,8 @@ class NotificationService {
         title: title,
         body: body,
         autoDismissible: true,
-        icon: 'resource://drawable/app_logo',
-        backgroundColor: Colors.white54,
+        icon: 'resource://drawable/ic_notification',
+        backgroundColor: kPrimaryLightColor,
         notificationLayout: NotificationLayout.BigPicture,
         bigPicture: imageUrl),);
   }

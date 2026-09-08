@@ -35,7 +35,7 @@ class _DetailPageState extends State<DetailPage> {
             style: Theme.of(context).textTheme.titleSmall,
           ), */
           Text(
-            DateFormat('dd MMM hh:mm a').format(DateFormat('yyyy-mm-dd hh:mm a')
+            DateFormat('MMM/dd,hh:mm a').format(DateFormat('yyyy-MM-dd hh:mm a')
                 .parse(widget.notificationModel.time)),
             textAlign: TextAlign.center,
             style: LightColors.subWhiteTextStyle,

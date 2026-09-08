@@ -32,17 +32,31 @@ class PjpListResponse {
           }
         } else if (data is Map<String, dynamic>) {
           // Case 2: responseData is an object (ResponseData structure)
-          if (data.containsKey('PJP') && data['PJP'] is List) {
-            for (var v in data['PJP']) {
+          if (data.containsKey('PJP')) {
+            final pjpVal = data['PJP'];
+            if (pjpVal is List) {
+              for (var v in pjpVal) {
+                try {
+                  responseData.add(PJPInfo.fromJson(v));
+                } catch (_) {}
+              }
+            } else if (pjpVal is Map<String, dynamic>) {
               try {
-                responseData.add(PJPInfo.fromJson(v));
+                responseData.add(PJPInfo.fromJson(pjpVal));
               } catch (_) {}
             }
           }
-          if (data.containsKey('MYTEAM') && data['MYTEAM'] is List) {
-            for (var v in data['MYTEAM']) {
+          if (data.containsKey('MYTEAM')) {
+            final myTeamVal = data['MYTEAM'];
+            if (myTeamVal is List) {
+              for (var v in myTeamVal) {
+                try {
+                  myTeamData.add(MYTEAM.fromJson(v));
+                } catch (_) {}
+              }
+            } else if (myTeamVal is Map<String, dynamic>) {
               try {
-                myTeamData.add(MYTEAM.fromJson(v));
+                myTeamData.add(MYTEAM.fromJson(myTeamVal));
               } catch (_) {}
             }
           }

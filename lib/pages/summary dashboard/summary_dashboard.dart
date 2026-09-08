@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:Intranet/api/APIService.dart';
 import 'package:Intranet/api/ServiceHandler.dart';
+import 'package:Intranet/api/request/pjp/get_pjp_list_request.dart';
 import 'package:Intranet/api/request/pjp/get_pjp_report_request.dart';
 import 'package:Intranet/api/request/pjp/update_pjpstatuslist_request.dart';
 import 'package:Intranet/api/response/pjp/pjplistresponse.dart';
@@ -991,7 +992,7 @@ class _SummaryDashboardState extends State<SummaryDashboard>
             final result = await Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => _DayEventsScreen(
+                builder: (context) => DayEventsScreen(
                   day: selected,
                   events: events,
                   empCode: employeeCode,
@@ -1156,7 +1157,7 @@ class _SummaryDashboardState extends State<SummaryDashboard>
           final result = await Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => _DayEventsScreen(
+              builder: (context) => DayEventsScreen(
                 day: day,
                 events: _getEventsForDay(day),
                 empCode: employeeCode,
@@ -1915,7 +1916,7 @@ class _SummaryDashboardState extends State<SummaryDashboard>
               final result = await Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => _DayEventsScreen(
+                  builder: (context) => DayEventsScreen(
                     day: selected,
                     events: events,
                     empCode: employeeCode,
@@ -2205,7 +2206,7 @@ class _SummaryDashboardState extends State<SummaryDashboard>
             final result = await Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => _DayEventsScreen(
+                builder: (context) => DayEventsScreen(
                   day: selected,
                   events: events,
                   empCode: employeeCode,
@@ -2296,7 +2297,7 @@ class _SummaryDashboardState extends State<SummaryDashboard>
           final result = await Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => _DayEventsScreen(
+              builder: (context) => DayEventsScreen(
                 day: day,
                 events: _getEventsForDay(day),
                 empCode: employeeCode,
@@ -2554,29 +2555,37 @@ class _SummaryDashboardState extends State<SummaryDashboard>
 }
 
 // ── Day Events Detail Screen ───────────────────────────────────────────────────
-class _DayEventsScreen extends StatefulWidget {
-  final DateTime day;
-  final List<_Event> events;
-  final String empName;
-  final String empCode;
+class DayEventsScreen extends StatefulWidget {
+  final DateTime? day;
+  final List<dynamic>? events;
+  final String? empName;
+  final String? empCode;
+  final String? pjpId;
 
-  const _DayEventsScreen(
-      {required this.day,
-      required this.events,
-      required this.empName,
-      required this.empCode});
+  const DayEventsScreen(
+      {Key? key,
+      this.day,
+      this.events,
+      this.empName,
+      this.empCode,
+      this.pjpId}) : super(key: key);
 
   @override
-  State<_DayEventsScreen> createState() => _DayEventsScreenState();
+  State<DayEventsScreen> createState() => _DayEventsScreenState();
 }
 
-class _DayEventsScreenState extends State<_DayEventsScreen> {
+class _DayEventsScreenState extends State<DayEventsScreen> {
   static const Color _sidebar = kPrimaryLightColor;
   static const Color _mainBg = Color(0xFFF5F7FA);
   static const Color _textSecondary = Color(0xFF6B7280);
 
   bool _isUpdated = false;
   late List<PJPInfo> _pjpList;
+  bool _isLoading = false;
+  DateTime? _currentDay;
+  List<_Event> _currentEvents = [];
+  String _currentEmpName = '';
+  String _currentEmpCode = '';
 
   void _refresh() {
     if (mounted) {
@@ -2608,21 +2617,100 @@ class _DayEventsScreenState extends State<_DayEventsScreen> {
       });
     }
   }
+
+  Color _getStatusColor(String status) {
+    final s = status.trim().toLowerCase();
+    if (s.contains('approved')) return const Color(0xFF4CAF90);
+    if (s.contains('pending')) return const Color(0xFFFF8A65);
+    if (s.contains('reject')) return const Color(0xFFEF5350);
+    return const Color(0xFF6B7280);
+  }
+
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
-    _pjpList = widget.events
+    _currentDay = widget.day;
+    _currentEvents = widget.events?.cast<_Event>() ?? [];
+    _currentEmpName = widget.empName ?? '';
+    _currentEmpCode = widget.empCode ?? '';
+
+    _pjpList = _currentEvents
         .map((e) => e.pjpInfo)
         .whereType<PJPInfo>()
         .toList();
+
+    if (widget.pjpId != null && widget.pjpId!.isNotEmpty) {
+      _loadPjpData();
+    }
+  }
+
+  Future<void> _loadPjpData() async {
+    setState(() {
+      _isLoading = true;
+    });
+    try {
+      final box = await Utility.openBox();
+      final employeeId = int.tryParse(box.get(LocalConstant.KEY_EMPLOYEE_ID)?.toString() ?? '') ?? 0;
+      final businessId = box.get(LocalConstant.KEY_BUSINESS_ID) ?? 0;
+
+      if (_currentEmpCode.isEmpty || _currentEmpName.isEmpty) {
+        _currentEmpCode = box.get(LocalConstant.KEY_EMPLOYEE_CODE)?.toString() ?? '';
+        final firstName = box.get(LocalConstant.KEY_FIRST_NAME)?.toString() ?? '';
+        final lastName = box.get(LocalConstant.KEY_LAST_NAME)?.toString() ?? '';
+        _currentEmpName = '$firstName $lastName'.trim();
+      }
+
+      final now = DateTime.now();
+      final startSearch = now.subtract(const Duration(days: 365));
+      final endSearch = now.add(const Duration(days: 365));
+      final fromDateStr = DateFormat('yyyy-MM-dd').format(startSearch);
+      final toDateStr = DateFormat('yyyy-MM-dd').format(endSearch);
+
+      final request = PJPReportRequest(
+        employeeCode: _currentEmpCode,
+        businessId: businessId.toString(),
+        fromDate: fromDateStr,
+        toDate: toDateStr,
+        pjpId: int.parse(widget.pjpId!),
+      );
+      final value = await APIService().getPJPMYTEAMReport(request);
+      if (value is PjpListResponse && value.responseData.isNotEmpty) {
+        final pjpInfo = value.responseData.firstWhere(
+          (p) => p.PJP_Id.toString() == widget.pjpId.toString(),
+          orElse: () => value.responseData.first,
+        );
+        final start = Utility.convertDate(pjpInfo.fromDate);
+        final end = Utility.convertDate(pjpInfo.toDate);
+
+        final baseColor = _getStatusColor(pjpInfo.ApprovalStatus);
+
+        final event = _Event(
+          title: pjpInfo.displayName,
+          time: pjpInfo.Status,
+          color: baseColor,
+          icon: Icons.location_on,
+          start: start,
+          end: end,
+          pjpInfo: pjpInfo,
+        );
+
+        setState(() {
+          _pjpList = [pjpInfo];
+          _currentEvents = [event];
+          _currentDay = start;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error loading PJP details: $e');
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    // Extract PJPInfo objects (non-null) from events
-    // final pjpList =
-    //     widget.events.map((e) => e.pjpInfo).whereType<PJPInfo>().toList();
     final pjpList = _pjpList;
 
     return Scaffold(
@@ -2636,7 +2724,9 @@ class _DayEventsScreenState extends State<_DayEventsScreen> {
           onPressed: () => Navigator.pop(context, _isUpdated),
         ),
         title: Text(
-          DateFormat('EEEE, d MMMM yyyy').format(widget.day),
+          _currentDay != null
+              ? DateFormat('EEEE, d MMMM yyyy').format(_currentDay!)
+              : 'PJP Details',
           style: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 16),
         ),
         bottom: PreferredSize(
@@ -2645,36 +2735,40 @@ class _DayEventsScreenState extends State<_DayEventsScreen> {
         ),
       ),
       body: SafeArea(
-        child: pjpList.isEmpty
-            ? Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.event_busy_rounded,
-                        size: 56, color: Colors.grey[300]),
-                    const SizedBox(height: 12),
-                    Text('No PJP entries for this day',
-                        style: GoogleFonts.inter(
-                            color: _textSecondary, fontSize: 14)),
-                  ],
-                ),
+        child: _isLoading
+            ? const Center(
+                child: CircularProgressIndicator(),
               )
-            : ListView.builder(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-                itemCount: pjpList.length,
-                itemBuilder: (context, index) {
-                  final pjp = pjpList[index];
-                  return _PjpInfoCard(
-                    pjp: pjp,
-                    color: widget.events[index].color,
-                    onUpdated: _refresh,
-                    onUpdateCVF: _refreshData,
-                    empCode: widget.empCode,
-                    empName: widget.empName,
-                  );
-                },
-              ),
+            : pjpList.isEmpty
+                ? Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.event_busy_rounded,
+                            size: 56, color: Colors.grey[300]),
+                        const SizedBox(height: 12),
+                        Text('No PJP entries for this day',
+                            style: GoogleFonts.inter(
+                                color: _textSecondary, fontSize: 14)),
+                      ],
+                    ),
+                  )
+                : ListView.builder(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+                    itemCount: pjpList.length,
+                    itemBuilder: (context, index) {
+                      final pjp = pjpList[index];
+                      return _PjpInfoCard(
+                        pjp: pjp,
+                        color: _currentEvents[index].color,
+                        onUpdated: _refresh,
+                        onUpdateCVF: _refreshData,
+                        empCode: _currentEmpCode,
+                        empName: _currentEmpName,
+                      );
+                    },
+                  ),
       ),
     );
   }
@@ -3469,12 +3563,14 @@ class _VisitTile extends StatelessWidget {
                       const Icon(Icons.access_time_rounded,
                           size: 11, color: _textSecondary),
                       const SizedBox(width: 4),
-                      Text(
-                        'Planned: ${DateFormat('EEEE, d MMMM yyyy').format(DateFormat('yyyy-MM-dd').parse(visit.visitDate))} at ${visit.visitTime}',
-                        style: GoogleFonts.inter(
-                            fontSize: 11,
-                            color: _textSecondary,
-                            fontWeight: FontWeight.w500),
+                      Expanded(
+                        child: Text(
+                          'Planned: ${DateFormat('EEEE, d MMMM yyyy').format(DateFormat('yyyy-MM-dd').parse(visit.visitDate))} at ${visit.visitTime}',
+                          style: GoogleFonts.inter(
+                              fontSize: 11,
+                              color: _textSecondary,
+                              fontWeight: FontWeight.w500),
+                        ),
                       ),
                     ],
                   ),

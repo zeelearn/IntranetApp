@@ -35,6 +35,7 @@ class MyWebsiteViewState extends State<MyWebsiteView> {
 
   bool isUrlLoadingCompleted = true;
   double progress = 0;
+  bool _canPop = false;
 
   final GlobalKey webViewKey = GlobalKey();
 
@@ -170,7 +171,7 @@ class MyWebsiteViewState extends State<MyWebsiteView> {
   @override
   Widget build(BuildContext context) {
     return PopScope(
-      canPop: false,
+      canPop: _canPop,
       onPopInvokedWithResult: (didPop, result) async {
         if (didPop) {
           return;
@@ -180,7 +181,14 @@ class MyWebsiteViewState extends State<MyWebsiteView> {
             await webViewController!.canGoBack()) {
           await webViewController!.goBack();
         } else {
-          Navigator.pop(context);
+          setState(() {
+            _canPop = true;
+          });
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              Navigator.of(context).pop(result);
+            }
+          });
         }
       },
       child: Scaffold(
@@ -203,14 +211,14 @@ class MyWebsiteViewState extends State<MyWebsiteView> {
                   child: IconButton(
                     icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
                     onPressed: () async {
-                      Navigator.pop(context);
-                      // WebViewController webViewController =
-                      //     await _controller.future;
-                      // if (await webViewController.canGoBack()) {
-                      //   webViewController.goBack();
-                      // } else {
-                      //   Navigator.pop(context);
-                      // }
+                      setState(() {
+                        _canPop = true;
+                      });
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        if (mounted) {
+                          Navigator.of(context).pop();
+                        }
+                      });
                     },
                   ),
                 ), //You can make this transparent

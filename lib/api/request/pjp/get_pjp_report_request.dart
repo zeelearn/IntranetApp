@@ -7,12 +7,14 @@ class PJPReportRequest {
   final String? fromDate;
   final String? toDate;
   final String businessId;
+  final int? pjpId;
 
   PJPReportRequest(
       {required this.employeeCode,
       this.fromDate,
       this.toDate,
-      required this.businessId});
+      required this.businessId,
+      this.pjpId});
 
   getJson() {
     String appType = 'unknown';
@@ -29,6 +31,7 @@ class PJPReportRequest {
       'BusinessId': businessId,
       'FromDate': /* null */ fromDate,
       'ToDate': /*  null */ toDate,
+      'PJPID': pjpId ?? 0,
       'AppType': appType
     });
   }
@@ -38,7 +41,8 @@ class PJPReportRequest {
       'EmployeeCode': "$employeeCode",
       'FromDate': fromDate,
       'ToDate': toDate,
-      'BusinessId': businessId
+      'BusinessId': businessId,
+      'PJPID' : pjpId ?? 0
     };
     return map;
   }
