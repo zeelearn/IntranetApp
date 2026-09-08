@@ -90,13 +90,33 @@ class _ProjectConfigurationScreenState
   }
 
   Future<void> _submit() async {
-    if (!_controller.canSubmit || _controller.isSubmitting.value) return;
-    await _controller.submit();
+    if (_controller.isSubmitting.value) return;
+    try {
+      final success = await _controller.submit();
+      if (!mounted) return;
+      if (success) {
+        Get.snackbar(
+          'Mass Reassignment',
+          'Projects reassigned successfully.',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: DashboardColors.successLight,
+          colorText: DashboardColors.textDark,
+        );
+      } else {
+        _showSubmitFailure();
+      }
+    } catch (_) {
+      if (!mounted) return;
+      _showSubmitFailure();
+    }
+  }
+
+  void _showSubmitFailure() {
     Get.snackbar(
       'Mass Reassignment',
-      'Projects reassigned successfully.',
+      'Unable to submit reassignment. Check your selections and try again.',
       snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: DashboardColors.successLight,
+      backgroundColor: DashboardColors.errorLight,
       colorText: DashboardColors.textDark,
     );
   }
@@ -398,22 +418,13 @@ class _SourceCard extends StatelessWidget {
 
   Widget _buildContent() {
     final hasSource = controller.sourceEmployee.value != null;
+    final projects = controller.sourceProjects.toList(growable: false);
+    final selectedIds = controller.selectedProjectIds.toSet();
     final table = ReassignmentProjectsTable(
-      projects: controller.sourceProjects,
-      selectedIds: controller.selectedProjectIds,
+      projects: projects,
+      selectedIds: selectedIds,
       onToggle: controller.toggleProject,
-      onSelectAllPressed: () {
-        final projects = controller.sourceProjects;
-        if (projects.isEmpty) return;
-        final allSelected = projects.every(
-          (project) => controller.selectedProjectIds.contains(project.id),
-        );
-        if (allSelected) {
-          controller.selectedProjectIds.clear();
-        } else {
-          controller.selectAllProjects();
-        }
-      },
+      onSelectAllPressed: controller.toggleSelectAllProjects,
       emptyTitle: hasSource ? 'No projects found' : 'Select a source employee',
       emptySubtitle: hasSource
           ? 'This employee has no mapped projects'
@@ -451,6 +462,7 @@ class _SourceCard extends StatelessWidget {
             controller.selectSource(employee);
             controller.loadProjectsForSource();
           },
+          onCleared: controller.clearSource,
           filterEmployees: controller.filterEmployees,
         ),
         const SizedBox(height: 16),

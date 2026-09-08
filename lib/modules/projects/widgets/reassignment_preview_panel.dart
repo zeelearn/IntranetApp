@@ -70,6 +70,7 @@ class ReassignmentPreviewPanel extends StatelessWidget {
           selected: target,
           onQueryChanged: (query) => controller.targetQuery.value = query,
           onSelected: controller.selectTarget,
+          onCleared: controller.clearTarget,
           filterEmployees: controller.filterEmployees,
           showAvailabilityBadge: true,
         ),

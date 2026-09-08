@@ -104,6 +104,18 @@ class ProjectConfigurationController extends GetxController {
     targetEmployee.value = employee;
   }
 
+  void clearSource() {
+    sourceEmployee.value = null;
+    sourceProjects.clear();
+    selectedProjectIds.clear();
+    sourceQuery.value = '';
+  }
+
+  void clearTarget() {
+    targetEmployee.value = null;
+    targetQuery.value = '';
+  }
+
   void toggleProject(String projectId) {
     if (selectedProjectIds.contains(projectId)) {
       selectedProjectIds.remove(projectId);
@@ -118,6 +130,18 @@ class ProjectConfigurationController extends GetxController {
     );
   }
 
+  void toggleSelectAllProjects() {
+    if (sourceProjects.isEmpty) return;
+    final allSelected = sourceProjects.every(
+      (project) => selectedProjectIds.contains(project.id),
+    );
+    if (allSelected) {
+      selectedProjectIds.clear();
+    } else {
+      selectAllProjects();
+    }
+  }
+
   void queueCurrentPair() {
     final pair = _buildCurrentPair();
     if (pair == null) return;
@@ -125,26 +149,30 @@ class ProjectConfigurationController extends GetxController {
     _clearCurrentSelection();
   }
 
-  Future<void> submit() async {
-    if (!canSubmit) return;
+  Future<bool> submit() async {
+    if (!canSubmit) return false;
     final pairs = _pairsToSubmit();
-    if (pairs.isEmpty) return;
+    if (pairs.isEmpty) return false;
     isSubmitting.value = true;
     try {
       await _repository.submitMassReassignment(pairs);
       queuedPairs.clear();
       _clearCurrentSelection();
+      return true;
+    } on Exception {
+      return false;
     } finally {
       isSubmitting.value = false;
     }
   }
 
   List<ReassignmentPair> _pairsToSubmit() {
-    if (queuedPairs.isNotEmpty) {
-      return List<ReassignmentPair>.from(queuedPairs);
-    }
+    final pairs = List<ReassignmentPair>.from(queuedPairs);
     final current = _buildCurrentPair();
-    return current == null ? const [] : [current];
+    if (current != null) {
+      pairs.add(current);
+    }
+    return pairs;
   }
 
   ReassignmentPair? _buildCurrentPair() {
@@ -161,11 +189,7 @@ class ProjectConfigurationController extends GetxController {
   }
 
   void _clearCurrentSelection() {
-    sourceEmployee.value = null;
-    targetEmployee.value = null;
-    sourceProjects.clear();
-    selectedProjectIds.clear();
-    sourceQuery.value = '';
-    targetQuery.value = '';
+    clearSource();
+    clearTarget();
   }
 }

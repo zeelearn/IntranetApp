@@ -12,6 +12,7 @@ class ReassignmentEmployeePicker extends StatefulWidget {
     required this.selected,
     required this.onQueryChanged,
     required this.onSelected,
+    this.onCleared,
     this.filterEmployees,
     this.showAvailabilityBadge = false,
   });
@@ -22,6 +23,7 @@ class ReassignmentEmployeePicker extends StatefulWidget {
   final EmployeeInfo? selected;
   final ValueChanged<String> onQueryChanged;
   final ValueChanged<EmployeeInfo> onSelected;
+  final VoidCallback? onCleared;
   final List<EmployeeInfo> Function(String query)? filterEmployees;
   final bool showAvailabilityBadge;
 
@@ -145,6 +147,7 @@ class _ReassignmentEmployeePickerState
                     onPressed: () {
                       _textController.clear();
                       widget.onQueryChanged('');
+                      widget.onCleared?.call();
                       setState(() {});
                     },
                     icon: const Icon(Icons.close_rounded, size: 18),

@@ -16,7 +16,7 @@ class ReassignmentProjectsTable extends StatelessWidget {
   });
 
   final List<ReassignableProject> projects;
-  final Iterable<String> selectedIds;
+  final Set<String> selectedIds;
   final ValueChanged<String> onToggle;
   final VoidCallback onSelectAllPressed;
   final String emptyTitle;
@@ -25,9 +25,8 @@ class ReassignmentProjectsTable extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final selected = selectedIds.toSet();
-    final allSelected =
-        projects.isNotEmpty && projects.every((p) => selected.contains(p.id));
+    final allSelected = projects.isNotEmpty &&
+        projects.every((p) => selectedIds.contains(p.id));
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -96,7 +95,7 @@ class ReassignmentProjectsTable extends StatelessWidget {
               final project = projects[index];
               return _ProjectRow(
                 project: project,
-                selected: selected.contains(project.id),
+                selected: selectedIds.contains(project.id),
                 onToggle: () => onToggle(project.id),
               );
             },
@@ -110,7 +109,7 @@ class ReassignmentProjectsTable extends StatelessWidget {
                 final project = projects[index];
                 return _ProjectRow(
                   project: project,
-                  selected: selected.contains(project.id),
+                  selected: selectedIds.contains(project.id),
                   onToggle: () => onToggle(project.id),
                 );
               },
