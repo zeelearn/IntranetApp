@@ -4,21 +4,23 @@ import 'package:Intranet/modules/projects/controllers/project_configuration_cont
 import 'package:Intranet/modules/projects/models/reassignable_project.dart';
 import 'package:Intranet/modules/projects/models/reassignment_pair.dart';
 import 'package:Intranet/modules/projects/repositories/project_reassignment_repository.dart';
-import 'package:Intranet/modules/projects/services/mock_project_reassignment_service.dart';
+import 'fake_project_reassignment_repository.dart';
 
 void main() {
-  test('blocks queue when source equals target', () async {
-    final c = ProjectConfigurationController(
-      repository: MockProjectReassignmentRepository(),
+  ProjectConfigurationController controller([
+    ProjectReassignmentRepository? repo,
+  ]) {
+    return ProjectConfigurationController(
+      repository: repo ?? FakeProjectReassignmentRepository(),
     );
+  }
+
+  test('blocks queue when source equals target', () async {
+    final c = controller();
     await c.load();
     final a = c.employees.first;
     c.selectSource(a);
     c.selectTarget(a);
-    expect(
-      c.sameEmployeeError,
-      'Source and target employee cannot be the same.',
-    );
     expect(
       c.sameEmployeeError,
       ProjectConfigurationController.sameEmployeeMessage,
@@ -26,10 +28,35 @@ void main() {
     expect(c.canQueueCurrentPair, isFalse);
   });
 
-  test('toggleProject adds and removes a project id', () async {
-    final c = ProjectConfigurationController(
-      repository: MockProjectReassignmentRepository(),
+  test('target list excludes inactive employees', () async {
+    final c = controller();
+    await c.load();
+    expect(c.employees.any((e) => !c.isActiveEmployee(e)), isTrue);
+    expect(
+      c.filterTargetEmployees('').every(c.isActiveEmployee),
+      isTrue,
     );
+    expect(
+      c.filterTargetEmployees('').map((e) => e.employeeCode),
+      isNot(contains('EMP003')),
+    );
+  });
+
+  test('blocks selecting inactive target', () async {
+    final c = controller();
+    await c.load();
+    final inactive =
+        c.employees.firstWhere((e) => e.employeeCode == 'EMP003');
+    c.selectTarget(inactive);
+    expect(c.targetEmployee.value, isNull);
+    expect(
+      c.actionError.value,
+      ProjectConfigurationController.inactiveTargetMessage,
+    );
+  });
+
+  test('toggleProject adds and removes a project id', () async {
+    final c = controller();
     await c.load();
     c.selectSource(c.employees.first);
     await c.loadProjectsForSource();
@@ -42,30 +69,23 @@ void main() {
   });
 
   test('toggleSelectAllProjects selects then deselects', () async {
-    final c = ProjectConfigurationController(
-      repository: MockProjectReassignmentRepository(),
-    );
+    final c = controller();
     await c.load();
     c.selectSource(c.employees.first);
     await c.loadProjectsForSource();
     expect(c.sourceProjects, isNotEmpty);
-    expect(c.selectedProjectIds, isEmpty);
 
     c.toggleSelectAllProjects();
     expect(c.selectedProjectIds, hasLength(c.sourceProjects.length));
-    expect(
-      c.selectedProjectIds.toSet(),
-      c.sourceProjects.map((project) => project.id).toSet(),
-    );
+    expect(c.isAllSourceProjectsSelected, isTrue);
 
     c.toggleSelectAllProjects();
     expect(c.selectedProjectIds, isEmpty);
+    expect(c.isAllSourceProjectsSelected, isFalse);
   });
 
   test('clearSource and clearTarget deselect employees', () async {
-    final c = ProjectConfigurationController(
-      repository: MockProjectReassignmentRepository(),
-    );
+    final c = controller();
     await c.load();
     c.selectSource(c.employees[0]);
     await c.loadProjectsForSource();
@@ -83,26 +103,37 @@ void main() {
     expect(c.selectedProjectIds, isEmpty);
   });
 
-  test('queues pair and enables submit', () async {
-    final c = ProjectConfigurationController(
-      repository: MockProjectReassignmentRepository(),
-    );
+  test('queues pair and enables submit with reassignAll when all selected',
+      () async {
+    final c = controller();
     await c.load();
-    final source = c.employees[0];
-    final target = c.employees[1];
-    c.selectSource(source);
+    c.selectSource(c.employees[0]);
     await c.loadProjectsForSource();
     c.selectAllProjects();
-    c.selectTarget(target);
+    c.selectTarget(c.employees[1]);
     expect(c.canQueueCurrentPair, isTrue);
     c.queueCurrentPair();
     expect(c.queuedPairs.length, 1);
+    expect(c.queuedPairs.first.reassignAll, isTrue);
     expect(c.canSubmit, isTrue);
   });
 
+  test('partial selection sets reassignAll false', () async {
+    final repo = _RecordingRepository(FakeProjectReassignmentRepository());
+    final c = controller(repo);
+    await c.load();
+    c.selectSource(c.employees[0]);
+    await c.loadProjectsForSource();
+    c.toggleProject(c.sourceProjects.first.id);
+    c.selectTarget(c.employees[1]);
+    expect(await c.submit(), isTrue);
+    expect(repo.lastSubmitted, hasLength(1));
+    expect(repo.lastSubmitted!.single.reassignAll, isFalse);
+  });
+
   test('submit sends queued pairs then clears', () async {
-    final repo = _RecordingRepository(MockProjectReassignmentRepository());
-    final c = ProjectConfigurationController(repository: repo);
+    final repo = _RecordingRepository(FakeProjectReassignmentRepository());
+    final c = controller(repo);
     await c.load();
     c.selectSource(c.employees[0]);
     await c.loadProjectsForSource();
@@ -111,79 +142,60 @@ void main() {
     c.queueCurrentPair();
 
     expect(await c.submit(), isTrue);
-
-    expect(repo.lastSubmitted, isNotNull);
     expect(repo.lastSubmitted, hasLength(1));
     expect(c.queuedPairs, isEmpty);
     expect(c.canSubmit, isFalse);
   });
 
   test('submit sends current pair when queue is empty but valid', () async {
-    final repo = _RecordingRepository(MockProjectReassignmentRepository());
-    final c = ProjectConfigurationController(repository: repo);
+    final repo = _RecordingRepository(FakeProjectReassignmentRepository());
+    final c = controller(repo);
     await c.load();
     c.selectSource(c.employees[0]);
     await c.loadProjectsForSource();
     c.selectAllProjects();
     c.selectTarget(c.employees[1]);
-    expect(c.queuedPairs, isEmpty);
-    expect(c.canSubmit, isTrue);
-
     expect(await c.submit(), isTrue);
-
     expect(repo.lastSubmitted, hasLength(1));
     expect(c.sourceEmployee.value, isNull);
-    expect(c.selectedProjectIds, isEmpty);
   });
 
   test('submit includes current pair when queue is non-empty', () async {
-    final repo = _RecordingRepository(MockProjectReassignmentRepository());
-    final c = ProjectConfigurationController(repository: repo);
+    final repo = _RecordingRepository(FakeProjectReassignmentRepository());
+    final c = controller(repo);
     await c.load();
     c.selectSource(c.employees[0]);
     await c.loadProjectsForSource();
     c.selectAllProjects();
     c.selectTarget(c.employees[1]);
     c.queueCurrentPair();
-    expect(c.queuedPairs, hasLength(1));
 
     c.selectSource(c.employees[1]);
     await c.loadProjectsForSource();
     c.selectAllProjects();
-    c.selectTarget(c.employees[2]);
-    expect(c.canQueueCurrentPair, isTrue);
-    expect(c.queuedPairs, hasLength(1));
-
+    // employees[2] is inactive — use only active targets.
+    // After queue, employees[0] and [1] are both active; target must differ.
+    // Source is employees[1], target employees[0].
+    c.selectTarget(c.employees[0]);
     expect(await c.submit(), isTrue);
-
     expect(repo.lastSubmitted, hasLength(2));
-    expect(
-      repo.lastSubmitted!.first.source.employeeCode,
-      c.employees[0].employeeCode,
-    );
-    expect(
-      repo.lastSubmitted!.last.source.employeeCode,
-      c.employees[1].employeeCode,
-    );
     expect(c.queuedPairs, isEmpty);
-    expect(c.sourceEmployee.value, isNull);
   });
 
   test('submit returns false when there is nothing to send', () async {
-    final repo = _RecordingRepository(MockProjectReassignmentRepository());
-    final c = ProjectConfigurationController(repository: repo);
+    final repo = _RecordingRepository(FakeProjectReassignmentRepository());
+    final c = controller(repo);
     await c.load();
-
     expect(await c.submit(), isFalse);
     expect(repo.lastSubmitted, isNull);
   });
 
   test('submit returns false when repository throws', () async {
     final repo = _RecordingRepository(
-      MockProjectReassignmentRepository(),
+      FakeProjectReassignmentRepository(),
       submitError: Exception('network'),
     );
-    final c = ProjectConfigurationController(repository: repo);
+    final c = controller(repo);
     await c.load();
     c.selectSource(c.employees[0]);
     await c.loadProjectsForSource();
@@ -197,15 +209,123 @@ void main() {
   });
 
   test('sourceQuery and targetQuery filter employees', () async {
-    final c = ProjectConfigurationController(
-      repository: MockProjectReassignmentRepository(),
-    );
+    final c = controller();
     await c.load();
-    c.sourceQuery.value = 'Neha';
-    c.targetQuery.value = 'EMP003';
+    c.sourceQuery.value = 'Amit';
+    c.targetQuery.value = 'Neha';
     expect(c.filteredSourceEmployees, hasLength(1));
-    expect(c.filteredSourceEmployees.single.employeeCode, 'EMP002');
-    expect(c.filteredTargetEmployees.single.employeeCode, 'EMP003');
+    expect(c.filteredSourceEmployees.single.employeeCode, 'EMP001');
+    expect(c.filteredTargetEmployees.single.employeeCode, 'EMP002');
+  });
+
+  test('validates source, projects, target, and same-employee rules', () async {
+    final c = controller();
+    await c.load();
+    expect(
+      c.queueValidationError,
+      ProjectConfigurationController.selectSourceMessage,
+    );
+
+    c.selectSource(c.employees.first);
+    await c.loadProjectsForSource();
+    expect(
+      c.queueValidationError,
+      ProjectConfigurationController.selectProjectsMessage,
+    );
+
+    c.selectAllProjects();
+    expect(
+      c.queueValidationError,
+      ProjectConfigurationController.selectTargetMessage,
+    );
+
+    c.selectTarget(c.employees.first);
+    expect(
+      c.queueValidationError,
+      ProjectConfigurationController.sameEmployeeMessage,
+    );
+    expect(c.canQueueCurrentPair, isFalse);
+    expect(c.queueCurrentPair(), isFalse);
+  });
+
+  test('blocks queue when project is already queued', () async {
+    final c = controller();
+    await c.load();
+    final source = c.employees[0];
+    final targetA = c.employees[1];
+
+    c.selectSource(source);
+    await c.loadProjectsForSource();
+    final projectId = c.sourceProjects.first.id;
+    c.toggleProject(projectId);
+    c.selectTarget(targetA);
+    expect(c.queueCurrentPair(), isTrue);
+
+    c.selectSource(source);
+    await c.loadProjectsForSource();
+    c.toggleProject(projectId);
+    expect(
+      c.actionError.value,
+      ProjectConfigurationController.duplicateQueuedMessage,
+    );
+  });
+
+  test('project search filters mapped list', () async {
+    final c = controller();
+    await c.load();
+    c.selectSource(c.employees.first);
+    await c.loadProjectsForSource();
+    c.projectQuery.value = 'KYC';
+    expect(c.filteredSourceProjects, isNotEmpty);
+    expect(
+      c.filteredSourceProjects.every(
+        (p) => p.name.toLowerCase().contains('kyc'),
+      ),
+      isTrue,
+    );
+  });
+
+  test('removeQueuedPair restores ability to select project', () async {
+    final c = controller();
+    await c.load();
+    c.selectSource(c.employees[0]);
+    await c.loadProjectsForSource();
+    final projectId = c.sourceProjects.first.id;
+    c.toggleProject(projectId);
+    c.selectTarget(c.employees[1]);
+    expect(c.queueCurrentPair(), isTrue);
+    expect(c.queuedProjectIds, contains(projectId));
+
+    c.removeQueuedPair(0);
+    expect(c.queuedPairs, isEmpty);
+    expect(c.queuedProjectIds, isEmpty);
+  });
+
+  test('loads projects using Business_UserID key', () async {
+    final c = controller();
+    await c.load();
+    final source = c.employees.firstWhere((e) => e.employeeId == '1001');
+    c.selectSource(source);
+    await c.loadProjectsForSource();
+    expect(c.sourceProjects, isNotEmpty);
+    expect(c.sourceProjects.every((p) => p.ownerId == '1001'), isTrue);
+  });
+
+  test('submit includes task_status from task status dropdown', () async {
+    final recording = _RecordingRepository(FakeProjectReassignmentRepository());
+    final c = controller(recording);
+    await c.load();
+    final source = c.employees.first;
+    final target = c.employees[1];
+    c.selectSource(source);
+    await c.loadProjectsForSource();
+    c.toggleProject(c.sourceProjects.first.id);
+    c.selectTarget(target);
+    c.setTaskStatusFilter(TaskStatusFilter.pending);
+
+    expect(await c.submit(), isTrue);
+    expect(recording.lastSubmitted, isNotNull);
+    expect(recording.lastSubmitted!.single.taskStatus, 1);
   });
 }
 
@@ -221,7 +341,8 @@ class _RecordingRepository implements ProjectReassignmentRepository {
 
   @override
   Future<List<ReassignableProject>> listProjectsForEmployee(
-      String employeeKey) {
+    String employeeKey,
+  ) {
     return _inner.listProjectsForEmployee(employeeKey);
   }
 

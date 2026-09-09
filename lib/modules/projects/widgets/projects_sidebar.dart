@@ -122,11 +122,11 @@ class ProjectsSidebar extends StatelessWidget {
               ],
               if (showConfigurationSection) ...[
                 _SectionHeader(
-                  icon: Icons.settings_outlined,
-                  title: 'Configuration',
+                  icon: Icons.swap_horiz_rounded,
+                  title: 'Transfer projects',
                 ),
                 _SubMenuItem(
-                  label: 'Configuration',
+                  label: 'Transfer projects',
                   onTap: onConfigurationTap,
                 ),
               ],

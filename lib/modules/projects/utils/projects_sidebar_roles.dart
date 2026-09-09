@@ -24,7 +24,12 @@ class ProjectsSidebarRoles {
     return visualChartsRoles.contains(normalize(employeeType));
   }
 
-  static bool canShowConfiguration(String? employeeType) {
+  /// Demo: visible for all roles so the reassignment flow can be exercised.
+  /// Before production API cutover, restore BH-only:
+  /// `return configurationRoles.contains(normalize(employeeType));`
+  //static bool canShowConfiguration(String? employeeType) => true;
+
+  static  bool canShowConfiguration(String? employeeType) {
     return configurationRoles.contains(normalize(employeeType));
   }
 }
