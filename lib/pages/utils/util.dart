@@ -11,6 +11,13 @@ import 'package:expensestracker/domain/usercases/get_city_usecase.dart';
 import 'package:expensestracker/domain/usercases/get_pjp_summary_usecase.dart';
 import 'package:expensestracker/presentation/controllers/addClaim/add_claim_controller.dart';
 import 'package:expensestracker/presentation/pages/advance_requisition/add_advance_requisition_page.dart';
+import 'package:expensestracker/app/util/util.dart';
+import 'package:expensestracker/data/repositories/claim_repository.dart';
+import 'package:expensestracker/domain/usercases/add_claim_usecase.dart';
+import 'package:expensestracker/domain/usercases/get_autocomplete_requisition_claim_usecase.dart';
+import 'package:expensestracker/domain/usercases/get_city_usecase.dart';
+import 'package:expensestracker/presentation/controllers/addClaim/add_claim_controller.dart';
+import 'package:expensestracker/presentation/pages/advance_requisition/add_advance_requisition_page.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -118,40 +125,37 @@ class Util {
     }
   }
 
-  static Container openReportPage(GetDetailedPJP cvf,BuildContext context) {
+  static Container openReportPage(GetDetailedPJP cvf, BuildContext context) {
     return Container(
-                            padding: EdgeInsets.only(left: 20, right: 20),
-                            color: kPrimaryLightColor.withOpacity(0.4),
-                            child: InkWell(
-                              onTap: () {
-                                if (kIsWeb) {
-                                  launchUrl(
-                                    Uri.parse(
-                                        'https://intranet.zeelearn.com/cvfreport.html?cid=${cvf.PJPCVF_Id}'),
-                                    mode: LaunchMode.platformDefault,
-                                  );
-                                } else {
-                                  Navigator.of(context).push(
-                                      MaterialPageRoute(
-                                          builder: (BuildContext context) =>
-                                              MyWebsiteView(
-                                                title:
-                                                    'CVF Report - ${cvf.PJPCVF_Id}',
-                                                url:
-                                                    'https://intranet.zeelearn.com/cvfreport.html?cid=${cvf.PJPCVF_Id}',
-                                              )));
-                                }
-                              },
-                              child: Text(
-                                'View Report',
-                                style: GoogleFonts.lato(
-                                  fontSize: 14,
-                                  color: Colors.black87,
-                                  fontWeight: FontWeight.normal,
-                                ),
-                              ),
-                            ),
-                          );
+      padding: EdgeInsets.only(left: 20, right: 20),
+      color: kPrimaryLightColor.withOpacity(0.4),
+      child: InkWell(
+        onTap: () {
+          if (kIsWeb) {
+            launchUrl(
+              Uri.parse(
+                  'https://intranet.zeelearn.com/cvfreport.html?cid=${cvf.PJPCVF_Id}'),
+              mode: LaunchMode.platformDefault,
+            );
+          } else {
+            Navigator.of(context).push(MaterialPageRoute(
+                builder: (BuildContext context) => MyWebsiteView(
+                      title: 'CVF Report - ${cvf.PJPCVF_Id}',
+                      url:
+                          'https://intranet.zeelearn.com/cvfreport.html?cid=${cvf.PJPCVF_Id}',
+                    )));
+          }
+        },
+        child: Text(
+          'View Report',
+          style: GoogleFonts.lato(
+            fontSize: 14,
+            color: Colors.black87,
+            fontWeight: FontWeight.normal,
+          ),
+        ),
+      ),
+    );
   }
 
   static String getDisplayTitle(String status) {

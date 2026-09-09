@@ -540,8 +540,13 @@ class _MyCVFListScreen extends State<MyPJPCVFListScreen> implements onResponse {
               onPressed: () {
                 Navigator.of(context).pop();
 
-                IntranetServiceHandler.updateCVFStatus(employeeId, cvfView,
-                    Utility.getDateTime(), getNextStatus(cvfView.Status), this);
+                IntranetServiceHandler.updateCVFStatus(
+                    employeeId,
+                    cvfView,
+                    Utility.getDateTime(),
+                    getNextStatus(cvfView.Status),
+                    this,
+                    context);
                 //Utility.showMessage(context, '${cvfView.Status} clicked');
               },
             ),
