@@ -1276,44 +1276,19 @@ class Utility {
   }
 
   static Future<String?> getAddress(double latitude, double longitude) async {
-    // if (kIsWeb) {
-    final nominatim = Nominatim.instance;
+    if (latitude == 0.0 && longitude == 0.0) {
+      return '';
+    }
+    try {
+      final nominatim = Nominatim.instance;
 
-    // Get address from coordinates
-    Place address = await nominatim.getAddressFromLatLng(latitude, longitude);
-    return address.displayName;
-    // } else {
-    //   List<Placemark> placemarks =
-    //       await placemarkFromCoordinates(latitude, longitude);
-    //   if (placemarks.isEmpty) {
-    //     return 'Unknown address';
-    //   }
-
-    //   Placemark placemark = placemarks.first;
-    //   String address = '';
-    //   if (placemark.street != null) {
-    //     address += '${placemark.street ?? ''}  , ';
-    //   } else if (placemark.thoroughfare != null) {
-    //     address += '${placemark.thoroughfare ?? ''}, ';
-    //   }
-
-    //   if (placemark.subLocality != null) {
-    //     address += '${placemark.subLocality ?? ''}, ';
-    //   }
-    //   if (placemark.locality != null) {
-    //     address += '${placemark.locality ?? ''}, ';
-    //   }
-    //   if (placemark.administrativeArea != null) {
-    //     address += '${placemark.administrativeArea ?? ''}, ';
-    //   }
-    //   if (placemark.country != null) {
-    //     address += '${placemark.country ?? ''}';
-    //   }
-    //   if (placemark.postalCode != null) {
-    //     address += ', ${placemark.postalCode ?? ''}';
-    //   }
-    //   return address;
-    // }
+      // Get address from coordinates
+      Place address = await nominatim.getAddressFromLatLng(latitude, longitude);
+      return address.displayName;
+    } catch (e) {
+      debugPrint('Utility.getAddress error: $e');
+      return '';
+    }
   }
 
   Future<void> showPJPStatusDialog({

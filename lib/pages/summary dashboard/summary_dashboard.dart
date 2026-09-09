@@ -21,7 +21,15 @@ import 'package:Intranet/pages/pjp/models/PjpModel.dart';
 import 'package:Intranet/pages/utils/theme/colors/light_colors.dart';
 import 'package:Intranet/pages/utils/util.dart';
 import 'package:Intranet/pages/widget/MyWebSiteView.dart';
+import 'package:expensestracker/app/util/util.dart';
+import 'package:expensestracker/data/repositories/claim_repository.dart';
+import 'package:expensestracker/domain/usercases/add_claim_usecase.dart';
+import 'package:expensestracker/domain/usercases/get_autocomplete_requisition_claim_usecase.dart';
+import 'package:expensestracker/domain/usercases/get_city_usecase.dart';
+import 'package:expensestracker/presentation/controllers/addClaim/add_claim_controller.dart';
+import 'package:expensestracker/presentation/pages/advance_requisition/add_advance_requisition_page.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:hive/hive.dart';
@@ -515,18 +523,16 @@ class _SummaryDashboardState extends State<SummaryDashboard>
             if (showTeamFilters) {
               Set<String> memberSet = {};
               for (var pjp in _pjpData) {
-                final String zoneKey = (pjp.zone?.trim() ?? '').isEmpty
-                    ? 'N/A'
-                    : pjp.zone!.trim();
+                final String zoneKey =
+                    (pjp.zone?.trim() ?? '').isEmpty ? 'N/A' : pjp.zone!.trim();
                 if (tempZones.contains(zoneKey)) {
                   memberSet.add(pjp.displayName);
                 }
               }
               if (_isTeamView) {
                 for (var t in _myTeamData) {
-                  final String zoneKey = (t.zone?.trim() ?? '').isEmpty
-                      ? 'N/A'
-                      : t.zone!.trim();
+                  final String zoneKey =
+                      (t.zone?.trim() ?? '').isEmpty ? 'N/A' : t.zone!.trim();
                   if (tempZones.contains(zoneKey)) {
                     final name = t.displayName?.trim() ?? '';
                     if (name.isNotEmpty) memberSet.add(name);
@@ -625,28 +631,27 @@ class _SummaryDashboardState extends State<SummaryDashboard>
   Widget build(BuildContext context) {
     final w = MediaQuery.of(context).size.width;
 
-    if (_isLoading) {
-      return const Scaffold(
-          body: SafeArea(child: Center(child: CircularProgressIndicator())));
-    }
-
     return Scaffold(
       backgroundColor: _mainBg,
       appBar: _isMobile(w) ? _buildMobileAppBar() : null,
       // drawer:
       //     _isMobile(w) ? Drawer(child: _buildSidebar(compact: false)) : null,
       body: SafeArea(
-        child: _isMobile(w)
-            ? _buildMobileBody()
-            : Row(
-                children: [
-                  if (_isDesktop(w) && _isSidebarVisible)
-                    SizedBox(width: 280, child: _buildSidebar(compact: false)),
-                  // else if (_isTablet(w) && _isSidebarVisible)
-                  //   SizedBox(width: 240, child: _buildSidebar(compact: true)),
-                  Expanded(child: _buildMainContent(w)),
-                ],
-              ),
+        child: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : (_isMobile(w)
+                ? _buildMobileBody()
+                : Row(
+                    children: [
+                      if (_isDesktop(w) && _isSidebarVisible)
+                        SizedBox(
+                            width: 280,
+                            child: _buildSidebar(compact: false)),
+                      // else if (_isTablet(w) && _isSidebarVisible)
+                      //   SizedBox(width: 240, child: _buildSidebar(compact: true)),
+                      Expanded(child: _buildMainContent(w)),
+                    ],
+                  )),
       ),
     );
   }
@@ -657,6 +662,7 @@ class _SummaryDashboardState extends State<SummaryDashboard>
       backgroundColor: _sidebar,
       foregroundColor: Colors.white,
       elevation: 0,
+      systemOverlayStyle: SystemUiOverlayStyle.light,
       titleSpacing: _isMobileSearchActive ? 0 : 16,
       title: _isMobileSearchActive
           ? RawAutocomplete<PJPInfo>(
@@ -2563,12 +2569,8 @@ class DayEventsScreen extends StatefulWidget {
   final String? pjpId;
 
   const DayEventsScreen(
-      {Key? key,
-      this.day,
-      this.events,
-      this.empName,
-      this.empCode,
-      this.pjpId}) : super(key: key);
+      {Key? key, this.day, this.events, this.empName, this.empCode, this.pjpId})
+      : super(key: key);
 
   @override
   State<DayEventsScreen> createState() => _DayEventsScreenState();
@@ -2634,10 +2636,8 @@ class _DayEventsScreenState extends State<DayEventsScreen> {
     _currentEmpName = widget.empName ?? '';
     _currentEmpCode = widget.empCode ?? '';
 
-    _pjpList = _currentEvents
-        .map((e) => e.pjpInfo)
-        .whereType<PJPInfo>()
-        .toList();
+    _pjpList =
+        _currentEvents.map((e) => e.pjpInfo).whereType<PJPInfo>().toList();
 
     if (widget.pjpId != null && widget.pjpId!.isNotEmpty) {
       _loadPjpData();
@@ -2650,12 +2650,16 @@ class _DayEventsScreenState extends State<DayEventsScreen> {
     });
     try {
       final box = await Utility.openBox();
-      final employeeId = int.tryParse(box.get(LocalConstant.KEY_EMPLOYEE_ID)?.toString() ?? '') ?? 0;
+      final employeeId = int.tryParse(
+              box.get(LocalConstant.KEY_EMPLOYEE_ID)?.toString() ?? '') ??
+          0;
       final businessId = box.get(LocalConstant.KEY_BUSINESS_ID) ?? 0;
 
       if (_currentEmpCode.isEmpty || _currentEmpName.isEmpty) {
-        _currentEmpCode = box.get(LocalConstant.KEY_EMPLOYEE_CODE)?.toString() ?? '';
-        final firstName = box.get(LocalConstant.KEY_FIRST_NAME)?.toString() ?? '';
+        _currentEmpCode =
+            box.get(LocalConstant.KEY_EMPLOYEE_CODE)?.toString() ?? '';
+        final firstName =
+            box.get(LocalConstant.KEY_FIRST_NAME)?.toString() ?? '';
         final lastName = box.get(LocalConstant.KEY_LAST_NAME)?.toString() ?? '';
         _currentEmpName = '$firstName $lastName'.trim();
       }
@@ -2719,6 +2723,7 @@ class _DayEventsScreenState extends State<DayEventsScreen> {
         backgroundColor: _sidebar,
         foregroundColor: Colors.white,
         elevation: 0,
+        systemOverlayStyle: SystemUiOverlayStyle.light,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context, _isUpdated),
@@ -2754,8 +2759,8 @@ class _DayEventsScreenState extends State<DayEventsScreen> {
                     ),
                   )
                 : ListView.builder(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 20),
                     itemCount: pjpList.length,
                     itemBuilder: (context, index) {
                       final pjp = pjpList[index];
@@ -2945,6 +2950,12 @@ class _PjpInfoCard extends StatelessWidget {
             .toList() ??
         [];
     final statusColor = _statusColor(pjp.ApprovalStatus);
+    final canAddAdvance = Util.canAddAdvance(pjp);
+    final canAddCVF =
+        pjp.isSelfPJP.trim() == '1' && pjp.ApprovalStatus.trim() != 'Rejected';
+    final isPendingManager = pjp.ApprovalStatus.trim() == 'Pending' &&
+        empName.trim() == pjp.managerName?.trim();
+
     String _tag = pjp.PJP_Id ?? 'all_cvf';
     CVFController controller = Get.put(
       CVFController(pjpInfo: pjp, isViewOnly: false),
@@ -2982,8 +2993,8 @@ class _PjpInfoCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     Container(
-                      width: 42,
-                      height: 42,
+                      width: 40,
+                      height: 40,
                       decoration: BoxDecoration(
                         color: statusColor.withValues(alpha: 0.18),
                         shape: BoxShape.circle,
@@ -2998,6 +3009,8 @@ class _PjpInfoCard extends StatelessWidget {
                         children: [
                           Text(
                             pjp.displayName,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                             style: GoogleFonts.inter(
                               fontSize: 15,
                               fontWeight: FontWeight.w700,
@@ -3015,61 +3028,80 @@ class _PjpInfoCard extends StatelessWidget {
                         ],
                       ),
                     ),
-                    if (pjp.isSelfPJP.trim() == '1' &&
-                        pjp.ApprovalStatus != 'Rejected')
-                      Padding(
-                        padding: const EdgeInsets.only(right: 4),
-                        child: OutlinedButton.icon(
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: _accent,
-                            side: BorderSide(color: _accent.withOpacity(0.5)),
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 12, vertical: 12),
-                            minimumSize: Size.zero,
-                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    if (!isMobile) ...[
+                      if (canAddAdvance)
+                        Padding(
+                          padding: const EdgeInsets.only(right: 6),
+                          child: _buildActionButton(
+                            icon: Icons.currency_rupee,
+                            label: 'Add Advance',
+                            onPressed: () => _handleOpenAdvance(context),
                           ),
-                          icon: const Icon(Icons.add_location_alt_outlined,
-                              color: _accent, size: 20),
-                          onPressed: () async {
-                            final result = await Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) =>
-                                      AddCVFScreen(mPjpModel: pjp)),
-                            );
-                            if (result == true && onUpdated != null) {
-                              onUpdated!();
-                            }
-                          },
-                          label: Text(
-                            'Add CVF',
-                            style: TextStyle(
-                              color: _accent,
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          // tooltip: 'Add CVF',
-                          // padding: EdgeInsets.zero,
-                          // constraints: const BoxConstraints(),
                         ),
-                      ),
-                    if (!isMobile ||
-                        (pjp.ApprovalStatus != 'Pending' ||
-                            empName.trim() != pjp.managerName))
-                      _buildStatusOrActions(context),
+                      if (canAddCVF)
+                        Padding(
+                          padding: const EdgeInsets.only(right: 6),
+                          child: _buildActionButton(
+                            icon: Icons.add_location_alt_outlined,
+                            label: 'Add CVF',
+                            onPressed: () => _handleOpenCVF(context),
+                          ),
+                        ),
+                      if (isPendingManager)
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            _actionButton(context, 'REJECT', _red,
+                                isOutlined: true),
+                            const SizedBox(width: 8),
+                            _actionButton(context, 'APPROVE', _green),
+                          ],
+                        )
+                      else
+                        _buildStatusBadge(),
+                    ] else ...[
+                      const SizedBox(width: 8),
+                      _buildStatusBadge(),
+                    ],
                   ],
                 ),
                 if (isMobile &&
-                    pjp.ApprovalStatus == 'Pending' &&
-                    empName.trim() == pjp.managerName)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 12),
-                    child: Align(
-                      alignment: Alignment.centerRight,
-                      child: _buildStatusOrActions(context),
+                    (canAddAdvance || canAddCVF || isPendingManager)) ...[
+                  const SizedBox(height: 10),
+                  if (isPendingManager)
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        _actionButton(context, 'REJECT', _red,
+                            isOutlined: true),
+                        const SizedBox(width: 8),
+                        _actionButton(context, 'APPROVE', _green),
+                      ],
+                    )
+                  else
+                    Row(
+                      children: [
+                        if (canAddAdvance)
+                          Expanded(
+                            child: _buildActionButton(
+                              icon: Icons.currency_rupee,
+                              label: 'Add Advance',
+                              onPressed: () => _handleOpenAdvance(context),
+                            ),
+                          ),
+                        if (canAddAdvance && canAddCVF)
+                          const SizedBox(width: 8),
+                        if (canAddCVF)
+                          Expanded(
+                            child: _buildActionButton(
+                              icon: Icons.add_location_alt_outlined,
+                              label: 'Add CVF',
+                              onPressed: () => _handleOpenCVF(context),
+                            ),
+                          ),
+                      ],
                     ),
-                  ),
+                ],
               ],
             ),
           ),
@@ -3171,8 +3203,9 @@ class _PjpInfoCard extends StatelessWidget {
                   pjpApprovalStatus: pjp.ApprovalStatus,
                   isViewOnly: pjp.isSelfPJP.trim() != '1',
                   onCVFUpdateStatusSuccess: (updatedVisit) {
-                    debugPrint('in onCVFUpdateStatusSuccess ${updatedVisit.toJson()}');
-                    if(onUpdateCVF !=null) onUpdateCVF!(updatedVisit);
+                    debugPrint(
+                        'in onCVFUpdateStatusSuccess ${updatedVisit.toJson()}');
+                    if (onUpdateCVF != null) onUpdateCVF!(updatedVisit);
                   },
                   onCVFUpdateSuccess: (p0) {
                     if (onUpdated != null) onUpdated!();
@@ -3194,36 +3227,69 @@ class _PjpInfoCard extends StatelessWidget {
     );
   }
 
-  Widget _buildStatusOrActions(BuildContext context) {
-    if (pjp.ApprovalStatus == 'Pending' && empName.trim() == pjp.managerName) {
-      return Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _actionButton(context, 'REJECT', const Color(0xFFEF5350),
-              isOutlined: true),
-          const SizedBox(width: 8),
-          _actionButton(context, 'APPROVE', _green),
-        ],
-      );
-    } else {
-      return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-        decoration: BoxDecoration(
-          color: _statusColor(pjp.ApprovalStatus).withValues(alpha: 0.12),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: _statusColor(pjp.ApprovalStatus).withValues(alpha: 0.4),
-          ),
+  Widget _buildActionButton({
+    required IconData icon,
+    required String label,
+    required VoidCallback onPressed,
+  }) {
+    return OutlinedButton.icon(
+      style: OutlinedButton.styleFrom(
+        foregroundColor: _accent,
+        backgroundColor: Colors.white,
+        side: BorderSide(color: _accent.withOpacity(0.5)),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
+        minimumSize: const Size(0, 34),
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
         ),
-        child: Text(
-          pjp.ApprovalStatus,
-          style: GoogleFonts.inter(
-            fontSize: 11,
-            fontWeight: FontWeight.w600,
-            color: _statusColor(pjp.ApprovalStatus),
-          ),
+      ),
+      icon: Icon(icon, color: _accent, size: 16),
+      label: Text(
+        label,
+        style: const TextStyle(
+          color: _accent,
+          fontSize: 11,
+          fontWeight: FontWeight.w600,
         ),
-      );
+      ),
+      onPressed: onPressed,
+    );
+  }
+
+  Widget _buildStatusBadge() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: _statusColor(pjp.ApprovalStatus).withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: _statusColor(pjp.ApprovalStatus).withValues(alpha: 0.4),
+        ),
+      ),
+      child: Text(
+        pjp.ApprovalStatus,
+        style: GoogleFonts.inter(
+          fontSize: 11,
+          fontWeight: FontWeight.w600,
+          color: _statusColor(pjp.ApprovalStatus),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _handleOpenAdvance(BuildContext context) async {
+    Util.openAdvanceDialog(pjp, context);
+  }
+
+  Future<void> _handleOpenCVF(BuildContext context) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+          builder: (context) => AddCVFScreen(mPjpModel: pjp)),
+    );
+    if (result == true && onUpdated != null) {
+      onUpdated!();
     }
   }
 
@@ -3392,6 +3458,7 @@ class _VisitTile extends StatelessWidget {
                   Utility.getDateTime(),
                   getNextStatus(visit.Status),
                   onupdateResponse,
+                  context,
                 );
               }));
         } else {
@@ -3638,10 +3705,14 @@ class _VisitTile extends StatelessWidget {
                   ),
                 ),
               ),
-            WebCardActions(controller: controller, cvf: visit,onVisitUpdated: (p0) {
-              debugPrint('in WebCard Actions ${p0.toString()}');
-              onCVFUpdateStatusSuccess(p0);
-            },),
+            WebCardActions(
+              controller: controller,
+              cvf: visit,
+              onVisitUpdated: (p0) {
+                debugPrint('in WebCard Actions ${p0.toString()}');
+                onCVFUpdateStatusSuccess(p0);
+              },
+            ),
             if (isCancelled &&
                 visit.remarks.isNotEmpty &&
                 visit.remarks != 'NA')
@@ -3824,7 +3895,9 @@ class _VisitTile extends StatelessWidget {
               Text(
                 '($distanceStr)',
                 style: GoogleFonts.inter(
-                    fontSize: 10, fontWeight: FontWeight.w600, color:  distanceColor),
+                    fontSize: 10,
+                    fontWeight: FontWeight.w600,
+                    color: distanceColor),
               ),
               SizedBox(width: 6),
               OutlinedButton(
@@ -4327,6 +4400,7 @@ class _MapScreenState extends State<_MapScreen> {
         backgroundColor: _sidebar,
         foregroundColor: Colors.white,
         elevation: 0,
+        systemOverlayStyle: SystemUiOverlayStyle.light,
         title: Text(
           widget.title,
           style: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 15),

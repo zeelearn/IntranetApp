@@ -210,7 +210,10 @@ class DashboardScreenV2Controller extends GetxController
           // Util.openSaathiNotification(message);
         } else if (message.data['type'] != null &&
             message.data['type'] == 'PJP') {
-          final pjpId = message.data['PjpId'] ?? message.data['pjpId'] ?? message.data['pjpid'] ?? '';
+          final pjpId = message.data['PjpId'] ??
+              message.data['pjpId'] ??
+              message.data['pjpid'] ??
+              '';
           if (pjpId.isNotEmpty) {
             Navigator.push(
                 MyApp.navigatorKey.currentState!.context,
@@ -276,7 +279,10 @@ class DashboardScreenV2Controller extends GetxController
       final ctx = Get.context;
       if (ctx == null) return;
       if (message.data['type'] != null && message.data['type'] == 'PJP') {
-        final pjpId = message.data['PjpId'] ?? message.data['pjpId'] ?? message.data['pjpid'] ?? '';
+        final pjpId = message.data['PjpId'] ??
+            message.data['pjpId'] ??
+            message.data['pjpid'] ??
+            '';
         if (pjpId.isNotEmpty) {
           await Navigator.of(ctx).push(
             MaterialPageRoute(
@@ -306,7 +312,10 @@ class DashboardScreenV2Controller extends GetxController
         final uriStr = getBrowserUrl();
         final uri = Uri.parse(uriStr);
         if (uri.queryParameters['type'] == 'PJP') {
-          final pjpId = uri.queryParameters['PjpId'] ?? uri.queryParameters['pjpId'] ?? uri.queryParameters['pjpid'] ?? '';
+          final pjpId = uri.queryParameters['PjpId'] ??
+              uri.queryParameters['pjpId'] ??
+              uri.queryParameters['pjpid'] ??
+              '';
           if (pjpId.isNotEmpty) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
               Navigator.push(
@@ -327,7 +336,6 @@ class DashboardScreenV2Controller extends GetxController
 
     WidgetsBinding.instance.addPostFrameCallback((_) => _incomingLinkHandler());
   }
-
 
   /// Updates [showNotificationPermissionAlert] after checking permission.
   Future<void> checkNotificationPermission() async {
@@ -410,10 +418,6 @@ class DashboardScreenV2Controller extends GetxController
     return false;
   }
 
- 
-
-  
-
   void _handleReceivedAction(BuildContext context) {
     final action = receivedAction;
     final payload = action?.payload;
@@ -445,10 +449,13 @@ class DashboardScreenV2Controller extends GetxController
                 url: payload['url'] ?? ''),
           ));
     } else if (type == 'EXPENSE-COURIER') {
-      final claimIdStr = payload['cid'] ?? payload['claimId'] ?? payload['claim_id'];
-      final employeeCode = payload['employee_code'] ?? payload['eCode'] ?? payload['e_code'];
+      final claimIdStr =
+          payload['cid'] ?? payload['claimId'] ?? payload['claim_id'];
+      final employeeCode =
+          payload['employee_code'] ?? payload['eCode'] ?? payload['e_code'];
       final isAccchStr = payload['isAccch'] ?? payload['is_accch'] ?? 'false';
-      final claimId = claimIdStr != null ? int.tryParse(claimIdStr.toString()) : null;
+      final claimId =
+          claimIdStr != null ? int.tryParse(claimIdStr.toString()) : null;
       final isAccch = isAccchStr.toString() == 'true';
       Navigator.push(
         context,
@@ -835,7 +842,8 @@ class DashboardScreenV2Controller extends GetxController
     if (!validateBusiness('zll_saathi')) return;
     final box = await Utility.openBox();
     await Hive.openBox(LocalConstant.KidzeeDB);
-    final username =box.get(LocalConstant.KEY_USER_NAME)?.toString() ?? userName.value; 
+    final username =
+        box.get(LocalConstant.KEY_USER_NAME)?.toString() ?? userName.value;
     debugPrint('opening the ZllSaathi with username: $username');
     ZllSaathi(Get.context!, username, profileAvatarBytes.value);
   }
@@ -847,7 +855,12 @@ class DashboardScreenV2Controller extends GetxController
           box.get(LocalConstant.KEY_EMPLOYEE_CODE)?.toString() ?? '0',
         ) ??
         0;
-    await expense_placeholder.openExpenseTracker(eCode: empCode.toString());
+    await expense_placeholder.openExpenseTracker(
+      eCode: empCode.toString(),
+      onPjpTap: (context, pjpId) {
+        Get.to(() => DayEventsScreen(pjpId: pjpId));
+      },
+    );
   }
 
   Future<void> openContracts() async {
@@ -899,7 +912,7 @@ class DashboardScreenV2Controller extends GetxController
     final context = Get.context;
     if (context == null) return;
 
-    if(kIsWeb){
+    if (kIsWeb) {
       final uri = Uri.tryParse(url);
       if (uri == null) {
         Utility.showMessage(context, 'Invalid Create Contracts URL.');
@@ -1019,7 +1032,7 @@ class DashboardScreenV2Controller extends GetxController
       FirebaseMessaging.instance.unsubscribeFromTopic('saathi');
       FirebaseMessaging.instance.unsubscribeFromTopic('intranet');
     }
-     await FirebaseMessaging.instance.deleteToken();
+    await FirebaseMessaging.instance.deleteToken();
     await hiveBox.clear();
     await DBHelper().deleteAllData();
     await HiveDatabase.clear();
