@@ -68,8 +68,7 @@ class _MyPjpListState extends State<MyPjpListScreen>
     if (location != null) {
       double latitude = location.latitude!;
       double longitude = location.longitude!;
-    } else {
-    }
+    } else {}
   }
 
   Future<void> getUserInfo() async {
@@ -153,7 +152,7 @@ class _MyPjpListState extends State<MyPjpListScreen>
               },
             ), //IconButton
 
-            Padding(
+            /*  Padding(
               padding: const EdgeInsets.only(right: 8.0),
               child: InkWell(
                 onTap: () async {
@@ -185,7 +184,7 @@ class _MyPjpListState extends State<MyPjpListScreen>
                   width: 24,
                 ),
               ),
-            ),
+            ), */
           ],
           //<Widget>[]
           backgroundColor: kPrimaryLightColor,
@@ -428,10 +427,13 @@ class _MyPjpListState extends State<MyPjpListScreen>
                         ),
                       ),
                     ),
-                    (pjpInfo.isSelfPJP != '1' &&
-                            pjpInfo.ApprovalStatus == 'Rejected' &&
+                    (pjpInfo.isSelfPJP != '1' ||
+                            pjpInfo.ApprovalStatus == 'Rejected' ||
+                            pjpInfo.ApprovalStatus ==
+                                'Pending' /* &&
                             Utility.convertDate(pjpInfo.toDate)
-                                .isAfter(DateTime.now()))
+                                .isAfter(DateTime.now()) */
+                        )
                         ? SizedBox.shrink()
                         : ElevatedButton(
                             style: const ButtonStyle(
