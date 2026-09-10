@@ -67,6 +67,8 @@ import 'pages/auth/magic_link_handler.dart';
 
 part 'main.g.dart';
 
+/* git revert changes */
+
 /*Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   try {
     await Firebase.initializeApp(
