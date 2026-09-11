@@ -16,6 +16,7 @@ class LocalConstant {
 
   static const String KEY_COUNTER = "counter";
   static const String KEY_ISLOGGEDIN = "islogin";
+  static const String KEY_BIOMETRIC_LOCK_ENABLED = "biometric_lock_enabled";
   static const String KEY_UID = "uid";
   static const String KEY_FRANCHISEE_ID = "franid";
   static const String KEY_IS_OTP_VERIFIED = "isotpverified";

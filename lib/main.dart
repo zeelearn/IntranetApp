@@ -64,6 +64,7 @@ import 'pages/utils/util.dart';
 import 'package:pdfrx/pdfrx.dart';
 import 'package:app_links/app_links.dart';
 import 'pages/auth/magic_link_handler.dart';
+import 'package:Intranet/pages/widget/biometric_lock_overlay.dart';
 
 part 'main.g.dart';
 
@@ -1012,7 +1013,7 @@ class _MyAppState extends State<MyApp> {
         title: 'Intranet',
         themeMode: ThemeMode.light,
         builder: (context, child) => ResponsiveBreakpoints.builder(
-          child: child!,
+          child: BiometricLifecycleWrapper(child: child!),
           breakpoints: [
             const Breakpoint(start: 0, end: 360, name: 'SMALL_MOBILE'),
             const Breakpoint(start: 361, end: 450, name: MOBILE),

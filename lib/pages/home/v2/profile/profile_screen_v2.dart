@@ -45,64 +45,68 @@ class _ProfileScreenV2State extends State<ProfileScreenV2> {
           ),
         ],
       ),
-      body: Obx(() {
-        if (controller.isLoading.value) {
-          return const Center(child: CircularProgressIndicator());
-        }
-
-        return RefreshIndicator(
-          onRefresh: controller.loadProfile,
-          child: ListView(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 28),
-            children: [
-              if (controller.errorMessage.value != null) ...[
-                _ErrorBanner(message: controller.errorMessage.value!),
+      body: SafeArea(
+        child: Obx(() {
+          if (controller.isLoading.value) {
+            return const Center(child: CircularProgressIndicator());
+          }
+        
+          return RefreshIndicator(
+            onRefresh: controller.loadProfile,
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 28),
+              children: [
+                if (controller.errorMessage.value != null) ...[
+                  _ErrorBanner(message: controller.errorMessage.value!),
+                  const SizedBox(height: 12),
+                ],
+                _ProfileHeader(controller: controller),
+                const SizedBox(height: 16),
+                if (controller.contactRows.isNotEmpty)
+                  _InfoSection(
+                    title: 'Contact',
+                    icon: Icons.contact_mail_outlined,
+                    rows: controller.contactRows.toList(),
+                  ),
+                if (controller.workRows.isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  _InfoSection(
+                    title: 'Work',
+                    icon: Icons.work_outline_rounded,
+                    rows: controller.workRows.toList(),
+                  ),
+                ],
+                if (controller.personalRows.isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  _InfoSection(
+                    title: 'Personal',
+                    icon: Icons.person_outline_rounded,
+                    rows: controller.personalRows.toList(),
+                  ),
+                ],
+                // if (controller.roles.isNotEmpty) ...[
+                //   const SizedBox(height: 12),
+                //   _RolesSection(controller: controller),
+                // ],
+                if (controller.businesses.isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  _BusinessSection(controller: controller),
+                ],
+                if (controller.otherRows.isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  _InfoSection(
+                    title: 'Other',
+                    icon: Icons.info_outline_rounded,
+                    rows: controller.otherRows.toList(),
+                  ),
+                ],
                 const SizedBox(height: 12),
+                _SecuritySection(controller: controller),
               ],
-              _ProfileHeader(controller: controller),
-              const SizedBox(height: 16),
-              if (controller.contactRows.isNotEmpty)
-                _InfoSection(
-                  title: 'Contact',
-                  icon: Icons.contact_mail_outlined,
-                  rows: controller.contactRows.toList(),
-                ),
-              if (controller.workRows.isNotEmpty) ...[
-                const SizedBox(height: 12),
-                _InfoSection(
-                  title: 'Work',
-                  icon: Icons.work_outline_rounded,
-                  rows: controller.workRows.toList(),
-                ),
-              ],
-              if (controller.personalRows.isNotEmpty) ...[
-                const SizedBox(height: 12),
-                _InfoSection(
-                  title: 'Personal',
-                  icon: Icons.person_outline_rounded,
-                  rows: controller.personalRows.toList(),
-                ),
-              ],
-              // if (controller.roles.isNotEmpty) ...[
-              //   const SizedBox(height: 12),
-              //   _RolesSection(controller: controller),
-              // ],
-              if (controller.businesses.isNotEmpty) ...[
-                const SizedBox(height: 12),
-                _BusinessSection(controller: controller),
-              ],
-              if (controller.otherRows.isNotEmpty) ...[
-                const SizedBox(height: 12),
-                _InfoSection(
-                  title: 'Other',
-                  icon: Icons.info_outline_rounded,
-                  rows: controller.otherRows.toList(),
-                ),
-              ],
-            ],
-          ),
-        );
-      }),
+            ),
+          );
+        }),
+      ),
     );
   }
 }
@@ -437,3 +441,64 @@ class _ErrorBanner extends StatelessWidget {
     );
   }
 }
+
+class _SecuritySection extends StatelessWidget {
+  const _SecuritySection({required this.controller});
+
+  final ProfileControllerV2 controller;
+
+  @override
+  Widget build(BuildContext context) {
+    return Obx(() {
+      final available = controller.isBiometricsAvailable.value;
+      final enabled = controller.isBiometricLockEnabled.value;
+      final label = controller.biometricTypeLabel.value;
+      final isToggling = controller.isTogglingBiometrics.value;
+
+      return Container(
+        decoration: BoxDecoration(
+          color: DashV2Colors.card,
+          borderRadius: BorderRadius.circular(DashV2Colors.cardRadius),
+          boxShadow: DashV2Colors.cardShadow,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
+              child: Row(
+                children: [
+                  const Icon(Icons.security_rounded,
+                      size: 18, color: DashV2Colors.primary),
+                  const SizedBox(width: 8),
+                  Text('Security & App Lock', style: DashV2Text.sectionTitle),
+                ],
+              ),
+            ),
+            const Divider(height: 1, color: DashV2Colors.border),
+            SwitchListTile.adaptive(
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+              title: Text(
+                '$label App Lock',
+                style: DashV2Text.cardTitle,
+              ),
+              subtitle: Text(
+                available
+                    ? 'Require $label when opening or returning to the app'
+                    : 'Biometric authentication is not supported or set up on this device.',
+                style: DashV2Text.caption,
+              ),
+              value: enabled,
+              activeTrackColor: DashV2Colors.primary,
+              onChanged: (available && !isToggling)
+                  ? (val) => controller.toggleBiometricLock(val)
+                  : null,
+            ),
+          ],
+        ),
+      );
+    });
+  }
+}
+

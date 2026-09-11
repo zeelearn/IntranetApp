@@ -8,6 +8,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
 
+import 'package:Intranet/pages/helper/biometric_service.dart';
+
 /// Loads employee profile from Hive `KEY_LOGIN_RESPONSE` (view-only).
 class ProfileControllerV2 extends GetxController {
   final isLoading = true.obs;
@@ -28,10 +30,56 @@ class ProfileControllerV2 extends GetxController {
   final businesses = <BusinessApplications>[].obs;
   final roles = <EmployeeRoles>[].obs;
 
+  // Biometric App Lock
+  final isBiometricsAvailable = false.obs;
+  final isBiometricLockEnabled = false.obs;
+  final biometricTypeLabel = 'Biometrics'.obs;
+  final isTogglingBiometrics = false.obs;
+
   @override
   void onInit() {
     super.onInit();
     loadProfile();
+    _loadBiometricSettings();
+  }
+
+  Future<void> _loadBiometricSettings() async {
+    try {
+      final available = await BiometricService.instance.isBiometricsAvailable();
+      isBiometricsAvailable.value = available;
+      if (available) {
+        final enabled = await BiometricService.instance.isBiometricLockEnabled();
+        final label = await BiometricService.instance.getBiometricTypeLabel();
+        isBiometricLockEnabled.value = enabled;
+        biometricTypeLabel.value = label;
+      }
+    } catch (e) {
+      debugPrint('ProfileControllerV2 _loadBiometricSettings error: $e');
+    }
+  }
+
+  Future<bool> toggleBiometricLock(bool targetState) async {
+    if (isTogglingBiometrics.value) return isBiometricLockEnabled.value;
+    isTogglingBiometrics.value = true;
+    BiometricService.instance.suppressLockFor(const Duration(seconds: 6));
+    try {
+      final reason = targetState
+          ? 'Authenticate to enable App Lock'
+          : 'Authenticate to disable App Lock';
+      final success = await BiometricService.instance.authenticate(
+        localizedReason: reason,
+        biometricOnly: false,
+      );
+      if (success) {
+        await BiometricService.instance.setBiometricLockEnabled(targetState);
+        isBiometricLockEnabled.value = targetState;
+        BiometricService.instance.suppressLockFor(const Duration(seconds: 5));
+        return targetState;
+      }
+      return isBiometricLockEnabled.value;
+    } finally {
+      isTogglingBiometrics.value = false;
+    }
   }
 
   Future<void> loadProfile() async {
