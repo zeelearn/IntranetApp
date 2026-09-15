@@ -4,6 +4,7 @@ import 'package:Intranet/api/ServiceHandler.dart';
 import 'package:Intranet/api/request/pjp/update_pjpstatus_request.dart';
 import 'package:Intranet/pages/helper/LocationHelper.dart';
 import 'package:Intranet/pages/pjp/cvf/add_cvf.dart';
+import 'package:Intranet/pages/widget/business_widget.dart';
 import 'package:expensestracker/app/util/util.dart';
 import 'package:expensestracker/data/repositories/claim_repository.dart';
 import 'package:expensestracker/domain/usercases/add_claim_usecase.dart';
@@ -68,8 +69,7 @@ class _MyPjpListState extends State<MyPjpListScreen>
     if (location != null) {
       double latitude = location.latitude!;
       double longitude = location.longitude!;
-    } else {
-    }
+    } else {}
   }
 
   Future<void> getUserInfo() async {
@@ -186,6 +186,7 @@ class _MyPjpListState extends State<MyPjpListScreen>
                 ),
               ),
             ),
+            BusinessWidget.instance.showInlineBadge()
           ],
           //<Widget>[]
           backgroundColor: kPrimaryLightColor,

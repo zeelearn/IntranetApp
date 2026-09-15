@@ -143,6 +143,11 @@ dependencies:
     #   url: https://github.com/ZeeLearnLtd/excepsesmanagement.git
     #   ref: uat
 
+  notiflow:
+    # path: ../notiflow
+    git:
+      url: https://github.com/ZeeLearnLtd/notiflow.git
+      ref: main
 
   fl_chart: ^1.2.0
   http: ^1.6.0
