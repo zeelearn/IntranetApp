@@ -306,7 +306,8 @@ Future<void> main() async {
   // }
 
   NotificationController.startListeningNotificationEvents();
-  await NotificationController.initializeLocalNotifications(requestPermission: true);
+  await NotificationController.initializeLocalNotifications(
+      requestPermission: true);
 
   if (!kIsWeb) {
     await NotificationController.initializeIsolateReceivePort();
@@ -321,7 +322,10 @@ Future<void> main() async {
         // Util.openSaathiNotification(message);
       } else if (message.data['type'] != null &&
           message.data['type'] == 'PJP') {
-        final pjpId = message.data['PjpId'] ?? message.data['pjpId'] ?? message.data['pjpid'] ?? '';
+        final pjpId = message.data['PjpId'] ??
+            message.data['pjpId'] ??
+            message.data['pjpid'] ??
+            '';
         if (pjpId.isNotEmpty) {
           Navigator.push(
             MyApp.navigatorKey.currentState!.context,
@@ -859,7 +863,8 @@ Future _showNotificationWithDefaultSound(
       try {
         bool isAllowed = await AwesomeNotifications().isNotificationAllowed();
         if (isAllowed) {
-          await AwesomeNotifications().createNotificationFromJsonData(message.data);
+          await AwesomeNotifications()
+              .createNotificationFromJsonData(message.data);
         } else {
           debugPrint('AwesomeNotifications: notification not allowed');
         }
@@ -982,7 +987,7 @@ class _MyAppState extends State<MyApp> {
     // Magic login links carry ?t=… — handled by MagicLinkHandler.
     final token = uri.queryParameters['t'];
     debugPrint('AppLinks token: $token');
-    if (token != null && token.isNotEmpty) {
+    if (kIsWeb && token != null && token.isNotEmpty) {
       await MagicLinkHandler.handle(uri, context);
       return;
     }
@@ -1153,7 +1158,8 @@ class NotificationController {
   ///     INITIALIZATIONS
   ///  *********************************************
   ///
-  static Future<void> initializeLocalNotifications({bool requestPermission = false}) async {
+  static Future<void> initializeLocalNotifications(
+      {bool requestPermission = false}) async {
     await AwesomeNotifications().initialize(
         'resource://drawable/ic_notification',
         [
@@ -1237,10 +1243,8 @@ class NotificationController {
     } else if (type == 'TD') {
       Util.openSaathiNotification(receivedAction);
     } else if (type == 'PJP') {
-      final pjpId = payload['PjpId'] ??
-          payload['pjpId'] ??
-          payload['pjpid'] ??
-          '';
+      final pjpId =
+          payload['PjpId'] ?? payload['pjpId'] ?? payload['pjpid'] ?? '';
       if (pjpId.isNotEmpty) {
         Navigator.push(
           MyApp.navigatorKey.currentState!.context,
@@ -1252,7 +1256,9 @@ class NotificationController {
         );
       }
     } else if (type == 'EXPENSE-COURIER') {
-      final claimid = receivedAction.payload?['cid'] ?? receivedAction.payload?['claimId'] ?? receivedAction.payload?['claim_id'];
+      final claimid = receivedAction.payload?['cid'] ??
+          receivedAction.payload?['claimId'] ??
+          receivedAction.payload?['claim_id'];
       final eCode = receivedAction.payload?['employee_code'];
       final isAccch = receivedAction.payload?['isAccch'] ?? 'false';
       debugPrint(
