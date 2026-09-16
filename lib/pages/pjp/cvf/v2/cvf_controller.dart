@@ -599,7 +599,9 @@ class CVFController extends GetxController {
     Utility.showLoaderDialog(context!);
     try {
       await _updateCvfStatusOnline(cvf);
-      Navigator.of(context).pop(); // Dismiss loader dialog
+      if (_isMounted(context) && Navigator.canPop(context)) {
+        Navigator.of(context).pop(); // Dismiss loader dialog
+      }
       isUpdating.value = false;
       if (_isMounted(context)) {
         Utility.onSuccessMessage(
@@ -611,14 +613,18 @@ class CVFController extends GetxController {
         await loadData();
       }
     } catch (e) {
+      isUpdating.value = false;
+      if (_isMounted(context) && Navigator.canPop(context)) {
+        Navigator.of(context).pop(); // Dismiss loader dialog first
+      }
       if (_isMounted(context)) {
-        Utility.showMessage(context, 'Unable to update the status');
+        Utility.showMessage(
+          context,
+          e.toString().isNotEmpty ? e.toString() : 'Unable to update the status',
+        );
       }
     } finally {
       isUpdating.value = false;
-      if (_isMounted(context) && Navigator.canPop(context)) {
-        Navigator.of(context).pop();
-      }
     }
   }
 

@@ -1427,7 +1427,12 @@ class _MyCVFListScreen extends State<CVFListScreen>
   void onError(value) {
     isLoading = false;
     setState(() {});
-    Navigator.of(context).pop();
+    if (context.mounted && Navigator.canPop(context)) {
+      Navigator.of(context).pop();
+    }
+    if (context.mounted && value != null) {
+      Utility.showMessage(context, value.toString());
+    }
   }
 
   @override

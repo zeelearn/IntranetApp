@@ -1277,11 +1277,17 @@ class Utility {
 
   static Future<String?> getAddress(double latitude, double longitude) async {
     // if (kIsWeb) {
-    final nominatim = Nominatim.instance;
+    try {
+      final nominatim = Nominatim.instance;
 
-    // Get address from coordinates
-    Place address = await nominatim.getAddressFromLatLng(latitude, longitude);
-    return address.displayName;
+      // Get address from coordinates
+      Place address =
+          await nominatim.getAddressFromLatLng(latitude, longitude);
+      return address.displayName;
+    } catch (e) {
+      debugPrint('Error getting address: $e');
+      return 'Unknown address';
+    }
     // } else {
     //   List<Placemark> placemarks =
     //       await placemarkFromCoordinates(latitude, longitude);

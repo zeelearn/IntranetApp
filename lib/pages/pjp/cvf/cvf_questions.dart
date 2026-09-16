@@ -2178,7 +2178,12 @@ class _QuestionListScreenState extends State<QuestionListScreen>
 
   @override
   void onError(value) {
-    Navigator.of(context).pop();
+    if (context.mounted && Navigator.canPop(context)) {
+      Navigator.of(context).pop();
+    }
+    if (context.mounted && value != null) {
+      Utility.showMessage(context, value.toString());
+    }
   }
 
   @override

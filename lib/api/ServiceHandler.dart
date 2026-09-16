@@ -20,17 +20,19 @@ import 'package:Intranet/api/response/pjp/pjplistresponse.dart';
 import 'package:Intranet/api/response/pjp/update_pjpstatus_response.dart';
 import 'package:Intranet/api/response/report/my_report.dart';
 import 'package:Intranet/pages/helper/utils.dart';
+import 'package:get/get.dart';
 import 'package:location/location.dart';
 import 'package:path/path.dart';
 
 import '../pages/helper/LocationHelper.dart';
 import '../pages/iface/onResponse.dart';
 import 'APIService.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class IntranetServiceHandler {
   static loadPjpSummery(
       int employeeId, int pjpId, int bid, onResponse onResponse) {
-        debugPrint('IntranetServiceHandler loadPjpSummery for ${employeeId}');
+    debugPrint('IntranetServiceHandler loadPjpSummery for ${employeeId}');
     onResponse.onStart();
     PJPListRequest request = PJPListRequest(
         Employee_id: employeeId, PJP_id: pjpId, Business_id: bid);
@@ -107,60 +109,67 @@ class IntranetServiceHandler {
     double latitude = 0.0;
     double longitude = 0.0;
     onResponse.onStart();
-    LocationData? location = await LocationHelper.getLocation(null);
-    if (location != null) {
-      latitude = location.latitude!;
-      longitude = location.longitude!;
-    }
-
-    String? address = await Utility.getAddress(latitude, longitude);
-    // Either the permission was already granted before or the user just granted it.
-
-    UpdateCVFStatusRequest request = UpdateCVFStatusRequest(
-        PJPCVF_id: cvfView.PJPCVF_Id,
-        DateTime: date,
-        Status: status,
-        Employee_id: employeeId,
-        Latitude: cvfView.Status == 'FILL CVF' ? cvfView.Latitude : latitude,
-        Longitude: cvfView.Status == 'FILL CVF' ? cvfView.Longitude : longitude,
-        CheckOutLatitude: status == 'Completed' ? latitude : 0.0,
-        CheckOutLongitude: status == 'Completed' ? longitude : 0.0,
-        CheckOutAddress: status == 'Completed' ? (address ?? '') : '',
-        Address: (cvfView.Status.trim() == 'Check In' ||
-                cvfView.Status.trim() == 'NA')
-            ? (address ?? '')
-            : cvfView.Address);
-
-    APIService apiService = APIService();
-    apiService.updateCVFStatus(request).then((value) {
-      if (value != null) {
-        if (value == null || value.responseData == null) {
-          onResponse.onError('Unable to update the status');
-        } else if (value is UpdateCVFStatusResponse) {
-          // UpdateCVFStatusResponse response = value;
-          if (status == 'Completed') {
-            cvfView.DateTimeOut = date;
-            cvfView.CheckOutAddress = address ?? '';
-            cvfView.LatitudeOut = latitude;
-            cvfView.LongitudeOut = longitude;
-            cvfView.Status = 'Completed';
-            cvfView.approvalStatus = 'Completed';
-          } else if (cvfView.Status.trim() == 'Check In' ||
-              cvfView.Status.trim() == 'NA') {
-            cvfView.DateTimeIn = date;
-            cvfView.CheckInAddress = address ?? '';
-            cvfView.LatitudeIn = latitude;
-            cvfView.LongitudeIn = longitude;
-            cvfView.Status = 'FILL CVF';
-          }
-          onResponse.onSuccess(cvfView);
-        } else {
-          onResponse.onError('Unable to update the status ');
-        }
+    try {
+      LocationData? location = await LocationHelper.getLocation(Get.context);
+      if (location == null) {
+        onResponse.onError('Unable to get location. Kindly allow location permission.');
+        return;
       } else {
-        onResponse.onError('Unable to update the status');
+        latitude = location.latitude ?? 0.0;
+        longitude = location.longitude ?? 0.0;
       }
-    });
+
+      String? address = await Utility.getAddress(latitude, longitude);
+
+      UpdateCVFStatusRequest request = UpdateCVFStatusRequest(
+          PJPCVF_id: cvfView.PJPCVF_Id,
+          DateTime: date,
+          Status: status,
+          Employee_id: employeeId,
+          Latitude: cvfView.Status == 'FILL CVF' ? cvfView.Latitude : latitude,
+          Longitude: cvfView.Status == 'FILL CVF' ? cvfView.Longitude : longitude,
+          CheckOutLatitude: status == 'Completed' ? latitude : 0.0,
+          CheckOutLongitude: status == 'Completed' ? longitude : 0.0,
+          CheckOutAddress: status == 'Completed' ? (address ?? '') : '',
+          Address: (cvfView.Status.trim() == 'Check In' ||
+                  cvfView.Status.trim() == 'NA')
+              ? (address ?? '')
+              : cvfView.Address);
+
+      APIService apiService = APIService();
+      apiService.updateCVFStatus(request).then((value) {
+        if (value != null) {
+          if (value.responseData == null) {
+            onResponse.onError('Unable to update the status');
+          } else if (value is UpdateCVFStatusResponse) {
+            if (status == 'Completed') {
+              cvfView.DateTimeOut = date;
+              cvfView.CheckOutAddress = address ?? '';
+              cvfView.LatitudeOut = latitude;
+              cvfView.LongitudeOut = longitude;
+              cvfView.Status = 'Completed';
+              cvfView.approvalStatus = 'Completed';
+            } else if (cvfView.Status.trim() == 'Check In' ||
+                cvfView.Status.trim() == 'NA') {
+              cvfView.DateTimeIn = date;
+              cvfView.CheckInAddress = address ?? '';
+              cvfView.LatitudeIn = latitude;
+              cvfView.LongitudeIn = longitude;
+              cvfView.Status = 'FILL CVF';
+            }
+            onResponse.onSuccess(cvfView);
+          } else {
+            onResponse.onError('Unable to update the status');
+          }
+        } else {
+          onResponse.onError('Unable to update the status');
+        }
+      }).catchError((err) {
+        onResponse.onError('Unable to update the status: $err');
+      });
+    } catch (e) {
+      onResponse.onError('Unable to get location: $e');
+    }
   }
 
   static updateCVFOfflineStatus(

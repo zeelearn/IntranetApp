@@ -2814,20 +2814,30 @@ class _OnCheckINCheckOutResponse implements onResponse {
 
   @override
   void onStart() {
-    Utility.showLoaderDialog(context);
+    if (context.mounted) {
+      Utility.showLoaderDialog(context);
+    }
   }
 
   @override
   void onSuccess(value) {
-    Navigator.of(context).pop();
+    if (context.mounted && Navigator.canPop(context)) {
+      Navigator.of(context).pop();
+    }
     onSuccessCallback(value);
-    Utility.showMessage(context, message);
+    if (context.mounted) {
+      Utility.showMessage(context, message);
+    }
   }
 
   @override
   void onError(value) {
-    Navigator.of(context).pop(); // Dismiss loader
-    Utility.showMessage(context, value.toString());
+    if (context.mounted && Navigator.canPop(context)) {
+      Navigator.of(context).pop(); // Dismiss loader
+    }
+    if (context.mounted && value != null) {
+      Utility.showMessage(context, value.toString());
+    }
   }
 }
 
