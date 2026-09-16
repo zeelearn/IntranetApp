@@ -521,43 +521,49 @@ class _QuestionListScreenState extends State<QuestionListScreen>
           title: const Text('Questions'),
           actions: !widget.isViewOnly
               ? [
-                  TextButton(
-                    style: ButtonStyle(
-                      backgroundColor: WidgetStateProperty.all(
-                        LightColors.kLightGreen,
-                      ),
-                      foregroundColor: WidgetStateProperty.all(Colors.white),
-                    ),
-                    child: const Text(
-                      'Refresh',
-                      style: TextStyle(color: Colors.black),
-                    ),
-                    // icon: const Icon(Icons.refresh),
-                    // tooltip: 'Refresh',
-                    onPressed: () {
-                      loadData();
-                    },
-                  ),
+                  widget.cvfView.Status == 'Completed'
+                      ? SizedBox.shrink()
+                      : TextButton(
+                          style: ButtonStyle(
+                            backgroundColor: WidgetStateProperty.all(
+                              LightColors.kLightGreen,
+                            ),
+                            foregroundColor:
+                                WidgetStateProperty.all(Colors.white),
+                          ),
+                          child: const Text(
+                            'Refresh',
+                            style: TextStyle(color: Colors.black),
+                          ),
+                          // icon: const Icon(Icons.refresh),
+                          // tooltip: 'Refresh',
+                          onPressed: () {
+                            loadData();
+                          },
+                        ),
                   SizedBox(
                     width: 10,
                   ),
-                  TextButton(
-                    style: ButtonStyle(
-                      backgroundColor: WidgetStateProperty.all(
-                        LightColors.kLightGreen,
-                      ),
-                      foregroundColor: WidgetStateProperty.all(Colors.white),
-                    ),
-                    child: const Text(
-                      'Save',
-                      style: TextStyle(color: Colors.black),
-                    ),
-                    //icon: const Icon(Icons.done),
-                    //tooltip: 'Save Answers',
-                    onPressed: () {
-                      saveAnswers('');
-                    },
-                  ),
+                  widget.cvfView.Status == 'Completed'
+                      ? SizedBox.shrink()
+                      : TextButton(
+                          style: ButtonStyle(
+                            backgroundColor: WidgetStateProperty.all(
+                              LightColors.kLightGreen,
+                            ),
+                            foregroundColor:
+                                WidgetStateProperty.all(Colors.white),
+                          ),
+                          child: const Text(
+                            'Save',
+                            style: TextStyle(color: Colors.black),
+                          ),
+                          //icon: const Icon(Icons.done),
+                          //tooltip: 'Save Answers',
+                          onPressed: () {
+                            saveAnswers('');
+                          },
+                        ),
                   SizedBox(
                     width: 10,
                   ),
@@ -795,7 +801,7 @@ class _QuestionListScreenState extends State<QuestionListScreen>
             mainAxisSize: MainAxisSize.max,
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Expanded(
+            cvfView.franchiseeCode == 'NA' ? SizedBox.shrink() :  Expanded(
                 child: Padding(
                   padding: EdgeInsetsDirectional.fromSTEB(0, 4, 0, 0),
                   child: Text(
@@ -954,7 +960,7 @@ class _QuestionListScreenState extends State<QuestionListScreen>
             textAlign: TextAlign.center,
             style: TextStyle(
               background: Paint()
-                ..color = widget.mCategory == categoryname
+                ..color = widget.mCategoryId == categoryId
                     ? LightColors.kLightRed
                     : LightColors.kLightBlue
                 ..strokeWidth = 20
@@ -1531,7 +1537,7 @@ class _QuestionListScreenState extends State<QuestionListScreen>
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
-                padding: EdgeInsets.only(left: 15, right: 15, bottom: 25),
+                padding: EdgeInsets.only(left: 15, right: 15,top: 25, bottom: 25),
                 child: Column(
                   children: [
                     TextFormField(

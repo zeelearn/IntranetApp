@@ -45,6 +45,7 @@ import 'package:expensestracker/presentation/app.dart' as expense_placeholder;
 import 'package:expensestracker/presentation/controllers/dashboard/dashboard_binding.dart';
 import 'package:expensestracker/presentation/controllers/dashboard/dashboard_page_controller.dart';
 import 'package:expensestracker/presentation/pages/claim/courier_detail_page.dart';
+import 'package:expensestracker/presentation/pages/claim/courier_detail_page.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
@@ -233,6 +234,23 @@ class DashboardScreenV2Controller extends GetxController
                     title: message.data['title'] ?? 'Expense',
                     url: message.data['url'] ?? ''),
               ));
+        } else if (message.data?['type'] == 'EXPENSE-COURIER') {
+          final claimid = message.data?['cid'];
+          final eCode = message.data?['employee_code'];
+          final isAccch = message.data?['isAccch'] ?? 'false';
+          debugPrint(
+              "Courier Notification: claimId=$claimid, eCode=$eCode, isAccch=$isAccch");
+          /*  Navigator.push(
+              MyApp.navigatorKey.currentState!.context,
+              MaterialPageRoute(
+                builder: (context) => CourierDetailPage(
+                  claimId: int.parse(claimid ?? '0'),
+                  employeeCode: eCode ?? '',
+                  isAccch: isAccch == 'true',
+                ),
+              )); */
+          Get.toNamed(
+              '/courier_detail?claimId=$claimid&eCode=$eCode&isAccch=$isAccch');
         } else if (message.data['Video_path'] != null) {
           Navigator.push(
               MyApp.navigatorKey.currentState!.context,

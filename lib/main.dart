@@ -25,6 +25,7 @@ import 'package:Intranet/pages/widget/MyWebSiteView.dart';
 import 'package:Intranet/pages/widget/VideoPlayer.dart';
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:expensestracker/presentation/pages/claim/courier_detail_page.dart';
+import 'package:expensestracker/presentation/pages/claim/courier_detail_page.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
@@ -205,7 +206,18 @@ showNotification(RemoteMessage message) async {
           message.data.containsKey('url') ? message.data['url'] as String : '');
   data.putIfAbsent('logoUrl', () => message.data['logo'] as String);
   data.putIfAbsent('bigImageUrl', () => message.data['bigimage'] as String);
-  data.putIfAbsent('webViewLink', () => message.data['url'] as String);
+  data.putIfAbsent('webViewLink', () {
+    String? webViewUrl = message.data['url'] as String?;
+    if (webViewUrl == null || webViewUrl.isEmpty) {
+      if (message.data['type'] == 'EXPENSE-COURIER') {
+        final claimId = message.data['cid'] ?? message.data['claimId'] ?? message.data['claim_id'] ?? '';
+        final eCode = message.data['employee_code'] ?? message.data['eCode'] ?? message.data['e_code'] ?? '';
+        final isAccch = message.data['isAccch'] ?? message.data['is_accch'] ?? 'false';
+        webViewUrl = '/#/courier_detail?claimId=$claimId&eCode=$eCode&isAccch=$isAccch';
+      }
+    }
+    return webViewUrl ?? '';
+  });
   helper.insert(LocalConstant.TABLE_NOTIFICATION, data);
   /*var count = (int.parse(await KidzeePref().getString(LocalConstant.KEY_NOTIFICATION_COUNT) ??'0') +1);
   KidzeePref().setString(LocalConstant.KEY_NOTIFICATION_COUNT, count.toString());
@@ -344,6 +356,20 @@ Future<void> main() async {
                   title: message.data['title'] ?? 'Expense',
                   url: message.data['url'] ?? ''),
             ));
+      } else if (message.data['type'] == 'EXPENSE-COURIER') {
+        final claimid = message.data['cid'] ?? message.data['claimId'] ?? message.data['claim_id'];
+        final eCode = message.data['employee_code'] ?? message.data['eCode'] ?? message.data['e_code'];
+        final isAccch = message.data['isAccch'] ?? 'false';
+        Navigator.push(
+          MyApp.navigatorKey.currentState!.context,
+          MaterialPageRoute(
+            builder: (context) => CourierDetailPage(
+              claimId: claimid != null ? int.tryParse(claimid.toString()) : null,
+              employeeCode: eCode?.toString(),
+              isAccch: isAccch == 'true',
+            ),
+          ),
+        );
       } else if (message.data['Video_path'] != null) {
         Navigator.push(
             MyApp.navigatorKey.currentState!.context,
@@ -1119,6 +1145,24 @@ class _MyAppState extends State<MyApp> {
         home: /*  SummaryDashboard() */ SplashScreen(
           receivedAction: widget.receivedAction,
         ),
+        getPages: [
+          GetPage(
+            name: '/courier_detail',
+            page: () {
+              final claimIdStr = Get.parameters['cid'];
+              final employeeCode = Get.parameters['employee_code'];
+              final isAccchStr = Get.parameters['isAccch'];
+              final claimId =
+                  claimIdStr != null ? int.tryParse(claimIdStr) : null;
+              final isAccch = isAccchStr == 'true';
+              return CourierDetailPage(
+                claimId: claimId,
+                employeeCode: employeeCode,
+                isAccch: isAccch,
+              );
+            },
+          ),
+        ],
       ),
     );
   }

@@ -186,69 +186,80 @@ class _MyPjpReportListState extends State<MyPjpReportScreen>
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Scaffold(
-          extendBodyBehindAppBar: true,
-          backgroundColor: Colors.white,
-          appBar: AppBar(
-            title: const Text("PJP Report"),
-            actions: <Widget>[
-              //IconButton
-              IconButton(
-                icon: const Icon(Icons.date_range),
-                tooltip: 'Date Range',
-                onPressed: () {
-                  openDateRange();
-                },
-              ),
-              IconButton(
-                icon: const Icon(Icons.filter_list),
-                tooltip: 'Filter',
-                onPressed: () {
-                  openFilters();
-                },
-              ), //IconButton
-            ],
-            //<Widget>[]
-            backgroundColor: kPrimaryLightColor,
-            elevation: 50.0,
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back),
-              tooltip: 'Menu Icon',
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-            systemOverlayStyle: SystemUiOverlayStyle.light,
-          ),
-          body: SafeArea(
-            child: RefreshIndicator(
-              key: _refreshIndicatorKey,
+    return Scaffold(
+      extendBodyBehindAppBar: true,
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        title: const Text(
+          "PJP Report",
+          
+        ),
+        actions: <Widget>[
+          //IconButton
+          IconButton(
+            icon: const Icon(
+              Icons.date_range,
               color: Colors.white,
-              backgroundColor: Colors.blue,
-              strokeWidth: 4.0,
-              onRefresh: () async {
-                // Replace this delay with the code to be executed during refresh
-                // and return a Future when code finishs execution.
-                loadPjpReport();
-                return Future<void>.delayed(const Duration(seconds: 3));
-              },
-              // Pull from top to show refresh indicator.
-              child: Column(
-                children: [
-                  SizedBox(
-                    height: 10,
-                  ),
-                  Text(
-                      '${Utility.convertShortDate(fromDate)} to ${Utility.convertShortDate(toDate)}'),
-                  SizedBox(
-                    height: 10,
-                  ),
-                  getPjpListView(),
-                ],
-              ),
             ),
-          )),
+            tooltip: 'Date Range',
+            onPressed: () {
+              openDateRange();
+            },
+          ),
+          IconButton(
+            icon: const Icon(
+              Icons.filter_list,
+              color: Colors.white,
+            ),
+            tooltip: 'Filter',
+            onPressed: () {
+              openFilters();
+            },
+          ), //IconButton
+        ],
+        //<Widget>[]
+        backgroundColor: kPrimaryLightColor,
+        elevation: 50.0,
+        leading: IconButton(
+          icon: const Icon(
+            Icons.arrow_back,
+            color: Colors.white,
+          ),
+          tooltip: 'Menu Icon',
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+        ),
+        systemOverlayStyle: SystemUiOverlayStyle.light,
+      ),
+      body: SafeArea(
+        child: RefreshIndicator(
+          key: _refreshIndicatorKey,
+          color: Colors.white,
+          backgroundColor: Colors.blue,
+          strokeWidth: 4.0,
+          onRefresh: () async {
+            // Replace this delay with the code to be executed during refresh
+            // and return a Future when code finishs execution.
+            loadPjpReport();
+            return Future<void>.delayed(const Duration(seconds: 3));
+          },
+          // Pull from top to show refresh indicator.
+          child: Column(
+            children: [
+              SizedBox(
+                height: 10,
+              ),
+              Text(
+                  '${Utility.convertShortDate(fromDate)} to ${Utility.convertShortDate(toDate)}'),
+              SizedBox(
+                height: 10,
+              ),
+              getPjpListView(),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
@@ -797,7 +808,7 @@ class _MyPjpReportListState extends State<MyPjpReportScreen>
                         child: Column(
                           children: [
                             const SizedBox(height: 4),
-                           Util.openReportPage(cvf, context)
+                            Util.openReportPage(cvf, context)
                           ],
                         ),
                       )
@@ -809,8 +820,6 @@ class _MyPjpReportListState extends State<MyPjpReportScreen>
       ),
     );
   }
-
- 
 
   @override
   void onSuccess(value) {

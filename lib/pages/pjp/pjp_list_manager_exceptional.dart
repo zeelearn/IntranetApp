@@ -156,7 +156,7 @@ class _PJPManagerScreen extends State<PJPManagerExceptionalScreen>
               Text("Exceptional",style: LightColors.textHeaderStyleWhite),
 
             ],
-          ) /*const Text("My PJP")*/,
+          ) /*const Text("My PJP")*/,centerTitle: false,
           backgroundColor: kPrimaryLightColor,
           elevation: 50.0,
           leading: IconButton(

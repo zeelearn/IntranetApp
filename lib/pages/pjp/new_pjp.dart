@@ -879,7 +879,7 @@ class _PjpState extends State<NewPJP> {
   AppBar getAppbar() {
     return AppBar(
       backgroundColor: kPrimaryLightColor,
-      centerTitle: true,
+      centerTitle: false,
       title: Text(
         'Permanent Planner',
         style:

@@ -639,94 +639,98 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
 
   Expanded getPlanList() {
     return Expanded(
-        child: ListView.builder(
-      shrinkWrap: true,
-      itemCount: filteredlistofplandata.length,
-      itemBuilder: (context, index) {
-        return InkWell(
-          onTap: () async {
-            Navigator.of(context).push(MaterialPageRoute(
-                builder: (BuildContext context) => MyWebsiteView(
-                      title:
-                          'CVF Report - ${filteredlistofplandata[index].pJPCVFId}',
-                      url:
-                          'https://intranet.zeelearn.com/cvfreport.html?cid=${filteredlistofplandata[index].pJPCVFId}',
-                    )));
-          },
-          child: Card(
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Column(
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        mainAxisSize: MainAxisSize.max,
-                        children: [
-                          Row(
-                            children: [
-                              Padding(
-                                padding: const EdgeInsetsDirectional.fromSTEB(
-                                    4, 0, 0, 0),
-                                child: Text(
-                                  'PJP Id : ${filteredlistofplandata[index].pJPId ?? ''}' /* '${Utility.shortTime(Utility.convertTime(filteredlistofplandata[index]. ?? DateTime.now().toString()))} ${Utility.shortTimeAMPM(Utility.convertTime(filteredlistofplandata[index].visitDate ?? DateTime.now().toString()))}' */,
-                                  style: const TextStyle(
-                                    fontFamily: 'Lexend Deca',
-                                    color: Color(0xFF4B39EF),
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w500,
+        child: filteredlistofplandata.isEmpty
+            ? Center(
+                child: Text('No Previous Plans Available'),
+              )
+            : ListView.builder(
+                shrinkWrap: true,
+                itemCount: filteredlistofplandata.length,
+                itemBuilder: (context, index) {
+                  return InkWell(
+                    onTap: () async {
+                      Navigator.of(context).push(MaterialPageRoute(
+                          builder: (BuildContext context) => MyWebsiteView(
+                                title:
+                                    'CVF Report - ${filteredlistofplandata[index].pJPCVFId}',
+                                url:
+                                    'https://intranet.zeelearn.com/cvfreport.html?cid=${filteredlistofplandata[index].pJPCVFId}',
+                              )));
+                    },
+                    child: Card(
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Column(
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Row(
+                                  mainAxisSize: MainAxisSize.max,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Padding(
+                                          padding: const EdgeInsetsDirectional
+                                              .fromSTEB(4, 0, 0, 0),
+                                          child: Text(
+                                            'PJP Id : ${filteredlistofplandata[index].pJPId ?? ''}' /* '${Utility.shortTime(Utility.convertTime(filteredlistofplandata[index]. ?? DateTime.now().toString()))} ${Utility.shortTimeAMPM(Utility.convertTime(filteredlistofplandata[index].visitDate ?? DateTime.now().toString()))}' */,
+                                            style: const TextStyle(
+                                              fontFamily: 'Lexend Deca',
+                                              color: Color(0xFF4B39EF),
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                                Padding(
+                                  padding: const EdgeInsetsDirectional.fromSTEB(
+                                      0, 4, 0, 0),
+                                  child: Text(
+                                    'PJPCVF Id : ${filteredlistofplandata[index].pJPCVFId ?? ''}',
+                                    style: const TextStyle(
+                                      fontFamily: 'Lexend Deca',
+                                      color: Color(0xFF4B39EF),
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                    textAlign: TextAlign.left,
                                   ),
                                 ),
+                              ],
+                            ),
+                            const SizedBox(height: 5),
+                            Container(
+                              alignment: Alignment.centerLeft,
+                              child: Text(
+                                'Visited By : ${filteredlistofplandata[index].lastVisitedBy ?? ''}',
+                                style: const TextStyle(
+                                  fontFamily: 'Lexend Deca',
+                                  color: Color(0xFF4B39EF),
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                                textAlign: TextAlign.left,
                               ),
-                            ],
-                          ),
-                        ],
-                      ),
-                      Padding(
-                        padding:
-                            const EdgeInsetsDirectional.fromSTEB(0, 4, 0, 0),
-                        child: Text(
-                          'PJPCVF Id : ${filteredlistofplandata[index].pJPCVFId ?? ''}',
-                          style: const TextStyle(
-                            fontFamily: 'Lexend Deca',
-                            color: Color(0xFF4B39EF),
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                          ),
-                          textAlign: TextAlign.left,
+                            ),
+                            const SizedBox(height: 5),
+                            IntranetOrderTrackerZen(
+                              isShrinked: true,
+                              tracker_data: getTrakcerList(
+                                  filteredlistofplandata[index].lastCheckIn,
+                                  filteredlistofplandata[index].lastCheckOut),
+                            )
+                          ],
                         ),
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 5),
-                  Container(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      'Visited By : ${filteredlistofplandata[index].lastVisitedBy ?? ''}',
-                      style: const TextStyle(
-                        fontFamily: 'Lexend Deca',
-                        color: Color(0xFF4B39EF),
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                      ),
-                      textAlign: TextAlign.left,
                     ),
-                  ),
-                  const SizedBox(height: 5),
-                  IntranetOrderTrackerZen(
-                    isShrinked: true,
-                    tracker_data: getTrakcerList(
-                        filteredlistofplandata[index].lastCheckIn,
-                        filteredlistofplandata[index].lastCheckOut),
-                  )
-                ],
-              ),
-            ),
-          ),
-        );
-      },
-    ));
+                  );
+                },
+              ));
   }
 
   _selectTime(BuildContext context) async {
@@ -843,8 +847,7 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
         //   //     context, 'Unable to fetch location, Please try again');
         //   return;
         // }
-        if (_purposeMultiSelect.toString().toLowerCase() !=
-            'activity') {
+        if (_purposeMultiSelect.toString().toLowerCase() != 'activity') {
           var franchiseeInfo = getFranchiseeDetails();
           debugPrint(
               'Franchisee Info: ${franchiseeInfo?.toJson()}'); // Print the franchisee info
@@ -1316,10 +1319,10 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
 
           //form google_maps_webservice package
           final plist = GoogleMapsPlaces(
-            apiKey: LocalStrings.kGoogleApiKey,
-            baseUrl: '${LocalStrings.bpms}}/api/bp/map'
-            //from google_api_headers package
-          );
+              apiKey: LocalStrings.kGoogleApiKey,
+              baseUrl: '${LocalStrings.bpms}}/api/bp/map'
+              //from google_api_headers package
+              );
           String placeid = place.placeId ?? "0";
           final detail = await plist.getDetailsByPlaceId(placeid);
           final geometry = detail.result.geometry!;
@@ -1345,8 +1348,7 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
               apiKey: LocalStrings.kGoogleApiKey,
               //mode: Mode.overlay,
               types: [],
-              proxyBaseUrl:
-                  '${LocalStrings.bpms}/api/bp/map',
+              proxyBaseUrl: '${LocalStrings.bpms}/api/bp/map',
               strictbounds: false,
               components: [Component(Component.country, 'in')],
               //google_map_webservice package
@@ -1361,10 +1363,10 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
 
             //form google_maps_webservice package
             final plist = GoogleMapsPlaces(
-              apiKey: LocalStrings.kGoogleApiKey,
-              baseUrl: '${LocalStrings.bpms}/api/bp/map'
-              //from google_api_headers package
-            );
+                apiKey: LocalStrings.kGoogleApiKey,
+                baseUrl: '${LocalStrings.bpms}/api/bp/map'
+                //from google_api_headers package
+                );
             String placeid = place.placeId ?? "0";
             final detail = await plist.getDetailsByPlaceId(placeid);
             final geometry = detail.result.geometry!;
@@ -1633,7 +1635,7 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
   AppBar getAppbar() {
     return AppBar(
       backgroundColor: kPrimaryLightColor,
-      centerTitle: true,
+      centerTitle: false,
       title: const Text(
         'Permanent Planner',
         style:
