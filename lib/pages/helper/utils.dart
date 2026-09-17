@@ -1333,154 +1333,156 @@ class Utility {
             constraints: const BoxConstraints(
               maxWidth: 340,
             ),
-            child: Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: const [
-                  BoxShadow(
-                    blurRadius: 20,
-                    color: Color(0x1A000000),
-                    offset: Offset(0, 8),
-                  ),
-                ],
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  /// Icon
-                  Container(
-                    width: 72,
-                    height: 72,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: (isSuccess ? Colors.green : Colors.red)
-                          .withOpacity(0.1),
+            child: SingleChildScrollView(
+              child: Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: const [
+                    BoxShadow(
+                      blurRadius: 20,
+                      color: Color(0x1A000000),
+                      offset: Offset(0, 8),
                     ),
-                    child: Icon(
-                      isSuccess ? Icons.check_circle : Icons.cancel,
-                      size: 42,
-                      color: isSuccess ? Colors.green : Colors.red,
-                    ),
-                  ),
-
-                  const SizedBox(height: 20),
-
-                  /// Title
-                  Text(
-                    isSuccess
-                        ? "PJP Created Successfully"
-                        : "Failed to Create PJP",
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-
-                  const SizedBox(height: 8),
-
-                  /// Subtitle
-                  Text(
-                    isSuccess
-                        ? "Your PJP has been created successfully."
-                        : "We couldn't create your PJP. Please try again.",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Colors.grey.shade600,
-                      fontSize: 14,
-                    ),
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  _infoCard(
-                    Icons.calendar_today_outlined,
-                    "From Date",
-                    DateFormat('MMM dd').format(pjp.fromDate) ?? "-",
-                    isSuccess,
-                  ),
-
-                  const SizedBox(height: 12),
-
-                  _infoCard(
-                    Icons.calendar_today_outlined,
-                    "To Date",
-                    DateFormat('MMM dd').format(pjp.toDate) ?? "-",
-                    isSuccess,
-                  ),
-
-                  const SizedBox(height: 12),
-
-                  _infoCard(
-                    Icons.description_outlined,
-                    "Description",
-                    pjp.remark ?? "-",
-                    isSuccess,
-                  ),
-
-                  if (!isSuccess) ...[
-                    const SizedBox(height: 16),
+                  ],
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    /// Icon
                     Container(
-                      padding: const EdgeInsets.all(12),
+                      width: 72,
+                      height: 72,
                       decoration: BoxDecoration(
-                        color: Colors.red.withOpacity(0.05),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: Colors.red.withOpacity(0.2),
-                        ),
+                        shape: BoxShape.circle,
+                        color: (isSuccess ? Colors.green : Colors.red)
+                            .withOpacity(0.1),
                       ),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Icon(
-                            Icons.warning_amber_rounded,
-                            color: Colors.red,
+                      child: Icon(
+                        isSuccess ? Icons.check_circle : Icons.cancel,
+                        size: 42,
+                        color: isSuccess ? Colors.green : Colors.red,
+                      ),
+                    ),
+              
+                    const SizedBox(height: 20),
+              
+                    /// Title
+                    Text(
+                      isSuccess
+                          ? "PJP Created Successfully"
+                          : "Failed to Create PJP",
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+              
+                    const SizedBox(height: 8),
+              
+                    /// Subtitle
+                    Text(
+                      isSuccess
+                          ? "Your PJP has been created successfully."
+                          : "We couldn't create your PJP. Please try again.",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Colors.grey.shade600,
+                        fontSize: 14,
+                      ),
+                    ),
+              
+                    const SizedBox(height: 24),
+              
+                    _infoCard(
+                      Icons.calendar_today_outlined,
+                      "From Date",
+                      DateFormat('MMM dd').format(pjp.fromDate) ?? "-",
+                      isSuccess,
+                    ),
+              
+                    const SizedBox(height: 12),
+              
+                    _infoCard(
+                      Icons.calendar_today_outlined,
+                      "To Date",
+                      DateFormat('MMM dd').format(pjp.toDate) ?? "-",
+                      isSuccess,
+                    ),
+              
+                    const SizedBox(height: 12),
+              
+                    _infoCard(
+                      Icons.description_outlined,
+                      "Description",
+                      pjp.remark ?? "-",
+                      isSuccess,
+                    ),
+              
+                    if (!isSuccess) ...[
+                      const SizedBox(height: 16),
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.red.withOpacity(0.05),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: Colors.red.withOpacity(0.2),
                           ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Text(
-                              message ??
-                                  "Something went wrong. Please try again.",
-                              style: const TextStyle(
-                                color: Colors.red,
+                        ),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Icon(
+                              Icons.warning_amber_rounded,
+                              color: Colors.red,
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                message ??
+                                    "Something went wrong. Please try again.",
+                                style: const TextStyle(
+                                  color: Colors.red,
+                                ),
                               ),
                             ),
+                          ],
+                        ),
+                      ),
+                    ],
+              
+                    const SizedBox(height: 24),
+              
+                    SizedBox(
+                      width: double.infinity,
+                      height: 50,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.pop(dialogContext);
+              
+                          if (isSuccess) {
+                            Navigator.pop(pageContext, pjp);
+                            // listener.onClick(Utility.ACTION_OK, pjp);
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: isSuccess ? Colors.green : Colors.red,
+                          foregroundColor: Colors.white,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
                           ),
-                        ],
+                        ),
+                        child: Text(
+                          isSuccess ? "Done" : "OK",
+                        ),
                       ),
                     ),
                   ],
-
-                  const SizedBox(height: 24),
-
-                  SizedBox(
-                    width: double.infinity,
-                    height: 50,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.pop(dialogContext);
-
-                        if (isSuccess) {
-                          Navigator.pop(pageContext, pjp);
-                          // listener.onClick(Utility.ACTION_OK, pjp);
-                        }
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: isSuccess ? Colors.green : Colors.red,
-                        foregroundColor: Colors.white,
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: Text(
-                        isSuccess ? "Done" : "OK",
-                      ),
-                    ),
-                  ),
-                ],
+                ),
               ),
             ),
           ),
