@@ -57,7 +57,7 @@ class PjpApprovalController extends GetxController {
   final Rx<PjpDatePreset> datePreset = PjpDatePreset.lastMonth.obs;
   final RxString searchQuery = ''.obs;
 
-  final Rx<DateTime> fromDate =  DateTime(
+  final Rx<DateTime> fromDate = DateTime(
     DateTime.now().year,
     DateTime.now().month - 6,
     DateTime.now().day,
@@ -171,6 +171,7 @@ class PjpApprovalController extends GetxController {
   }
 
   Future<void> loadPjps({bool silent = false}) async {
+    await _loadUserInfo();
     if (!silent) {
       isLoading.value = true;
     } else {
@@ -234,8 +235,7 @@ class PjpApprovalController extends GetxController {
         .toList()
       ..sort();
     employeeNames.assignAll(names);
-    selectedEmployees
-        .removeWhere((name) => !employeeNames.contains(name));
+    selectedEmployees.removeWhere((name) => !employeeNames.contains(name));
   }
 
   void setStatusFilter(PjpApprovalStatusFilter filter) {
