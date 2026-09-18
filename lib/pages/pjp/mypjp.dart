@@ -6,9 +6,11 @@ import 'package:Intranet/pages/helper/LocationHelper.dart';
 import 'package:Intranet/pages/pjp/cvf/add_cvf.dart';
 import 'package:expensestracker/app/util/util.dart';
 import 'package:expensestracker/data/repositories/claim_repository.dart';
+import 'package:expensestracker/data/repositories/pjp_repository.dart';
 import 'package:expensestracker/domain/usercases/add_claim_usecase.dart';
 import 'package:expensestracker/domain/usercases/get_autocomplete_requisition_claim_usecase.dart';
 import 'package:expensestracker/domain/usercases/get_city_usecase.dart';
+import 'package:expensestracker/domain/usercases/get_pjp_summary_usecase.dart';
 import 'package:expensestracker/presentation/controllers/addClaim/add_claim_controller.dart';
 import 'package:expensestracker/presentation/pages/advance_requisition/add_advance_requisition_page.dart';
 import 'package:flutter/material.dart';
@@ -68,8 +70,7 @@ class _MyPjpListState extends State<MyPjpListScreen>
     if (location != null) {
       double latitude = location.latitude!;
       double longitude = location.longitude!;
-    } else {
-    }
+    } else {}
   }
 
   Future<void> getUserInfo() async {
@@ -164,6 +165,8 @@ class _MyPjpListState extends State<MyPjpListScreen>
                       hiveBox.get(LocalConstant.KEY_EMPLOYEE_CODE) as String;
                   Utils.isExternal = true;
                   Get.put(AddClaimController(
+                      getPjpSummaryUsecase: GetPjpSummaryUsecase(
+                          pjpRepository: PjpRepositoryImpl()),
                       addClaimUsecase: AddClaimUsecase(
                           claimRepository: ClaimRepositoryImpl()),
                       getAutocompleteRequisitionClaimUsecase:
@@ -446,6 +449,8 @@ class _MyPjpListState extends State<MyPjpListScreen>
                                       as String;
                               Utils.isExternal = true;
                               Get.put(AddClaimController(
+                                  getPjpSummaryUsecase: GetPjpSummaryUsecase(
+                                      pjpRepository: PjpRepositoryImpl()),
                                   addClaimUsecase: AddClaimUsecase(
                                       claimRepository: ClaimRepositoryImpl()),
                                   getAutocompleteRequisitionClaimUsecase:
