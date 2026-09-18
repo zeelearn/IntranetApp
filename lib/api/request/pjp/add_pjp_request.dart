@@ -47,15 +47,15 @@ class AddPJPRequest {
                   : 'unknown'
     };
     if (state != null && state!.isNotEmpty) {
-      data['State'] = state;
+      data['state_name'] = state;
       // data['State_Name'] = state;
     }
     if (city != null && city!.isNotEmpty) {
-      data['City'] = city;
-      // data['City_Name'] = city;
+      // data['City'] = city;
+      data['city_name'] = city;
     }
     if (cityId != null && cityId! > 0) {
-      data['City_Id'] = cityId;
+      data['city_id'] = cityId;
     }
     return jsonEncode(data);
   }
