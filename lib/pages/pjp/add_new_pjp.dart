@@ -1,11 +1,10 @@
 import 'package:Intranet/pages/pjp/cvf/add_cvf.dart';
 import 'package:Intranet/pages/utils/theme/colors/light_colors.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:Intranet/api/response/pjp/pjplistresponse.dart';
-import 'package:Intranet/pages/helper/LightColor.dart';
+import 'package:Intranet/api/response/pjp/state_city_response.dart';
 import 'package:Intranet/pages/helper/constants.dart';
 import 'package:Intranet/pages/helper/utils.dart';
 import 'package:Intranet/pages/pjp/cvf/mypjpcvf.dart';
@@ -49,6 +48,13 @@ class _AddNewPJPState extends State<AddNewPJPScreen>
   var _remarkController = TextEditingController(text: '');
   late PJPModel mPjpModel;
 
+  List<StateModel> _stateList = [];
+  List<CityModel> _cityList = [];
+  StateModel? _selectedState;
+  CityModel? _selectedCity;
+  bool _isLoadingStateCity = false;
+  String? _stateCityError;
+
   @override
   void initState() {
     // TODO: implement initState
@@ -73,6 +79,36 @@ class _AddNewPJPState extends State<AddNewPJPScreen>
         isEdit: true,
         createdDate: DateTime.now(),
         modifiedDate: DateTime.now());
+
+    _fetchStateCityList();
+  }
+
+  Future<void> _fetchStateCityList() async {
+    setState(() {
+      _isLoadingStateCity = true;
+      _stateCityError = null;
+    });
+    try {
+      APIService apiService = APIService();
+      final response = await apiService.getCityList();
+      if (mounted) {
+        setState(() {
+          _isLoadingStateCity = false;
+          if (response != null && response.data.isNotEmpty) {
+            _stateList = response.data;
+          } else {
+            _stateCityError = "Failed to load states and cities";
+          }
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoadingStateCity = false;
+          _stateCityError = "Failed to load states and cities";
+        });
+      }
+    }
   }
 
   @override
@@ -215,6 +251,10 @@ class _AddNewPJPState extends State<AddNewPJPScreen>
           children: [
             _buildSelectedDatesSummary(),
             const SizedBox(height: 24),
+            _buildStateSelection(),
+            const SizedBox(height: 16),
+            _buildCitySelection(),
+            const SizedBox(height: 20),
             Text(
               "Purpose of Visit",
               style: GoogleFonts.inter(
@@ -233,6 +273,783 @@ class _AddNewPJPState extends State<AddNewPJPScreen>
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildStateSelection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Text(
+              "Select State",
+              style: GoogleFonts.inter(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: LightColors.kDarkBlue,
+              ),
+            ),
+            const Text(
+              " *",
+              style: TextStyle(
+                color: Colors.red,
+                fontWeight: FontWeight.bold,
+                fontSize: 14,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        InkWell(
+          onTap: _isLoadingStateCity
+              ? null
+              : () => _openSearchableStatePicker(),
+          borderRadius: BorderRadius.circular(12),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            decoration: BoxDecoration(
+              color: Colors.grey[50],
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: _stateCityError != null ? Colors.red.shade300 : Colors.grey[300]!,
+              ),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.location_on_outlined,
+                  size: 20,
+                  color: _selectedState != null
+                      ? kPrimaryLightColor
+                      : Colors.grey[400],
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    _isLoadingStateCity
+                        ? "Loading states..."
+                        : (_selectedState?.stateName ?? "Select State"),
+                    style: GoogleFonts.inter(
+                      fontSize: 14,
+                      color: _selectedState != null
+                          ? Colors.black87
+                          : Colors.grey[500],
+                      fontWeight: _selectedState != null
+                          ? FontWeight.w500
+                          : FontWeight.normal,
+                    ),
+                  ),
+                ),
+                if (_isLoadingStateCity)
+                  const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                else if (_stateCityError != null)
+                  IconButton(
+                    icon: const Icon(Icons.refresh, size: 20, color: Colors.red),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    onPressed: _fetchStateCityList,
+                  )
+                else
+                  const Icon(
+                    Icons.keyboard_arrow_down_rounded,
+                    color: Colors.grey,
+                  ),
+              ],
+            ),
+          ),
+        ),
+        if (_stateCityError != null)
+          Padding(
+            padding: const EdgeInsets.only(top: 4.0, left: 4.0),
+            child: Text(
+              _stateCityError!,
+              style: GoogleFonts.inter(fontSize: 12, color: Colors.red),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildCitySelection() {
+    final bool isEnabled = _selectedState != null && _cityList.isNotEmpty;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Text(
+              "Select City",
+              style: GoogleFonts.inter(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: LightColors.kDarkBlue,
+              ),
+            ),
+            const Text(
+              " *",
+              style: TextStyle(
+                color: Colors.red,
+                fontWeight: FontWeight.bold,
+                fontSize: 14,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        InkWell(
+          onTap: !isEnabled
+              ? () {
+                  if (_selectedState == null) {
+                    Utility.showMessages(context, "Please select State first");
+                  } else if (_cityList.isEmpty) {
+                    Utility.showMessages(
+                        context, "No cities available for this state");
+                  }
+                }
+              : () => _openSearchableCityPicker(),
+          borderRadius: BorderRadius.circular(12),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            decoration: BoxDecoration(
+              color: isEnabled ? Colors.grey[50] : Colors.grey[100],
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.grey[300]!),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.location_city_outlined,
+                  size: 20,
+                  color: _selectedCity != null
+                      ? kPrimaryLightColor
+                      : Colors.grey[400],
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    _selectedState == null
+                        ? "Select State first"
+                        : (_selectedCity?.cityName ?? "Select City"),
+                    style: GoogleFonts.inter(
+                      fontSize: 14,
+                      color: _selectedCity != null
+                          ? Colors.black87
+                          : Colors.grey[500],
+                      fontWeight: _selectedCity != null
+                          ? FontWeight.w500
+                          : FontWeight.normal,
+                    ),
+                  ),
+                ),
+                const Icon(
+                  Icons.keyboard_arrow_down_rounded,
+                  color: Colors.grey,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _openSearchableStatePicker() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        String searchQuery = "";
+        final TextEditingController searchCtrl = TextEditingController();
+        return StatefulBuilder(
+          builder: (context, setSheetState) {
+            final filteredList = _stateList.where((state) {
+              return state.stateName
+                  .toLowerCase()
+                  .contains(searchQuery.toLowerCase().trim());
+            }).toList();
+
+            return Container(
+              height: MediaQuery.of(context).size.height * 0.80,
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom,
+              ),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black12,
+                    blurRadius: 16,
+                    offset: Offset(0, -4),
+                  ),
+                ],
+              ),
+              child: Column(
+                children: [
+                  const SizedBox(height: 12),
+                  // Drag handle
+                  Center(
+                    child: Container(
+                      width: 44,
+                      height: 5,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[300],
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  // Header
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: kPrimaryLightColor.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Icon(
+                            Icons.map_outlined,
+                            color: kPrimaryLightColor,
+                            size: 22,
+                          ),
+                        ),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "Select State",
+                                style: GoogleFonts.inter(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: LightColors.kDarkBlue,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                "${filteredList.length} state${filteredList.length == 1 ? '' : 's'} available",
+                                style: GoogleFonts.inter(
+                                  fontSize: 12,
+                                  color: Colors.grey[500],
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Material(
+                          color: Colors.grey[100],
+                          shape: const CircleBorder(),
+                          child: IconButton(
+                            icon: const Icon(Icons.close, size: 20),
+                            color: Colors.grey[700],
+                            splashRadius: 20,
+                            onPressed: () => Navigator.pop(context),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  // Search Field
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 18.0),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF4F6F9),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: Colors.grey.shade200),
+                      ),
+                      child: TextField(
+                        controller: searchCtrl,
+                        autofocus: false,
+                        style: GoogleFonts.inter(fontSize: 14, color: Colors.black87),
+                        decoration: InputDecoration(
+                          hintText: "Search by state name...",
+                          hintStyle: GoogleFonts.inter(
+                            fontSize: 14,
+                            color: Colors.grey[400],
+                          ),
+                          prefixIcon: const Icon(
+                            Icons.search_rounded,
+                            color: kPrimaryLightColor,
+                            size: 22,
+                          ),
+                          suffixIcon: searchQuery.isNotEmpty
+                              ? IconButton(
+                                  icon: const Icon(Icons.cancel_rounded,
+                                      size: 18, color: Colors.grey),
+                                  onPressed: () {
+                                    setSheetState(() {
+                                      searchCtrl.clear();
+                                      searchQuery = "";
+                                    });
+                                  },
+                                )
+                              : null,
+                          border: InputBorder.none,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 14,
+                          ),
+                        ),
+                        onChanged: (val) {
+                          setSheetState(() {
+                            searchQuery = val;
+                          });
+                        },
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  const Divider(height: 1, color: Color(0xFFEEEEEE)),
+                  // List
+                  Expanded(
+                    child: filteredList.isEmpty
+                        ? Center(
+                            child: Padding(
+                              padding: const EdgeInsets.all(24.0),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.search_off_rounded,
+                                    size: 52,
+                                    color: Colors.grey[350],
+                                  ),
+                                  const SizedBox(height: 12),
+                                  Text(
+                                    "No states found",
+                                    style: GoogleFonts.inter(
+                                      color: Colors.grey[700],
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    "Try searching with a different name",
+                                    style: GoogleFonts.inter(
+                                      color: Colors.grey[400],
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          )
+                        : ListView.builder(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 10,
+                            ),
+                            itemCount: filteredList.length,
+                            itemBuilder: (context, index) {
+                              final item = filteredList[index];
+                              final isSelected =
+                                  _selectedState?.stateName == item.stateName;
+
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 6.0),
+                                child: InkWell(
+                                  onTap: () {
+                                    setState(() {
+                                      _selectedState = item;
+                                      _cityList = item.cityList;
+                                      _selectedCity = null;
+                                    });
+                                    Navigator.pop(context);
+                                  },
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                      vertical: 13,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: isSelected
+                                          ? kPrimaryLightColor.withOpacity(0.08)
+                                          : Colors.transparent,
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(
+                                        color: isSelected
+                                            ? kPrimaryLightColor.withOpacity(0.3)
+                                            : Colors.grey.shade100,
+                                      ),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Container(
+                                          width: 32,
+                                          height: 32,
+                                          alignment: Alignment.center,
+                                          decoration: BoxDecoration(
+                                            color: isSelected
+                                                ? kPrimaryLightColor
+                                                : Colors.grey[100],
+                                            borderRadius:
+                                                BorderRadius.circular(8),
+                                          ),
+                                          child: Text(
+                                            item.stateName.isNotEmpty
+                                                ? item.stateName[0].toUpperCase()
+                                                : '',
+                                            style: GoogleFonts.inter(
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.bold,
+                                              color: isSelected
+                                                  ? Colors.white
+                                                  : Colors.grey[700],
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 14),
+                                        Expanded(
+                                          child: Text(
+                                            item.stateName,
+                                            style: GoogleFonts.inter(
+                                              fontSize: 14,
+                                              fontWeight: isSelected
+                                                  ? FontWeight.w600
+                                                  : FontWeight.w500,
+                                              color: isSelected
+                                                  ? kPrimaryLightColor
+                                                  : Colors.black87,
+                                            ),
+                                          ),
+                                        ),
+                                        if (isSelected)
+                                          const Icon(
+                                            Icons.check_circle_rounded,
+                                            color: kPrimaryLightColor,
+                                            size: 22,
+                                          )
+                                        else
+                                          Icon(
+                                            Icons.chevron_right_rounded,
+                                            color: Colors.grey[350],
+                                            size: 20,
+                                          ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _openSearchableCityPicker() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        String searchQuery = "";
+        final TextEditingController searchCtrl = TextEditingController();
+        return StatefulBuilder(
+          builder: (context, setSheetState) {
+            final filteredList = _cityList.where((city) {
+              return city.cityName
+                  .toLowerCase()
+                  .contains(searchQuery.toLowerCase().trim());
+            }).toList();
+
+            return Container(
+              height: MediaQuery.of(context).size.height * 0.80,
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom,
+              ),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black12,
+                    blurRadius: 16,
+                    offset: Offset(0, -4),
+                  ),
+                ],
+              ),
+              child: Column(
+                children: [
+                  const SizedBox(height: 12),
+                  // Drag handle
+                  Center(
+                    child: Container(
+                      width: 44,
+                      height: 5,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[300],
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  // Header
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: kPrimaryLightColor.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Icon(
+                            Icons.location_city_rounded,
+                            color: kPrimaryLightColor,
+                            size: 22,
+                          ),
+                        ),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "Select City",
+                                style: GoogleFonts.inter(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: LightColors.kDarkBlue,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                _selectedState != null
+                                    ? "${_selectedState!.stateName} • ${filteredList.length} cities"
+                                    : "${filteredList.length} cities available",
+                                style: GoogleFonts.inter(
+                                  fontSize: 12,
+                                  color: Colors.grey[500],
+                                  fontWeight: FontWeight.w500,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ),
+                        ),
+                        Material(
+                          color: Colors.grey[100],
+                          shape: const CircleBorder(),
+                          child: IconButton(
+                            icon: const Icon(Icons.close, size: 20),
+                            color: Colors.grey[700],
+                            splashRadius: 20,
+                            onPressed: () => Navigator.pop(context),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  // Search Field
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 18.0),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF4F6F9),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: Colors.grey.shade200),
+                      ),
+                      child: TextField(
+                        controller: searchCtrl,
+                        autofocus: false,
+                        style: GoogleFonts.inter(fontSize: 14, color: Colors.black87),
+                        decoration: InputDecoration(
+                          hintText: "Search by city name...",
+                          hintStyle: GoogleFonts.inter(
+                            fontSize: 14,
+                            color: Colors.grey[400],
+                          ),
+                          prefixIcon: const Icon(
+                            Icons.search_rounded,
+                            color: kPrimaryLightColor,
+                            size: 22,
+                          ),
+                          suffixIcon: searchQuery.isNotEmpty
+                              ? IconButton(
+                                  icon: const Icon(Icons.cancel_rounded,
+                                      size: 18, color: Colors.grey),
+                                  onPressed: () {
+                                    setSheetState(() {
+                                      searchCtrl.clear();
+                                      searchQuery = "";
+                                    });
+                                  },
+                                )
+                              : null,
+                          border: InputBorder.none,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 14,
+                          ),
+                        ),
+                        onChanged: (val) {
+                          setSheetState(() {
+                            searchQuery = val;
+                          });
+                        },
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  const Divider(height: 1, color: Color(0xFFEEEEEE)),
+                  // List
+                  Expanded(
+                    child: filteredList.isEmpty
+                        ? Center(
+                            child: Padding(
+                              padding: const EdgeInsets.all(24.0),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.location_off_rounded,
+                                    size: 52,
+                                    color: Colors.grey[350],
+                                  ),
+                                  const SizedBox(height: 12),
+                                  Text(
+                                    "No cities found",
+                                    style: GoogleFonts.inter(
+                                      color: Colors.grey[700],
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    "Try searching with a different name",
+                                    style: GoogleFonts.inter(
+                                      color: Colors.grey[400],
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          )
+                        : ListView.builder(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 10,
+                            ),
+                            itemCount: filteredList.length,
+                            itemBuilder: (context, index) {
+                              final item = filteredList[index];
+                              final isSelected =
+                                  _selectedCity?.cityId == item.cityId;
+
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 6.0),
+                                child: InkWell(
+                                  onTap: () {
+                                    setState(() {
+                                      _selectedCity = item;
+                                    });
+                                    Navigator.pop(context);
+                                  },
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                      vertical: 13,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: isSelected
+                                          ? kPrimaryLightColor.withOpacity(0.08)
+                                          : Colors.transparent,
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(
+                                        color: isSelected
+                                            ? kPrimaryLightColor.withOpacity(0.3)
+                                            : Colors.grey.shade100,
+                                      ),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Container(
+                                          width: 32,
+                                          height: 32,
+                                          alignment: Alignment.center,
+                                          decoration: BoxDecoration(
+                                            color: isSelected
+                                                ? kPrimaryLightColor
+                                                : Colors.grey[100],
+                                            borderRadius:
+                                                BorderRadius.circular(8),
+                                          ),
+                                          child: Icon(
+                                            Icons.location_on_outlined,
+                                            size: 18,
+                                            color: isSelected
+                                                ? Colors.white
+                                                : Colors.grey[600],
+                                          ),
+                                        ),
+                                        const SizedBox(width: 14),
+                                        Expanded(
+                                          child: Text(
+                                            item.cityName,
+                                            style: GoogleFonts.inter(
+                                              fontSize: 14,
+                                              fontWeight: isSelected
+                                                  ? FontWeight.w600
+                                                  : FontWeight.w500,
+                                              color: isSelected
+                                                  ? kPrimaryLightColor
+                                                  : Colors.black87,
+                                            ),
+                                          ),
+                                        ),
+                                        if (isSelected)
+                                          const Icon(
+                                            Icons.check_circle_rounded,
+                                            color: kPrimaryLightColor,
+                                            size: 22,
+                                          )
+                                        else
+                                          Icon(
+                                            Icons.chevron_right_rounded,
+                                            color: Colors.grey[350],
+                                            size: 20,
+                                          ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
     );
   }
 
@@ -322,10 +1139,13 @@ class _AddNewPJPState extends State<AddNewPJPScreen>
   }
 
   Future<bool> isValidate() async {
-    if (_remarkController.text.isEmpty) {
-      Utility.showMessages(context, "Please Enter Remark and submit again");
+    if (_selectedState == null || _selectedState!.stateName.isEmpty) {
+      Utility.showMessages(context, "Please select State");
       return false;
-    }else if (_remarkController.text.trim().isEmpty) {
+    } else if (_selectedCity == null || _selectedCity!.cityName.isEmpty) {
+      Utility.showMessages(context, "Please select City");
+      return false;
+    } else if (_remarkController.text.trim().isEmpty) {
       Utility.showMessages(context, "Please Enter Remark and submit again");
       return false;
     } else if (!await Utility.isInternet()) {
@@ -348,7 +1168,10 @@ class _AddNewPJPState extends State<AddNewPJPScreen>
           FromDate: Utility.convertShortDate(mPjpModel.fromDate),
           ToDate: Utility.convertShortDate(mPjpModel.toDate),
           ByEmployee_Id: widget.employeeId.toString(),
-          remarks: _remarkController.text.toString());
+          remarks: _remarkController.text.toString(),
+          state: _selectedState?.stateName,
+          city: _selectedCity?.cityName,
+          cityId: _selectedCity?.cityId);
       mPjpModel.remark = _remarkController.text.toString();
       APIService apiService = APIService();
       apiService.addNewPJP(request!).then((value) {

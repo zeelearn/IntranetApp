@@ -13,19 +13,27 @@ class AddPJPRequest {
   String ByEmployee_Id;
   int Is_Submit = 1;
 
-  AddPJPRequest(
-      {required this.Business_Id,
-      required this.FromDate,
-      required this.ToDate,
-      required this.ByEmployee_Id,
-      required this.remarks});
+  String? state;
+  String? city;
+  int? cityId;
+
+  AddPJPRequest({
+    required this.Business_Id,
+    required this.FromDate,
+    required this.ToDate,
+    required this.ByEmployee_Id,
+    required this.remarks,
+    this.state,
+    this.city,
+    this.cityId,
+  });
 
   getJson() {
-    return jsonEncode({
+    Map<String, dynamic> data = {
       'PJP_Id': PJP_Id,
       'Business_Id': Business_Id,
       'Visit_Type': Visit_Type,
-      'remarks': remarks,
+      'remarks': base64Encode(utf8.encode(remarks.trim())),
       'FromDate': FromDate,
       'ToDate': ToDate,
       'ByEmployee_Id': ByEmployee_Id,
@@ -37,7 +45,19 @@ class AddPJPRequest {
               : Platform.isIOS
                   ? 'IOS'
                   : 'unknown'
-    });
+    };
+    if (state != null && state!.isNotEmpty) {
+      data['State'] = state;
+      // data['State_Name'] = state;
+    }
+    if (city != null && city!.isNotEmpty) {
+      data['City'] = city;
+      // data['City_Name'] = city;
+    }
+    if (cityId != null && cityId! > 0) {
+      data['City_Id'] = cityId;
+    }
+    return jsonEncode(data);
   }
 
   Map<String, dynamic> toJson() {
@@ -51,6 +71,17 @@ class AddPJPRequest {
       'FromDate': FromDate.trim(),
       'ToDate': ToDate.trim(),
     };
+    if (state != null && state!.isNotEmpty) {
+      map['State'] = state;
+      map['State_Name'] = state;
+    }
+    if (city != null && city!.isNotEmpty) {
+      map['City'] = city;
+      map['City_Name'] = city;
+    }
+    if (cityId != null && cityId! > 0) {
+      map['City_Id'] = cityId;
+    }
     return map;
   }
 }
