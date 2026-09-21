@@ -1,5 +1,7 @@
 import 'package:Intranet/pages/pjp/cvf/add_cvf.dart';
 import 'package:Intranet/pages/utils/theme/colors/light_colors.dart';
+import 'package:Intranet/pages/widget/business_widget.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -135,6 +137,18 @@ class _AddNewPJPState extends State<AddNewPJPScreen>
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.of(context).pop(),
         ),
+        actions: [
+          BusinessWidget.instance.showInlineBadge()
+          // BusinessWidget.instance.showContextCard(
+          //   context,
+          //   onBusinessChanged: () {
+          //     // Optional: reload balances or form data for the newly selected business
+          //     // setState(() {
+          //     //   loadBalances();
+          //     // });
+          //   },
+          // )
+        ],
       ),
       body: Center(
         child: ConstrainedBox(
@@ -1180,12 +1194,11 @@ class _AddNewPJPState extends State<AddNewPJPScreen>
           if (value == null || value.responseData == null) {
             //Utility.showMessage(context, 'data not found');
             Utility().showPJPStatusDialog(
-              pageContext: context,
-              pjp: mPjpModel,
-              listener: this,
-              isSuccess: false,
-              message:"Something went wrong. Please try again"
-            );
+                pageContext: context,
+                pjp: mPjpModel,
+                listener: this,
+                isSuccess: false,
+                message: "Something went wrong. Please try again");
           } else if (value is NewPJPResponse) {
             NewPJPResponse response = value;
             //DBHelper().updatePJP(1, mPjpModel.pjpId, response.responseData);
@@ -1195,22 +1208,25 @@ class _AddNewPJPState extends State<AddNewPJPScreen>
             mPjpModel.isSync = true;
             //mPjpModel.isActive = true;
             mPjpModel.remark = _remarkController.text.toString();
+            mPjpModel.state = _selectedState?.stateName;
+            mPjpModel.city = _selectedCity?.cityName;
+            mPjpModel.cityId = _selectedCity?.cityId;
 
             addPJPinDB(1);
-            String message = response.responseMessage ?? "Your PJP has been created successfully.";
-            
+            String message = response.responseMessage ??
+                "Your PJP has been created successfully.";
+
             /* Utility.showMessageSingleButton(
                 context, message, this,
                 object: mPjpModel); */
 
             Utility().showPJPStatusDialog(
-              pageContext: context,
-              pjp: mPjpModel,
-              listener: this,
-              isSuccess: true,
-              message: message
-            );
-           
+                pageContext: context,
+                pjp: mPjpModel,
+                listener: this,
+                isSuccess: true,
+                message: message);
+
             // Utility.showMessageMultiButton(context, "Done", "Add CVF",
             //     "Success", "PJP Added successfully", mPjpModel, this);
 
@@ -1218,28 +1234,25 @@ class _AddNewPJPState extends State<AddNewPJPScreen>
           } else {
             addPJPinDB(0);
             Utility().showPJPStatusDialog(
-              pageContext: context,
-              pjp: mPjpModel,
-              listener: this,
-              isSuccess: false,
-              message:"Something went wrong. Please try again"
-            );
+                pageContext: context,
+                pjp: mPjpModel,
+                listener: this,
+                isSuccess: false,
+                message: "Something went wrong. Please try again");
           }
-        }else{
+        } else {
           Utility().showPJPStatusDialog(
               pageContext: context,
               pjp: mPjpModel,
               listener: this,
               isSuccess: false,
-              message:"Something went wrong. Please try again"
-            );
+              message: "Something went wrong. Please try again");
         }
         setState(() {});
       });
     }
   }
 
-  
   onsetp2(PJPInfo infoModel) {
     Navigator.pushReplacement(
       context,
@@ -1288,10 +1301,8 @@ class _AddNewPJPState extends State<AddNewPJPScreen>
       PjpListResponse response = value;
       if (response.responseData != null && response.responseData.length > 0) {
         onsetp2(response.responseData[0]);
-      } else {
-      }
-    } else {
-    }
+      } else {}
+    } else {}
   }
 
   @override
@@ -1315,6 +1326,9 @@ class _AddNewPJPState extends State<AddNewPJPScreen>
                         remarks: request!.remarks,
                         isSelfPJP: '1',
                         Status: '',
+                        state: model.state ?? request!.state,
+                        city: model.city ?? request!.city,
+                        cityId: model.cityId ?? request!.cityId,
                         ApprovalStatus: 'pending'),
                   )),
         );

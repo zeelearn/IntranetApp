@@ -838,6 +838,9 @@ class _SummaryDashboardState extends State<SummaryDashboard>
                         remarks: result.remark,
                         isSelfPJP: '1',
                         Status: 'Check In',
+                        state: result.state,
+                        city: result.city,
+                        cityId: result.cityId,
                         ApprovalStatus: 'Pending');
                     _rawPjpData.add(pjpInfo);
                     _updateViewMode();
@@ -1471,6 +1474,9 @@ class _SummaryDashboardState extends State<SummaryDashboard>
                       isSelfPJP: '1',
                       Status: 'Check In',
                       zone: zone,
+                      state: result.state,
+                      city: result.city,
+                      cityId: result.cityId,
                       managerName: managerName,
                       ApprovalStatus: 'Pending');
                   _rawPjpData.add(pjpInfo);
@@ -3098,6 +3104,18 @@ class _PjpInfoCard extends StatelessWidget {
                     DateFormat('EEEE, d MMMM yyyy')
                         .format(Utility.convertDate(pjp.toDate)),
                     _accent),
+                if ((pjp.state?.trim().isNotEmpty ?? false) &&
+                    pjp.state?.trim() != 'NA') ...[
+                  _dividerLine(),
+                  _infoRow(Icons.map_outlined, 'State', pjp.state!.trim(),
+                      _accent),
+                ],
+                if ((pjp.city?.trim().isNotEmpty ?? false) &&
+                    pjp.city?.trim() != 'NA') ...[
+                  _dividerLine(),
+                  _infoRow(Icons.location_city_rounded, 'City', pjp.city!.trim(),
+                      _accent),
+                ],
                 /* _dividerLine(),
                   _infoRow(
                     Icons.info_outline_rounded, 'Status', pjp.Status, _orange), */
