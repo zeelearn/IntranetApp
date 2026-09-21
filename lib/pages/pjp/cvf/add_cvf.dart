@@ -5,6 +5,7 @@ import 'package:Intranet/pages/model/getFranchiseeLastVisitModel.dart'
     as getFranchiseeLastVisitModelPlaceholder;
 import 'package:Intranet/pages/pjp/cvf/getVisitplannerCvfcubit/cubit/getvisitplannercvf_cubit.dart';
 import 'package:Intranet/pages/utils/toastmsg.dart';
+import 'package:Intranet/pages/widget/business_widget.dart';
 import 'package:device_calendar/device_calendar.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/foundation.dart';
@@ -843,8 +844,7 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
         //   //     context, 'Unable to fetch location, Please try again');
         //   return;
         // }
-        if (_purposeMultiSelect.toString().toLowerCase() !=
-            'activity') {
+        if (_purposeMultiSelect.toString().toLowerCase() != 'activity') {
           var franchiseeInfo = getFranchiseeDetails();
           debugPrint(
               'Franchisee Info: ${franchiseeInfo?.toJson()}'); // Print the franchisee info
@@ -1316,10 +1316,10 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
 
           //form google_maps_webservice package
           final plist = GoogleMapsPlaces(
-            apiKey: LocalStrings.kGoogleApiKey,
-            baseUrl: '${LocalStrings.bpms}}/api/bp/map'
-            //from google_api_headers package
-          );
+              apiKey: LocalStrings.kGoogleApiKey,
+              baseUrl: '${LocalStrings.bpms}}/api/bp/map'
+              //from google_api_headers package
+              );
           String placeid = place.placeId ?? "0";
           final detail = await plist.getDetailsByPlaceId(placeid);
           final geometry = detail.result.geometry!;
@@ -1345,8 +1345,7 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
               apiKey: LocalStrings.kGoogleApiKey,
               //mode: Mode.overlay,
               types: [],
-              proxyBaseUrl:
-                  '${LocalStrings.bpms}/api/bp/map',
+              proxyBaseUrl: '${LocalStrings.bpms}/api/bp/map',
               strictbounds: false,
               components: [Component(Component.country, 'in')],
               //google_map_webservice package
@@ -1361,10 +1360,10 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
 
             //form google_maps_webservice package
             final plist = GoogleMapsPlaces(
-              apiKey: LocalStrings.kGoogleApiKey,
-              baseUrl: '${LocalStrings.bpms}/api/bp/map'
-              //from google_api_headers package
-            );
+                apiKey: LocalStrings.kGoogleApiKey,
+                baseUrl: '${LocalStrings.bpms}/api/bp/map'
+                //from google_api_headers package
+                );
             String placeid = place.placeId ?? "0";
             final detail = await plist.getDetailsByPlaceId(placeid);
             final geometry = detail.result.geometry!;
@@ -1632,19 +1631,19 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
 
   AppBar getAppbar() {
     return AppBar(
-      backgroundColor: kPrimaryLightColor,
-      centerTitle: true,
-      title: const Text(
-        'Permanent Planner',
-        style:
-            TextStyle(fontSize: 17, color: Colors.white, letterSpacing: 0.53),
-      ),
-      /*shape: const RoundedRectangleBorder(
+        backgroundColor: kPrimaryLightColor,
+        centerTitle: true,
+        title: const Text(
+          'Permanent Planner',
+          style:
+              TextStyle(fontSize: 17, color: Colors.white, letterSpacing: 0.53),
+        ),
+        /*shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
           bottom: Radius.circular(20),
         ),
       ),*/
-      /*leading: InkWell(
+        /*leading: InkWell(
         onTap: () {
           _scaffoldKey.currentState?.openDrawer();
         },
@@ -1653,7 +1652,7 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
           color: Colors.white,
         ),
       ),*/
-    );
+        actions: [BusinessWidget.instance.showInlineBadge()]);
   }
 
   List<String> getList(List<FranchiseeInfo> mFrianchiseeList) {
