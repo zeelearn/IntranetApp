@@ -2758,7 +2758,7 @@ class _DayEventsScreenState extends State<DayEventsScreen> {
                         Icon(Icons.event_busy_rounded,
                             size: 56, color: Colors.grey[300]),
                         const SizedBox(height: 12),
-                        Text('No PJP entries for this day',
+                        Text('No PJP entries for this Business.',
                             style: GoogleFonts.inter(
                                 color: _textSecondary, fontSize: 14)),
                       ],
