@@ -1194,9 +1194,11 @@ class _TransferSummaryCard extends StatelessWidget {
               label: 'Selected Projects',
               value: '$selectedCount / $totalLoaded',
             ),
-            _SummaryRow(
-              label: 'Task Status',
-              value: controller.taskStatusFilter.value.label,
+            Obx(
+              () => _SummaryRow(
+                label: 'Task Status',
+                value: controller.taskStatusFilter.value.label,
+              ),
             ),
             if (error != null) ...[
               const SizedBox(height: 12),
@@ -1625,9 +1627,11 @@ class _FooterBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final taskStatus = SizedBox(
       width: 160,
-      child: _FooterTaskStatusDropdown(
-        value: controller.taskStatusFilter.value,
-        onChanged: controller.setTaskStatusFilter,
+      child: Obx(
+        () => _FooterTaskStatusDropdown(
+          value: controller.taskStatusFilter.value,
+          onChanged: controller.setTaskStatusFilter,
+        ),
       ),
     );
 
