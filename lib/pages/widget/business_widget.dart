@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
@@ -9,13 +10,15 @@ import 'package:Intranet/api/response/login_response.dart';
 class BusinessWidget {
   // Private Constructor for Singleton Pattern
   BusinessWidget._internal() {
-    _initFromStorage();
+    syncFromStorage();
   }
 
   static final BusinessWidget _instance = BusinessWidget._internal();
 
   /// Access the Singleton instance: `BusinessWidget.instance`
   static BusinessWidget get instance => _instance;
+
+  StreamSubscription<BoxEvent>? _boxSubscription;
 
   /// Reactive Notifiers for instantaneous UI updates across all screens
   final ValueNotifier<String> selectedBusinessName = ValueNotifier<String>('');
@@ -24,30 +27,72 @@ class BusinessWidget {
   final ValueNotifier<List<BusinessApplications>> availableBusinesses =
       ValueNotifier<List<BusinessApplications>>([]);
 
-  /// Initialize state from Hive Local Storage
-  void _initFromStorage() {
+  /// Convenience getters for current values
+  String get currentBusinessName => selectedBusinessName.value;
+  int get currentBusinessId => selectedBusinessId.value;
+  int get currentBusinessUserId => selectedBusinessUserId.value;
+
+  /// Synchronize state from Hive Local Storage & attach reactive watcher
+  void syncFromStorage() {
     try {
       if (Hive.isBoxOpen(LocalConstant.KidzeeDB)) {
         final box = Hive.box(LocalConstant.KidzeeDB);
         _loadFromBox(box);
+        _setupWatcher(box);
       } else {
         Hive.openBox(LocalConstant.KidzeeDB).then((box) {
           _loadFromBox(box);
+          _setupWatcher(box);
+        }).catchError((e) {
+          debugPrint("Error opening Hive box in BusinessWidget: $e");
         });
       }
     } catch (e) {
-      debugPrint("Error initializing BusinessWidget: $e");
+      debugPrint("Error initializing/syncing BusinessWidget: $e");
     }
   }
 
-  void _loadFromBox(Box box) {
-    selectedBusinessName.value =
-        box.get(LocalConstant.KEY_BUSINESS_NAME, defaultValue: '')?.toString() ?? '';
-    selectedBusinessId.value =
-        box.get(LocalConstant.KEY_BUSINESS_ID, defaultValue: 0) ?? 0;
-    selectedBusinessUserId.value =
-        box.get(LocalConstant.KEY_BUSINESS_USERID, defaultValue: 0) ?? 0;
+  void _setupWatcher(Box box) {
+    _boxSubscription?.cancel();
+    _boxSubscription = box.watch().listen((BoxEvent event) {
+      if (event.key == LocalConstant.KEY_BUSINESS_NAME) {
+        final val = event.value?.toString() ?? '';
+        final cleanVal = (val == 'null') ? '' : val;
+        if (selectedBusinessName.value != cleanVal) {
+          selectedBusinessName.value = cleanVal;
+        }
+      } else if (event.key == LocalConstant.KEY_BUSINESS_ID) {
+        final rawId = event.value;
+        final val = (rawId is int) ? rawId : (int.tryParse(rawId?.toString() ?? '0') ?? 0);
+        if (selectedBusinessId.value != val) {
+          selectedBusinessId.value = val;
+        }
+      } else if (event.key == LocalConstant.KEY_BUSINESS_USERID) {
+        final rawUid = event.value;
+        final val = (rawUid is int) ? rawUid : (int.tryParse(rawUid?.toString() ?? '0') ?? 0);
+        if (selectedBusinessUserId.value != val) {
+          selectedBusinessUserId.value = val;
+        }
+      } else if (event.key == LocalConstant.KEY_LOGIN_RESPONSE) {
+        _loadAvailableBusinesses(box);
+      }
+    });
+  }
 
+  void _loadFromBox(Box box) {
+    final name = box.get(LocalConstant.KEY_BUSINESS_NAME, defaultValue: '')?.toString() ?? '';
+    selectedBusinessName.value = (name == 'null') ? '' : name;
+
+    final rawId = box.get(LocalConstant.KEY_BUSINESS_ID, defaultValue: 0);
+    selectedBusinessId.value = (rawId is int) ? rawId : (int.tryParse(rawId?.toString() ?? '0') ?? 0);
+
+    final rawUserId = box.get(LocalConstant.KEY_BUSINESS_USERID, defaultValue: 0);
+    selectedBusinessUserId.value = (rawUserId is int) ? rawUserId : (int.tryParse(rawUserId?.toString() ?? '0') ?? 0);
+
+    _loadAvailableBusinesses(box);
+  }
+
+  void _loadAvailableBusinesses(Box box) {
     // Load available business list from login response cache
     final rawLogin = box.get(LocalConstant.KEY_LOGIN_RESPONSE)?.toString();
     if (rawLogin != null && rawLogin.isNotEmpty) {
@@ -70,8 +115,12 @@ class BusinessWidget {
     }
   }
 
-  /// Update the active business globally and persist in Hive
-  Future<void> updateBusiness(BusinessApplications business) async {
+  /// Manually set or update the active business globally and persist in Hive
+  Future<void> setBusiness({required int id, required String name, required int userId}) async {
+    selectedBusinessName.value = name;
+    selectedBusinessId.value = id;
+    selectedBusinessUserId.value = userId;
+
     try {
       Box box;
       if (Hive.isBoxOpen(LocalConstant.KidzeeDB)) {
@@ -80,16 +129,21 @@ class BusinessWidget {
         box = await Hive.openBox(LocalConstant.KidzeeDB);
       }
 
-      await box.put(LocalConstant.KEY_BUSINESS_ID, business.businessID);
-      await box.put(LocalConstant.KEY_BUSINESS_NAME, business.businessName);
-      await box.put(LocalConstant.KEY_BUSINESS_USERID, business.business_UserID);
-
-      selectedBusinessName.value = business.businessName;
-      selectedBusinessId.value = business.businessID;
-      selectedBusinessUserId.value = business.business_UserID;
+      await box.put(LocalConstant.KEY_BUSINESS_ID, id);
+      await box.put(LocalConstant.KEY_BUSINESS_NAME, name);
+      await box.put(LocalConstant.KEY_BUSINESS_USERID, userId);
     } catch (e) {
-      debugPrint("Error updating business in BusinessWidget: $e");
+      debugPrint("Error updating business in BusinessWidget.setBusiness: $e");
     }
+  }
+
+  /// Update the active business globally and persist in Hive
+  Future<void> updateBusiness(BusinessApplications business) async {
+    await setBusiness(
+      id: business.businessID,
+      name: business.businessName,
+      userId: business.business_UserID,
+    );
   }
 
   /// Helper to open the business selection bottom sheet picker
@@ -202,6 +256,7 @@ class BusinessWidget {
   /// 1. Prominent Context Card (Best for top of Forms like Apply Leave, Attendance, Outdoor)
   /// Usage: `BusinessWidget.instance.showContextCard(context, onBusinessChanged: () { ... })`
   Widget showContextCard(BuildContext context, {VoidCallback? onBusinessChanged, bool allowChange = true}) {
+    syncFromStorage();
     return ValueListenableBuilder<String>(
       valueListenable: selectedBusinessName,
       builder: (context, name, _) {
@@ -283,6 +338,7 @@ class BusinessWidget {
   /// 2. Compact AppBar Chip / Subtitle
   /// Usage: `BusinessWidget.instance.showAppBarChip(context, onBusinessChanged: () { ... })`
   Widget showAppBarChip(BuildContext context, {VoidCallback? onBusinessChanged, bool allowChange = true}) {
+    syncFromStorage();
     return ValueListenableBuilder<String>(
       valueListenable: selectedBusinessName,
       builder: (context, name, _) {
@@ -326,15 +382,24 @@ class BusinessWidget {
     );
   }
 
-  /// 3. Minimalist Inline Badge (for lists, detail screens, or profile cards)
+  /// 3. Minimalist Inline Badge (for lists, detail screens, appbars, or cards)
   /// Usage: `BusinessWidget.instance.showInlineBadge()`
-  Widget showInlineBadge({Color? backgroundColor, Color? textColor}) {
+  Widget showInlineBadge({
+    Color? backgroundColor,
+    Color? textColor,
+    EdgeInsetsGeometry? margin,
+    EdgeInsetsGeometry? padding,
+    VoidCallback? onTap,
+    bool allowChange = false,
+  }) {
+    syncFromStorage();
     return ValueListenableBuilder<String>(
       valueListenable: selectedBusinessName,
       builder: (context, name, _) {
         final displayName = (name.isEmpty || name == 'null') ? '-' : name;
-        return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+        final badge = Container(
+          margin: margin,
+          padding: padding ?? const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
           decoration: BoxDecoration(
             color: backgroundColor ?? Colors.blue.shade50,
             borderRadius: BorderRadius.circular(4),
@@ -355,6 +420,16 @@ class BusinessWidget {
             ],
           ),
         );
+
+        if (allowChange || onTap != null) {
+          return InkWell(
+            onTap: onTap ?? () => openBusinessPicker(context),
+            borderRadius: BorderRadius.circular(4),
+            child: badge,
+          );
+        }
+
+        return badge;
       },
     );
   }

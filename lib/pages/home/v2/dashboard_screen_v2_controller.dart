@@ -28,6 +28,7 @@ import 'package:Intranet/pages/model/filter.dart';
 import 'package:Intranet/pages/notification/UserNotification.dart';
 import 'package:Intranet/pages/pjp/cvf/v2/cvf.dart';
 import 'package:Intranet/pages/pjp/mypjp.dart';
+import 'package:Intranet/pages/widget/business_widget.dart';
 import 'package:Intranet/pages/pjp/managers/pjp_approval.dart';
 import 'package:Intranet/pages/pjp/pjp_list_manager_exceptional.dart';
 import 'package:Intranet/pages/report/myreport.dart';
@@ -761,6 +762,7 @@ class DashboardScreenV2Controller extends GetxController
     await box.put(LocalConstant.KEY_BUSINESS_ID, bid);
     await box.put(LocalConstant.KEY_BUSINESS_NAME, name);
     await box.put(LocalConstant.KEY_BUSINESS_USERID, uid);
+    BusinessWidget.instance.setBusiness(id: bid, name: name, userId: uid);
   }
 
   bool validateBusiness(String menuKey) {

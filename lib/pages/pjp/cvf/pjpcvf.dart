@@ -1247,6 +1247,7 @@ class _MyCVFListScreen extends State<CVFListScreen>
     double latitude = 0.0;
     double longitude = 0.0;
     LocationData? location = await LocationHelper.getLocation(context);
+    debugPrint('Location obtained: $location');
     if (location == null || location.latitude == null || location.longitude == null || (location.latitude == 0.0 && location.longitude == 0.0)) {
       Navigator.of(context).pop();
       Utility.showMessage(context, 'Location permission is required to check in. Please enable location.');

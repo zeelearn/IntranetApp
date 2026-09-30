@@ -4,13 +4,18 @@ import 'package:location/location.dart';
 class LocationServiceImpl {
   static Future<LocationData?> getLocation(BuildContext? context) async {
     try {
+      debugPrint("LocationServiceImpl.getLocation called");
       final location = Location();
+      debugPrint("LocationServiceImpl.getLocation called - $location");
 
       // Check if location service is enabled
       bool serviceEnabled = await location.serviceEnabled();
+      debugPrint("LocationServiceImpl.getLocation called - Service Enabled: $serviceEnabled");
       if (!serviceEnabled) {
         serviceEnabled = await location.requestService();
+        debugPrint("LocationServiceImpl.getLocation called - Service Enabled after request: $serviceEnabled");
         if (!serviceEnabled) return null;
+        debugPrint("LocationServiceImpl.getLocation called - Service Enabled after request 2: $serviceEnabled");
       }
 
       // On web, checking for permissions via hasPermission() can fail with a TypeError
