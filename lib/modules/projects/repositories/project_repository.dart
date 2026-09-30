@@ -102,6 +102,18 @@ class ProjectRepository {
     return result;
   }
 
+  Future<String> saveDispatchConfirmation({
+    required int userId,
+    required ProjectItem project,
+    required DispatchConfirmType type,
+  }) {
+    return _remote.saveDispatchConfirmation(
+      userId: userId,
+      project: project,
+      type: type,
+    );
+  }
+
   /// Client-side search + filter. Pagination-ready (page/pageSize applied last).
   List<ProjectItem> applyQuery({
     required List<ProjectItem> source,

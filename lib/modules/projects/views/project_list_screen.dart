@@ -5,6 +5,7 @@ import 'package:Intranet/api/response/login_response.dart';
 import 'package:Intranet/modules/projects/bindings/project_list_binding.dart';
 import 'package:Intranet/modules/projects/controllers/project_list_controller.dart';
 import 'package:Intranet/modules/projects/models/dashboard_colors.dart';
+import 'package:Intranet/modules/projects/models/project_item.dart';
 import 'package:Intranet/modules/projects/widgets/business_selector.dart';
 import 'package:Intranet/modules/projects/widgets/offline_banner.dart';
 import 'package:Intranet/modules/projects/widgets/project_card.dart';
@@ -181,9 +182,10 @@ class ProjectListScreen extends StatelessWidget {
                                 ),
                               );
                             }
-                            final project =
-                                controller.visibleProjects[index];
                             return Obx(() {
+                              // Re-read from list so local dispatch flags refresh.
+                              final project =
+                                  controller.visibleProjects[index];
                               final crmId = project.crmId;
                               final cooldownHint =
                                   controller.sendCredentialsCooldownHint(crmId);
@@ -192,6 +194,8 @@ class ProjectListScreen extends StatelessWidget {
                                       controller.sendingCredentialsCrmId
                                               .value ==
                                           crmId;
+                              // Touch loading key so Obx rebuilds while confirming.
+                              controller.confirmingDispatchKey.value;
                               return ProjectCard(
                                 project: project,
                                 index: index,
@@ -216,6 +220,28 @@ class ProjectListScreen extends StatelessWidget {
                                     .confirmAndSendCredentials(
                                   context,
                                   project,
+                                ),
+                                onConfirmCKDispatch: () =>
+                                    controller.confirmAndSaveDispatch(
+                                  context,
+                                  project,
+                                  DispatchConfirmType.ck,
+                                ),
+                                onConfirmBKDispatch: () =>
+                                    controller.confirmAndSaveDispatch(
+                                  context,
+                                  project,
+                                  DispatchConfirmType.bk,
+                                ),
+                                isConfirmingCKDispatch:
+                                    controller.isConfirmingDispatch(
+                                  project,
+                                  DispatchConfirmType.ck,
+                                ),
+                                isConfirmingBKDispatch:
+                                    controller.isConfirmingDispatch(
+                                  project,
+                                  DispatchConfirmType.bk,
                                 ),
                                 sendCredentialsEnabled:
                                     controller.canSendCredentials(crmId),
@@ -279,6 +305,7 @@ class ProjectListScreen extends StatelessWidget {
                                           controller.sendingCredentialsCrmId
                                                   .value ==
                                               crmId;
+                                      controller.confirmingDispatchKey.value;
                                       return ProjectCard(
                                         project: project,
                                         index: index,
@@ -303,6 +330,28 @@ class ProjectListScreen extends StatelessWidget {
                                             .confirmAndSendCredentials(
                                           context,
                                           project,
+                                        ),
+                                        onConfirmCKDispatch: () =>
+                                            controller.confirmAndSaveDispatch(
+                                          context,
+                                          project,
+                                          DispatchConfirmType.ck,
+                                        ),
+                                        onConfirmBKDispatch: () =>
+                                            controller.confirmAndSaveDispatch(
+                                          context,
+                                          project,
+                                          DispatchConfirmType.bk,
+                                        ),
+                                        isConfirmingCKDispatch:
+                                            controller.isConfirmingDispatch(
+                                          project,
+                                          DispatchConfirmType.ck,
+                                        ),
+                                        isConfirmingBKDispatch:
+                                            controller.isConfirmingDispatch(
+                                          project,
+                                          DispatchConfirmType.bk,
                                         ),
                                         sendCredentialsEnabled: controller
                                             .canSendCredentials(crmId),
