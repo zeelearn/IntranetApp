@@ -7,10 +7,7 @@ import 'package:Intranet/modules/projects/models/dashboard_colors.dart';
 import 'package:Intranet/modules/projects/models/dashboard_failure.dart';
 import 'package:Intranet/modules/projects/models/indent_item.dart';
 import 'package:Intranet/modules/projects/repositories/indent_repository.dart';
-import 'package:Intranet/modules/projects/utils/indent_action_roles.dart';
 import 'package:Intranet/modules/projects/widgets/branding_kit_sheet.dart';
-import 'package:Intranet/pages/helper/LocalConstant.dart';
-import 'package:Intranet/pages/helper/utils.dart';
 
 class IndentListController extends GetxController {
   IndentListController({
@@ -35,9 +32,6 @@ class IndentListController extends GetxController {
   final RxBool isGeneratingPaymentLink = false.obs;
   final RxnInt generatingPaymentLinkIndentId = RxnInt();
 
-  /// Employee role from Hive (`KEY_EMP_TYPE`), e.g. MAN / BH / ZM.
-  final RxString employeeType = ''.obs;
-
   final RxString searchQuery = ''.obs;
   final Rx<IndentListFilter> filter = IndentListFilter.empty.obs;
 
@@ -47,29 +41,18 @@ class IndentListController extends GetxController {
   StreamSubscription<List<ConnectivityResult>>? _connectivitySub;
   Timer? _searchDebounce;
 
-  /// Payment Link / finance actions — MAN & BH only.
-  bool get canAccessFinanceActions =>
-      IndentActionRoles.canAccessFinanceActions(employeeType.value);
-
+  /// Payment Link when `CanIndentBK == 1` and payment is not completed.
   bool showPaymentLinkFor(IndentItem item) =>
-      canAccessFinanceActions && item.canGeneratePaymentLink;
+      item.canAccessFinanceActions && item.canGeneratePaymentLink;
+
+  /// Branding Kit when `CanIndentBK == 1`.
+  bool showBrandingKitFor(IndentItem item) => item.canShowBrandingKit;
 
   @override
   void onInit() {
     super.onInit();
-    _loadEmployeeType();
     observeConnectivity();
     loadIndents();
-  }
-
-  Future<void> _loadEmployeeType() async {
-    try {
-      final box = await Utility.openBox();
-      employeeType.value =
-          (box.get(LocalConstant.KEY_EMP_TYPE)?.toString() ?? '').trim();
-    } catch (_) {
-      employeeType.value = '';
-    }
   }
 
   @override
@@ -220,10 +203,10 @@ class IndentListController extends GetxController {
     BuildContext context,
     IndentItem item,
   ) async {
-    if (!canAccessFinanceActions) {
+    if (!item.canAccessFinanceActions) {
       _showMessage(
         context,
-        'Payment link is available only for MAN and BH roles.',
+        'Payment link is not available for this indent.',
       );
       return;
     }
@@ -323,6 +306,13 @@ class IndentListController extends GetxController {
     BuildContext context,
     IndentItem item,
   ) async {
+    if (!item.canShowBrandingKit) {
+      _showMessage(
+        context,
+        'Branding Kit is not available for this indent.',
+      );
+      return;
+    }
     if (item.franchiseeId <= 0) {
       _showMessage(
         context,

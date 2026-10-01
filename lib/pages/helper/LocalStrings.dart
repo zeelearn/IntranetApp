@@ -112,6 +112,8 @@ class LocalStrings {
       '$bpms/api/kidzee//GetBrandingProduct';
   static const String API_INSERT_BRANDING_INDENT =
       '$bpms/api/kidzee//InsertBrandingIndent';
+  static const String API_SAVE_DISPATCH_CONFIRMATION =
+      '$bpms/api/kidzee/SaveDispatchConfirmation';
   static const String kidzeeBrandingDbId = '0';
   /// Default academic year for branding indent insert (API sample = 26).
   static const int kidzeeBrandingAcademicYearId = 26;

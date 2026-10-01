@@ -1,12 +1,7 @@
-/// Role checks for indent finance actions (Payment Link / Branding Add Order).
+/// Finance / Branding Kit access from Pentemind_Illume_Status `CanIndentBK`.
 class IndentActionRoles {
   IndentActionRoles._();
 
-  static const allowedRoles = {'MAN', 'BH'};
-
-  /// True when [employeeType] is MAN or BH (case-insensitive).
-  static bool canAccessFinanceActions(String? employeeType) {
-    final role = (employeeType ?? '').trim().toUpperCase();
-    return allowedRoles.contains(role);
-  }
+  /// True when API flag [canIndentBk] is exactly `1`.
+  static bool canAccessFinanceActions(int? canIndentBk) => canIndentBk == 1;
 }
