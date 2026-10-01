@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:Intranet/modules/projects/utils/indent_action_roles.dart';
 
 class IndentItem extends Equatable {
   const IndentItem({
@@ -17,6 +18,7 @@ class IndentItem extends Equatable {
     required this.paymentStatus,
     required this.projectStatus,
     required this.businessRefId,
+    this.canIndentBk = 0,
   });
 
   final String franchiseeCode;
@@ -35,12 +37,22 @@ class IndentItem extends Equatable {
   final String projectStatus;
   final int businessRefId;
 
+  /// From Pentemind_Illume_Status `CanIndentBK`. Only `1` grants finance actions.
+  final int canIndentBk;
+
   /// Franchisee id for branding APIs (`Franchisee_Id` or `BusinessRef_Id`).
   int get franchiseeId => businessRefId;
 
   /// Payment link is allowed only when payment is not completed.
   bool get canGeneratePaymentLink =>
       paymentStatus.trim().toLowerCase() != 'completed';
+
+  /// Branding Kit / finance actions when API flag is 1.
+  bool get canAccessFinanceActions =>
+      IndentActionRoles.canAccessFinanceActions(canIndentBk);
+
+  /// Show Branding Kit when `CanIndentBK == 1`.
+  bool get canShowBrandingKit => canAccessFinanceActions;
 
   factory IndentItem.fromJson(Map<String, dynamic> json) {
     return IndentItem(
@@ -61,6 +73,7 @@ class IndentItem extends Equatable {
       businessRefId: _asInt(
         json['Franchisee_Id'] ?? json['BusinessRef_Id'],
       ),
+      canIndentBk: _asInt(json['CanIndentBK'] ?? json['canIndentBK']),
     );
   }
 
@@ -80,6 +93,7 @@ class IndentItem extends Equatable {
         'PaymentStatus': paymentStatus,
         'ProjectStatus': projectStatus,
         'BusinessRef_Id': businessRefId,
+        'CanIndentBK': canIndentBk,
       };
 
   static String _asString(dynamic v) => v?.toString().trim() ?? '';
@@ -122,6 +136,7 @@ class IndentItem extends Equatable {
         paymentStatus,
         projectStatus,
         businessRefId,
+        canIndentBk,
       ];
 }
 
