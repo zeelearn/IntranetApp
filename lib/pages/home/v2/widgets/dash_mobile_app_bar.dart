@@ -55,7 +55,7 @@ class DashMobileAppBar extends StatelessWidget implements PreferredSizeWidget {
                       child: Text(
                         controller.businessName.value.isEmpty ||
                                 controller.businessName.value == 'null'
-                            ? 'eKidzee'
+                            ? 'No business Mapped'
                             : controller.businessName.value,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
