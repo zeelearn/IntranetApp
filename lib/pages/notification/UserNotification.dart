@@ -361,7 +361,7 @@ class _ListPageState extends State<UserNotification> {
                     child: makeCard(lessons[index]));
             },
           )
-        : Lottie.asset(no_Notification_Animtion);
+        : Center(child: Lottie.asset(no_Notification_Animtion));
 
     final makeBottom = SizedBox(
       height: 55.0,
