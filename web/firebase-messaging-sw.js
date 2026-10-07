@@ -44,7 +44,9 @@ function storeNotificationInIndexedDB(data, messageId) {
         imageurl: data.url || data.imageurl || '',
         logoUrl: data.logo || data.logoUrl || '',
         bigImageUrl: data.bigimage || data.bigImageUrl || '',
-        webViewLink: data.url || data.webViewLink || ''
+        webViewLink: (data.type === 'EXPENSE-COURIER' || data.type === 'EXPENSE_COURIER')
+          ? (data.webViewLink || ('/courier_detail?claimId=' + (data.cid || data.claimId || data.claimID || data.claim_id || '') + '&eCode=' + (data.employee_code || data.employeeCode || data.eCode || data.e_code || '') + '&isAccch=' + (data.isAccch || data.is_accch || 'false')))
+          : (data.url || data.webViewLink || '')
       };
       let putReq = store.put(record);
       putReq.onsuccess = function () {

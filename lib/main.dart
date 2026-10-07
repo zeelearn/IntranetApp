@@ -182,30 +182,35 @@ showNotification(RemoteMessage message) async {
   } catch (_) {}
   final messageId = NotificationService.extractMessageId(message);
   data['message_id'] = messageId;
+  final notifType = type.isNotEmpty
+      ? type
+      : (message.data['type']?.toString() ?? '');
   data.putIfAbsent('title',
-      () => title.isNotEmpty ? title : message.data['title'] as String);
+      () => title.isNotEmpty ? title : (message.data['title']?.toString() ?? ''));
   data.putIfAbsent(
       'description',
       () => body.isNotEmpty
           ? body
-          : message.data.containsKey('body')
-              ? message.data['body'] as String
-              : '');
+          : (message.data['body']?.toString() ?? ''));
   data.putIfAbsent(
       'type',
-      () => type.isNotEmpty
-          ? type
-          : message.data.containsKey('type')
-              ? message.data['type'] as String
-              : '');
+      () => notifType);
   data.putIfAbsent('date', () => cdate);
   data.putIfAbsent(
       'imageurl',
-      () =>
-          message.data.containsKey('url') ? message.data['url'] as String : '');
-  data.putIfAbsent('logoUrl', () => message.data['logo'] as String);
-  data.putIfAbsent('bigImageUrl', () => message.data['bigimage'] as String);
-  data.putIfAbsent('webViewLink', () => message.data['url'] as String);
+      () => message.data['url']?.toString() ?? message.data['imageurl']?.toString() ?? '');
+  data.putIfAbsent('logoUrl', () => message.data['logo']?.toString() ?? message.data['logoUrl']?.toString() ?? '');
+  data.putIfAbsent('bigImageUrl', () => message.data['bigimage']?.toString() ?? message.data['bigImageUrl']?.toString() ?? '');
+  String webViewLink = message.data['url']?.toString() ?? '';
+  if (notifType.toUpperCase() == 'EXPENSE-COURIER' || notifType.toUpperCase() == 'EXPENSE_COURIER') {
+    final cid = message.data['cid'] ?? message.data['claimId'] ?? message.data['claim_id'] ?? '';
+    final eCode = message.data['employee_code'] ?? message.data['eCode'] ?? message.data['e_code'] ?? '';
+    final isAccch = message.data['isAccch'] ?? message.data['is_accch'] ?? 'false';
+    if (webViewLink.isEmpty) {
+      webViewLink = '/courier_detail?claimId=$cid&eCode=$eCode&isAccch=$isAccch';
+    }
+  }
+  data.putIfAbsent('webViewLink', () => webViewLink);
   helper.insert(LocalConstant.TABLE_NOTIFICATION, data);
   /*var count = (int.parse(await KidzeePref().getString(LocalConstant.KEY_NOTIFICATION_COUNT) ??'0') +1);
   KidzeePref().setString(LocalConstant.KEY_NOTIFICATION_COUNT, count.toString());
@@ -344,6 +349,29 @@ Future<void> main() async {
                   title: message.data['title'] ?? 'Expense',
                   url: message.data['url'] ?? ''),
             ));
+      } else if (message.data['type'] == 'EXPENSE-COURIER' ||
+          message.data['type'] == 'EXPENSE_COURIER') {
+        final claimIdStr = message.data['cid'] ??
+            message.data['claimId'] ??
+            message.data['claim_id'];
+        final employeeCode = message.data['employee_code'] ??
+            message.data['eCode'] ??
+            message.data['e_code'];
+        final isAccchStr =
+            message.data['isAccch'] ?? message.data['is_accch'] ?? 'false';
+        final claimId =
+            claimIdStr != null ? int.tryParse(claimIdStr.toString()) : null;
+        final isAccch = isAccchStr.toString() == 'true';
+        Navigator.push(
+          MyApp.navigatorKey.currentState!.context,
+          MaterialPageRoute(
+            builder: (context) => CourierDetailPage(
+              claimId: claimId,
+              employeeCode: employeeCode?.toString(),
+              isAccch: isAccch,
+            ),
+          ),
+        );
       } else if (message.data['Video_path'] != null) {
         Navigator.push(
             MyApp.navigatorKey.currentState!.context,

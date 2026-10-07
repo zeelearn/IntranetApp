@@ -234,6 +234,29 @@ class DashboardScreenV2Controller extends GetxController
                     title: message.data['title'] ?? 'Expense',
                     url: message.data['url'] ?? ''),
               ));
+        } else if (message.data['type'] == 'EXPENSE-COURIER' ||
+            message.data['type'] == 'EXPENSE_COURIER') {
+          final claimIdStr = message.data['cid'] ??
+              message.data['claimId'] ??
+              message.data['claim_id'];
+          final employeeCode = message.data['employee_code'] ??
+              message.data['eCode'] ??
+              message.data['e_code'];
+          final isAccchStr =
+              message.data['isAccch'] ?? message.data['is_accch'] ?? 'false';
+          final claimId =
+              claimIdStr != null ? int.tryParse(claimIdStr.toString()) : null;
+          final isAccch = isAccchStr.toString() == 'true';
+          Navigator.push(
+            MyApp.navigatorKey.currentState!.context,
+            MaterialPageRoute(
+              builder: (context) => CourierDetailPage(
+                claimId: claimId,
+                employeeCode: employeeCode?.toString(),
+                isAccch: isAccch,
+              ),
+            ),
+          );
         } else if (message.data['Video_path'] != null) {
           Navigator.push(
               MyApp.navigatorKey.currentState!.context,

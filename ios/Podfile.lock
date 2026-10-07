@@ -1926,7 +1926,7 @@ SPEC CHECKSUMS:
   open_file_ios: c1143c28b4c65f721cdd58d9fba2f7a1c55206cd
   OrderedSet: e539b66b644ff081c73a262d24ad552a69be3a94
   package_info_plus: 566e1b7a2f3900e4b0020914ad3fc051dcc95596
-  pdfium_flutter: e5a6e881af0b182d5b0465ebad23a8a20caa28d4
+  pdfium_flutter: f29beeb612293cc42df95beee223a4925ce2458e
   permission_handler_apple: 92d754bbaa7361d436db2d6c3c1c2a0fdcec462e
   pointer_interceptor_ios: da06a662d5bfd329602b45b2ab41bc0fb5fdb0f0
   PromisesObjC: 752c3227f599e3467650e47ea36f433eeb10c273

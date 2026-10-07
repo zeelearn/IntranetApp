@@ -217,9 +217,10 @@ class PjpApprovalController extends GetxController {
           isLoading.value = false;
           isRefreshing.value = false;
           errorMessage.value = message;
-          allPjps.clear();
-          visiblePjps.clear();
-          employeeNames.clear();
+          if (allPjps.isEmpty) {
+            visiblePjps.clear();
+            employeeNames.clear();
+          }
         },
       ),
     );
@@ -453,13 +454,23 @@ class PjpApprovalController extends GetxController {
           isSubmitting.value = false;
           if (!context.mounted) return;
           if (value is GeneralResponse) {
+            final updatedStatus = approve ? 'Approved' : 'Rejected';
+            final updatedIds = pjps.map((p) => p.PJP_Id).toSet();
+            for (final pjp in allPjps) {
+              if (updatedIds.contains(pjp.PJP_Id)) {
+                pjp.ApprovalStatus = updatedStatus;
+              }
+            }
+            selectedIds.removeWhere((id) => updatedIds.contains(id));
+            allPjps.refresh();
+            _applyFilters();
+
             Utility.showMessage(
               context,
               approve
                   ? 'PJP(s) approved successfully'
                   : 'PJP(s) rejected successfully',
             );
-            selectedIds.clear();
             await loadPjps(silent: true);
           } else {
             Utility.showMessage(context, 'Unable to update PJP status.');
