@@ -1,10 +1,10 @@
+import 'package:Intranet/pages/helper/app_url_launcher.dart';
 import 'package:Intranet/pages/notification/NotificationModel.dart';
 import 'package:Intranet/pages/utils/theme/colors/light_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:intl/intl.dart';
 
-import '../widget/MyWebSiteView.dart';
 import '../widget/image_viewer.dart';
 
 class DetailPage extends StatefulWidget {
@@ -118,13 +118,11 @@ class _DetailPageState extends State<DetailPage> {
                   ? Container(
                       padding: const EdgeInsets.all(8),
                       child: ElevatedButton(
-                          onPressed: () => Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => MyWebsiteView(
-                                    title: widget.notificationModel.subject,
-                                    url: widget.notificationModel.webViewUrl),
-                              )),
+                          onPressed: () => AppUrlLauncher.open(
+                                context,
+                                url: widget.notificationModel.webViewUrl,
+                                title: widget.notificationModel.subject,
+                              ),
                           child: const Text('View')),
                     )
                   : const SizedBox.shrink(),

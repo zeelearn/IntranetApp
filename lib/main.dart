@@ -8,6 +8,7 @@ import 'dart:ui';
 // import 'package:Intranet/pages/firebase/firebase_options.dart';
 import 'package:Intranet/firebase_options.dart';
 import 'package:Intranet/pages/firebase/notification_service.dart';
+import 'package:Intranet/pages/helper/app_url_launcher.dart';
 import 'package:Intranet/pages/helper/DatabaseHelper.dart';
 import 'package:Intranet/pages/helper/LocalConstant.dart';
 import 'package:Intranet/pages/helper/PermissionHandler.dart';
@@ -346,8 +347,15 @@ Future<void> main() async {
                     )));
       } else if (message.data['url'] != null &&
           message.data['url']!.isNotEmpty) {
-        Navigator.push(MyApp.navigatorKey.currentState!.context,
-            MaterialPageRoute(builder: (context) => const UserNotification()));
+        final ctx = MyApp.navigatorKey.currentState?.context;
+        final url = message.data['url']!;
+        if (ctx != null) {
+          AppUrlLauncher.open(
+            ctx,
+            url: url,
+            title: message.data['title']?.toString() ?? '',
+          );
+        }
       } else {
         Navigator.push(MyApp.navigatorKey.currentState!.context,
             MaterialPageRoute(builder: (context) => const UserNotification()));
@@ -1282,8 +1290,15 @@ class NotificationController {
     } else if (receivedAction.payload != null &&
         receivedAction.payload!['url'] != null &&
         receivedAction.payload!['url']!.isNotEmpty) {
-      Navigator.push(MyApp.navigatorKey.currentState!.context,
-          MaterialPageRoute(builder: (context) => const UserNotification()));
+      final ctx = MyApp.navigatorKey.currentState?.context;
+      final url = receivedAction.payload!['url']!;
+      if (ctx != null) {
+        AppUrlLauncher.open(
+          ctx,
+          url: url,
+          title: receivedAction.payload?['title'] ?? '',
+        );
+      }
     } else {
       Navigator.push(MyApp.navigatorKey.currentState!.context,
           MaterialPageRoute(builder: (context) => const UserNotification()));

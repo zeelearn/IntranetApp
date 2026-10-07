@@ -1,13 +1,18 @@
 import 'dart:convert';
 
-import 'package:get/get.dart';
-import 'package:Intranet/pages/home/v2/dashboard_screen_v2_controller.dart';
+import 'package:Intranet/pages/helper/app_url_launcher.dart';
+import 'package:Intranet/pages/helper/DatabaseHelper.dart';
+import 'package:Intranet/pages/helper/LocalConstant.dart';
+import 'package:Intranet/pages/helper/constants.dart';
+import 'package:Intranet/pages/model/bpms_notification_model.dart';
+import 'package:Intranet/pages/notification/DetailPage.dart';
 import 'package:Intranet/pages/notification/NotificationModel.dart';
 import 'package:Intranet/pages/notification/bpms_card.dart';
 import 'package:Intranet/pages/utils/theme/colors/light_colors.dart';
 import 'package:Intranet/pages/widget/MyWebSiteView.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hive/hive.dart';
 import 'package:intl/intl.dart';
@@ -15,12 +20,8 @@ import 'package:lottie/lottie.dart';
 import 'package:saathi/screens/ticket/web/details.dart';
 
 import '../../main.dart';
-import '../helper/DatabaseHelper.dart';
-import '../helper/LocalConstant.dart';
-import '../helper/constants.dart';
-import '../model/bpms_notification_model.dart';
-import 'DetailPage.dart';
-import 'package:Intranet/pages/summary%20dashboard/summary_dashboard.dart';
+import '../home/v2/dashboard_screen_v2_controller.dart';
+import '../summary%20dashboard/summary_dashboard.dart';
 
 class UserNotification extends StatefulWidget {
   const UserNotification({Key? key}) : super(key: key);
@@ -211,6 +212,14 @@ class _ListPageState extends State<UserNotification> {
                     ),
                   ));
             }
+          } else if (notificationModel.webViewUrl.trim().isNotEmpty &&
+              (notificationModel.webViewUrl.startsWith('http://') ||
+                  notificationModel.webViewUrl.startsWith('https://'))) {
+            await AppUrlLauncher.open(
+              context,
+              url: notificationModel.webViewUrl,
+              title: notificationModel.subject,
+            );
           } else {
             Navigator.push(
                 context,
