@@ -1367,7 +1367,7 @@ class _TopAppBar extends StatelessWidget {
             const SizedBox(width: 12),
             _NotificationBell(controller: controller),
             const SizedBox(width: 8),
-            /* _ProfileMenu(controller: controller, isWide: isWide), */
+            _ProfileMenu(controller: controller, isWide: isWide),
           ],
         ),
       ),
