@@ -17,6 +17,10 @@ class ProjectCard extends StatelessWidget {
     required this.onDocuments,
     required this.onViewReport,
     required this.onSendCredentials,
+    this.onConfirmCKDispatch,
+    this.onConfirmBKDispatch,
+    this.isConfirmingCKDispatch = false,
+    this.isConfirmingBKDispatch = false,
     this.sendCredentialsEnabled = true,
     this.sendCredentialsHint,
     this.isSendingCredentials = false,
@@ -34,6 +38,10 @@ class ProjectCard extends StatelessWidget {
   final VoidCallback onCardTap;
   final VoidCallback onViewReport;
   final VoidCallback onSendCredentials;
+  final VoidCallback? onConfirmCKDispatch;
+  final VoidCallback? onConfirmBKDispatch;
+  final bool isConfirmingCKDispatch;
+  final bool isConfirmingBKDispatch;
   final bool sendCredentialsEnabled;
   final String? sendCredentialsHint;
   final bool isSendingCredentials;
@@ -61,6 +69,10 @@ class ProjectCard extends StatelessWidget {
         : (p.responsiblePerson.isNotEmpty ? p.responsiblePerson : '—');
     final showTier = p.tierName.trim().isNotEmpty;
     final showFee = p.feeType.trim().isNotEmpty;
+    final showCK = p.shouldShowCKDispatch;
+    final showBK = p.shouldShowBKDispatch;
+    final width = MediaQuery.sizeOf(context).width;
+    final stackDispatch = width < 600;
 
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0, end: 1),
@@ -80,176 +92,344 @@ class ProjectCard extends StatelessWidget {
           elevation: 2,
           shadowColor: const Color(0x14000000),
           borderRadius: BorderRadius.circular(16),
-          child: InkWell(
-            onTap: onCardTap,
-            borderRadius: BorderRadius.circular(16),
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(12, 12, 12, 10),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(12, 12, 12, 10),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Tappable summary only — actions stay outside so dialogs fire.
+                InkWell(
+                  onTap: onCardTap,
+                  borderRadius: BorderRadius.circular(12),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Expanded(
-                        child: Text(
-                          p.crmId.isEmpty ? '—' : p.crmId,
-                          style: GoogleFonts.poppins(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w700,
-                            color: DashboardColors.primary,
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              p.crmId.isEmpty ? '—' : p.crmId,
+                              style: GoogleFonts.poppins(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                                color: DashboardColors.primary,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                          _HeaderIconButton(
+                            tooltip: 'View Report',
+                            icon: Icons.bar_chart_rounded,
+                            color: DashboardColors.primary,
+                            onTap: onViewReport,
+                          ),
+                          _HeaderIconButton(
+                            tooltip: sendCredentialsEnabled
+                                ? 'Send Credentials'
+                                : (sendCredentialsHint ?? 'Cooldown active'),
+                            icon: isSendingCredentials
+                                ? Icons.hourglass_top_rounded
+                                : Icons.vpn_key_outlined,
+                            color: sendCredentialsEnabled
+                                ? DashboardColors.purple
+                                : DashboardColors.textMuted,
+                            enabled: sendCredentialsEnabled &&
+                                !isSendingCredentials,
+                            onTap: onSendCredentials,
+                          ),
+                          const SizedBox(width: 8),
+                          StatusBadge(label: chip, color: statusColor),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        displayName,
+                        style: GoogleFonts.poppins(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          color: const Color(0xFF263238),
                         ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      _HeaderIconButton(
-                        tooltip: 'View Report',
-                        icon: Icons.bar_chart_rounded,
-                        color: DashboardColors.primary,
-                        onTap: onViewReport,
+                      const SizedBox(height: 8),
+                      _InfoRow(
+                        icon: Icons.location_on_outlined,
+                        text:
+                            p.catchmentArea.isNotEmpty ? p.catchmentArea : '—',
                       ),
-                      _HeaderIconButton(
-                        tooltip: sendCredentialsEnabled
-                            ? 'Send Credentials'
-                            : (sendCredentialsHint ?? 'Cooldown active'),
-                        icon: isSendingCredentials
-                            ? Icons.hourglass_top_rounded
-                            : Icons.vpn_key_outlined,
-                        color: sendCredentialsEnabled
-                            ? DashboardColors.purple
-                            : DashboardColors.textMuted,
-                        enabled: sendCredentialsEnabled && !isSendingCredentials,
-                        onTap: onSendCredentials,
+                      const SizedBox(height: 4),
+                      _InfoRow(
+                        icon: Icons.person_outline_rounded,
+                        text: responsible,
                       ),
-                      const SizedBox(width: 8),
-                      StatusBadge(label: chip, color: statusColor),
+                      if (showTier || showFee) ...[
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            if (showTier)
+                              Expanded(
+                                child: _MetaChip(
+                                  icon: Icons.diamond_outlined,
+                                  label: 'Tier ${p.tierName.trim()}',
+                                ),
+                              ),
+                            if (showTier && showFee) const SizedBox(width: 8),
+                            if (showFee)
+                              Expanded(
+                                child: _MetaChip(
+                                  icon: Icons.payments_outlined,
+                                  label: 'Fee ${p.feeType.trim()}',
+                                ),
+                              ),
+                          ],
+                        ),
+                      ],
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _InfoRow(
+                              icon: Icons.calendar_today_outlined,
+                              text: approved,
+                            ),
+                          ),
+                          Expanded(
+                            child: _InfoRow(
+                              icon: Icons.event_outlined,
+                              text: deadline,
+                              emphasized: missed,
+                              emphasizeColor: DashboardColors.error,
+                            ),
+                          ),
+                        ],
+                      ),
+                      if (missed) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          'Deadline missed',
+                          style: GoogleFonts.poppins(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600,
+                            color: DashboardColors.error,
+                          ),
+                        ),
+                      ],
+                      const SizedBox(height: 8),
+                      TaskSummaryWidget(summary: p.taskSummary),
                     ],
                   ),
+                ),
+                if (showCK || showBK) ...[
+                  const SizedBox(height: 8),
+                  _DispatchButtonsRow(
+                    project: p,
+                    stackVertically: stackDispatch,
+                    isConfirmingCK: isConfirmingCKDispatch,
+                    isConfirmingBK: isConfirmingBKDispatch,
+                    onConfirmCK: onConfirmCKDispatch,
+                    onConfirmBK: onConfirmBKDispatch,
+                  ),
+                ],
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _FooterActionButton(
+                        icon: Icons.chat_bubble_outline_rounded,
+                        label: 'Communication',
+                        color: DashboardColors.primary,
+                        onTap: onCommunication,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: _FooterActionButton(
+                        icon: Icons.badge_outlined,
+                        label: 'Indent Details',
+                        color: DashboardColors.purple,
+                        onTap: onIndentDetails,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: _FooterActionButton(
+                        icon: Icons.description_outlined,
+                        label: 'Documents',
+                        color: DashboardColors.success,
+                        onTap: onDocuments,
+                      ),
+                    ),
+                  ],
+                ),
+                if (sendCredentialsHint != null &&
+                    !sendCredentialsEnabled) ...[
                   const SizedBox(height: 6),
                   Text(
-                    displayName,
+                    'Credentials cooldown: $sendCredentialsHint',
                     style: GoogleFonts.poppins(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w700,
-                      color: const Color(0xFF263238),
+                      fontSize: 10,
+                      fontWeight: FontWeight.w500,
+                      color: DashboardColors.textMuted,
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 8),
-                  _InfoRow(
-                    icon: Icons.location_on_outlined,
-                    text: p.catchmentArea.isNotEmpty ? p.catchmentArea : '—',
-                  ),
-                  const SizedBox(height: 4),
-                  _InfoRow(
-                    icon: Icons.person_outline_rounded,
-                    text: responsible,
-                  ),
-                  if (showTier || showFee) ...[
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        if (showTier)
-                          Expanded(
-                            child: _MetaChip(
-                              icon: Icons.diamond_outlined,
-                              label: 'Tier ${p.tierName.trim()}',
-                            ),
-                          ),
-                        if (showTier && showFee) const SizedBox(width: 8),
-                        if (showFee)
-                          Expanded(
-                            child: _MetaChip(
-                              icon: Icons.payments_outlined,
-                              label: 'Fee ${p.feeType.trim()}',
-                            ),
-                          ),
-                      ],
-                    ),
-                  ],
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _InfoRow(
-                          icon: Icons.calendar_today_outlined,
-                          text: approved,
-                        ),
-                      ),
-                      Expanded(
-                        child: _InfoRow(
-                          icon: Icons.event_outlined,
-                          text: deadline,
-                          emphasized: missed,
-                          emphasizeColor: DashboardColors.error,
-                        ),
-                      ),
-                    ],
-                  ),
-                  if (missed) ...[
-                    const SizedBox(height: 4),
-                    Text(
-                      'Deadline missed',
-                      style: GoogleFonts.poppins(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w600,
-                        color: DashboardColors.error,
-                      ),
-                    ),
-                  ],
-                  const SizedBox(height: 8),
-                  TaskSummaryWidget(summary: p.taskSummary),
-                  const SizedBox(height: 10),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _FooterActionButton(
-                          icon: Icons.chat_bubble_outline_rounded,
-                          label: 'Communication',
-                          color: DashboardColors.primary,
-                          onTap: onCommunication,
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-                      Expanded(
-                        child: _FooterActionButton(
-                          icon: Icons.badge_outlined,
-                          label: 'Indent Details',
-                          color: DashboardColors.purple,
-                          onTap: onIndentDetails,
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-                      Expanded(
-                        child: _FooterActionButton(
-                          icon: Icons.description_outlined,
-                          label: 'Documents',
-                          color: DashboardColors.success,
-                          onTap: onDocuments,
-                        ),
-                      ),
-                    ],
-                  ),
-                  if (sendCredentialsHint != null &&
-                      !sendCredentialsEnabled) ...[
-                    const SizedBox(height: 6),
-                    Text(
-                      'Credentials cooldown: $sendCredentialsHint',
-                      style: GoogleFonts.poppins(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w500,
-                        color: DashboardColors.textMuted,
-                      ),
-                    ),
-                  ],
                 ],
-              ),
+              ],
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _DispatchButtonsRow extends StatelessWidget {
+  const _DispatchButtonsRow({
+    required this.project,
+    required this.stackVertically,
+    required this.isConfirmingCK,
+    required this.isConfirmingBK,
+    this.onConfirmCK,
+    this.onConfirmBK,
+  });
+
+  final ProjectItem project;
+  final bool stackVertically;
+  final bool isConfirmingCK;
+  final bool isConfirmingBK;
+  final VoidCallback? onConfirmCK;
+  final VoidCallback? onConfirmBK;
+
+  @override
+  Widget build(BuildContext context) {
+    final children = <Widget>[
+      if (project.shouldShowCKDispatch)
+        _DispatchConfirmButton(
+          type: DispatchConfirmType.ck,
+          confirmed: project.isCKDispatchConfirmed,
+          loading: isConfirmingCK,
+          onTap: project.canConfirmCKDispatch ? onConfirmCK : null,
+        ),
+      if (project.shouldShowBKDispatch)
+        _DispatchConfirmButton(
+          type: DispatchConfirmType.bk,
+          confirmed: project.isBKDispatchConfirmed,
+          loading: isConfirmingBK,
+          onTap: project.canConfirmBKDispatch ? onConfirmBK : null,
+        ),
+    ];
+
+    if (children.isEmpty) return const SizedBox.shrink();
+
+    if (stackVertically) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          for (var i = 0; i < children.length; i++) ...[
+            if (i > 0) const SizedBox(height: 6),
+            children[i],
+          ],
+        ],
+      );
+    }
+
+    return Row(
+      children: [
+        for (var i = 0; i < children.length; i++) ...[
+          if (i > 0) const SizedBox(width: 6),
+          Expanded(child: children[i]),
+        ],
+      ],
+    );
+  }
+}
+
+class _DispatchConfirmButton extends StatelessWidget {
+  const _DispatchConfirmButton({
+    required this.type,
+    required this.confirmed,
+    required this.loading,
+    this.onTap,
+  });
+
+  final DispatchConfirmType type;
+  final bool confirmed;
+  final bool loading;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final isCK = type == DispatchConfirmType.ck;
+    final Color color;
+    final IconData icon;
+    final String label;
+
+    if (confirmed) {
+      color = DashboardColors.success;
+      icon = Icons.check_circle_rounded;
+      label = isCK
+          ? 'CK Dispatch Confirmed'
+          : 'BK Dispatch Confirmed';
+    } else if (loading) {
+      color = isCK ? DashboardColors.purple : DashboardColors.primary;
+      icon = Icons.hourglass_top_rounded;
+      label = 'Confirming ${type.label} Dispatch...';
+    } else {
+      color = isCK ? DashboardColors.purple : DashboardColors.primary;
+      icon = Icons.local_shipping_outlined;
+      label = 'Confirm ${type.label} Dispatch';
+    }
+
+    final enabled = !confirmed && !loading && onTap != null;
+
+    return OutlinedButton(
+      onPressed: enabled ? onTap : null,
+      style: OutlinedButton.styleFrom(
+        foregroundColor: color,
+        disabledForegroundColor: color,
+        side: BorderSide(
+          color: color.withValues(alpha: confirmed ? 0.55 : 0.35),
+        ),
+        backgroundColor:
+            confirmed ? DashboardColors.successLight : Colors.transparent,
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+        minimumSize: const Size(0, 36),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          if (loading)
+            SizedBox(
+              width: 14,
+              height: 14,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: color,
+              ),
+            )
+          else
+            Icon(icon, size: 15, color: color),
+          const SizedBox(width: 6),
+          Flexible(
+            child: Text(
+              label,
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: GoogleFonts.poppins(
+                fontSize: 10,
+                fontWeight: FontWeight.w600,
+                height: 1.1,
+                color: color,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

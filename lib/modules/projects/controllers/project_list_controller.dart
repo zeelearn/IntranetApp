@@ -56,6 +56,9 @@ class ProjectListController extends GetxController {
   final RxnString errorMessage = RxnString();
   final RxnString sendingCredentialsCrmId = RxnString();
 
+  /// Tracks in-flight SaveDispatchConfirmation as `crmId:CK` / `crmId:BK`.
+  final RxnString confirmingDispatchKey = RxnString();
+
   final RxString searchQuery = ''.obs;
   final Rx<ProjectListFilter> filter = ProjectListFilter.empty.obs;
 
@@ -357,6 +360,97 @@ class ProjectListController extends GetxController {
     final remaining = cooldownRemaining(crmId);
     if (remaining == null) return null;
     return 'Wait ${CredentialsCooldownStore.formatRemaining(remaining)}';
+  }
+
+  String _dispatchKey(String crmId, DispatchConfirmType type) =>
+      '$crmId:${type.label}';
+
+  bool isConfirmingDispatch(ProjectItem project, DispatchConfirmType type) {
+    final crmId = project.crmId.trim();
+    if (crmId.isEmpty) return false;
+    return confirmingDispatchKey.value == _dispatchKey(crmId, type);
+  }
+
+  Future<void> confirmAndSaveDispatch(
+    BuildContext context,
+    ProjectItem project,
+    DispatchConfirmType type,
+  ) async {
+    final canConfirm = type == DispatchConfirmType.ck
+        ? project.canConfirmCKDispatch
+        : project.canConfirmBKDispatch;
+    if (!canConfirm) return;
+
+    if (isOffline.value) {
+      _showMessage(context, 'No internet connection.');
+      return;
+    }
+
+    final label = type.label;
+    final confirmed = await Get.dialog<bool>(
+      AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text('Confirm $label Dispatch'),
+        content: Text(
+          'By acknowledging and submitting this request, the $label will be '
+          'pushed to SAP and sent for further processing for dispatch.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(result: false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: DashboardColors.primary,
+            ),
+            onPressed: () => Get.back(result: true),
+            child: const Text('Confirm'),
+          ),
+        ],
+      ),
+      barrierDismissible: false,
+    );
+
+    if (confirmed != true) return;
+    if (!context.mounted) return;
+    await _saveDispatchConfirmation(context, project, type);
+  }
+
+  Future<void> _saveDispatchConfirmation(
+    BuildContext context,
+    ProjectItem project,
+    DispatchConfirmType type,
+  ) async {
+    final crmId = project.crmId.trim();
+    final key = _dispatchKey(crmId, type);
+    if (confirmingDispatchKey.value == key) return;
+
+    confirmingDispatchKey.value = key;
+    try {
+      final message = await _repository.saveDispatchConfirmation(
+        userId: userId,
+        project: project,
+        type: type,
+      );
+      // Reload list so confirmed flags come from GetAllProjectList_new.
+      await refreshProjects();
+      if (!context.mounted) return;
+      _showMessage(context, message);
+    } on DashboardFailure catch (e) {
+      if (!context.mounted) return;
+      _showMessage(context, e.message);
+    } catch (_) {
+      if (!context.mounted) return;
+      _showMessage(
+        context,
+        'Unable to confirm ${type.label} dispatch. Please try again.',
+      );
+    } finally {
+      if (confirmingDispatchKey.value == key) {
+        confirmingDispatchKey.value = null;
+      }
+    }
   }
 
   Future<void> confirmAndSendCredentials(

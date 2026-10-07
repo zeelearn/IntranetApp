@@ -162,6 +162,8 @@ class IndentListScreen extends StatelessWidget {
                               index: index,
                               showPaymentLink:
                                   controller.showPaymentLinkFor(item),
+                              showBrandingKit:
+                                  controller.showBrandingKitFor(item),
                               isGeneratingPaymentLink: generating,
                               onGeneratePaymentLink: () => controller
                                   .confirmAndGeneratePaymentLink(
@@ -201,6 +203,8 @@ class IndentListScreen extends StatelessWidget {
                             index: index,
                             showPaymentLink:
                                 controller.showPaymentLinkFor(item),
+                            showBrandingKit:
+                                controller.showBrandingKitFor(item),
                             isGeneratingPaymentLink: generating,
                             onGeneratePaymentLink: () => controller
                                 .confirmAndGeneratePaymentLink(

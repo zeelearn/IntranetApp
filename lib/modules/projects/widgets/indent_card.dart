@@ -13,6 +13,7 @@ class IndentCard extends StatelessWidget {
     this.onBrandingKit,
     this.isGeneratingPaymentLink = false,
     this.showPaymentLink = true,
+    this.showBrandingKit = true,
   });
 
   final IndentItem item;
@@ -21,6 +22,7 @@ class IndentCard extends StatelessWidget {
   final VoidCallback? onBrandingKit;
   final bool isGeneratingPaymentLink;
   final bool showPaymentLink;
+  final bool showBrandingKit;
 
   @override
   Widget build(BuildContext context) {
@@ -165,36 +167,38 @@ class IndentCard extends StatelessWidget {
                 text: item.createdBy.isEmpty ? '—' : item.createdBy,
               ),
               const SizedBox(height: 12),
-              Row(
-                children: [
-                  if (showPaymentLink) ...[
-                    Expanded(
-                      child: _ActionButton(
-                        icon: isGeneratingPaymentLink
-                            ? null
-                            : Icons.link_rounded,
-                        label: isGeneratingPaymentLink
-                            ? 'Sending...'
-                            : 'Payment Link',
-                        color: DashboardColors.primary,
-                        onTap: isGeneratingPaymentLink
-                            ? null
-                            : onGeneratePaymentLink,
-                        loading: isGeneratingPaymentLink,
+              if (showPaymentLink || showBrandingKit)
+                Row(
+                  children: [
+                    if (showPaymentLink) ...[
+                      Expanded(
+                        child: _ActionButton(
+                          icon: isGeneratingPaymentLink
+                              ? null
+                              : Icons.link_rounded,
+                          label: isGeneratingPaymentLink
+                              ? 'Sending...'
+                              : 'Payment Link',
+                          color: DashboardColors.primary,
+                          onTap: isGeneratingPaymentLink
+                              ? null
+                              : onGeneratePaymentLink,
+                          loading: isGeneratingPaymentLink,
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 8),
+                      if (showBrandingKit) const SizedBox(width: 8),
+                    ],
+                    if (showBrandingKit)
+                      Expanded(
+                        child: _ActionButton(
+                          icon: Icons.palette_outlined,
+                          label: 'Branding Kit',
+                          color: DashboardColors.purple,
+                          onTap: onBrandingKit,
+                        ),
+                      ),
                   ],
-                  Expanded(
-                    child: _ActionButton(
-                      icon: Icons.palette_outlined,
-                      label: 'Branding Kit',
-                      color: DashboardColors.purple,
-                      onTap: onBrandingKit,
-                    ),
-                  ),
-                ],
-              ),
+                ),
             ],
           ),
         ),

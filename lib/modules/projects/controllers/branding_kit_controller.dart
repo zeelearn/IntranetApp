@@ -6,7 +6,6 @@ import 'package:Intranet/modules/projects/models/dashboard_failure.dart';
 import 'package:Intranet/modules/projects/models/indent_item.dart';
 import 'package:Intranet/modules/projects/repositories/branding_repository.dart';
 import 'package:Intranet/modules/projects/services/branding_remote_service.dart';
-import 'package:Intranet/modules/projects/utils/indent_action_roles.dart';
 import 'package:Intranet/pages/helper/LocalConstant.dart';
 import 'package:Intranet/pages/helper/LocalStrings.dart';
 import 'package:Intranet/pages/helper/utils.dart';
@@ -34,16 +33,14 @@ class BrandingKitController extends GetxController {
   final RxList<BrandingFormRow> formRows = <BrandingFormRow>[].obs;
 
   int createdBy = 0;
-  final RxString employeeType = ''.obs;
 
   int get franchiseeId => indentItem.franchiseeId;
   bool get hasExistingIndents => data.value?.hasExistingIndents ?? false;
   List<BrandingIndentLine> get indents => data.value?.indents ?? const [];
   List<BrandingProduct> get products => data.value?.productList ?? const [];
 
-  /// Add Order — MAN & BH only.
-  bool get canAddOrder =>
-      IndentActionRoles.canAccessFinanceActions(employeeType.value);
+  /// Add Order — when API `CanIndentBK == 1`.
+  bool get canAddOrder => indentItem.canAccessFinanceActions;
 
   double get formTotal => formRows
       .where((r) => r.selected)
@@ -68,11 +65,8 @@ class BrandingKitController extends GetxController {
       createdBy =
           int.tryParse(box.get(LocalConstant.KEY_EMPLOYEE_ID)?.toString() ?? '') ??
               0;
-      employeeType.value =
-          (box.get(LocalConstant.KEY_EMP_TYPE)?.toString() ?? '').trim();
     } catch (_) {
       createdBy = 0;
-      employeeType.value = '';
     }
   }
 
