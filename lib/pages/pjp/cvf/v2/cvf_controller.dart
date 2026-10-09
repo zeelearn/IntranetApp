@@ -598,8 +598,10 @@ class CVFController extends GetxController {
     isUpdating.value = true;
     Utility.showLoaderDialog(context!);
     try {
-      await _updateCvfStatusOnline(cvf);
-      Navigator.of(context).pop(); // Dismiss loader dialog
+      await _updateCvfStatusOnline(cvf, context);
+      if (_isMounted(context) && Navigator.canPop(context)) {
+        Navigator.of(context).pop(); // Dismiss loader dialog
+      }
       isUpdating.value = false;
       if (_isMounted(context)) {
         Utility.onSuccessMessage(
@@ -611,18 +613,18 @@ class CVFController extends GetxController {
         await loadData();
       }
     } catch (e) {
+      if (_isMounted(context) && Navigator.canPop(context)) {
+        Navigator.of(context).pop(); // Dismiss loader dialog
+      }
       if (_isMounted(context)) {
-        Utility.showMessage(context, 'Unable to update the status');
+        Utility.showMessage(context, e.toString().isNotEmpty ? e.toString() : 'Unable to update the status');
       }
     } finally {
       isUpdating.value = false;
-      if (_isMounted(context) && Navigator.canPop(context)) {
-        Navigator.of(context).pop();
-      }
     }
   }
 
-  Future<void> _updateCvfStatusOnline(GetDetailedPJP cvf) async {
+  Future<void> _updateCvfStatusOnline(GetDetailedPJP cvf, [BuildContext? context]) async {
     final nextStatus = _nextStatus(cvf.Status);
     final completer = Completer<void>();
     // print('Updating CVF Status Online _updateCvfStatusOnline for PJPCVF_Id: ${cvf.PJPCVF_Id}, Current Status: ${cvf.Status}, Next Status: $nextStatus');
@@ -635,6 +637,7 @@ class CVFController extends GetxController {
         onSuccessCallback: (_) => completer.complete(),
         onErrorCallback: (msg) => completer.completeError(msg),
       ),
+      context,
     );
     await completer.future;
   }
@@ -660,6 +663,10 @@ class CVFController extends GetxController {
 
     final location = await LocationHelper.getLocation(context);
     if (!_isMounted(context)) return;
+    if (location == null || location.latitude == null || location.longitude == null || (location.latitude == 0.0 && location.longitude == 0.0)) {
+      Utility.showMessage(context, 'Location permission is required to check in. Please enable location.');
+      return;
+    }
     final address = '';
     final request = UpdateCVFStatusRequest(
       PJPCVF_id: cvf.PJPCVF_Id,

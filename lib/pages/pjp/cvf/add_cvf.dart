@@ -5,6 +5,7 @@ import 'package:Intranet/pages/model/getFranchiseeLastVisitModel.dart'
     as getFranchiseeLastVisitModelPlaceholder;
 import 'package:Intranet/pages/pjp/cvf/getVisitplannerCvfcubit/cubit/getvisitplannercvf_cubit.dart';
 import 'package:Intranet/pages/utils/toastmsg.dart';
+import 'package:Intranet/pages/widget/business_widget.dart';
 import 'package:device_calendar/device_calendar.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/foundation.dart';
@@ -175,27 +176,36 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
     });
   }
 
-  fetchCategory() {
-    Utility.showLoaderDialog(context);
+  Future<void> fetchCategory({bool showLoader = true}) async {
+    if (showLoader) {
+      Utility.showLoaderDialog(context);
+    }
     mCategoryList.clear();
-    CVFCategoryRequest request =
-        CVFCategoryRequest(Category_Id: "0", Business_id: businessId);
-    APIService apiService = APIService();
-    apiService.getCVFCategoties(request).then((value) {
+    try {
+      CVFCategoryRequest request =
+          CVFCategoryRequest(Category_Id: "0", Business_id: businessId);
+      APIService apiService = APIService();
+      var value = await apiService.getCVFCategoties(request);
       if (value != null) {
-        if (value == null || value.responseData == null) {
+        if (value.responseData == null) {
           Utility.showMessage(context, 'data not found');
         } else if (value is CVFCategoryResponse) {
           CVFCategoryResponse response = value;
           mCategoryList.addAll(response.responseData);
-          setState(() {});
         } else {
           Utility.showMessage(context, 'data not found');
         }
       }
-      Navigator.of(context).pop();
-      setState(() {});
-    });
+    } catch (e) {
+      debugPrint("Error in fetchCategory: $e");
+    } finally {
+      if (showLoader && mounted) {
+        Navigator.of(context, rootNavigator: true).pop();
+      }
+      if (mounted) {
+        setState(() {});
+      }
+    }
   }
 
   getFrichinseeList() async {
@@ -205,14 +215,14 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
         await helper.getFranchiseeList(businessId);
 
     if (await Utility.isInternet() && franchiseeList.isEmpty) {
-      loadCenterList();
+      await loadCenterList();
     } else {
       mFrianchiseeList.clear();
       mFrianchiseeList.addAll(franchiseeList);
     }
   }
 
-  loadCenterList() {
+  loadCenterList() async {
     Utility.showLoaderDialog(context);
     mFrianchiseeList.clear();
     DateTime time = DateTime.now();
@@ -220,22 +230,27 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
     CentersRequestModel requestModel =
         CentersRequestModel(EmployeeId: employeeId, Brand: businessId);
     APIService apiService = APIService();
-    apiService.getCVFCenters(requestModel).then((value) {
+    try {
+      var value = await apiService.getCVFCenters(requestModel);
       if (value != null) {
-        if (value == null || value.responseData == null) {
+        if (value.responseData == null) {
           Utility.showMessage(context, 'data not found');
         } else if (value is CentersResponse) {
           CentersResponse response = value;
           mFrianchiseeList.addAll(response.responseData);
           addCentersinDB(businessId);
-          setState(() {});
         } else {
           Utility.showMessage(context, 'data not found');
         }
       }
-      Navigator.of(context).pop();
-      setState(() {});
-    });
+    } catch (e) {
+      debugPrint("Error in loadCenterList: $e");
+    } finally {
+      if (mounted) {
+        Navigator.of(context, rootNavigator: true).pop();
+        setState(() {});
+      }
+    }
   }
 
   addCentersinDB(businessId) async {
@@ -286,8 +301,8 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
 
   loadUserData() async {
     await getUserInfo();
-    fetchCategory();
-    getFrichinseeList();
+    await fetchCategory(showLoader: true);
+    await getFrichinseeList();
   }
 
   addPJPCentersinDB() async {
@@ -843,8 +858,7 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
         //   //     context, 'Unable to fetch location, Please try again');
         //   return;
         // }
-        if (_purposeMultiSelect.toString().toLowerCase() !=
-            'activity') {
+        if (_purposeMultiSelect.toString().toLowerCase() != 'activity') {
           var franchiseeInfo = getFranchiseeDetails();
           debugPrint(
               'Franchisee Info: ${franchiseeInfo?.toJson()}'); // Print the franchisee info
@@ -921,10 +935,10 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
                 Longitude: longitude,
                 purpose: _selectedItems.map((name) {
                   final cat =
-                      mCategoryList.firstWhere((c) => c.categoryName == name);
+                      mCategoryList.firstWhereOrNull((c) => c.categoryName == name);
                   return Purpose(
-                      categoryId: cat.categoryId.toString(),
-                      categoryName: cat.categoryName);
+                      categoryId: cat?.categoryId.toString() ?? '',
+                      categoryName: cat?.categoryName ?? name);
                 }).toList(),
               );
               widget.mPjpModel.getDetailedPJP ??= [];
@@ -1316,10 +1330,10 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
 
           //form google_maps_webservice package
           final plist = GoogleMapsPlaces(
-            apiKey: LocalStrings.kGoogleApiKey,
-            baseUrl: '${LocalStrings.bpms}}/api/bp/map'
-            //from google_api_headers package
-          );
+              apiKey: LocalStrings.kGoogleApiKey,
+              baseUrl: '${LocalStrings.bpms}}/api/bp/map'
+              //from google_api_headers package
+              );
           String placeid = place.placeId ?? "0";
           final detail = await plist.getDetailsByPlaceId(placeid);
           final geometry = detail.result.geometry!;
@@ -1345,8 +1359,7 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
               apiKey: LocalStrings.kGoogleApiKey,
               //mode: Mode.overlay,
               types: [],
-              proxyBaseUrl:
-                  '${LocalStrings.bpms}/api/bp/map',
+              proxyBaseUrl: '${LocalStrings.bpms}/api/bp/map',
               strictbounds: false,
               components: [Component(Component.country, 'in')],
               //google_map_webservice package
@@ -1361,10 +1374,10 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
 
             //form google_maps_webservice package
             final plist = GoogleMapsPlaces(
-              apiKey: LocalStrings.kGoogleApiKey,
-              baseUrl: '${LocalStrings.bpms}/api/bp/map'
-              //from google_api_headers package
-            );
+                apiKey: LocalStrings.kGoogleApiKey,
+                baseUrl: '${LocalStrings.bpms}/api/bp/map'
+                //from google_api_headers package
+                );
             String placeid = place.placeId ?? "0";
             final detail = await plist.getDetailsByPlaceId(placeid);
             final geometry = detail.result.geometry!;
@@ -1499,13 +1512,26 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
 
   Future<String?> _showMultiSelect(BuildContext context) async {
     if (mCategoryList.isEmpty) {
-      fetchCategory();
-    } else {}
+      await fetchCategory(showLoader: true);
+    }
+
+    if (mCategoryList.isEmpty) {
+      if (mounted) {
+        Utility.showMessage(context, 'No Purpose available');
+      }
+      return null;
+    }
 
     // a list of selectable items
     // these items can be hard-coded or dynamically fetched from a database/API
 
     final items = getPurposeList();
+    if (items.isEmpty) {
+      if (mounted) {
+        Utility.showMessage(context, 'No Purpose available');
+      }
+      return null;
+    }
 
     final List<String>? results = await showDialog(
       context: context,
@@ -1632,19 +1658,19 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
 
   AppBar getAppbar() {
     return AppBar(
-      backgroundColor: kPrimaryLightColor,
-      centerTitle: true,
-      title: const Text(
-        'Permanent Planner',
-        style:
-            TextStyle(fontSize: 17, color: Colors.white, letterSpacing: 0.53),
-      ),
-      /*shape: const RoundedRectangleBorder(
+        backgroundColor: kPrimaryLightColor,
+        centerTitle: true,
+        title: const Text(
+          'Permanent Planner',
+          style:
+              TextStyle(fontSize: 17, color: Colors.white, letterSpacing: 0.53),
+        ),
+        /*shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
           bottom: Radius.circular(20),
         ),
       ),*/
-      /*leading: InkWell(
+        /*leading: InkWell(
         onTap: () {
           _scaffoldKey.currentState?.openDrawer();
         },
@@ -1653,7 +1679,7 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
           color: Colors.white,
         ),
       ),*/
-    );
+        actions: [BusinessWidget.instance.showInlineBadge()]);
   }
 
   List<String> getList(List<FranchiseeInfo> mFrianchiseeList) {
@@ -1726,7 +1752,7 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
   }
 
   Future<String?> openCategory() async {
-    return Future.value(_showMultiSelect(context));
+    return await _showMultiSelect(context);
   }
 
   @override
@@ -1765,16 +1791,16 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
         cvfId.toString() + categoryid + LocalConstant.KEY_CVF_QUESTIONS, data);
   }
 
-  fetchQuestions(int cvfId) {
+  fetchQuestions(int cvfId) async {
     Utility.showLoaderDialog(context);
     String category = getCategoryList();
     QuestionsRequest request = QuestionsRequest(
         Category_Id: category, Business_id: '1', PJPCVF_Id: cvfId.toString());
     APIService apiService = APIService();
-    apiService.getCVFQuestions(request).then((value) {
+    try {
+      var value = await apiService.getCVFQuestions(request);
       if (value != null) {
-        Navigator.of(context).pop();
-        if (value == null || value.responseData == null) {
+        if (value.responseData == null) {
           Utility.showMessage(context, 'data not found');
         } else if (value is QuestionResponse) {
           QuestionResponse questionResponse = value;
@@ -1793,8 +1819,13 @@ class _AddCVFState extends State<AddCVFScreen> implements onClickListener {
           Utility.showMessage(context, 'data not found');
         }
       }
-      // Navigator.of(context).pop();
-      setState(() {});
-    });
+    } catch (e) {
+      debugPrint("Error in fetchQuestions: $e");
+    } finally {
+      if (mounted) {
+        Navigator.of(context, rootNavigator: true).pop();
+        setState(() {});
+      }
+    }
   }
 }

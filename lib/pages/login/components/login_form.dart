@@ -13,6 +13,7 @@ import '../../helper/LocalConstant.dart';
 import '../../helper/constants.dart';
 import '../../helper/mobile_applications_store.dart';
 import '../../helper/utils.dart';
+import '../../widget/business_widget.dart';
 import '../PrivacyPolicyScreen.dart';
 
 class LoginForm extends StatefulWidget {
@@ -255,6 +256,11 @@ class _LoginFormState extends State<LoginForm>
                   firstBusiness.businessName);
               hiveBox.put(LocalConstant.KEY_BUSINESS_USERID,
                   firstBusiness.business_UserID);
+              BusinessWidget.instance.setBusiness(
+                id: firstBusiness.businessID,
+                name: firstBusiness.businessName,
+                userId: firstBusiness.business_UserID,
+              );
 
               Navigator.push(
                 context,

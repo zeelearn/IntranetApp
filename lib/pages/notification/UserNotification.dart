@@ -18,7 +18,9 @@ import '../../main.dart';
 import '../helper/DatabaseHelper.dart';
 import '../helper/LocalConstant.dart';
 import '../helper/constants.dart';
+import '../helper/utils.dart';
 import '../model/bpms_notification_model.dart';
+import 'package:expensestracker/presentation/pages/claim/courier_detail_page.dart';
 import 'DetailPage.dart';
 import 'package:Intranet/pages/summary%20dashboard/summary_dashboard.dart';
 
@@ -211,6 +213,72 @@ class _ListPageState extends State<UserNotification> {
                     ),
                   ));
             }
+          } else if (notificationModel.notificationtype.toUpperCase() == 'EXPENSE-COURIER' ||
+              notificationModel.notificationtype.toUpperCase() == 'EXPENSE_COURIER') {
+            String? claimIdStr;
+            String? employeeCode;
+            String? isAccchStr;
+
+            final webViewUrl = notificationModel.webViewUrl;
+            if (webViewUrl.isNotEmpty) {
+              try {
+                final uri = Uri.parse(webViewUrl);
+                claimIdStr = uri.queryParameters['cid'] ??
+                    uri.queryParameters['claimId'] ??
+                    uri.queryParameters['claim_id'] ??
+                    uri.queryParameters['claimID'];
+                employeeCode = uri.queryParameters['employee_code'] ??
+                    uri.queryParameters['eCode'] ??
+                    uri.queryParameters['employeeCode'] ??
+                    uri.queryParameters['e_code'];
+                isAccchStr = uri.queryParameters['isAccch'] ??
+                    uri.queryParameters['is_accch'];
+
+                if (uri.fragment.isNotEmpty) {
+                  final fragmentUri = Uri.parse(uri.fragment.startsWith('/')
+                      ? uri.fragment
+                      : '/${uri.fragment}');
+                  claimIdStr ??= fragmentUri.queryParameters['cid'] ??
+                      fragmentUri.queryParameters['claimId'] ??
+                      fragmentUri.queryParameters['claim_id'] ??
+                      fragmentUri.queryParameters['claimID'];
+                  employeeCode ??= fragmentUri.queryParameters['employee_code'] ??
+                      fragmentUri.queryParameters['eCode'] ??
+                      fragmentUri.queryParameters['employeeCode'] ??
+                      fragmentUri.queryParameters['e_code'];
+                  isAccchStr ??= fragmentUri.queryParameters['isAccch'] ??
+                      fragmentUri.queryParameters['is_accch'];
+                }
+
+                if (claimIdStr == null && int.tryParse(webViewUrl) != null) {
+                  claimIdStr = webViewUrl;
+                }
+              } catch (e) {
+                debugPrint('Error parsing webViewUrl for EXPENSE-COURIER: $e');
+                if (int.tryParse(webViewUrl) != null) {
+                  claimIdStr = webViewUrl;
+                }
+              }
+            }
+
+            if (employeeCode == null || employeeCode.isEmpty) {
+              var hiveBox = await Utility.openBox();
+              employeeCode = hiveBox.get(LocalConstant.KEY_EMPLOYEE_CODE) as String?;
+            }
+
+            final claimId = claimIdStr != null ? int.tryParse(claimIdStr) : null;
+            final isAccch = isAccchStr == 'true';
+
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => CourierDetailPage(
+                  claimId: claimId,
+                  employeeCode: employeeCode,
+                  isAccch: isAccch,
+                ),
+              ),
+            );
           } else {
             Navigator.push(
                 context,
@@ -293,7 +361,7 @@ class _ListPageState extends State<UserNotification> {
                     child: makeCard(lessons[index]));
             },
           )
-        : Lottie.asset(no_Notification_Animtion);
+        : Center(child: Lottie.asset(no_Notification_Animtion));
 
     final makeBottom = SizedBox(
       height: 55.0,

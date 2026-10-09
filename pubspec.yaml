@@ -15,7 +15,7 @@ publish_to: "none" # Remove this line if you wish to publish to pub.dev
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 1.0.51+55
+version: 1.0.53+57
 
 environment:
   sdk: ">=3.2.3 <4.0.0"
@@ -63,7 +63,8 @@ dependencies:
   #webviewx: ^0.2.2
   google_fonts: ^6.2.1
   get: ^4.6.5
-  pdfrx: ^2.1.19
+  pdfrx: 2.1.18
+  # pdfium_dart: 0.3.1
   square_percent_indicater: ^0.1.0
   flutter_screenutil: ^5.8.4
   #flutter_icons_null_safety: ^1.1.0
@@ -143,6 +144,11 @@ dependencies:
       url: https://github.com/ZeeLearnLtd/excepsesmanagement.git
       ref: uat
 
+  notiflow:
+    # path: ../notiflow
+    git:
+      url: https://github.com/ZeeLearnLtd/notiflow.git
+      ref: main
 
   fl_chart: ^1.2.0
   http: ^1.6.0
@@ -156,7 +162,7 @@ dependency_overrides:
   html: 0.15.6
   #share_plus: ^10.0.2
   package_info_plus: ^4.0.0
-  pdfrx: ^2.2.24
+  pdfrx: 2.6.5
   rxdart: ^0.26.0
   device_info_plus: ^10.0.0
   flutter_quill: ^11.5.1
