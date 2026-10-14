@@ -21,6 +21,7 @@ import 'package:Intranet/pages/pjp/cvf/CheckInModel.dart';
 import 'package:Intranet/pages/summary%20dashboard/summary_dashboard.dart';
 import 'package:Intranet/pages/theme/extention.dart';
 import 'package:Intranet/pages/utils/theme/colors/light_colors.dart';
+import 'package:Intranet/pages/utils/widgets/scroll_behaviour.dart';
 import 'package:Intranet/pages/widget/MyWebSiteView.dart';
 import 'package:Intranet/pages/widget/VideoPlayer.dart';
 import 'package:awesome_notifications/awesome_notifications.dart';
@@ -31,7 +32,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_bloc/flutter_bloc.dart' hide Transition;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
@@ -182,32 +183,50 @@ showNotification(RemoteMessage message) async {
   } catch (_) {}
   final messageId = NotificationService.extractMessageId(message);
   data['message_id'] = messageId;
-  final notifType = type.isNotEmpty
-      ? type
-      : (message.data['type']?.toString() ?? '');
-  data.putIfAbsent('title',
-      () => title.isNotEmpty ? title : (message.data['title']?.toString() ?? ''));
+  final notifType =
+      type.isNotEmpty ? type : (message.data['type']?.toString() ?? '');
   data.putIfAbsent(
-      'description',
-      () => body.isNotEmpty
-          ? body
-          : (message.data['body']?.toString() ?? ''));
-  data.putIfAbsent(
-      'type',
-      () => notifType);
+      'title',
+      () =>
+          title.isNotEmpty ? title : (message.data['title']?.toString() ?? ''));
+  data.putIfAbsent('description',
+      () => body.isNotEmpty ? body : (message.data['body']?.toString() ?? ''));
+  data.putIfAbsent('type', () => notifType);
   data.putIfAbsent('date', () => cdate);
   data.putIfAbsent(
       'imageurl',
-      () => message.data['url']?.toString() ?? message.data['imageurl']?.toString() ?? '');
-  data.putIfAbsent('logoUrl', () => message.data['logo']?.toString() ?? message.data['logoUrl']?.toString() ?? '');
-  data.putIfAbsent('bigImageUrl', () => message.data['bigimage']?.toString() ?? message.data['bigImageUrl']?.toString() ?? '');
+      () =>
+          message.data['url']?.toString() ??
+          message.data['imageurl']?.toString() ??
+          '');
+  data.putIfAbsent(
+      'logoUrl',
+      () =>
+          message.data['logo']?.toString() ??
+          message.data['logoUrl']?.toString() ??
+          '');
+  data.putIfAbsent(
+      'bigImageUrl',
+      () =>
+          message.data['bigimage']?.toString() ??
+          message.data['bigImageUrl']?.toString() ??
+          '');
   String webViewLink = message.data['url']?.toString() ?? '';
-  if (notifType.toUpperCase() == 'EXPENSE-COURIER' || notifType.toUpperCase() == 'EXPENSE_COURIER') {
-    final cid = message.data['cid'] ?? message.data['claimId'] ?? message.data['claim_id'] ?? '';
-    final eCode = message.data['employee_code'] ?? message.data['eCode'] ?? message.data['e_code'] ?? '';
-    final isAccch = message.data['isAccch'] ?? message.data['is_accch'] ?? 'false';
+  if (notifType.toUpperCase() == 'EXPENSE-COURIER' ||
+      notifType.toUpperCase() == 'EXPENSE_COURIER') {
+    final cid = message.data['cid'] ??
+        message.data['claimId'] ??
+        message.data['claim_id'] ??
+        '';
+    final eCode = message.data['employee_code'] ??
+        message.data['eCode'] ??
+        message.data['e_code'] ??
+        '';
+    final isAccch =
+        message.data['isAccch'] ?? message.data['is_accch'] ?? 'false';
     if (webViewLink.isEmpty) {
-      webViewLink = '/courier_detail?claimId=$cid&eCode=$eCode&isAccch=$isAccch';
+      webViewLink =
+          '/courier_detail?claimId=$cid&eCode=$eCode&isAccch=$isAccch';
     }
   }
   data.putIfAbsent('webViewLink', () => webViewLink);
@@ -1033,6 +1052,9 @@ class _MyAppState extends State<MyApp> {
     return ToastificationWrapper(
       child: GetMaterialApp(
         key: UniqueKey(),
+        popGesture: false,
+        defaultTransition: Transition.fade,
+        scrollBehavior: WebScrollBehavior(),
         localizationsDelegates: const [
           GlobalMaterialLocalizations.delegate,
           GlobalWidgetsLocalizations.delegate,
@@ -1056,6 +1078,15 @@ class _MyAppState extends State<MyApp> {
         ),
         theme: ThemeData(
           useMaterial3: true,
+          pageTransitionsTheme: const PageTransitionsTheme(
+            builders: {
+              TargetPlatform.macOS: FadeUpwardsPageTransitionsBuilder(),
+              TargetPlatform.iOS: FadeUpwardsPageTransitionsBuilder(),
+              TargetPlatform.windows: FadeUpwardsPageTransitionsBuilder(),
+              TargetPlatform.android: FadeUpwardsPageTransitionsBuilder(),
+              TargetPlatform.linux: FadeUpwardsPageTransitionsBuilder(),
+            },
+          ),
           checkboxTheme: CheckboxThemeData(
             checkColor: WidgetStateProperty.all(Colors.white),
             //fillColor: MaterialStateProperty.all(Colors.white),

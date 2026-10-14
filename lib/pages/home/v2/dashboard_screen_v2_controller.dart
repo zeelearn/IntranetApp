@@ -884,9 +884,9 @@ class DashboardScreenV2Controller extends GetxController
         0;
     await expense_placeholder.openExpenseTracker(
       eCode: empCode.toString(),
-      onPjpTap: (context, pjpId) {
+      /* onPjpTap: (context, pjpId) {
         Get.to(() => DayEventsScreen(pjpId: pjpId));
-      },
+      }, */
     );
   }
 
