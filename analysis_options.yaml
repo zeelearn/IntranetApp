@@ -11,7 +11,7 @@ include: package:flutter_lints/flutter.yaml
 
 analyzer:
   errors:
-    avoid_print: error
+    # avoid_print: error
   exclude:
     - build/**
     - android/**

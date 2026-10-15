@@ -246,31 +246,44 @@ class NotificationService {
     await flutterLocalNotificationsPlugin.cancelAll();
   }
 
+  static String extractMessageId(RemoteMessage message) {
+    if (message.messageId != null && message.messageId!.isNotEmpty) {
+      return message.messageId!;
+    }
+    if (message.data.containsKey('fcmMessageId') &&
+        message.data['fcmMessageId'] != null &&
+        message.data['fcmMessageId'].toString().isNotEmpty) {
+      return message.data['fcmMessageId'].toString();
+    }
+    if (message.data.containsKey('messageId') &&
+        message.data['messageId'] != null &&
+        message.data['messageId'].toString().isNotEmpty) {
+      return message.data['messageId'].toString();
+    }
+    if (message.data.containsKey('id') &&
+        message.data['id'] != null &&
+        message.data['id'].toString().isNotEmpty) {
+      return message.data['id'].toString();
+    }
+    final time = message.sentTime?.millisecondsSinceEpoch ?? DateTime.now().millisecondsSinceEpoch;
+    final title = message.data['title'] ?? message.notification?.title ?? '';
+    final body = message.data['body'] ?? message.notification?.body ?? '';
+    return '${time}_${title}_${body}';
+  }
+
   void parseNotification(
     RemoteMessage message, {
     BuildContext? context,
   }) async {
-    final messageId = message.messageId;
-    if (messageId != null) {
-      if (_processedMessageIds.contains(messageId)) {
-        debugPrint('parseNotification: Duplicate message detected (ID: $messageId). Skipping.');
-        return;
-      }
-      _processedMessageIds.add(messageId);
-      Future.delayed(const Duration(seconds: 10), () {
-        _processedMessageIds.remove(messageId);
-      });
-    } else {
-      final payloadHash = '${message.sentTime?.millisecondsSinceEpoch}_${message.data.toString()}';
-      if (_processedMessageIds.contains(payloadHash)) {
-        debugPrint('parseNotification: Duplicate payload detected. Skipping.');
-        return;
-      }
-      _processedMessageIds.add(payloadHash);
-      Future.delayed(const Duration(seconds: 10), () {
-        _processedMessageIds.remove(payloadHash);
-      });
+    final messageId = extractMessageId(message);
+    if (_processedMessageIds.contains(messageId)) {
+      debugPrint('parseNotification: Duplicate message detected (ID: $messageId). Skipping.');
+      return;
     }
+    _processedMessageIds.add(messageId);
+    Future.delayed(const Duration(seconds: 30), () {
+      _processedMessageIds.remove(messageId);
+    });
 
     debugPrint(
         'parseNotification called in Intranet with message: ${message.data}');
@@ -284,6 +297,7 @@ class NotificationService {
     }
     DBHelper helper = DBHelper();
     Map<String, String> data = {};
+    data['message_id'] = messageId;
     if (message.notification != null) {
       debugPrint('parseNotification SKIPPING NOTIFICATION ');
       data.putIfAbsent('title', () => message.notification?.title as String);
@@ -323,6 +337,10 @@ class NotificationService {
       } else if (message.data.containsKey('type') &&
           message.data['type']?.toString().toUpperCase() == 'PJP') {
         handlePJPNotification(message);
+      } else if (message.data.containsKey('type') &&
+          (message.data['type']?.toString().toUpperCase() == 'EXPENSE-COURIER' ||
+           message.data['type']?.toString().toUpperCase() == 'EXPENSE_COURIER')) {
+        handleExpenseCourierNotification(message);
       } else if (message.data.containsKey('topic')) {
         debugPrint('parseNotification identifyNotification topic called');
         identifyNotification(message);
@@ -426,6 +444,8 @@ void identifySaathiNotification(RemoteMessage message,
     DBHelper helper = DBHelper();
     Map<String, String> data = {};
     String cdate = DateFormat("yyyy-MM-dd hh:mm a").format(DateTime.now());
+    final messageId = NotificationService.extractMessageId(message);
+    data['message_id'] = messageId;
     data.putIfAbsent('title', () => message.data['title']);
     data.putIfAbsent('description', () => message.data['body']);
     data.putIfAbsent('type',
@@ -473,6 +493,8 @@ void handleExpenseNotificatin(
     DBHelper helper = DBHelper();
     Map<String, String> data = {};
     String cdate = DateFormat("yyyy-MM-dd hh:mm a").format(DateTime.now());
+    final messageId = NotificationService.extractMessageId(message);
+    data['message_id'] = messageId;
     data.putIfAbsent('title', () => message.data['title']);
     data.putIfAbsent('description', () => message.data['body']);
     data.putIfAbsent('type',
@@ -521,6 +543,8 @@ void handlePJPNotification(
     DBHelper helper = DBHelper();
     Map<String, String> data = {};
     String cdate = DateFormat("yyyy-MM-dd hh:mm a").format(DateTime.now());
+    final messageId = NotificationService.extractMessageId(message);
+    data['message_id'] = messageId;
     data.putIfAbsent('title', () => message.data['title'] ?? '');
     data.putIfAbsent('description', () => message.data['body'] ?? '');
     data.putIfAbsent('type',
@@ -555,6 +579,72 @@ void handlePJPNotification(
   }
 }
 
+void handleExpenseCourierNotification(
+  RemoteMessage message,
+) async {
+  var hiveBox = await Utility.openBox();
+
+  String employeeCode = hiveBox.get(LocalConstant.KEY_EMPLOYEE_CODE) as String? ?? '';
+  String empId = hiveBox.get(LocalConstant.KEY_EMPLOYEE_ID) as String? ?? '';
+  bool match = true;
+  if (message.data.containsKey('employee_code') &&
+      message.data['employee_code'].toString().isNotEmpty &&
+      employeeCode.isNotEmpty &&
+      message.data['employee_code'] != employeeCode) {
+    match = false;
+  }
+  if (message.data.containsKey('empid') &&
+      message.data['empid'].toString().isNotEmpty &&
+      empId.isNotEmpty &&
+      message.data['empid'] != empId) {
+    match = false;
+  }
+
+  if (match) {
+    DBHelper helper = DBHelper();
+    Map<String, String> data = {};
+    String cdate = DateFormat("yyyy-MM-dd hh:mm a").format(DateTime.now());
+    final messageId = NotificationService.extractMessageId(message);
+    data['message_id'] = messageId;
+    data.putIfAbsent('title', () => message.data['title']?.toString() ?? '');
+    data.putIfAbsent('description', () => message.data['body']?.toString() ?? '');
+    data.putIfAbsent('type',
+        () => message.data.containsKey('type') ? message.data['type']!.toString() : 'EXPENSE-COURIER');
+    data.putIfAbsent('date', () => cdate);
+    data.putIfAbsent(
+        'imageurl',
+        () => message.data.containsKey('imageurl')
+            ? message.data['imageurl']!.toString()
+            : (message.data.containsKey('url') ? message.data['url']!.toString() : ''));
+    data.putIfAbsent(
+        'logoUrl',
+        () =>
+            message.data.containsKey('logoUrl')
+                ? message.data['logoUrl']!.toString()
+                : (message.data.containsKey('logo') ? message.data['logo']!.toString() : ''));
+    data.putIfAbsent(
+        'bigImageUrl',
+        () => message.data.containsKey('bigimage')
+            ? message.data['bigimage'] as String
+            : (message.data.containsKey('bigImageUrl') ? message.data['bigImageUrl'] as String : ''));
+    final cid = message.data['cid'] ?? message.data['claimId'] ?? message.data['claim_id'] ?? '';
+    final eCode = message.data['employee_code'] ?? message.data['eCode'] ?? message.data['e_code'] ?? employeeCode;
+    final isAccch = message.data['isAccch'] ?? message.data['is_accch'] ?? 'false';
+    final webViewLink = (message.data['url'] != null && message.data['url'].toString().isNotEmpty)
+        ? message.data['url'].toString()
+        : '/courier_detail?claimId=$cid&eCode=$eCode&isAccch=$isAccch';
+    data.putIfAbsent('webViewLink', () => webViewLink);
+
+    helper.insert(LocalConstant.TABLE_NOTIFICATION, data);
+    NotificationService notificationService = NotificationService();
+    notificationService.showSimpleNotification(
+        message.data['title'] ?? '', message.data['body'] ?? '', message);
+  } else {
+    debugPrint(
+        'parseNotification EXPENSE-COURIER: Employee code or empid does not match. Notification ignored.');
+  }
+}
+
 void identifyNotification(RemoteMessage message, [WidgetRef? ref]) async {
   var box = await Utility.openBox();
   String userName = box.get(LocalConstant.KEY_EMPLOYEE_ID) as String;
@@ -566,6 +656,8 @@ void identifyNotification(RemoteMessage message, [WidgetRef? ref]) async {
     DBHelper helper = DBHelper();
     Map<String, String> data = {};
     String cdate = DateFormat("yyyy-MM-dd hh:mm a").format(DateTime.now());
+    final messageId = NotificationService.extractMessageId(message);
+    data['message_id'] = messageId;
     data.putIfAbsent('title', () => message.data['title']);
     data.putIfAbsent('description', () => message.data['body']);
     data.putIfAbsent('type',

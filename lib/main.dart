@@ -22,6 +22,7 @@ import 'package:Intranet/pages/pjp/cvf/CheckInModel.dart';
 import 'package:Intranet/pages/summary%20dashboard/summary_dashboard.dart';
 import 'package:Intranet/pages/theme/extention.dart';
 import 'package:Intranet/pages/utils/theme/colors/light_colors.dart';
+import 'package:Intranet/pages/utils/widgets/scroll_behaviour.dart';
 import 'package:Intranet/pages/widget/MyWebSiteView.dart';
 import 'package:Intranet/pages/widget/VideoPlayer.dart';
 import 'package:awesome_notifications/awesome_notifications.dart';
@@ -32,7 +33,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_bloc/flutter_bloc.dart' hide Transition;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
@@ -67,6 +68,8 @@ import 'package:app_links/app_links.dart';
 import 'pages/auth/magic_link_handler.dart';
 
 part 'main.g.dart';
+
+/* git revert changes */
 
 /*Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   try {
@@ -179,30 +182,55 @@ showNotification(RemoteMessage message) async {
     }
     _showNotificationWithDefaultSound(message, title, body);
   } catch (_) {}
-  data.putIfAbsent('title',
-      () => title.isNotEmpty ? title : message.data['title'] as String);
+  final messageId = NotificationService.extractMessageId(message);
+  data['message_id'] = messageId;
+  final notifType =
+      type.isNotEmpty ? type : (message.data['type']?.toString() ?? '');
   data.putIfAbsent(
-      'description',
-      () => body.isNotEmpty
-          ? body
-          : message.data.containsKey('body')
-              ? message.data['body'] as String
-              : '');
-  data.putIfAbsent(
-      'type',
-      () => type.isNotEmpty
-          ? type
-          : message.data.containsKey('type')
-              ? message.data['type'] as String
-              : '');
+      'title',
+      () =>
+          title.isNotEmpty ? title : (message.data['title']?.toString() ?? ''));
+  data.putIfAbsent('description',
+      () => body.isNotEmpty ? body : (message.data['body']?.toString() ?? ''));
+  data.putIfAbsent('type', () => notifType);
   data.putIfAbsent('date', () => cdate);
   data.putIfAbsent(
       'imageurl',
       () =>
-          message.data.containsKey('url') ? message.data['url'] as String : '');
-  data.putIfAbsent('logoUrl', () => message.data['logo'] as String);
-  data.putIfAbsent('bigImageUrl', () => message.data['bigimage'] as String);
-  data.putIfAbsent('webViewLink', () => message.data['url'] as String);
+          message.data['url']?.toString() ??
+          message.data['imageurl']?.toString() ??
+          '');
+  data.putIfAbsent(
+      'logoUrl',
+      () =>
+          message.data['logo']?.toString() ??
+          message.data['logoUrl']?.toString() ??
+          '');
+  data.putIfAbsent(
+      'bigImageUrl',
+      () =>
+          message.data['bigimage']?.toString() ??
+          message.data['bigImageUrl']?.toString() ??
+          '');
+  String webViewLink = message.data['url']?.toString() ?? '';
+  if (notifType.toUpperCase() == 'EXPENSE-COURIER' ||
+      notifType.toUpperCase() == 'EXPENSE_COURIER') {
+    final cid = message.data['cid'] ??
+        message.data['claimId'] ??
+        message.data['claim_id'] ??
+        '';
+    final eCode = message.data['employee_code'] ??
+        message.data['eCode'] ??
+        message.data['e_code'] ??
+        '';
+    final isAccch =
+        message.data['isAccch'] ?? message.data['is_accch'] ?? 'false';
+    if (webViewLink.isEmpty) {
+      webViewLink =
+          '/courier_detail?claimId=$cid&eCode=$eCode&isAccch=$isAccch';
+    }
+  }
+  data.putIfAbsent('webViewLink', () => webViewLink);
   helper.insert(LocalConstant.TABLE_NOTIFICATION, data);
   /*var count = (int.parse(await KidzeePref().getString(LocalConstant.KEY_NOTIFICATION_COUNT) ??'0') +1);
   KidzeePref().setString(LocalConstant.KEY_NOTIFICATION_COUNT, count.toString());
@@ -303,7 +331,8 @@ Future<void> main() async {
   // }
 
   NotificationController.startListeningNotificationEvents();
-  await NotificationController.initializeLocalNotifications(requestPermission: true);
+  await NotificationController.initializeLocalNotifications(
+      requestPermission: true);
 
   if (!kIsWeb) {
     await NotificationController.initializeIsolateReceivePort();
@@ -318,7 +347,10 @@ Future<void> main() async {
         // Util.openSaathiNotification(message);
       } else if (message.data['type'] != null &&
           message.data['type'] == 'PJP') {
-        final pjpId = message.data['PjpId'] ?? message.data['pjpId'] ?? message.data['pjpid'] ?? '';
+        final pjpId = message.data['PjpId'] ??
+            message.data['pjpId'] ??
+            message.data['pjpid'] ??
+            '';
         if (pjpId.isNotEmpty) {
           Navigator.push(
             MyApp.navigatorKey.currentState!.context,
@@ -337,6 +369,29 @@ Future<void> main() async {
                   title: message.data['title'] ?? 'Expense',
                   url: message.data['url'] ?? ''),
             ));
+      } else if (message.data['type'] == 'EXPENSE-COURIER' ||
+          message.data['type'] == 'EXPENSE_COURIER') {
+        final claimIdStr = message.data['cid'] ??
+            message.data['claimId'] ??
+            message.data['claim_id'];
+        final employeeCode = message.data['employee_code'] ??
+            message.data['eCode'] ??
+            message.data['e_code'];
+        final isAccchStr =
+            message.data['isAccch'] ?? message.data['is_accch'] ?? 'false';
+        final claimId =
+            claimIdStr != null ? int.tryParse(claimIdStr.toString()) : null;
+        final isAccch = isAccchStr.toString() == 'true';
+        Navigator.push(
+          MyApp.navigatorKey.currentState!.context,
+          MaterialPageRoute(
+            builder: (context) => CourierDetailPage(
+              claimId: claimId,
+              employeeCode: employeeCode?.toString(),
+              isAccch: isAccch,
+            ),
+          ),
+        );
       } else if (message.data['Video_path'] != null) {
         Navigator.push(
             MyApp.navigatorKey.currentState!.context,
@@ -863,7 +918,8 @@ Future _showNotificationWithDefaultSound(
       try {
         bool isAllowed = await AwesomeNotifications().isNotificationAllowed();
         if (isAllowed) {
-          await AwesomeNotifications().createNotificationFromJsonData(message.data);
+          await AwesomeNotifications()
+              .createNotificationFromJsonData(message.data);
         } else {
           debugPrint('AwesomeNotifications: notification not allowed');
         }
@@ -986,7 +1042,7 @@ class _MyAppState extends State<MyApp> {
     // Magic login links carry ?t=… — handled by MagicLinkHandler.
     final token = uri.queryParameters['t'];
     debugPrint('AppLinks token: $token');
-    if (token != null && token.isNotEmpty) {
+    if (kIsWeb && token != null && token.isNotEmpty) {
       await MagicLinkHandler.handle(uri, context);
       return;
     }
@@ -1004,6 +1060,9 @@ class _MyAppState extends State<MyApp> {
     return ToastificationWrapper(
       child: GetMaterialApp(
         key: UniqueKey(),
+        popGesture: false,
+        defaultTransition: Transition.fade,
+        scrollBehavior: WebScrollBehavior(),
         localizationsDelegates: const [
           GlobalMaterialLocalizations.delegate,
           GlobalWidgetsLocalizations.delegate,
@@ -1027,6 +1086,15 @@ class _MyAppState extends State<MyApp> {
         ),
         theme: ThemeData(
           useMaterial3: true,
+          pageTransitionsTheme: const PageTransitionsTheme(
+            builders: {
+              TargetPlatform.macOS: FadeUpwardsPageTransitionsBuilder(),
+              TargetPlatform.iOS: FadeUpwardsPageTransitionsBuilder(),
+              TargetPlatform.windows: FadeUpwardsPageTransitionsBuilder(),
+              TargetPlatform.android: FadeUpwardsPageTransitionsBuilder(),
+              TargetPlatform.linux: FadeUpwardsPageTransitionsBuilder(),
+            },
+          ),
           checkboxTheme: CheckboxThemeData(
             checkColor: WidgetStateProperty.all(Colors.white),
             //fillColor: MaterialStateProperty.all(Colors.white),
@@ -1157,7 +1225,8 @@ class NotificationController {
   ///     INITIALIZATIONS
   ///  *********************************************
   ///
-  static Future<void> initializeLocalNotifications({bool requestPermission = false}) async {
+  static Future<void> initializeLocalNotifications(
+      {bool requestPermission = false}) async {
     await AwesomeNotifications().initialize(
         'resource://drawable/ic_notification',
         [
@@ -1241,10 +1310,8 @@ class NotificationController {
     } else if (type == 'TD') {
       Util.openSaathiNotification(receivedAction);
     } else if (type == 'PJP') {
-      final pjpId = payload['PjpId'] ??
-          payload['pjpId'] ??
-          payload['pjpid'] ??
-          '';
+      final pjpId =
+          payload['PjpId'] ?? payload['pjpId'] ?? payload['pjpid'] ?? '';
       if (pjpId.isNotEmpty) {
         Navigator.push(
           MyApp.navigatorKey.currentState!.context,
@@ -1256,7 +1323,9 @@ class NotificationController {
         );
       }
     } else if (type == 'EXPENSE-COURIER') {
-      final claimid = receivedAction.payload?['cid'] ?? receivedAction.payload?['claimId'] ?? receivedAction.payload?['claim_id'];
+      final claimid = receivedAction.payload?['cid'] ??
+          receivedAction.payload?['claimId'] ??
+          receivedAction.payload?['claim_id'];
       final eCode = receivedAction.payload?['employee_code'];
       final isAccch = receivedAction.payload?['isAccch'] ?? 'false';
       debugPrint(

@@ -17,6 +17,9 @@ class PJPModel {
   DateTime createdDate;
   DateTime modifiedDate;
   String? managerName;
+  String? state;
+  String? city;
+  int? cityId;
   List<PJPCentersInfo> centerList;
 
   PJPModel({
@@ -37,6 +40,9 @@ class PJPModel {
     required this.createdDate,
     required this.modifiedDate,
     this.managerName,
+    this.state,
+    this.city,
+    this.cityId,
   });
 
   Map<String, dynamic> toJson() {
@@ -57,6 +63,9 @@ class PJPModel {
       'createdDate': createdDate,
       'modifiedDate': modifiedDate,
       'managerName': managerName,
+      'state': state,
+      'city': city,
+      'cityId': cityId,
     };
 
     return map;

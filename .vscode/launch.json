@@ -13,7 +13,7 @@
                 "-v",
                 "--web-browser-flag",
                 "--disable-web-security",
-                "--dart-define=IS_STAGING=true",
+                "--dart-define=IS_STAGING=false",
 
             ]
         },
@@ -34,7 +34,7 @@
                 "-v",
                 "--web-browser-flag",
                 "--disable-web-security",
-                "--dart-define=IS_STAGING=true"
+                "--dart-define=IS_STAGING=false"
             ]
         }
     ]

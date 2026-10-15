@@ -126,6 +126,9 @@ class PJPInfo {
   String? managerName;
   String? zone;
   String? employeeCode;
+  String? state;
+  String? city;
+  int? cityId;
   List<GetDetailedPJP>? getDetailedPJP = [];
 
   PJPInfo(
@@ -140,6 +143,9 @@ class PJPInfo {
       this.zone,
       this.managerName,
       this.employeeCode,
+      this.state,
+      this.city,
+      this.cityId,
       this.getDetailedPJP});
 
   PJPInfo.fromJson(Map<String, dynamic> json) {
@@ -160,6 +166,13 @@ class PJPInfo {
           json['Approval_Status'] ??
           '';
       zone = json['Zone'];
+      state = (json['State'] ?? json['State_Name'] ?? json['state'] ?? json['state_name'])?.toString();
+      city = (json['City'] ?? json['City_Name'] ?? json['city'] ?? json['city_name'])?.toString();
+      if (json['City_Id'] != null) {
+        cityId = json['City_Id'] is int ? json['City_Id'] : int.tryParse(json['City_Id'].toString());
+      } else if (json['city_id'] != null) {
+        cityId = json['city_id'] is int ? json['city_id'] : int.tryParse(json['city_id'].toString());
+      }
       remarks = json['Remarks'] == null || json['Remarks'] == 'null'
           ? ' '
           : json['Remarks'];
@@ -198,6 +211,9 @@ class PJPInfo {
     data['Zone'] = zone;
     data['isSelfPJP'] = isSelfPJP;
     data['Employee_Code'] = employeeCode;
+    if (state != null) data['State'] = state;
+    if (city != null) data['City'] = city;
+    if (cityId != null) data['City_Id'] = cityId;
     if (getDetailedPJP != null) {
       data['GetDetailedPJP'] = getDetailedPJP!.map((v) => v.toJson()).toList();
     }
@@ -234,6 +250,9 @@ class PJP {
   String? businessID;
   String? businessName;
   String? zone;
+  String? state;
+  String? city;
+  int? cityId;
 
   PJP(
       {this.pJPId,
@@ -247,7 +266,10 @@ class PJP {
       this.getDetailedPJP,
       this.businessID,
       this.businessName,
-      this.zone});
+      this.zone,
+      this.state,
+      this.city,
+      this.cityId});
 
   PJP.fromJson(Map<String, dynamic> json) {
     pJPId = json['PJP_Id'];
@@ -264,6 +286,13 @@ class PJP {
     businessID = json['Business_ID'];
     businessName = json['Business_Name'];
     zone = json['Zone'];
+    state = (json['State'] ?? json['State_Name'] ?? json['state'] ?? json['state_name'])?.toString();
+    city = (json['City'] ?? json['City_Name'] ?? json['city'] ?? json['city_name'])?.toString();
+    if (json['City_Id'] != null) {
+      cityId = json['City_Id'] is int ? json['City_Id'] : int.tryParse(json['City_Id'].toString());
+    } else if (json['city_id'] != null) {
+      cityId = json['city_id'] is int ? json['city_id'] : int.tryParse(json['city_id'].toString());
+    }
   }
 
   Map<String, dynamic> toJson() {
@@ -282,6 +311,9 @@ class PJP {
     data['Business_ID'] = this.businessID;
     data['Business_Name'] = this.businessName;
     data['Zone'] = this.zone;
+    if (this.state != null) data['State'] = this.state;
+    if (this.city != null) data['City'] = this.city;
+    if (this.cityId != null) data['City_Id'] = this.cityId;
     return data;
   }
 }

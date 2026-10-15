@@ -5,6 +5,7 @@ import 'package:Intranet/pages/helper/constants.dart';
 import 'package:Intranet/pages/helper/utils.dart';
 import 'package:Intranet/pages/pjp/cvf/v2/cvf_controller.dart';
 import 'package:Intranet/pages/utils/theme/colors/light_colors.dart';
+import 'package:Intranet/pages/widget/business_widget.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -117,6 +118,7 @@ class _CVFListScreenV2State extends State<CVFListScreenV2> {
               tooltip: 'ADD CVF',
               onPressed: () => controller.navigateToAddCvf(context),
             ),
+          BusinessWidget.instance.showInlineBadge()
         ],
       ),
       body: Column(
@@ -635,7 +637,8 @@ class _CvfCardActions extends StatelessWidget {
 }
 
 class WebCardActions extends StatelessWidget {
-  const WebCardActions({required this.controller, required this.cvf, this.onVisitUpdated});
+  const WebCardActions(
+      {required this.controller, required this.cvf, this.onVisitUpdated});
 
   final CVFController controller;
   final GetDetailedPJP cvf;
@@ -667,7 +670,8 @@ class WebCardActions extends StatelessWidget {
             ),
           if (canRescheduleVisit)
             TextButton.icon(
-              onPressed: () => controller.showRescheduleDialog(context, cvf, onVisitUpdated),
+              onPressed: () =>
+                  controller.showRescheduleDialog(context, cvf, onVisitUpdated),
               icon: const Icon(Icons.edit_calendar,
                   size: 18, color: kPrimaryLightColor),
               label: const Text(
@@ -678,7 +682,8 @@ class WebCardActions extends StatelessWidget {
             ),
           if (canCancelVisit)
             TextButton.icon(
-              onPressed: () => controller.showCancelDialog(context, cvf,onVisitUpdated),
+              onPressed: () =>
+                  controller.showCancelDialog(context, cvf, onVisitUpdated),
               icon: const Icon(Icons.cancel, size: 18, color: Colors.red),
               label: const Text(
                 'Cancel CVF',

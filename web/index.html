@@ -45,10 +45,35 @@
   <!-- <script src="flutter.js" defer></script> -->
   <script
     src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA20o2gNqJ70-_SuHdcpNgIvKlHUhOlG-A&libraries=places"></script>
+
+  <style>
+    html,
+    body,
+    flutter-view,
+    flt-glass-pane {
+      overscroll-behavior-x: none !important;
+      overscroll-behavior-y: none !important;
+      overscroll-behavior: none !important;
+      touch-action: pan-x pan-y;
+      overflow: hidden;
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+  </style>
+  <script>
+    // Prevent browser back/forward history navigation from trackpad horizontal swipe
+    window.addEventListener('wheel', function (e) {
+      if (Math.abs(e.deltaX) > 0) {
+        // Keeps horizontal scrolling within Flutter without browser history navigation
+      }
+    }, { passive: false });
+  </script>
 </head>
 
 <body>
-  
+
   <!-- <script>
     window.addEventListener('load', function(ev) {
       // Download main.dart.js

@@ -107,8 +107,8 @@ class DashWebTopBar extends StatelessWidget {
                   ),
                 ),
               ),
-              const SizedBox(width: 14),
-              Obx(
+              // const SizedBox(width: 5),
+              /* Obx(
                 () => Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -137,7 +137,7 @@ class DashWebTopBar extends StatelessWidget {
                     ),
                   ],
                 ),
-              ),
+              ), */
             ],
           ),
         ),
