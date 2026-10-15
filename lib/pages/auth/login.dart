@@ -551,7 +551,7 @@ class _LoginPage extends State<LoginPage> {
             //       'Business not mapped for your account, please connect with your manager/hr');
             //   return;
             // }
-            Navigator.push(
+            Navigator.pushReplacement(
               context,
               MaterialPageRoute(
                   builder: (context) => DashboardScreenV2(

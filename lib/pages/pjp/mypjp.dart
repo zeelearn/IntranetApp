@@ -4,11 +4,14 @@ import 'package:Intranet/api/ServiceHandler.dart';
 import 'package:Intranet/api/request/pjp/update_pjpstatus_request.dart';
 import 'package:Intranet/pages/helper/LocationHelper.dart';
 import 'package:Intranet/pages/pjp/cvf/add_cvf.dart';
+import 'package:Intranet/pages/widget/business_widget.dart';
 import 'package:expensestracker/app/util/util.dart';
 import 'package:expensestracker/data/repositories/claim_repository.dart';
+import 'package:expensestracker/data/repositories/pjp_repository.dart';
 import 'package:expensestracker/domain/usercases/add_claim_usecase.dart';
 import 'package:expensestracker/domain/usercases/get_autocomplete_requisition_claim_usecase.dart';
 import 'package:expensestracker/domain/usercases/get_city_usecase.dart';
+import 'package:expensestracker/domain/usercases/get_pjp_summary_usecase.dart';
 import 'package:expensestracker/presentation/controllers/addClaim/add_claim_controller.dart';
 import 'package:expensestracker/presentation/pages/advance_requisition/add_advance_requisition_page.dart';
 import 'package:flutter/material.dart';
@@ -68,8 +71,7 @@ class _MyPjpListState extends State<MyPjpListScreen>
     if (location != null) {
       double latitude = location.latitude!;
       double longitude = location.longitude!;
-    } else {
-    }
+    } else {}
   }
 
   Future<void> getUserInfo() async {
@@ -153,7 +155,7 @@ class _MyPjpListState extends State<MyPjpListScreen>
               },
             ), //IconButton
 
-            Padding(
+            /*  Padding(
               padding: const EdgeInsets.only(right: 8.0),
               child: InkWell(
                 onTap: () async {
@@ -164,6 +166,8 @@ class _MyPjpListState extends State<MyPjpListScreen>
                       hiveBox.get(LocalConstant.KEY_EMPLOYEE_CODE) as String;
                   Utils.isExternal = true;
                   Get.put(AddClaimController(
+                      getPjpSummaryUsecase: GetPjpSummaryUsecase(
+                          pjpRepository: PjpRepositoryImpl()),
                       addClaimUsecase: AddClaimUsecase(
                           claimRepository: ClaimRepositoryImpl()),
                       getAutocompleteRequisitionClaimUsecase:
@@ -185,7 +189,8 @@ class _MyPjpListState extends State<MyPjpListScreen>
                   width: 24,
                 ),
               ),
-            ),
+            ), */
+            BusinessWidget.instance.showInlineBadge()
           ],
           //<Widget>[]
           backgroundColor: kPrimaryLightColor,
@@ -428,10 +433,13 @@ class _MyPjpListState extends State<MyPjpListScreen>
                         ),
                       ),
                     ),
-                    (pjpInfo.isSelfPJP != '1' &&
-                            pjpInfo.ApprovalStatus == 'Rejected' &&
+                    (pjpInfo.isSelfPJP != '1' ||
+                            pjpInfo.ApprovalStatus == 'Rejected' ||
+                            pjpInfo.ApprovalStatus ==
+                                'Pending' /* &&
                             Utility.convertDate(pjpInfo.toDate)
-                                .isAfter(DateTime.now()))
+                                .isAfter(DateTime.now()) */
+                        )
                         ? SizedBox.shrink()
                         : ElevatedButton(
                             style: const ButtonStyle(
@@ -446,6 +454,8 @@ class _MyPjpListState extends State<MyPjpListScreen>
                                       as String;
                               Utils.isExternal = true;
                               Get.put(AddClaimController(
+                                  getPjpSummaryUsecase: GetPjpSummaryUsecase(
+                                      pjpRepository: PjpRepositoryImpl()),
                                   addClaimUsecase: AddClaimUsecase(
                                       claimRepository: ClaimRepositoryImpl()),
                                   getAutocompleteRequisitionClaimUsecase:
@@ -491,17 +501,58 @@ class _MyPjpListState extends State<MyPjpListScreen>
                     ),
                   ),
                 ),
-                subtitle: /*Expanded(
-                  flex: 1,
-                  child:*/
+                subtitle: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if ((pjpInfo.state != null &&
+                            pjpInfo.state!.trim().isNotEmpty &&
+                            pjpInfo.state!.trim() != 'NA') ||
+                        (pjpInfo.city != null &&
+                            pjpInfo.city!.trim().isNotEmpty &&
+                            pjpInfo.city!.trim() != 'NA'))
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4.0, bottom: 4.0),
+                        child: Row(
+                          children: [
+                            const Icon(
+                              Icons.location_on_outlined,
+                              size: 14,
+                              color: Color(0xFF4B39EF),
+                            ),
+                            const SizedBox(width: 4),
+                            Expanded(
+                              child: Text(
+                                [
+                                  if (pjpInfo.city != null &&
+                                      pjpInfo.city!.trim().isNotEmpty &&
+                                      pjpInfo.city!.trim() != 'NA')
+                                    pjpInfo.city!.trim(),
+                                  if (pjpInfo.state != null &&
+                                      pjpInfo.state!.trim().isNotEmpty &&
+                                      pjpInfo.state!.trim() != 'NA')
+                                    pjpInfo.state!.trim()
+                                ].join(', '),
+                                style: const TextStyle(
+                                  fontFamily: 'Lexend Deca',
+                                  color: Color(0xFF4B39EF),
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     Text(
-                  'Remark : ${pjpInfo.remarks}',
-                  style: const TextStyle(
-                    fontFamily: 'Lexend Deca',
-                    color: Color(0xFF95A1AC),
-                    fontSize: 14,
-                    fontWeight: FontWeight.normal,
-                  ),
+                      'Remark : ${pjpInfo.remarks}',
+                      style: const TextStyle(
+                        fontFamily: 'Lexend Deca',
+                        color: Color(0xFF95A1AC),
+                        fontSize: 14,
+                        fontWeight: FontWeight.normal,
+                      ),
+                    ),
+                  ],
                 ),
                 //),
                 trailing: /*pjpInfo.isSelfPJP=='0' && pjpInfo.ApprovalStatus =='Pending'? OutlinedButton(

@@ -19,6 +19,7 @@ import 'package:Intranet/pages/pjp/cvf/v2/cvf.dart';
 import 'package:Intranet/pages/pjp/models/PjpModel.dart';
 import 'package:Intranet/pages/pjp/mypjp.dart';
 import 'package:Intranet/pages/userinfo/employee_list.dart';
+import 'package:Intranet/pages/widget/business_widget.dart';
 import 'package:app_links/app_links.dart';
 import 'package:app_version_update/app_version_update.dart';
 import 'package:awesome_notifications/awesome_notifications.dart';
@@ -159,6 +160,7 @@ class _IntranetHomePageState extends State<IntranetHomePage>
     hiveBox.put(LocalConstant.KEY_BUSINESS_NAME, name);
     hiveBox.put(LocalConstant.KEY_BUSINESS_USERID, uid);
     //hiveBox.put(LocalConstant.KEY_FRANCHISEE_ID,uid);
+    BusinessWidget.instance.setBusiness(id: bid, name: name, userId: uid);
     setState(() {
       _currentBusinessName = name;
     });

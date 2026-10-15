@@ -57,7 +57,7 @@ class PjpApprovalController extends GetxController {
   final Rx<PjpDatePreset> datePreset = PjpDatePreset.lastMonth.obs;
   final RxString searchQuery = ''.obs;
 
-  final Rx<DateTime> fromDate =  DateTime(
+  final Rx<DateTime> fromDate = DateTime(
     DateTime.now().year,
     DateTime.now().month - 6,
     DateTime.now().day,
@@ -171,6 +171,7 @@ class PjpApprovalController extends GetxController {
   }
 
   Future<void> loadPjps({bool silent = false}) async {
+    await _loadUserInfo();
     if (!silent) {
       isLoading.value = true;
     } else {
@@ -216,9 +217,10 @@ class PjpApprovalController extends GetxController {
           isLoading.value = false;
           isRefreshing.value = false;
           errorMessage.value = message;
-          allPjps.clear();
-          visiblePjps.clear();
-          employeeNames.clear();
+          if (allPjps.isEmpty) {
+            visiblePjps.clear();
+            employeeNames.clear();
+          }
         },
       ),
     );
@@ -234,8 +236,7 @@ class PjpApprovalController extends GetxController {
         .toList()
       ..sort();
     employeeNames.assignAll(names);
-    selectedEmployees
-        .removeWhere((name) => !employeeNames.contains(name));
+    selectedEmployees.removeWhere((name) => !employeeNames.contains(name));
   }
 
   void setStatusFilter(PjpApprovalStatusFilter filter) {
@@ -453,13 +454,23 @@ class PjpApprovalController extends GetxController {
           isSubmitting.value = false;
           if (!context.mounted) return;
           if (value is GeneralResponse) {
+            final updatedStatus = approve ? 'Approved' : 'Rejected';
+            final updatedIds = pjps.map((p) => p.PJP_Id).toSet();
+            for (final pjp in allPjps) {
+              if (updatedIds.contains(pjp.PJP_Id)) {
+                pjp.ApprovalStatus = updatedStatus;
+              }
+            }
+            selectedIds.removeWhere((id) => updatedIds.contains(id));
+            allPjps.refresh();
+            _applyFilters();
+
             Utility.showMessage(
               context,
               approve
                   ? 'PJP(s) approved successfully'
                   : 'PJP(s) rejected successfully',
             );
-            selectedIds.clear();
             await loadPjps(silent: true);
           } else {
             Utility.showMessage(context, 'Unable to update PJP status.');

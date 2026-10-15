@@ -43,8 +43,9 @@ class DBHelper {
       'date TEXT)';*/
 
   static String CREATE_TABLE_NOTIFICATION =
-      'CREATE TABLE ${LocalConstant.TABLE_NOTIFICATION}'
+      'CREATE TABLE IF NOT EXISTS ${LocalConstant.TABLE_NOTIFICATION}'
       '(${DBConstant.ID} INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, '
+      'message_id TEXT UNIQUE, '
       'title TEXT, '
       'description TEXT, '
       'type TEXT, '
@@ -232,7 +233,7 @@ class DBHelper {
     // open if found, create if not found for db
     return factory.openDatabase(dbPathStr,
         options: sql.OpenDatabaseOptions(
-            version: 17,
+            version: 18,
             onCreate: (db, version) {
               db.execute(CREATE_TABLE_ALL_EMPLOYEE);
               db.execute(CREATE_TABLE_NOTIFICATION);
@@ -275,7 +276,7 @@ class DBHelper {
                 //db.execute(CREATE_TABLE_CVF_FRANCHISEE);
                 db.execute(CREATE_TABLE_NOTIFICATION);
               }
-              if(old <= 16){
+              if (old <= 16) {
                 db.execute(
                     "ALTER TABLE ${LocalConstant.TABLE_CVF_FRANCHISEE} ADD COLUMN ${DBConstant.franchiseelat} TEXT;");
                 db.execute(
@@ -285,6 +286,16 @@ class DBHelper {
                       "ALTER TABLE ${LocalConstant.TABLE_NOTIFICATION} ADD COLUMN is_seen INTEGER DEFAULT 0;");
                 } catch (e) {
                   debugPrint("Error migrating notification table: $e");
+                }
+              }
+              if (old <= 17) {
+                try {
+                  db.execute(
+                      "ALTER TABLE ${LocalConstant.TABLE_NOTIFICATION} ADD COLUMN message_id TEXT;");
+                  db.execute(
+                      "CREATE UNIQUE INDEX IF NOT EXISTS idx_notification_message_id ON ${LocalConstant.TABLE_NOTIFICATION} (message_id);");
+                } catch (e) {
+                  debugPrint("Error migrating notification table message_id: $e");
                 }
               }
             }));
@@ -424,15 +435,17 @@ class DBHelper {
       String imageurl) async {
     var dbclient = await db;
     Map<String, Object> data = {
+      'message_id': id,
       'title': title,
       'type': type,
       'notification': notification,
       'data': dataNotification,
-      'isseen': isseen,
+      'is_seen': isseen,
       'imageurl': imageurl,
       'date': Utility.parseDate(DateTime.now()),
     };
-    await dbclient.insert(LocalConstant.TABLE_NOTIFICATION, data);
+    await dbclient.insert(LocalConstant.TABLE_NOTIFICATION, data,
+        conflictAlgorithm: sql.ConflictAlgorithm.replace);
   }
 
   Future<void> insertCheckIn(

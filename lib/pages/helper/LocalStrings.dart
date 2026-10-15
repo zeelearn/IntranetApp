@@ -8,7 +8,10 @@ class LocalStrings {
   static var stepThreeContent = "";
 
   static const String bpms = "https://kubapi.zeelearn.com/V1/commonapi";
+  static const String expense = "https://kubapi.zeelearn.com/V1/expensesApi";
   static const String bpms_no_http = "kubapi.zeelearn.com";
+  static const String EXPENSES_CALL_JSON_API =
+      "$expense/api/expense/calljsonapi";
   static const String productionBaseUrl = "https://app.ekidzee.com";
   static const String developmentBaseUrl = "https://intranetapi.zeelearn.com";
   static const kGoogleApiKey = "AIzaSyD-x4HqYO1O0kwDpkxIc128nM4f1bZ3oDM";

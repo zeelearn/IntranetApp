@@ -78,6 +78,7 @@ import 'package:Intranet/api/response/pjp/add_pjp_response.dart';
 import 'package:Intranet/api/response/pjp/employee_response.dart';
 import 'package:Intranet/api/response/pjp/pjp_exceptional_list.dart';
 import 'package:Intranet/api/response/pjp/pjplistresponse.dart';
+import 'package:Intranet/api/response/pjp/state_city_response.dart';
 import 'package:Intranet/api/response/pjp/update_pjpstatus_response.dart';
 import 'package:Intranet/api/response/report/my_report.dart';
 import 'package:Intranet/api/response/uploadimage.dart';
@@ -836,6 +837,32 @@ class APIService {
       }
     } catch (e) {
       e.toString();
+      return null;
+    }
+  }
+
+  Future<StateCityResponse?> getCityList({String searchCity = ""}) async {
+    try {
+      final response = await http.post(
+        Uri.parse(LocalStrings.EXPENSES_CALL_JSON_API),
+        headers: {
+          'Accept': '*/*',
+          'Content-Type': 'application/json; charset=utf-8',
+        },
+        body: jsonEncode({
+          "procedureName": "pr_getCity",
+          "params": {"search_city": searchCity}
+        }),
+      );
+      if (response.statusCode == 200) {
+        return StateCityResponse.fromJson(
+          json.decode(response.body),
+        );
+      } else {
+        return null;
+      }
+    } catch (e) {
+      debugPrint("Error fetching city list: $e");
       return null;
     }
   }

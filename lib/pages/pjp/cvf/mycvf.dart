@@ -843,7 +843,7 @@ class _MyCVFListScreen extends State<MyCVFListScreen>
     isInternet = await Utility.isInternet();
     if (isInternet) {
       IntranetServiceHandler.updateCVFStatus(employeeId, cvfView,
-          Utility.getDateTime(), getNextStatus(cvfView.Status), this);
+          Utility.getDateTime(), getNextStatus(cvfView.Status), this, context);
       McvfView = cvfView;
     } else {
       //offline
@@ -892,6 +892,11 @@ class _MyCVFListScreen extends State<MyCVFListScreen>
       longitude= position.longitude;
     }*/
     LocationData? location = await LocationHelper.getLocation(context);
+    if (location == null || location.latitude == null || location.longitude == null || (location.latitude == 0.0 && location.longitude == 0.0)) {
+      Navigator.of(context).pop();
+      Utility.showMessage(context, 'Location permission is required to check in. Please enable location.');
+      return;
+    }
     String address =
         ''; //await Utility.getAddress(location.latitude!, location.longitude!);
     UpdateCVFStatusRequest request = UpdateCVFStatusRequest(

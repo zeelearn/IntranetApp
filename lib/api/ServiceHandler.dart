@@ -103,14 +103,25 @@ class IntranetServiceHandler {
   }
 
   static updateCVFStatus(int employeeId, GetDetailedPJP cvfView, String date,
-      String status, onResponse onResponse) async {
+      String status, onResponse onResponse, [BuildContext? context]) async {
     double latitude = 0.0;
     double longitude = 0.0;
     onResponse.onStart();
-    LocationData? location = await LocationHelper.getLocation(null);
-    if (location != null) {
-      latitude = location.latitude!;
-      longitude = location.longitude!;
+    LocationData? location;
+    try {
+      location = await LocationHelper.getLocation(context);
+      if (location != null && location.latitude != null && location.longitude != null) {
+        latitude = location.latitude!;
+        longitude = location.longitude!;
+      }
+    } catch (e) {
+      debugPrint('Error getting location in updateCVFStatus: $e');
+    }
+
+    if (location == null || (latitude == 0.0 && longitude == 0.0)) {
+      onResponse.onError(
+          'Location permission is required to update status. Please allow location access in your browser/device settings.');
+      return;
     }
 
     String? address = await Utility.getAddress(latitude, longitude);
