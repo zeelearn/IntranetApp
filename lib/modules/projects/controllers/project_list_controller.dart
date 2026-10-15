@@ -7,12 +7,14 @@ import 'package:get/get.dart';
 import 'package:Intranet/api/response/login_response.dart';
 import 'package:Intranet/modules/projects/models/dashboard_colors.dart';
 import 'package:Intranet/modules/projects/models/dashboard_failure.dart';
+import 'package:Intranet/modules/projects/models/indent_item.dart';
 import 'package:Intranet/modules/projects/models/project_detail.dart';
 import 'package:Intranet/modules/projects/models/project_item.dart';
 import 'package:Intranet/modules/projects/models/project_list_filter.dart';
 import 'package:Intranet/modules/projects/models/send_credentials_result.dart';
 import 'package:Intranet/modules/projects/repositories/project_repository.dart';
 import 'package:Intranet/modules/projects/services/credentials_cooldown_store.dart';
+import 'package:Intranet/modules/projects/widgets/branding_kit_sheet.dart';
 import 'package:Intranet/modules/projects/views/project_detail_screen.dart';
 import 'package:Intranet/modules/projects/views/task_hierarchy_screen.dart';
 import 'package:Intranet/pages/widget/MyWebSiteView.dart';
@@ -53,6 +55,7 @@ class ProjectListController extends GetxController {
   final RxBool servingFromCache = false.obs;
   final RxBool showSearchBar = true.obs;
   final RxBool isSendingCredentials = false.obs;
+  final RxInt searchResetVersion = 0.obs;
   final RxnString errorMessage = RxnString();
   final RxnString sendingCredentialsCrmId = RxnString();
 
@@ -187,11 +190,22 @@ class ProjectListController extends GetxController {
 
   void onSearchChanged(String value) {
     _searchDebounce?.cancel();
+    searchQuery.value = value;
     _searchDebounce = Timer(const Duration(milliseconds: 500), () {
-      searchQuery.value = value;
       page.value = 1;
       _recomputeVisible();
     });
+  }
+
+  bool clearSearchIfActive() {
+    if (searchQuery.value.trim().isEmpty) return false;
+
+    _searchDebounce?.cancel();
+    searchQuery.value = '';
+    searchResetVersion.value++;
+    page.value = 1;
+    _recomputeVisible();
+    return true;
   }
 
   void applyFilter(ProjectListFilter value) {
@@ -453,6 +467,47 @@ class ProjectListController extends GetxController {
     }
   }
 
+  Future<void> onBrandingKitTap(
+    BuildContext context,
+    ProjectItem project,
+  ) async {
+    if (!project.canShowBrandingKit) {
+      _showMessage(context, 'Branding Kit is not available for this project.');
+      return;
+    }
+    if (project.franchiseeId <= 0) {
+      _showMessage(
+        context,
+        'Franchisee ID is missing. Cannot open Branding Kit.',
+      );
+      return;
+    }
+    if (isOffline.value) {
+      _showMessage(context, 'No internet connection.');
+      return;
+    }
+
+    final item = IndentItem(
+      franchiseeCode: project.franchiseeCode,
+      franchiseeName: project.franchiseeName,
+      zoneCode: '',
+      stateName: '',
+      agreementNo: '',
+      pil: 0,
+      apprAmount: null,
+      dueAmount: 0,
+      dueDate: '',
+      indentId: int.tryParse(project.brandingIndentId ?? '') ?? 0,
+      indentStatus: '',
+      createdBy: project.createdBy,
+      paymentStatus: '',
+      projectStatus: '',
+      businessRefId: project.franchiseeId,
+      canIndentBk: project.canIndentBk,
+    );
+    await showBrandingKitSheet(context: context, item: item);
+  }
+
   Future<void> confirmAndSendCredentials(
     BuildContext context,
     ProjectItem project,
@@ -478,9 +533,8 @@ class ProjectListController extends GetxController {
       return;
     }
 
-    final name = project.franchiseeName.isNotEmpty
-        ? project.franchiseeName
-        : crmId;
+    final name =
+        project.franchiseeName.isNotEmpty ? project.franchiseeName : crmId;
 
     final confirmed = await showDialog<bool>(
       context: context,

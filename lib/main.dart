@@ -494,9 +494,9 @@ Future<void> main() async {
     },
     zoneSpecification: kSilenceConsoleLogs
         ? ZoneSpecification(
-            print: (self, parent, zone, line) {
-              // Swallow print() output.
-            },
+            // print: (self, parent, zone, line) {
+            //   // Swallow print() output.
+            // },
           )
         : null,
   );

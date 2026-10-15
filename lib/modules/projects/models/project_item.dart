@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 
 import 'task_summary.dart';
+import '../utils/indent_action_roles.dart';
 
 class ProjectItem extends Equatable {
   const ProjectItem({
@@ -22,6 +23,7 @@ class ProjectItem extends Equatable {
     this.id = '',
     this.illumeIndentId,
     this.brandingIndentId,
+    this.canIndentBk = 0,
     this.isIllumeDispatchConfirmed,
     this.isBrandingDispatchConfirmed,
     this.showIllumeDispatchBtn = 0,
@@ -51,6 +53,9 @@ class ProjectItem extends Equatable {
   /// Branding / BK indent id from GetAllProjectList_new.
   final String? brandingIndentId;
 
+  /// API permission flag for Branding Kit and other finance actions.
+  final int canIndentBk;
+
   /// Only `true` means confirmed; `null` and `false` are not confirmed.
   final bool? isIllumeDispatchConfirmed;
 
@@ -72,6 +77,9 @@ class ProjectItem extends Equatable {
   /// Eligible to show BK dispatch UI (indent present + API flag).
   bool get shouldShowBKDispatch =>
       _hasIndentId(brandingIndentId) && showBrandingDispatchBtn == 1;
+
+  bool get canShowBrandingKit =>
+      IndentActionRoles.canAccessFinanceActions(canIndentBk);
 
   bool get isCKDispatchConfirmed => isIllumeDispatchConfirmed == true;
 
@@ -107,6 +115,7 @@ class ProjectItem extends Equatable {
       id: _asString(json['id']),
       illumeIndentId: _asNullableString(json['Illume_Indent_Id']),
       brandingIndentId: _asNullableString(json['Branding_Indent_Id']),
+      canIndentBk: _asInt(json['CanIndentBK'] ?? json['canIndentBK']),
       isIllumeDispatchConfirmed:
           _asNullableBool(json['is_illume_dispatch_confirmed']),
       isBrandingDispatchConfirmed:
@@ -135,6 +144,7 @@ class ProjectItem extends Equatable {
         'id': id,
         'Illume_Indent_Id': illumeIndentId,
         'Branding_Indent_Id': brandingIndentId,
+        'CanIndentBK': canIndentBk,
         'is_illume_dispatch_confirmed': isIllumeDispatchConfirmed,
         'is_branding_dispatch_confirmed': isBrandingDispatchConfirmed,
         'show_illume_dispatch_btn': showIllumeDispatchBtn,
@@ -160,6 +170,7 @@ class ProjectItem extends Equatable {
     String? id,
     String? illumeIndentId,
     String? brandingIndentId,
+    int? canIndentBk,
     bool? isIllumeDispatchConfirmed,
     bool? isBrandingDispatchConfirmed,
     int? showIllumeDispatchBtn,
@@ -192,6 +203,7 @@ class ProjectItem extends Equatable {
       brandingIndentId: clearBrandingIndentId
           ? null
           : (brandingIndentId ?? this.brandingIndentId),
+      canIndentBk: canIndentBk ?? this.canIndentBk,
       isIllumeDispatchConfirmed: clearIsIllumeDispatchConfirmed
           ? null
           : (isIllumeDispatchConfirmed ?? this.isIllumeDispatchConfirmed),
@@ -265,6 +277,7 @@ class ProjectItem extends Equatable {
         id,
         illumeIndentId,
         brandingIndentId,
+        canIndentBk,
         isIllumeDispatchConfirmed,
         isBrandingDispatchConfirmed,
         showIllumeDispatchBtn,

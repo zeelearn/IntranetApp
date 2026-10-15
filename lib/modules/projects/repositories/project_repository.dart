@@ -130,6 +130,9 @@ class ProjectRepository {
       result = result.where((p) {
         return p.crmId.toLowerCase().contains(q) ||
             p.franchiseeName.toLowerCase().contains(q) ||
+            // p.franchiseeId.toString().contains(q) ||
+            p.franchiseeCode.toLowerCase().contains(q) ||
+            p.responsiblePerson.toLowerCase().contains(q) ||
             p.createdBy.toLowerCase().contains(q) ||
             p.catchmentArea.toLowerCase().contains(q) ||
             p.tierName.toLowerCase().contains(q) ||

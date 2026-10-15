@@ -17,6 +17,7 @@ class ProjectCard extends StatelessWidget {
     required this.onDocuments,
     required this.onViewReport,
     required this.onSendCredentials,
+    required this.onBrandingKit,
     this.onConfirmCKDispatch,
     this.onConfirmBKDispatch,
     this.isConfirmingCKDispatch = false,
@@ -38,6 +39,7 @@ class ProjectCard extends StatelessWidget {
   final VoidCallback onCardTap;
   final VoidCallback onViewReport;
   final VoidCallback onSendCredentials;
+  final VoidCallback onBrandingKit;
   final VoidCallback? onConfirmCKDispatch;
   final VoidCallback? onConfirmBKDispatch;
   final bool isConfirmingCKDispatch;
@@ -59,8 +61,7 @@ class ProjectCard extends StatelessWidget {
         : statusLabel;
     final approved = ProjectDateUtils.formatReadable(p.approvedDate);
     final deadline = ProjectDateUtils.formatReadable(p.deadline);
-    final missed =
-        showMissedDeadline && ProjectDateUtils.isMissed(p.deadline);
+    final missed = showMissedDeadline && ProjectDateUtils.isMissed(p.deadline);
     final displayName = p.franchiseeName.isNotEmpty
         ? p.franchiseeName
         : (p.title.isNotEmpty ? p.title : '—');
@@ -121,6 +122,10 @@ class ProjectCard extends StatelessWidget {
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
+                          if (p.canShowBrandingKit) ...[
+                            const SizedBox(width: 6),
+                            _BrandingKitHeaderButton(onTap: onBrandingKit),
+                          ],
                           _HeaderIconButton(
                             tooltip: 'View Report',
                             icon: Icons.bar_chart_rounded,
@@ -137,8 +142,8 @@ class ProjectCard extends StatelessWidget {
                             color: sendCredentialsEnabled
                                 ? DashboardColors.purple
                                 : DashboardColors.textMuted,
-                            enabled: sendCredentialsEnabled &&
-                                !isSendingCredentials,
+                            enabled:
+                                sendCredentialsEnabled && !isSendingCredentials,
                             onTap: onSendCredentials,
                           ),
                           const SizedBox(width: 8),
@@ -156,7 +161,26 @@ class ProjectCard extends StatelessWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      const SizedBox(height: 8),
+                      if (p.franchiseeCode.isNotEmpty) ...[
+                        const SizedBox(width: 8),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                'Franchisee Code: ${p.franchiseeCode}',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w500,
+                                  color: DashboardColors.textMuted,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(width: 8),
+                      ],
                       _InfoRow(
                         icon: Icons.location_on_outlined,
                         text:
@@ -224,7 +248,7 @@ class ProjectCard extends StatelessWidget {
                     ],
                   ),
                 ),
-                if (showCK || showBK) ...[
+                if (showCK || showBK || p.isIllumeDispatchConfirmed!=null && p.isIllumeDispatchConfirmed! || p.isBrandingDispatchConfirmed!=null && p.isBrandingDispatchConfirmed!) ...[
                   const SizedBox(height: 8),
                   _DispatchButtonsRow(
                     project: p,
@@ -266,8 +290,7 @@ class ProjectCard extends StatelessWidget {
                     ),
                   ],
                 ),
-                if (sendCredentialsHint != null &&
-                    !sendCredentialsEnabled) ...[
+                if (sendCredentialsHint != null && !sendCredentialsEnabled) ...[
                   const SizedBox(height: 6),
                   Text(
                     'Credentials cooldown: $sendCredentialsHint',
@@ -306,15 +329,17 @@ class _DispatchButtonsRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+print('ProjectCard: build _DispatchButtonsRow for ${project.crmId} (CK: $isConfirmingCK, BK: $isConfirmingBK)');
+print('project.isCKDispatchConfirmed ${project.isCKDispatchConfirmed}');
     final children = <Widget>[
-      if (project.shouldShowCKDispatch)
+      if (project.shouldShowCKDispatch || isConfirmingCK || project.isCKDispatchConfirmed)
         _DispatchConfirmButton(
           type: DispatchConfirmType.ck,
           confirmed: project.isCKDispatchConfirmed,
           loading: isConfirmingCK,
           onTap: project.canConfirmCKDispatch ? onConfirmCK : null,
         ),
-      if (project.shouldShowBKDispatch)
+      if (project.shouldShowBKDispatch || isConfirmingBK || project.isBKDispatchConfirmed)
         _DispatchConfirmButton(
           type: DispatchConfirmType.bk,
           confirmed: project.isBKDispatchConfirmed,
@@ -371,9 +396,7 @@ class _DispatchConfirmButton extends StatelessWidget {
     if (confirmed) {
       color = DashboardColors.success;
       icon = Icons.check_circle_rounded;
-      label = isCK
-          ? 'CK Dispatch Confirmed'
-          : 'BK Dispatch Confirmed';
+      label = isCK ? 'CK Dispatch Confirmed' : 'BK Dispatch Confirmed';
     } else if (loading) {
       color = isCK ? DashboardColors.purple : DashboardColors.primary;
       icon = Icons.hourglass_top_rounded;
@@ -462,6 +485,34 @@ class _HeaderIconButton extends StatelessWidget {
         icon,
         size: 20,
         color: enabled ? color : color.withValues(alpha: 0.45),
+      ),
+    );
+  }
+}
+
+class _BrandingKitHeaderButton extends StatelessWidget {
+  const _BrandingKitHeaderButton({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return OutlinedButton.icon(
+      onPressed: onTap,
+      icon: const Icon(Icons.palette_outlined, size: 14),
+      label: const Text('Branding Kit'),
+      style: OutlinedButton.styleFrom(
+        foregroundColor: DashboardColors.purple,
+        side: BorderSide(color: DashboardColors.purple.withValues(alpha: 0.35)),
+        padding: const EdgeInsets.symmetric(horizontal: 7),
+        minimumSize: const Size(0, 30),
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        visualDensity: VisualDensity.compact,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        textStyle: GoogleFonts.poppins(
+          fontSize: 9,
+          fontWeight: FontWeight.w600,
+        ),
       ),
     );
   }

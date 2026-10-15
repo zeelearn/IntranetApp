@@ -108,7 +108,8 @@ class _BrandingKitSheet extends StatelessWidget {
             const Divider(height: 1),
             Expanded(
               child: Obx(() {
-                if (controller.isLoading.value && controller.data.value == null) {
+                if (controller.isLoading.value &&
+                    controller.data.value == null) {
                   return const Center(child: CircularProgressIndicator());
                 }
                 if (controller.errorMessage.value != null &&
@@ -167,26 +168,24 @@ class _OverviewView extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 20),
-              Obx(() {
-                if (!controller.canAddOrder) {
-                  return Text(
-                    'Only MAN / BH can add a branding order.',
-                    textAlign: TextAlign.center,
-                    style: GoogleFonts.poppins(
-                      fontSize: 12,
-                      color: DashboardColors.textMuted,
-                    ),
-                  );
-                }
-                return FilledButton.icon(
+              if (!controller.canAddOrder)
+                Text(
+                  'Only MAN / BH can add a branding order.',
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    color: DashboardColors.textMuted,
+                  ),
+                )
+              else
+                FilledButton.icon(
                   style: DashboardColors.primaryFilledButton(),
                   onPressed: controller.products.isEmpty
                       ? null
                       : controller.openAddOrderForm,
                   icon: const Icon(Icons.add_rounded),
                   label: const Text('Add Order'),
-                );
-              }),
+                ),
             ],
           ),
         );
@@ -256,8 +255,7 @@ class _IndentLineCard extends StatelessWidget {
                 ),
               ),
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
                   color: DashboardColors.purpleLight,
                   borderRadius: BorderRadius.circular(8),
@@ -349,7 +347,8 @@ class _OrderFormView extends StatelessWidget {
                 final row = controller.formRows[index];
                 return _ProductFormTile(
                   row: row,
-                  onSelected: (v) => controller.toggleProduct(index, v ?? false),
+                  onSelected: (v) =>
+                      controller.toggleProduct(index, v ?? false),
                   onQuantityChanged: (q) => controller.setQuantity(index, q),
                 );
               },

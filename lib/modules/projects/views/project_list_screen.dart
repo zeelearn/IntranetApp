@@ -109,7 +109,9 @@ class ProjectListScreen extends StatelessWidget {
               duration: const Duration(milliseconds: 200),
               child: controller.showSearchBar.value
                   ? ProjectSearchBar(
-                      key: const ValueKey('search'),
+                      key: ValueKey(
+                        'search-${controller.searchResetVersion.value}',
+                      ),
                       onChanged: controller.onSearchChanged,
                       onFilterTap: () async {
                         final result = await showProjectFilterSheet(
@@ -184,16 +186,14 @@ class ProjectListScreen extends StatelessWidget {
                             }
                             return Obx(() {
                               // Re-read from list so local dispatch flags refresh.
-                              final project =
-                                  controller.visibleProjects[index];
+                              final project = controller.visibleProjects[index];
                               final crmId = project.crmId;
                               final cooldownHint =
                                   controller.sendCredentialsCooldownHint(crmId);
-                              final sending =
-                                  controller.isSendingCredentials.value &&
-                                      controller.sendingCredentialsCrmId
-                                              .value ==
-                                          crmId;
+                              final sending = controller
+                                      .isSendingCredentials.value &&
+                                  controller.sendingCredentialsCrmId.value ==
+                                      crmId;
                               // Touch loading key so Obx rebuilds while confirming.
                               controller.confirmingDispatchKey.value;
                               return ProjectCard(
@@ -216,11 +216,13 @@ class ProjectListScreen extends StatelessWidget {
                                     controller.onDocuments(project),
                                 onViewReport: () =>
                                     controller.viewReport(project),
-                                onSendCredentials: () => controller
-                                    .confirmAndSendCredentials(
+                                onSendCredentials: () =>
+                                    controller.confirmAndSendCredentials(
                                   context,
                                   project,
                                 ),
+                                onBrandingKit: () => controller
+                                    .onBrandingKitTap(context, project),
                                 onConfirmCKDispatch: () =>
                                     controller.confirmAndSaveDispatch(
                                   context,
@@ -287,14 +289,13 @@ class ProjectListScreen extends StatelessWidget {
                               runSpacing: runSpacing,
                               children: [
                                 for (var index = 0;
-                                    index <
-                                        controller.visibleProjects.length;
+                                    index < controller.visibleProjects.length;
                                     index++)
                                   SizedBox(
                                     width: cardWidth,
                                     child: Obx(() {
-                                      final project = controller
-                                          .visibleProjects[index];
+                                      final project =
+                                          controller.visibleProjects[index];
                                       final crmId = project.crmId;
                                       final cooldownHint = controller
                                           .sendCredentialsCooldownHint(
@@ -318,10 +319,10 @@ class ProjectListScreen extends StatelessWidget {
                                         ),
                                         onCardTap: () => controller
                                             .openTaskScreen(project, 0),
-                                        onCommunication: () => controller
-                                            .onCommunication(project),
-                                        onIndentDetails: () => controller
-                                            .onIndentDetails(project),
+                                        onCommunication: () =>
+                                            controller.onCommunication(project),
+                                        onIndentDetails: () =>
+                                            controller.onIndentDetails(project),
                                         onDocuments: () =>
                                             controller.onDocuments(project),
                                         onViewReport: () =>
@@ -331,6 +332,8 @@ class ProjectListScreen extends StatelessWidget {
                                           context,
                                           project,
                                         ),
+                                        onBrandingKit: () => controller
+                                            .onBrandingKitTap(context, project),
                                         onConfirmCKDispatch: () =>
                                             controller.confirmAndSaveDispatch(
                                           context,
@@ -404,7 +407,10 @@ class _AppBar extends StatelessWidget {
         child: Row(
           children: [
             IconButton(
-              onPressed: () => Navigator.of(context).maybePop(),
+              onPressed: () {
+                if (controller.clearSearchIfActive()) return;
+                Navigator.of(context).maybePop();
+              },
               icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
             ),
             Expanded(
@@ -429,7 +435,7 @@ class _AppBar extends StatelessWidget {
                       ],
                     ),
                     Text(
-                      '${controller.visibleProjects.length} projects',
+                      '${controller.allProjects.length} projects',
                       style: GoogleFonts.poppins(
                         color: Colors.white.withValues(alpha: 0.85),
                         fontSize: 11,

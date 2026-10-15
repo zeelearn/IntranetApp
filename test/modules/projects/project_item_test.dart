@@ -23,6 +23,7 @@ void main() {
         'id': '99',
         'Illume_Indent_Id': null,
         'Branding_Indent_Id': null,
+        'CanIndentBK': 1,
         'is_illume_dispatch_confirmed': null,
         'is_branding_dispatch_confirmed': null,
         'show_illume_dispatch_btn': 0,
@@ -38,6 +39,8 @@ void main() {
       expect(item.taskSummary.pending, 3);
       expect(item.illumeIndentId, isNull);
       expect(item.brandingIndentId, isNull);
+      expect(item.canIndentBk, 1);
+      expect(item.canShowBrandingKit, isTrue);
       expect(item.isIllumeDispatchConfirmed, isNull);
       expect(item.isBrandingDispatchConfirmed, isNull);
       expect(item.showIllumeDispatchBtn, 0);
@@ -63,6 +66,7 @@ void main() {
         'taskcount': 'P-1',
         'Illume_Indent_Id': 'ill-1',
         'Branding_Indent_Id': 'br-1',
+        'CanIndentBK': 1,
         'is_illume_dispatch_confirmed': true,
         'is_branding_dispatch_confirmed': false,
         'show_illume_dispatch_btn': 1,
@@ -73,6 +77,7 @@ void main() {
       expect(json['Franchisee_Name'], 'Name');
       expect(json['Illume_Indent_Id'], 'ill-1');
       expect(json['Branding_Indent_Id'], 'br-1');
+      expect(json['CanIndentBK'], 1);
       expect(json['is_illume_dispatch_confirmed'], true);
       expect(json['is_branding_dispatch_confirmed'], false);
       expect(json['show_illume_dispatch_btn'], 1);
@@ -82,6 +87,7 @@ void main() {
       expect(copied.franchiseeName, 'Updated');
       expect(copied.crmId, item.crmId);
       expect(copied.illumeIndentId, 'ill-1');
+      expect(copied.canIndentBk, 1);
     });
   });
 
@@ -226,6 +232,25 @@ void main() {
           'Illume_Indent_Id': 'x',
           'show_illume_dispatch_btn': 1,
         }).canConfirmCKDispatch,
+        isFalse,
+      );
+    });
+
+    test('Branding Kit is available only when CanIndentBK is exactly 1', () {
+      expect(
+        ProjectItem.fromJson({'CanIndentBK': 1}).canShowBrandingKit,
+        isTrue,
+      );
+      expect(
+        ProjectItem.fromJson({'canIndentBK': '1'}).canShowBrandingKit,
+        isTrue,
+      );
+      expect(
+        ProjectItem.fromJson({'CanIndentBK': 2}).canShowBrandingKit,
+        isFalse,
+      );
+      expect(
+        ProjectItem.fromJson({}).canShowBrandingKit,
         isFalse,
       );
     });
