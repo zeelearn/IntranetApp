@@ -284,7 +284,7 @@ class _ListPageState extends State<UserNotification> {
                   employeeCode: employeeCode,
                   isAccch: isAccch,
                 ),
-              ),
+              ),);
           } else if (notificationModel.webViewUrl.trim().isNotEmpty &&
               (notificationModel.webViewUrl.startsWith('http://') ||
                   notificationModel.webViewUrl.startsWith('https://'))) {

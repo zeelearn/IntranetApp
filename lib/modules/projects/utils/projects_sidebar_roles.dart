@@ -30,6 +30,6 @@ class ProjectsSidebarRoles {
   //static bool canShowConfiguration(String? employeeType) => true;
 
   static  bool canShowConfiguration(String? employeeType) {
-    return configurationRoles.contains(normalize(employeeType));
+    return false && configurationRoles.contains(normalize(employeeType));
   }
 }
