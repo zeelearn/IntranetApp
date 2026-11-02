@@ -329,8 +329,8 @@ class _DispatchButtonsRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-print('ProjectCard: build _DispatchButtonsRow for ${project.crmId} (CK: $isConfirmingCK, BK: $isConfirmingBK)');
-print('project.isCKDispatchConfirmed ${project.isCKDispatchConfirmed}');
+// print('ProjectCard: build _DispatchButtonsRow for ${project.crmId} (CK: $isConfirmingCK, BK: $isConfirmingBK)');
+// print('project.isCKDispatchConfirmed ${project.isCKDispatchConfirmed}');
     final children = <Widget>[
       if (project.shouldShowCKDispatch || isConfirmingCK || project.isCKDispatchConfirmed)
         _DispatchConfirmButton(
