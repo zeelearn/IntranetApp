@@ -13,7 +13,7 @@
                 "-v",
                 "--web-browser-flag",
                 "--disable-web-security",
-                "--dart-define=IS_STAGING=false",
+                "--dart-define=IS_STAGING=true",
 
             ]
         },

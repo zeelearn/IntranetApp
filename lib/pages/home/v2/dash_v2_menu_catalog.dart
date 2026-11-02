@@ -31,6 +31,7 @@ class DashV2MenuCatalog {
     '14002035',
     '14001828',
     '14001782',
+    '14002689'
   ];
 
   // Icons / colors / subtitles aligned to Figma mobile feature cards.
