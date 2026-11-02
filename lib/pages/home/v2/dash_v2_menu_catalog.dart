@@ -1,3 +1,4 @@
+import 'package:Intranet/pages/helper/mobile_applications_store.dart';
 import 'package:Intranet/pages/home/v2/models/dash_v2_models.dart';
 import 'package:Intranet/pages/home/v2/widgets/dash_v2_tokens.dart';
 import 'package:flutter/material.dart';
@@ -30,6 +31,7 @@ class DashV2MenuCatalog {
     '14002035',
     '14001828',
     '14001782',
+    '14002689'
   ];
 
   // Icons / colors / subtitles aligned to Figma mobile feature cards.
@@ -136,10 +138,21 @@ class DashV2MenuCatalog {
     requiresBusiness: true,
   );
 
+  static const _bpManagement = DashQuickAccessItem(
+    key: 'bp_management',
+    title: 'Prospect Management',
+    subtitle: 'Open Prospect Management portal',
+    icon: Icons.handshake_outlined,
+    color: DashV2Colors.teal,
+    requiresBusiness: false,
+  );
+
   /// Live menus only (no Figma-only Documents). Order mirrors Figma where possible.
+  /// [mobileAppNames] — normalized `business_Name` values from myMobileApplications.
   static List<DashQuickAccessItem> visibleQuickAccess({
     required bool isBpms,
     required String employeeCode,
+    Set<String> mobileAppNames = const {},
   }) {
     return <DashQuickAccessItem>[
       _pjpDashboard,
@@ -147,15 +160,14 @@ class DashV2MenuCatalog {
       _expenses,
       _myPjp,
       _myCvf,
-      
       if (isBpms) _bpms else _pjpCvfApprovalExp,
-      
       _zllSaathi,
       _contracts,
+      if (mobileAppNames.contains(MobileApplicationsStore.bpManagement))
+        _bpManagement,
       if (notiflowAccessList.contains(employeeCode)) _notiflow,
       if (isBpms) _pjpCvfApprovalExp,
       _myReport,
-      
     ];
   }
 

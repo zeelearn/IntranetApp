@@ -5,6 +5,7 @@ import 'package:Intranet/api/response/login_response.dart';
 import 'package:Intranet/modules/projects/bindings/project_list_binding.dart';
 import 'package:Intranet/modules/projects/controllers/project_list_controller.dart';
 import 'package:Intranet/modules/projects/models/dashboard_colors.dart';
+import 'package:Intranet/modules/projects/models/project_item.dart';
 import 'package:Intranet/modules/projects/widgets/business_selector.dart';
 import 'package:Intranet/modules/projects/widgets/offline_banner.dart';
 import 'package:Intranet/modules/projects/widgets/project_card.dart';
@@ -108,7 +109,9 @@ class ProjectListScreen extends StatelessWidget {
               duration: const Duration(milliseconds: 200),
               child: controller.showSearchBar.value
                   ? ProjectSearchBar(
-                      key: const ValueKey('search'),
+                      key: ValueKey(
+                        'search-${controller.searchResetVersion.value}',
+                      ),
                       onChanged: controller.onSearchChanged,
                       onFilterTap: () async {
                         final result = await showProjectFilterSheet(
@@ -181,17 +184,18 @@ class ProjectListScreen extends StatelessWidget {
                                 ),
                               );
                             }
-                            final project =
-                                controller.visibleProjects[index];
                             return Obx(() {
+                              // Re-read from list so local dispatch flags refresh.
+                              final project = controller.visibleProjects[index];
                               final crmId = project.crmId;
                               final cooldownHint =
                                   controller.sendCredentialsCooldownHint(crmId);
-                              final sending =
-                                  controller.isSendingCredentials.value &&
-                                      controller.sendingCredentialsCrmId
-                                              .value ==
-                                          crmId;
+                              final sending = controller
+                                      .isSendingCredentials.value &&
+                                  controller.sendingCredentialsCrmId.value ==
+                                      crmId;
+                              // Touch loading key so Obx rebuilds while confirming.
+                              controller.confirmingDispatchKey.value;
                               return ProjectCard(
                                 project: project,
                                 index: index,
@@ -212,10 +216,34 @@ class ProjectListScreen extends StatelessWidget {
                                     controller.onDocuments(project),
                                 onViewReport: () =>
                                     controller.viewReport(project),
-                                onSendCredentials: () => controller
-                                    .confirmAndSendCredentials(
+                                onSendCredentials: () =>
+                                    controller.confirmAndSendCredentials(
                                   context,
                                   project,
+                                ),
+                                onBrandingKit: () => controller
+                                    .onBrandingKitTap(context, project),
+                                onConfirmCKDispatch: () =>
+                                    controller.confirmAndSaveDispatch(
+                                  context,
+                                  project,
+                                  DispatchConfirmType.ck,
+                                ),
+                                onConfirmBKDispatch: () =>
+                                    controller.confirmAndSaveDispatch(
+                                  context,
+                                  project,
+                                  DispatchConfirmType.bk,
+                                ),
+                                isConfirmingCKDispatch:
+                                    controller.isConfirmingDispatch(
+                                  project,
+                                  DispatchConfirmType.ck,
+                                ),
+                                isConfirmingBKDispatch:
+                                    controller.isConfirmingDispatch(
+                                  project,
+                                  DispatchConfirmType.bk,
                                 ),
                                 sendCredentialsEnabled:
                                     controller.canSendCredentials(crmId),
@@ -261,14 +289,13 @@ class ProjectListScreen extends StatelessWidget {
                               runSpacing: runSpacing,
                               children: [
                                 for (var index = 0;
-                                    index <
-                                        controller.visibleProjects.length;
+                                    index < controller.visibleProjects.length;
                                     index++)
                                   SizedBox(
                                     width: cardWidth,
                                     child: Obx(() {
-                                      final project = controller
-                                          .visibleProjects[index];
+                                      final project =
+                                          controller.visibleProjects[index];
                                       final crmId = project.crmId;
                                       final cooldownHint = controller
                                           .sendCredentialsCooldownHint(
@@ -279,6 +306,7 @@ class ProjectListScreen extends StatelessWidget {
                                           controller.sendingCredentialsCrmId
                                                   .value ==
                                               crmId;
+                                      controller.confirmingDispatchKey.value;
                                       return ProjectCard(
                                         project: project,
                                         index: index,
@@ -291,10 +319,10 @@ class ProjectListScreen extends StatelessWidget {
                                         ),
                                         onCardTap: () => controller
                                             .openTaskScreen(project, 0),
-                                        onCommunication: () => controller
-                                            .onCommunication(project),
-                                        onIndentDetails: () => controller
-                                            .onIndentDetails(project),
+                                        onCommunication: () =>
+                                            controller.onCommunication(project),
+                                        onIndentDetails: () =>
+                                            controller.onIndentDetails(project),
                                         onDocuments: () =>
                                             controller.onDocuments(project),
                                         onViewReport: () =>
@@ -303,6 +331,30 @@ class ProjectListScreen extends StatelessWidget {
                                             .confirmAndSendCredentials(
                                           context,
                                           project,
+                                        ),
+                                        onBrandingKit: () => controller
+                                            .onBrandingKitTap(context, project),
+                                        onConfirmCKDispatch: () =>
+                                            controller.confirmAndSaveDispatch(
+                                          context,
+                                          project,
+                                          DispatchConfirmType.ck,
+                                        ),
+                                        onConfirmBKDispatch: () =>
+                                            controller.confirmAndSaveDispatch(
+                                          context,
+                                          project,
+                                          DispatchConfirmType.bk,
+                                        ),
+                                        isConfirmingCKDispatch:
+                                            controller.isConfirmingDispatch(
+                                          project,
+                                          DispatchConfirmType.ck,
+                                        ),
+                                        isConfirmingBKDispatch:
+                                            controller.isConfirmingDispatch(
+                                          project,
+                                          DispatchConfirmType.bk,
                                         ),
                                         sendCredentialsEnabled: controller
                                             .canSendCredentials(crmId),
@@ -355,7 +407,10 @@ class _AppBar extends StatelessWidget {
         child: Row(
           children: [
             IconButton(
-              onPressed: () => Navigator.of(context).maybePop(),
+              onPressed: () {
+                if (controller.clearSearchIfActive()) return;
+                Navigator.of(context).maybePop();
+              },
               icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
             ),
             Expanded(
@@ -380,7 +435,7 @@ class _AppBar extends StatelessWidget {
                       ],
                     ),
                     Text(
-                      '${controller.visibleProjects.length} projects',
+                      '${controller.allProjects.length} projects',
                       style: GoogleFonts.poppins(
                         color: Colors.white.withValues(alpha: 0.85),
                         fontSize: 11,

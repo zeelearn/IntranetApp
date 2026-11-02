@@ -1,6 +1,7 @@
 import 'package:Intranet/pages/home/v2/dashboard_screen_v2_controller.dart';
 import 'package:Intranet/pages/home/v2/widgets/dash_kpi_row.dart';
 import 'package:Intranet/pages/home/v2/widgets/dash_mobile_app_bar.dart';
+import 'package:Intranet/pages/home/v2/widgets/dash_notification_permission_alert.dart';
 import 'package:Intranet/pages/home/v2/widgets/dash_project_status_card.dart';
 import 'package:Intranet/pages/home/v2/widgets/dash_quick_access_grid.dart';
 import 'package:Intranet/pages/home/v2/widgets/dash_recent_activity_card.dart';
@@ -98,6 +99,7 @@ class _DashboardScreenV2State extends State<DashboardScreenV2> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               //const DashAdBanner(),
+              const DashNotificationPermissionAlert(),
               const DashWelcomeBanner(),
               // const SizedBox(height: 18),
               // const DashKpiRow(),
@@ -134,6 +136,7 @@ class _DashboardScreenV2State extends State<DashboardScreenV2> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        const DashNotificationPermissionAlert(),
                         //const DashKpiRow(variant: DashKpiVariant.web),
                         //const SizedBox(height: 24),
                         _buildQuickAccessSection(),

@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 
 import 'task_summary.dart';
+import '../utils/indent_action_roles.dart';
 
 class ProjectItem extends Equatable {
   const ProjectItem({
@@ -20,6 +21,13 @@ class ProjectItem extends Equatable {
     this.title = '',
     this.responsiblePerson = '',
     this.id = '',
+    this.illumeIndentId,
+    this.brandingIndentId,
+    this.canIndentBk = 0,
+    this.isIllumeDispatchConfirmed,
+    this.isBrandingDispatchConfirmed,
+    this.showIllumeDispatchBtn = 0,
+    this.showBrandingDispatchBtn = 0,
   });
 
   final String crmId;
@@ -39,7 +47,51 @@ class ProjectItem extends Equatable {
   final String responsiblePerson;
   final String id;
 
+  /// Illume / CK indent id from GetAllProjectList_new.
+  final String? illumeIndentId;
+
+  /// Branding / BK indent id from GetAllProjectList_new.
+  final String? brandingIndentId;
+
+  /// API permission flag for Branding Kit and other finance actions.
+  final int canIndentBk;
+
+  /// Only `true` means confirmed; `null` and `false` are not confirmed.
+  final bool? isIllumeDispatchConfirmed;
+
+  /// Only `true` means confirmed; `null` and `false` are not confirmed.
+  final bool? isBrandingDispatchConfirmed;
+
+  /// Only `1` enables the CK dispatch button.
+  final int showIllumeDispatchBtn;
+
+  /// Only `1` enables the BK dispatch button.
+  final int showBrandingDispatchBtn;
+
   TaskSummary get taskSummary => TaskSummary.parse(taskcount);
+
+  /// Eligible to show CK dispatch UI (indent present + API flag).
+  bool get shouldShowCKDispatch =>
+      _hasIndentId(illumeIndentId) && showIllumeDispatchBtn == 1;
+
+  /// Eligible to show BK dispatch UI (indent present + API flag).
+  bool get shouldShowBKDispatch =>
+      _hasIndentId(brandingIndentId) && showBrandingDispatchBtn == 1;
+
+  bool get canShowBrandingKit =>
+      IndentActionRoles.canAccessFinanceActions(canIndentBk);
+
+  bool get isCKDispatchConfirmed => isIllumeDispatchConfirmed == true;
+
+  bool get isBKDispatchConfirmed => isBrandingDispatchConfirmed == true;
+
+  /// Enabled clickable "Confirm CK Dispatch".
+  bool get canConfirmCKDispatch =>
+      shouldShowCKDispatch && !isCKDispatchConfirmed;
+
+  /// Enabled clickable "Confirm BK Dispatch".
+  bool get canConfirmBKDispatch =>
+      shouldShowBKDispatch && !isBKDispatchConfirmed;
 
   factory ProjectItem.fromJson(Map<String, dynamic> json) {
     return ProjectItem(
@@ -48,7 +100,7 @@ class ProjectItem extends Equatable {
       approvedDate: _asString(json['approved_date']),
       franchiseeCode: _asString(json['Franchisee_Code']),
       franchiseeName: _asString(json['Franchisee_Name']),
-      franchiseeId: _asInt(json['Franchisee_Id']),
+      franchiseeId: _asInt(json['BusinessRef_Id']),
       deadline: _asString(json['deadline']),
       createdBy: _asString(json['CreatedBy']),
       totalNoOfTask: _asInt(json['TotalNoOfTask']),
@@ -61,6 +113,15 @@ class ProjectItem extends Equatable {
         json['Responsible_person'] ?? json['responsiblePerson'],
       ),
       id: _asString(json['id']),
+      illumeIndentId: _asNullableString(json['Illume_Indent_Id']),
+      brandingIndentId: _asNullableString(json['Branding_Indent_Id']),
+      canIndentBk: _asInt(json['CanIndentBK'] ?? json['canIndentBK']),
+      isIllumeDispatchConfirmed:
+          _asNullableBool(json['is_illume_dispatch_confirmed']),
+      isBrandingDispatchConfirmed:
+          _asNullableBool(json['is_branding_dispatch_confirmed']),
+      showIllumeDispatchBtn: _asInt(json['show_illume_dispatch_btn']),
+      showBrandingDispatchBtn: _asInt(json['show_branding_dispatch_btn']),
     );
   }
 
@@ -70,7 +131,7 @@ class ProjectItem extends Equatable {
         'approved_date': approvedDate,
         'Franchisee_Code': franchiseeCode,
         'Franchisee_Name': franchiseeName,
-        'Franchisee_Id': franchiseeId,
+        'BusinessRef_Id': franchiseeId,
         'deadline': deadline,
         'CreatedBy': createdBy,
         'TotalNoOfTask': totalNoOfTask,
@@ -81,6 +142,13 @@ class ProjectItem extends Equatable {
         'Title': title,
         'Responsible_person': responsiblePerson,
         'id': id,
+        'Illume_Indent_Id': illumeIndentId,
+        'Branding_Indent_Id': brandingIndentId,
+        'CanIndentBK': canIndentBk,
+        'is_illume_dispatch_confirmed': isIllumeDispatchConfirmed,
+        'is_branding_dispatch_confirmed': isBrandingDispatchConfirmed,
+        'show_illume_dispatch_btn': showIllumeDispatchBtn,
+        'show_branding_dispatch_btn': showBrandingDispatchBtn,
       };
 
   ProjectItem copyWith({
@@ -100,6 +168,17 @@ class ProjectItem extends Equatable {
     String? title,
     String? responsiblePerson,
     String? id,
+    String? illumeIndentId,
+    String? brandingIndentId,
+    int? canIndentBk,
+    bool? isIllumeDispatchConfirmed,
+    bool? isBrandingDispatchConfirmed,
+    int? showIllumeDispatchBtn,
+    int? showBrandingDispatchBtn,
+    bool clearIllumeIndentId = false,
+    bool clearBrandingIndentId = false,
+    bool clearIsIllumeDispatchConfirmed = false,
+    bool clearIsBrandingDispatchConfirmed = false,
   }) {
     return ProjectItem(
       crmId: crmId ?? this.crmId,
@@ -118,16 +197,64 @@ class ProjectItem extends Equatable {
       title: title ?? this.title,
       responsiblePerson: responsiblePerson ?? this.responsiblePerson,
       id: id ?? this.id,
+      illumeIndentId: clearIllumeIndentId
+          ? null
+          : (illumeIndentId ?? this.illumeIndentId),
+      brandingIndentId: clearBrandingIndentId
+          ? null
+          : (brandingIndentId ?? this.brandingIndentId),
+      canIndentBk: canIndentBk ?? this.canIndentBk,
+      isIllumeDispatchConfirmed: clearIsIllumeDispatchConfirmed
+          ? null
+          : (isIllumeDispatchConfirmed ?? this.isIllumeDispatchConfirmed),
+      isBrandingDispatchConfirmed: clearIsBrandingDispatchConfirmed
+          ? null
+          : (isBrandingDispatchConfirmed ?? this.isBrandingDispatchConfirmed),
+      showIllumeDispatchBtn:
+          showIllumeDispatchBtn ?? this.showIllumeDispatchBtn,
+      showBrandingDispatchBtn:
+          showBrandingDispatchBtn ?? this.showBrandingDispatchBtn,
     );
   }
 
+  static bool _hasIndentId(String? value) =>
+      value != null && value.trim().isNotEmpty;
+
   static String _asString(dynamic v) => v?.toString() ?? '';
+
+  static String? _asNullableString(dynamic v) {
+    if (v == null) return null;
+    final text = v.toString().trim();
+    if (text.isEmpty || text.toLowerCase() == 'null') return null;
+    return text;
+  }
 
   static int _asInt(dynamic v) {
     if (v == null) return 0;
     if (v is int) return v;
     if (v is double) return v.toInt();
     return int.tryParse(v.toString()) ?? 0;
+  }
+
+  /// Only explicit true / 1 / "true" → true; false / 0 / "false" → false;
+  /// null / empty / unknown → null.
+  static bool? _asNullableBool(dynamic v) {
+    if (v == null) return null;
+    if (v is bool) return v;
+    if (v is num) {
+      if (v == 1) return true;
+      if (v == 0) return false;
+      return null;
+    }
+    final text = v.toString().trim().toLowerCase();
+    if (text.isEmpty || text == 'null') return null;
+    if (text == 'true' || text == '1' || text == 'yes' || text == 'y') {
+      return true;
+    }
+    if (text == 'false' || text == '0' || text == 'no' || text == 'n') {
+      return false;
+    }
+    return null;
   }
 
   @override
@@ -148,7 +275,23 @@ class ProjectItem extends Equatable {
         title,
         responsiblePerson,
         id,
+        illumeIndentId,
+        brandingIndentId,
+        canIndentBk,
+        isIllumeDispatchConfirmed,
+        isBrandingDispatchConfirmed,
+        showIllumeDispatchBtn,
+        showBrandingDispatchBtn,
       ];
+}
+
+/// CK (Illume) or BK (Branding) dispatch confirmation.
+enum DispatchConfirmType { ck, bk }
+
+extension DispatchConfirmTypeX on DispatchConfirmType {
+  String get label => this == DispatchConfirmType.ck ? 'CK' : 'BK';
+
+  String get shortName => label;
 }
 
 class ProjectListResponse extends Equatable {

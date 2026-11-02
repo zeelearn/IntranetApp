@@ -337,6 +337,10 @@ class NotificationService {
       } else if (message.data.containsKey('type') &&
           message.data['type']?.toString().toUpperCase() == 'PJP') {
         handlePJPNotification(message);
+      } else if (message.data.containsKey('type') &&
+          (message.data['type']?.toString().toUpperCase() == 'EXPENSE-COURIER' ||
+           message.data['type']?.toString().toUpperCase() == 'EXPENSE_COURIER')) {
+        handleExpenseCourierNotification(message);
       } else if (message.data.containsKey('topic')) {
         debugPrint('parseNotification identifyNotification topic called');
         identifyNotification(message);
@@ -572,6 +576,72 @@ void handlePJPNotification(
   } else {
     debugPrint(
         'parseNotification PJP: Employee code or empid does not match. Notification ignored.');
+  }
+}
+
+void handleExpenseCourierNotification(
+  RemoteMessage message,
+) async {
+  var hiveBox = await Utility.openBox();
+
+  String employeeCode = hiveBox.get(LocalConstant.KEY_EMPLOYEE_CODE) as String? ?? '';
+  String empId = hiveBox.get(LocalConstant.KEY_EMPLOYEE_ID) as String? ?? '';
+  bool match = true;
+  if (message.data.containsKey('employee_code') &&
+      message.data['employee_code'].toString().isNotEmpty &&
+      employeeCode.isNotEmpty &&
+      message.data['employee_code'] != employeeCode) {
+    match = false;
+  }
+  if (message.data.containsKey('empid') &&
+      message.data['empid'].toString().isNotEmpty &&
+      empId.isNotEmpty &&
+      message.data['empid'] != empId) {
+    match = false;
+  }
+
+  if (match) {
+    DBHelper helper = DBHelper();
+    Map<String, String> data = {};
+    String cdate = DateFormat("yyyy-MM-dd hh:mm a").format(DateTime.now());
+    final messageId = NotificationService.extractMessageId(message);
+    data['message_id'] = messageId;
+    data.putIfAbsent('title', () => message.data['title']?.toString() ?? '');
+    data.putIfAbsent('description', () => message.data['body']?.toString() ?? '');
+    data.putIfAbsent('type',
+        () => message.data.containsKey('type') ? message.data['type']!.toString() : 'EXPENSE-COURIER');
+    data.putIfAbsent('date', () => cdate);
+    data.putIfAbsent(
+        'imageurl',
+        () => message.data.containsKey('imageurl')
+            ? message.data['imageurl']!.toString()
+            : (message.data.containsKey('url') ? message.data['url']!.toString() : ''));
+    data.putIfAbsent(
+        'logoUrl',
+        () =>
+            message.data.containsKey('logoUrl')
+                ? message.data['logoUrl']!.toString()
+                : (message.data.containsKey('logo') ? message.data['logo']!.toString() : ''));
+    data.putIfAbsent(
+        'bigImageUrl',
+        () => message.data.containsKey('bigimage')
+            ? message.data['bigimage'] as String
+            : (message.data.containsKey('bigImageUrl') ? message.data['bigImageUrl'] as String : ''));
+    final cid = message.data['cid'] ?? message.data['claimId'] ?? message.data['claim_id'] ?? '';
+    final eCode = message.data['employee_code'] ?? message.data['eCode'] ?? message.data['e_code'] ?? employeeCode;
+    final isAccch = message.data['isAccch'] ?? message.data['is_accch'] ?? 'false';
+    final webViewLink = (message.data['url'] != null && message.data['url'].toString().isNotEmpty)
+        ? message.data['url'].toString()
+        : '/courier_detail?claimId=$cid&eCode=$eCode&isAccch=$isAccch';
+    data.putIfAbsent('webViewLink', () => webViewLink);
+
+    helper.insert(LocalConstant.TABLE_NOTIFICATION, data);
+    NotificationService notificationService = NotificationService();
+    notificationService.showSimpleNotification(
+        message.data['title'] ?? '', message.data['body'] ?? '', message);
+  } else {
+    debugPrint(
+        'parseNotification EXPENSE-COURIER: Employee code or empid does not match. Notification ignored.');
   }
 }
 

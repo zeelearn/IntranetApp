@@ -12,6 +12,7 @@ import 'package:Intranet/pages/bpms/bpms_dashboard.dart';
 import 'package:Intranet/pages/firebase/storageutil.dart';
 import 'package:Intranet/pages/helper/DatabaseHelper.dart';
 import 'package:Intranet/pages/helper/LocalConstant.dart';
+import 'package:Intranet/pages/helper/mobile_applications_store.dart';
 import 'package:Intranet/pages/helper/utils.dart';
 import 'package:Intranet/pages/helper/web_helper.dart';
 import 'package:Intranet/pages/home/change_password_request.dart';
@@ -27,6 +28,7 @@ import 'package:Intranet/pages/model/filter.dart';
 import 'package:Intranet/pages/notification/UserNotification.dart';
 import 'package:Intranet/pages/pjp/cvf/v2/cvf.dart';
 import 'package:Intranet/pages/pjp/mypjp.dart';
+import 'package:Intranet/pages/widget/business_widget.dart';
 import 'package:Intranet/pages/pjp/managers/pjp_approval.dart';
 import 'package:Intranet/pages/pjp/pjp_list_manager_exceptional.dart';
 import 'package:Intranet/pages/report/myreport.dart';
@@ -55,8 +57,12 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:hive/hive.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:in_app_update/in_app_update.dart';
+import 'package:notiflow/presentation/home/home_page_new.dart';
+import 'package:notiflow/presentation/login/splash.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:saathi/zllsaathi.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../firebase/notification.dart';
 import '../../firebase/notification_service.dart';
@@ -96,6 +102,7 @@ class DashboardScreenV2Controller extends GetxController
   final businessId = 0.obs;
   final businessName = 'Select Business'.obs;
   final businessApplications = <BusinessApplications>[].obs;
+  final myMobileApplications = <MyMobileApplication>[].obs;
   final isBpms = false.obs;
 
   final profileImageUrl =
@@ -106,6 +113,7 @@ class DashboardScreenV2Controller extends GetxController
   final sidebarExpanded = true.obs;
   final selectedNav = 'dashboard'.obs;
   final notificationCount = 0.obs;
+  final showNotificationPermissionAlert = false.obs;
   final isLoading = false.obs;
   final dateRangeLabel = 'May 20 – May 26, 2024'.obs;
 
@@ -130,11 +138,18 @@ class DashboardScreenV2Controller extends GetxController
 
   bool get isBusinessMapped => businessId.value != 0;
 
-  List<DashQuickAccessItem> get quickAccessItems =>
-      DashV2MenuCatalog.visibleQuickAccess(
-        isBpms: isBpms.value,
-        employeeCode: employeeCode.value,
-      );
+  List<DashQuickAccessItem> get quickAccessItems {
+    // Touch reactive list so Obx rebuilds when apps load.
+    final mobileNames = myMobileApplications
+        .map((e) => e.normalizedName)
+        .where(MobileApplicationsStore.dashboardMenuNames.contains)
+        .toSet();
+    return DashV2MenuCatalog.visibleQuickAccess(
+      isBpms: isBpms.value,
+      employeeCode: employeeCode.value,
+      mobileAppNames: mobileNames,
+    );
+  }
 
   @override
   void onInit() {
@@ -156,6 +171,7 @@ class DashboardScreenV2Controller extends GetxController
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       unawaited(loadNotificationCount());
+      unawaited(checkNotificationPermission());
       if (!kDebugMode && !kIsWeb) {
         if (Platform.isAndroid) {
           unawaited(checkForUpdate());
@@ -172,6 +188,7 @@ class DashboardScreenV2Controller extends GetxController
     try {
       await loadUserFromHive();
       await loadBusinessApplications();
+      await loadMyMobileApplications();
       if (Get.isRegistered<DashboardPageController>() &&
           employeeCode.value.isNotEmpty) {
         Get.find<DashboardPageController>()
@@ -196,7 +213,10 @@ class DashboardScreenV2Controller extends GetxController
           // Util.openSaathiNotification(message);
         } else if (message.data['type'] != null &&
             message.data['type'] == 'PJP') {
-          final pjpId = message.data['PjpId'] ?? message.data['pjpId'] ?? message.data['pjpid'] ?? '';
+          final pjpId = message.data['PjpId'] ??
+              message.data['pjpId'] ??
+              message.data['pjpid'] ??
+              '';
           if (pjpId.isNotEmpty) {
             Navigator.push(
                 MyApp.navigatorKey.currentState!.context,
@@ -214,6 +234,29 @@ class DashboardScreenV2Controller extends GetxController
                     title: message.data['title'] ?? 'Expense',
                     url: message.data['url'] ?? ''),
               ));
+        } else if (message.data['type'] == 'EXPENSE-COURIER' ||
+            message.data['type'] == 'EXPENSE_COURIER') {
+          final claimIdStr = message.data['cid'] ??
+              message.data['claimId'] ??
+              message.data['claim_id'];
+          final employeeCode = message.data['employee_code'] ??
+              message.data['eCode'] ??
+              message.data['e_code'];
+          final isAccchStr =
+              message.data['isAccch'] ?? message.data['is_accch'] ?? 'false';
+          final claimId =
+              claimIdStr != null ? int.tryParse(claimIdStr.toString()) : null;
+          final isAccch = isAccchStr.toString() == 'true';
+          Navigator.push(
+            MyApp.navigatorKey.currentState!.context,
+            MaterialPageRoute(
+              builder: (context) => CourierDetailPage(
+                claimId: claimId,
+                employeeCode: employeeCode?.toString(),
+                isAccch: isAccch,
+              ),
+            ),
+          );
         } else if (message.data['Video_path'] != null) {
           Navigator.push(
               MyApp.navigatorKey.currentState!.context,
@@ -255,13 +298,17 @@ class DashboardScreenV2Controller extends GetxController
 
     await initFirebase();
     await NotificationController.initializeLocalNotifications();
+    await checkNotificationPermission();
     _messageOpenedAppSubscription =
         FirebaseMessaging.onMessageOpenedApp.listen((message) async {
       debugPrint('Dashboard V2: onMessageOpenedApp received');
       final ctx = Get.context;
       if (ctx == null) return;
       if (message.data['type'] != null && message.data['type'] == 'PJP') {
-        final pjpId = message.data['PjpId'] ?? message.data['pjpId'] ?? message.data['pjpid'] ?? '';
+        final pjpId = message.data['PjpId'] ??
+            message.data['pjpId'] ??
+            message.data['pjpid'] ??
+            '';
         if (pjpId.isNotEmpty) {
           await Navigator.of(ctx).push(
             MaterialPageRoute(
@@ -291,7 +338,10 @@ class DashboardScreenV2Controller extends GetxController
         final uriStr = getBrowserUrl();
         final uri = Uri.parse(uriStr);
         if (uri.queryParameters['type'] == 'PJP') {
-          final pjpId = uri.queryParameters['PjpId'] ?? uri.queryParameters['pjpId'] ?? uri.queryParameters['pjpid'] ?? '';
+          final pjpId = uri.queryParameters['PjpId'] ??
+              uri.queryParameters['pjpId'] ??
+              uri.queryParameters['pjpid'] ??
+              '';
           if (pjpId.isNotEmpty) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
               Navigator.push(
@@ -311,6 +361,87 @@ class DashboardScreenV2Controller extends GetxController
     }
 
     WidgetsBinding.instance.addPostFrameCallback((_) => _incomingLinkHandler());
+  }
+
+  /// Updates [showNotificationPermissionAlert] after checking permission.
+  Future<void> checkNotificationPermission() async {
+    final allowed = await areNotificationsAllowed();
+    showNotificationPermissionAlert.value = !allowed;
+  }
+
+  /// Opens notification / app settings (all platforms). Web re-requests
+  /// permission since browsers do not expose a settings deep-link.
+  Future<void> onNotificationPermissionAlertTap() async {
+    if (kIsWeb) {
+      try {
+        await FirebaseMessaging.instance.requestPermission(
+          alert: true,
+          announcement: false,
+          badge: true,
+          carPlay: false,
+          criticalAlert: false,
+          provisional: false,
+          sound: true,
+        );
+      } catch (_) {}
+      await checkNotificationPermission();
+      if (showNotificationPermissionAlert.value) {
+        Get.snackbar(
+          'Enable notifications',
+          'Allow notifications for this site in your browser settings.',
+          snackPosition: SnackPosition.BOTTOM,
+          duration: const Duration(seconds: 4),
+        );
+      }
+      return;
+    }
+
+    try {
+      final status = await Permission.notification.status;
+      if (status.isDenied && !status.isPermanentlyDenied) {
+        final result = await Permission.notification.request();
+        if (result.isGranted) {
+          showNotificationPermissionAlert.value = false;
+          return;
+        }
+      }
+    } catch (_) {}
+
+    await Utility.openSetting();
+    await checkNotificationPermission();
+  }
+
+  /// Returns true when the OS / browser has granted notification permission.
+  Future<bool> areNotificationsAllowed() async {
+    try {
+      final settings =
+          await FirebaseMessaging.instance.getNotificationSettings();
+      if (settings.authorizationStatus == AuthorizationStatus.authorized ||
+          settings.authorizationStatus == AuthorizationStatus.provisional) {
+        return true;
+      }
+      if (settings.authorizationStatus == AuthorizationStatus.denied) {
+        return false;
+      }
+    } catch (_) {}
+
+    if (!kIsWeb) {
+      try {
+        final status = await Permission.notification.status;
+        if (status.isGranted || status.isLimited) return true;
+        if (status.isDenied ||
+            status.isPermanentlyDenied ||
+            status.isRestricted) {
+          return false;
+        }
+      } catch (_) {}
+
+      try {
+        return await AwesomeNotifications().isNotificationAllowed();
+      } catch (_) {}
+    }
+
+    return false;
   }
 
   void _handleReceivedAction(BuildContext context) {
@@ -344,10 +475,13 @@ class DashboardScreenV2Controller extends GetxController
                 url: payload['url'] ?? ''),
           ));
     } else if (type == 'EXPENSE-COURIER') {
-      final claimIdStr = payload['cid'] ?? payload['claimId'] ?? payload['claim_id'];
-      final employeeCode = payload['employee_code'] ?? payload['eCode'] ?? payload['e_code'];
+      final claimIdStr =
+          payload['cid'] ?? payload['claimId'] ?? payload['claim_id'];
+      final employeeCode =
+          payload['employee_code'] ?? payload['eCode'] ?? payload['e_code'];
       final isAccchStr = payload['isAccch'] ?? payload['is_accch'] ?? 'false';
-      final claimId = claimIdStr != null ? int.tryParse(claimIdStr.toString()) : null;
+      final claimId =
+          claimIdStr != null ? int.tryParse(claimIdStr.toString()) : null;
       final isAccch = isAccchStr.toString() == 'true';
       Navigator.push(
         context,
@@ -501,6 +635,22 @@ class DashboardScreenV2Controller extends GetxController
     }
   }
 
+  Future<void> loadMyMobileApplications() async {
+    try {
+      final box = await Utility.openBox();
+      final apps = MobileApplicationsStore.loadWithFallback(box);
+      myMobileApplications.assignAll(apps);
+
+      // Backfill dedicated Hive key when apps were only in login response.
+      if (MobileApplicationsStore.load(box).isEmpty && apps.isNotEmpty) {
+        await MobileApplicationsStore.save(box, apps);
+      }
+    } catch (error) {
+      debugPrint('Dashboard V2 mobile applications load failed: $error');
+      myMobileApplications.clear();
+    }
+  }
+
   void seedPlaceholders() {
     // PLACEHOLDER until KPI APIs exist
     // PLACEHOLDER until KPI APIs exist — values/icons match Figma mobile.
@@ -635,6 +785,7 @@ class DashboardScreenV2Controller extends GetxController
     await box.put(LocalConstant.KEY_BUSINESS_ID, bid);
     await box.put(LocalConstant.KEY_BUSINESS_NAME, name);
     await box.put(LocalConstant.KEY_BUSINESS_USERID, uid);
+    BusinessWidget.instance.setBusiness(id: bid, name: name, userId: uid);
   }
 
   bool validateBusiness(String menuKey) {
@@ -718,7 +869,8 @@ class DashboardScreenV2Controller extends GetxController
     if (!validateBusiness('zll_saathi')) return;
     final box = await Utility.openBox();
     await Hive.openBox(LocalConstant.KidzeeDB);
-    final username =box.get(LocalConstant.KEY_USER_NAME)?.toString() ?? userName.value; 
+    final username =
+        box.get(LocalConstant.KEY_USER_NAME)?.toString() ?? userName.value;
     debugPrint('opening the ZllSaathi with username: $username');
     ZllSaathi(Get.context!, username, profileAvatarBytes.value);
   }
@@ -730,7 +882,12 @@ class DashboardScreenV2Controller extends GetxController
           box.get(LocalConstant.KEY_EMPLOYEE_CODE)?.toString() ?? '0',
         ) ??
         0;
-    await expense_placeholder.openExpenseTracker(eCode: empCode.toString());
+    await expense_placeholder.openExpenseTracker(
+      eCode: empCode.toString(),
+      /* onPjpTap: (context, pjpId) {
+        Get.to(() => DayEventsScreen(pjpId: pjpId));
+      }, */
+    );
   }
 
   Future<void> openContracts() async {
@@ -749,12 +906,63 @@ class DashboardScreenV2Controller extends GetxController
   }
 
   Future<void> openNotiflow() async {
-    await Navigator.of(Get.context!).push(
+    await Get.to(() => HomePageNew(), arguments: {
+      'u_name': employeeCode.value,
+      'password': '12345',
+      'color': '0277BD'
+    });
+    /*  await Navigator.of(Get.context!).push(
       MaterialPageRoute(
-        builder: (_) => MyWebsiteView(
+        builder: (_) => SplashScreen()) /* MyWebsiteView(
           title: 'ZLLSaathi',
           url:
               'https://notiflow-51883.web.app/?u_name=${employeeCode.value}&password=12345&color=0277BD',
+        ),
+      ) */,
+    ); */
+  }
+
+  Future<void> openBpManagement() async {
+    await _openMobileApplication(MobileApplicationsStore.bpManagement);
+  }
+
+  Future<void> _openMobileApplication(String businessName) async {
+    final app = MobileApplicationsStore.findByName(
+      myMobileApplications.toList(),
+      businessName,
+    );
+    if (app == null) {
+      Utility.showMessage(
+        Get.context!,
+        '$businessName is not available for your account.',
+      );
+      return;
+    }
+
+    final url = app.launchUrl;
+    debugPrint('Opening mobile application: $businessName, URL: $url');
+    final context = Get.context;
+    if (context == null) return;
+
+    if (kIsWeb) {
+      final uri = Uri.tryParse(url);
+      if (uri == null) {
+        Utility.showMessage(context, 'Invalid Create Contracts URL.');
+        return;
+      }
+      await launchUrl(
+        uri,
+        mode: LaunchMode.platformDefault,
+        webOnlyWindowName: '_blank',
+      );
+      return;
+    }
+
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => MyWebsiteView(
+          title: app.normalizedName,
+          url: url,
         ),
       ),
     );
@@ -797,6 +1005,8 @@ class DashboardScreenV2Controller extends GetxController
         await openPjpDashboard();
       case 'notiflow':
         await openNotiflow();
+      case 'bp_management':
+        await openBpManagement();
       default:
         debugPrint('Dashboard V2: unknown quick access key: $key');
     }

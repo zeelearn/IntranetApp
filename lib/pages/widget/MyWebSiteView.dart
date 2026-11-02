@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:Intranet/pages/helper/app_url_launcher.dart';
 import 'package:Intranet/pages/helper/constants.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -36,6 +37,7 @@ class MyWebsiteViewState extends State<MyWebsiteView> {
   bool isUrlLoadingCompleted = true;
   double progress = 0;
   bool _canPop = false;
+  bool _openedExternally = false;
 
   final GlobalKey webViewKey = GlobalKey();
 
@@ -54,6 +56,21 @@ class MyWebsiteViewState extends State<MyWebsiteView> {
   @override
   void initState() {
     super.initState();
+
+    // Zoho campaign short links (zohsy.in → survey.zohopublic.in) fail in
+    // iOS WKWebView after redirect; open in Safari like the working browser flow.
+    if (AppUrlLauncher.shouldOpenExternally(widget.url)) {
+      _openedExternally = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        await AppUrlLauncher.openExternal(widget.url);
+        if (!mounted) return;
+        setState(() => _canPop = true);
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) Navigator.of(context).maybePop();
+        });
+      });
+      return;
+    }
 
     /* print('web url ${widget.title}');
     late final PlatformWebViewControllerCreationParams params;
@@ -226,7 +243,17 @@ class MyWebsiteViewState extends State<MyWebsiteView> {
               ),
         backgroundColor: kPrimaryLightColor,
         body: SafeArea(
-          child: InAppWebView(
+          child: _openedExternally
+              ? const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(24),
+                    child: Text(
+                      'Opening survey in browser…',
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                )
+              : InAppWebView(
             key: webViewKey,
             initialUrlRequest: URLRequest(url: WebUri(widget.url)),
             // initialSettings: settings,
@@ -332,6 +359,12 @@ class MyWebsiteViewState extends State<MyWebsiteView> {
             shouldOverrideUrlLoading: (controller, navigationAction) async {
               var uri = navigationAction.request.url!;
 
+              // Follow Zoho short-link redirects in Safari on iOS.
+              if (AppUrlLauncher.shouldOpenExternally(uri.toString())) {
+                await AppUrlLauncher.openExternal(uri.toString());
+                return NavigationActionPolicy.CANCEL;
+              }
+
               if (![
                 "http",
                 "https",
@@ -346,6 +379,7 @@ class MyWebsiteViewState extends State<MyWebsiteView> {
                   // Launch the App
                   await launchUrl(
                     uri,
+                    mode: LaunchMode.externalApplication,
                   );
                   // and cancel the request
                   return NavigationActionPolicy.CANCEL;

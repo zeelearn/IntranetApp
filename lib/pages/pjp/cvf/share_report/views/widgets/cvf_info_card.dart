@@ -76,24 +76,6 @@ class CvfInfoCard extends StatelessWidget {
           const SizedBox(height: 14),
           const Divider(height: 1, color: ShareReportTheme.border),
           const SizedBox(height: 12),
-          _AddressBlock(
-            title: 'Check-in',
-            time: args.checkInDateTime,
-            address: args.checkInAddress,
-            icon: Icons.login_rounded,
-            color: Colors.green.shade700,
-          ),
-          const SizedBox(height: 10),
-          _AddressBlock(
-            title: 'Check-out',
-            time: args.checkOutDateTime,
-            address: args.checkOutAddress,
-            icon: Icons.logout_rounded,
-            color: Colors.orange.shade800,
-          ),
-          const SizedBox(height: 14),
-          const Divider(height: 1, color: ShareReportTheme.border),
-          const SizedBox(height: 12),
           Text(
             'PJP Remark',
             style: GoogleFonts.poppins(
@@ -144,73 +126,6 @@ class CvfInfoCard extends StatelessWidget {
               fontSize: 13,
               fontWeight: FontWeight.w600,
               color: ShareReportTheme.textPrimary,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _AddressBlock extends StatelessWidget {
-  const _AddressBlock({
-    required this.title,
-    required this.time,
-    required this.address,
-    required this.icon,
-    required this.color,
-  });
-
-  final String title;
-  final String time;
-  final String address;
-  final IconData icon;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.06),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: color.withValues(alpha: 0.2)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(icon, size: 16, color: color),
-              const SizedBox(width: 6),
-              Text(
-                title,
-                style: GoogleFonts.poppins(
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.w700,
-                  color: color,
-                ),
-              ),
-              const Spacer(),
-              Text(
-                time,
-                style: GoogleFonts.poppins(
-                  fontSize: 11.5,
-                  fontWeight: FontWeight.w500,
-                  color: ShareReportTheme.textSecondary,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 6),
-          Text(
-            address,
-            style: GoogleFonts.poppins(
-              fontSize: 12.5,
-              fontWeight: FontWeight.w400,
-              color: ShareReportTheme.textPrimary,
-              height: 1.35,
             ),
           ),
         ],

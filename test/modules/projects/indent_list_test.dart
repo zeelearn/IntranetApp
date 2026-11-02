@@ -18,6 +18,7 @@ IndentItem _sample({
   String payment = 'Pending',
   String project = 'Pending',
   double? apprAmount,
+  int canIndentBk = 0,
 }) {
   return IndentItem(
     franchiseeCode: code,
@@ -35,6 +36,7 @@ IndentItem _sample({
     paymentStatus: payment,
     projectStatus: project,
     businessRefId: 7917,
+    canIndentBk: canIndentBk,
   );
 }
 
@@ -57,6 +59,7 @@ void main() {
         'PaymentStatus': 'Pending',
         'ProjectStatus': 'Pending',
         'BusinessRef_Id': 7917,
+        'CanIndentBK': 1,
       });
 
       expect(item.franchiseeName, 'Walia Eduskills Path');
@@ -72,6 +75,9 @@ void main() {
       expect(item.paymentStatus, 'Pending');
       expect(item.projectStatus, 'Pending');
       expect(item.businessRefId, 7917);
+      expect(item.canIndentBk, 1);
+      expect(item.canShowBrandingKit, isTrue);
+      expect(item.canAccessFinanceActions, isTrue);
     });
 
     test('handles Indent_Id alias and string numbers', () {
@@ -112,15 +118,13 @@ void main() {
   });
 
   group('IndentActionRoles', () {
-    test('allows MAN and BH only', () {
-      expect(IndentActionRoles.canAccessFinanceActions('MAN'), isTrue);
-      expect(IndentActionRoles.canAccessFinanceActions('BH'), isTrue);
-      expect(IndentActionRoles.canAccessFinanceActions('man'), isTrue);
-      expect(IndentActionRoles.canAccessFinanceActions('bh'), isTrue);
-      expect(IndentActionRoles.canAccessFinanceActions('ZM'), isFalse);
-      expect(IndentActionRoles.canAccessFinanceActions('EMP'), isFalse);
-      expect(IndentActionRoles.canAccessFinanceActions(''), isFalse);
+    test('allows finance actions only when CanIndentBK == 1', () {
+      expect(IndentActionRoles.canAccessFinanceActions(1), isTrue);
+      expect(IndentActionRoles.canAccessFinanceActions(0), isFalse);
+      expect(IndentActionRoles.canAccessFinanceActions(2), isFalse);
       expect(IndentActionRoles.canAccessFinanceActions(null), isFalse);
+      expect(_sample(canIndentBk: 1).canShowBrandingKit, isTrue);
+      expect(_sample(canIndentBk: 0).canShowBrandingKit, isFalse);
     });
   });
 

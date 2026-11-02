@@ -44,7 +44,9 @@ function storeNotificationInIndexedDB(data, messageId) {
         imageurl: data.url || data.imageurl || '',
         logoUrl: data.logo || data.logoUrl || '',
         bigImageUrl: data.bigimage || data.bigImageUrl || '',
-        webViewLink: data.url || data.webViewLink || ''
+        webViewLink: (data.type === 'EXPENSE-COURIER' || data.type === 'EXPENSE_COURIER')
+          ? (data.webViewLink || ('/courier_detail?claimId=' + (data.cid || data.claimId || data.claimID || data.claim_id || '') + '&eCode=' + (data.employee_code || data.employeeCode || data.eCode || data.e_code || '') + '&isAccch=' + (data.isAccch || data.is_accch || 'false')))
+          : (data.url || data.webViewLink || '')
       };
       let putReq = store.put(record);
       putReq.onsuccess = function () {
@@ -94,7 +96,7 @@ self.addEventListener('push', function (event) {
     return;
   }
 
-  console.log("Message receiving in firebase-messaging-sw.js file (native push) -", payload);
+  //console.log("Message receiving in firebase-messaging-sw.js file (native push) -", payload);
 
   // If there's no data payload, let Firebase handle it (e.g. standard notification)
   if (!payload.data || !payload.data.title) {
@@ -102,7 +104,7 @@ self.addEventListener('push', function (event) {
   }
 
   const notificationTitle = payload.data.title;
-  console.log('Notification title is - ', notificationTitle);
+  //console.log('Notification title is - ', notificationTitle);
 
   const messageId = payload.fcmMessageId || payload.messageId || payload.data?.fcmMessageId || payload.data?.messageId || payload.data?.id || (payload.data.title + '_' + (payload.data.body || ''));
 
@@ -155,14 +157,14 @@ self.addEventListener('push', function (event) {
           let matched = false;
 
           if (localUserId && payload.data.user_id == localUserId) {
-            console.log('User id matching on userId - ', payload.data.user_id);
+            //console.log('User id matching on userId - ', payload.data.user_id);
             matched = true;
           } else if (localUserData) {
             try {
               let parsedOfflineUserData = JSON.parse(localUserData);
               if (parsedOfflineUserData && parsedOfflineUserData.data && parsedOfflineUserData.data.user_info && parsedOfflineUserData.data.user_info[0]) {
                 if (payload.data.user_id == parsedOfflineUserData.data.user_info[0].user_id) {
-                  console.log('User id matching on parsed userData - ', payload.data.user_id);
+                  //console.log('User id matching on parsed userData - ', payload.data.user_id);
                   matched = true;
                 }
               }
@@ -203,17 +205,17 @@ self.addEventListener('push', function (event) {
           let shouldShow = false;
 
           if (payload.data.employee_code && payload.data.employee_code == localEmpCode) {
-            console.log('User id matching on employee_code - ', payload.data.employee_code);
+            //console.log('User id matching on employee_code - ', payload.data.employee_code);
             shouldShow = true;
           } else if (payload.data.empid && payload.data.empid == localEmpid) {
-            console.log('User id matching on empid - ', payload.data.empid);
+            //console.log('User id matching on empid - ', payload.data.empid);
             shouldShow = true;
           }
 
           if (shouldShow) {
             showNotification();
           } else {
-            console.log('User id not matching or not found in Intranet. Payload empid:', payload.data.empid, 'Payload empCode:', payload.data.employee_code, 'Local empid:', localEmpid, 'Local empCode:', localEmpCode);
+            //console.log('User id not matching or not found in Intranet. Payload empid:', payload.data.empid, 'Payload empCode:', payload.data.employee_code, 'Local empid:', localEmpid, 'Local empCode:', localEmpCode);
             resolve();
           }
         });

@@ -36,6 +36,12 @@ class ShareReportArgs {
   }
 
   String get bpName {
+    final fromCvf = cvf.businessPartnerName.trim();
+    if (fromCvf.isNotEmpty &&
+        fromCvf.toLowerCase() != 'null' &&
+        fromCvf != 'NA') {
+      return fromCvf;
+    }
     final name = (pjp?.displayName ?? '').trim();
     if (name.isNotEmpty && name.toLowerCase() != 'null' && name != 'NA') {
       return name;

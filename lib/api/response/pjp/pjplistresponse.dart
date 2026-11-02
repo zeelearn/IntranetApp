@@ -126,6 +126,9 @@ class PJPInfo {
   String? managerName;
   String? zone;
   String? employeeCode;
+  String? state;
+  String? city;
+  int? cityId;
   List<GetDetailedPJP>? getDetailedPJP = [];
 
   PJPInfo(
@@ -140,6 +143,9 @@ class PJPInfo {
       this.zone,
       this.managerName,
       this.employeeCode,
+      this.state,
+      this.city,
+      this.cityId,
       this.getDetailedPJP});
 
   PJPInfo.fromJson(Map<String, dynamic> json) {
@@ -160,6 +166,13 @@ class PJPInfo {
           json['Approval_Status'] ??
           '';
       zone = json['Zone'];
+      state = (json['State'] ?? json['State_Name'] ?? json['state'] ?? json['state_name'])?.toString();
+      city = (json['City'] ?? json['City_Name'] ?? json['city'] ?? json['city_name'])?.toString();
+      if (json['City_Id'] != null) {
+        cityId = json['City_Id'] is int ? json['City_Id'] : int.tryParse(json['City_Id'].toString());
+      } else if (json['city_id'] != null) {
+        cityId = json['city_id'] is int ? json['city_id'] : int.tryParse(json['city_id'].toString());
+      }
       remarks = json['Remarks'] == null || json['Remarks'] == 'null'
           ? ' '
           : json['Remarks'];
@@ -198,6 +211,9 @@ class PJPInfo {
     data['Zone'] = zone;
     data['isSelfPJP'] = isSelfPJP;
     data['Employee_Code'] = employeeCode;
+    if (state != null) data['State'] = state;
+    if (city != null) data['City'] = city;
+    if (cityId != null) data['City_Id'] = cityId;
     if (getDetailedPJP != null) {
       data['GetDetailedPJP'] = getDetailedPJP!.map((v) => v.toJson()).toList();
     }
@@ -234,6 +250,9 @@ class PJP {
   String? businessID;
   String? businessName;
   String? zone;
+  String? state;
+  String? city;
+  int? cityId;
 
   PJP(
       {this.pJPId,
@@ -247,7 +266,10 @@ class PJP {
       this.getDetailedPJP,
       this.businessID,
       this.businessName,
-      this.zone});
+      this.zone,
+      this.state,
+      this.city,
+      this.cityId});
 
   PJP.fromJson(Map<String, dynamic> json) {
     pJPId = json['PJP_Id'];
@@ -264,6 +286,13 @@ class PJP {
     businessID = json['Business_ID'];
     businessName = json['Business_Name'];
     zone = json['Zone'];
+    state = (json['State'] ?? json['State_Name'] ?? json['state'] ?? json['state_name'])?.toString();
+    city = (json['City'] ?? json['City_Name'] ?? json['city'] ?? json['city_name'])?.toString();
+    if (json['City_Id'] != null) {
+      cityId = json['City_Id'] is int ? json['City_Id'] : int.tryParse(json['City_Id'].toString());
+    } else if (json['city_id'] != null) {
+      cityId = json['city_id'] is int ? json['city_id'] : int.tryParse(json['city_id'].toString());
+    }
   }
 
   Map<String, dynamic> toJson() {
@@ -282,6 +311,9 @@ class PJP {
     data['Business_ID'] = this.businessID;
     data['Business_Name'] = this.businessName;
     data['Zone'] = this.zone;
+    if (this.state != null) data['State'] = this.state;
+    if (this.city != null) data['City'] = this.city;
+    if (this.cityId != null) data['City_Id'] = this.cityId;
     return data;
   }
 }
@@ -327,6 +359,15 @@ class GetDetailedPJP implements Comparable<GetDetailedPJP> {
   late bool isCompleted = false;
   late bool IsCancelled = false;
 
+  /// API: `"isEmailSubmitted": "0"|"1"` — true when share-report email already sent.
+  late bool isEmailSubmitted = false;
+
+  /// Business partner display name from API (`BusinessPartnerName`).
+  late String businessPartnerName = '';
+
+  /// Business partner email from API (`BusinessPartnerEmail`). May be masked.
+  late String businessPartnerEmail = '';
+
   late String approvalStatus = 'Pending';
 
   GetDetailedPJP(
@@ -364,6 +405,9 @@ class GetDetailedPJP implements Comparable<GetDetailedPJP> {
       required this.isCompleted,
       required this.IsCancelled,
       required this.approvalStatus,
+      this.isEmailSubmitted = false,
+      this.businessPartnerName = '',
+      this.businessPartnerEmail = '',
       this.cvfHistory});
 
   bool get hasPjpRange =>
@@ -372,6 +416,13 @@ class GetDetailedPJP implements Comparable<GetDetailedPJP> {
       pjpFromDate != 'NA' &&
       pjpToDate != 'NA';
 
+  /// True when BP email is present and usable for share-report To.
+  bool get hasBusinessPartnerEmail {
+    final e = businessPartnerEmail.trim();
+    if (e.isEmpty || e.toLowerCase() == 'null' || e == 'NA') return false;
+    return e.contains('@');
+  }
+
   @override
   int compareTo(GetDetailedPJP other) {
     if (int.parse(PJPCVF_Id) < int.parse(other.PJPCVF_Id)) {
@@ -379,6 +430,20 @@ class GetDetailedPJP implements Comparable<GetDetailedPJP> {
     } else {
       return 0;
     }
+  }
+
+  static String _asTrimmedString(dynamic value, {String fallback = ''}) {
+    if (value == null) return fallback;
+    final text = value.toString().trim();
+    if (text.isEmpty || text.toLowerCase() == 'null') return fallback;
+    return text;
+  }
+
+  static bool _asBoolFlag(dynamic value) {
+    if (value == null) return false;
+    if (value is bool) return value;
+    final text = value.toString().trim().toLowerCase();
+    return text == '1' || text == 'true' || text == 'yes';
   }
 
   GetDetailedPJP.fromJson(Map<String, dynamic> json) {
@@ -393,7 +458,7 @@ class GetDetailedPJP implements Comparable<GetDetailedPJP> {
           (json['Visit_Time'] ?? json['visit_Time']) == "1900-01-01T00:00:00"
               ? 'NA'
               : (json['Visit_Time'] ?? json['visit_Time'] ?? 'NA').toString();
-      Status = json['Status'] ?? (json['status'] ?? 'Check In');
+      Status = (json['Status'] ?? json['status'] ?? 'Check In').toString();
       franchiseeCode =
           json['Franchisee_Code'] ?? json['franchisee_Code'] ?? 'NA';
       franchiseeId = json['Franchisee_Id'] ?? json['franchisee_Id'] ?? 'NA';
@@ -432,6 +497,16 @@ class GetDetailedPJP implements Comparable<GetDetailedPJP> {
               'Pending')
           .toString();
       remarks = (json['Remarks'] ?? json['remarks'] ?? '').toString();
+
+      isEmailSubmitted = _asBoolFlag(
+        json['isEmailSubmitted'] ?? json['IsEmailSubmitted'],
+      );
+      businessPartnerName = _asTrimmedString(
+        json['BusinessPartnerName'] ?? json['businessPartnerName'],
+      );
+      businessPartnerEmail = _asTrimmedString(
+        json['BusinessPartnerEmail'] ?? json['businessPartnerEmail'],
+      );
 
       purpose = <Purpose>[];
       final purposeData = json['Purpose'] ?? json['purpose'];
@@ -503,7 +578,10 @@ class GetDetailedPJP implements Comparable<GetDetailedPJP> {
     data['Remarks'] = remarks;
     data['approvalStatus'] = approvalStatus;
     data['IsCancelled'] = IsCancelled ? '1' : '0';
-    
+    data['isEmailSubmitted'] = isEmailSubmitted ? '1' : '0';
+    data['BusinessPartnerName'] = businessPartnerName;
+    data['BusinessPartnerEmail'] = businessPartnerEmail;
+
     if (purpose != null) {
       data['Purpose'] = purpose!.map((v) => v.toJson()).toList();
     } else {

@@ -51,8 +51,8 @@ android {
         // For more information, see: https://docs.flutter.dev/deployment/android#reviewing-the-build-configuration.
         minSdkVersion flutter.minSdkVersion
         targetSdkVersion 36
-        versionCode 95
-        versionName '1.9.7' 
+        versionCode 110
+        versionName '1.9.11' 
         manifestPlaceholders['foregroundServiceType'] = 'DataSync'
         multiDexEnabled true
         ndk {

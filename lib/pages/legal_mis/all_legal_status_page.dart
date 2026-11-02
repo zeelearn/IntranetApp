@@ -1,13 +1,18 @@
 import 'package:Intranet/api/APIService.dart';
+import 'package:Intranet/pages/helper/mobile_applications_store.dart';
+import 'package:Intranet/pages/helper/utils.dart';
 import 'package:Intranet/pages/legal_mis/document_status_screen.dart';
 import 'package:Intranet/pages/legal_mis/document_viewer.dart';
 import 'package:Intranet/pages/utils/theme/colors/light_colors.dart';
 import 'package:Intranet/pages/utils/util.dart';
+import 'package:Intranet/pages/widget/MyWebSiteView.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:saathi/core/utility/toastUtility.dart';
 import 'package:saathi/service/networking/apiService.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 // import '../../api/request/zoho_request_model.dart';
 import '../../api/request/zoho_request_model.dart' as zohoaction;
@@ -27,6 +32,9 @@ class _AllLegalStatusPageState extends State<AllLegalStatusPage> {
   zohoaction.ZohoRequestModel? zohoRequestModel;
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
+
+  /// Legal MIS SSO URL from login `myMobileApplications` (Create Contracts).
+  String? _createContractsUrl;
 
   List<String> statusOrder = [
     'All',
@@ -71,8 +79,62 @@ class _AllLegalStatusPageState extends State<AllLegalStatusPage> {
 
   @override
   void initState() {
-    getAllRequest();
     super.initState();
+    _loadCreateContractsUrl();
+    getAllRequest();
+  }
+
+  Future<void> _loadCreateContractsUrl() async {
+    try {
+      final box = await Utility.openBox();
+      final apps = MobileApplicationsStore.loadWithFallback(box);
+      final legalMis = MobileApplicationsStore.findByName(
+        apps,
+        MobileApplicationsStore.legalMis,
+      );
+      if (!mounted) return;
+      setState(() {
+        _createContractsUrl = legalMis?.launchUrl;
+      });
+    } catch (_) {
+      // Hide Create Contracts when URL cannot be resolved.
+    }
+  }
+
+  Future<void> _openCreateContracts() async {
+    final url = _createContractsUrl?.trim() ?? '';
+    if (url.isEmpty) {
+      Utility.showMessage(
+        context,
+        'Create Contracts is not available for your account.',
+      );
+      return;
+    }
+
+    // TEMP: Legal MIS on web → new browser tab (see openLegalMisInNewTabOnWeb).
+    if (kIsWeb && MobileApplicationsStore.openLegalMisInNewTabOnWeb) {
+      final uri = Uri.tryParse(url);
+      if (uri == null) {
+        Utility.showMessage(context, 'Invalid Create Contracts URL.');
+        return;
+      }
+      await launchUrl(
+        uri,
+        mode: LaunchMode.platformDefault,
+        webOnlyWindowName: '_blank',
+      );
+      return;
+    }
+
+    if (!mounted) return;
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => MyWebsiteView(
+          title: 'Create Contracts',
+          url: url,
+        ),
+      ),
+    );
   }
 
   @override
@@ -145,6 +207,24 @@ class _AllLegalStatusPageState extends State<AllLegalStatusPage> {
         appBar: AppBar(
           title: const Text('Contracts'),
           elevation: 0,
+          actions: [
+            if (_createContractsUrl != null &&
+                _createContractsUrl!.trim().isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: TextButton.icon(
+                  onPressed: _openCreateContracts,
+                  icon: const Icon(Icons.add_circle_outline, size: 18),
+                  label: const Text(
+                    'Create Contracts',
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                  style: TextButton.styleFrom(
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+              ),
+          ],
           bottom: (isLoading || (zohoRequestModel?.error != null) || hasNoData)
               ? null
               : PreferredSize(

@@ -8,7 +8,10 @@ class LocalStrings {
   static var stepThreeContent = "";
 
   static const String bpms = "https://kubapi.zeelearn.com/V1/commonapi";
+  static const String expense = "https://kubapi.zeelearn.com/V1/expensesApi";
   static const String bpms_no_http = "kubapi.zeelearn.com";
+  static const String EXPENSES_CALL_JSON_API =
+      "$expense/api/expense/calljsonapi";
   static const String productionBaseUrl = "https://app.ekidzee.com";
   static const String developmentBaseUrl = "https://intranetapi.zeelearn.com";
   static const kGoogleApiKey = "AIzaSyD-x4HqYO1O0kwDpkxIc128nM4f1bZ3oDM";
@@ -109,6 +112,8 @@ class LocalStrings {
       '$bpms/api/kidzee//GetBrandingProduct';
   static const String API_INSERT_BRANDING_INDENT =
       '$bpms/api/kidzee//InsertBrandingIndent';
+  static const String API_SAVE_DISPATCH_CONFIRMATION =
+      '$bpms/api/kidzee/SaveDispatchConfirmation';
   static const String kidzeeBrandingDbId = '0';
   /// Default academic year for branding indent insert (API sample = 26).
   static const int kidzeeBrandingAcademicYearId = 26;
@@ -118,4 +123,6 @@ class LocalStrings {
 
   static const String CVF_REPORT_URL = 'https://intranet.zeelearn.com/cvfreport.html?cid=';
   static const String SHARE_CVF_REPORT = '/api/cvf/share-report';
+  static const String GET_PJP_CVF_EMAIL = '/api/PJP/GetPJPCVFEmail';
+  static const String SEND_PJP_CVF_EMAIL = '/api/PJP/SendPJPCVFEmail';
 }

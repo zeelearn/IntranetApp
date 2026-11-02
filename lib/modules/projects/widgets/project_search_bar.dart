@@ -7,7 +7,7 @@ class ProjectSearchBar extends StatefulWidget {
     super.key,
     required this.onChanged,
     this.onFilterTap,
-    this.hint = 'Search by CRM ID, Franchisee, Title...',
+    this.hint = 'Search by CRM ID, Franchisee Name,Franchisee ID, Title...',
     this.showFilter = true,
   });
 

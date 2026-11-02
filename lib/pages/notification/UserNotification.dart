@@ -1,13 +1,18 @@
 import 'dart:convert';
 
-import 'package:get/get.dart';
-import 'package:Intranet/pages/home/v2/dashboard_screen_v2_controller.dart';
+import 'package:Intranet/pages/helper/app_url_launcher.dart';
+import 'package:Intranet/pages/helper/DatabaseHelper.dart';
+import 'package:Intranet/pages/helper/LocalConstant.dart';
+import 'package:Intranet/pages/helper/constants.dart';
+import 'package:Intranet/pages/model/bpms_notification_model.dart';
+import 'package:Intranet/pages/notification/DetailPage.dart';
 import 'package:Intranet/pages/notification/NotificationModel.dart';
 import 'package:Intranet/pages/notification/bpms_card.dart';
 import 'package:Intranet/pages/utils/theme/colors/light_colors.dart';
 import 'package:Intranet/pages/widget/MyWebSiteView.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hive/hive.dart';
 import 'package:intl/intl.dart';
@@ -18,9 +23,13 @@ import '../../main.dart';
 import '../helper/DatabaseHelper.dart';
 import '../helper/LocalConstant.dart';
 import '../helper/constants.dart';
+import '../helper/utils.dart';
 import '../model/bpms_notification_model.dart';
+import 'package:expensestracker/presentation/pages/claim/courier_detail_page.dart';
 import 'DetailPage.dart';
 import 'package:Intranet/pages/summary%20dashboard/summary_dashboard.dart';
+import '../home/v2/dashboard_screen_v2_controller.dart';
+import '../summary%20dashboard/summary_dashboard.dart';
 
 class UserNotification extends StatefulWidget {
   const UserNotification({Key? key}) : super(key: key);
@@ -211,6 +220,79 @@ class _ListPageState extends State<UserNotification> {
                     ),
                   ));
             }
+          } else if (notificationModel.notificationtype.toUpperCase() == 'EXPENSE-COURIER' ||
+              notificationModel.notificationtype.toUpperCase() == 'EXPENSE_COURIER') {
+            String? claimIdStr;
+            String? employeeCode;
+            String? isAccchStr;
+
+            final webViewUrl = notificationModel.webViewUrl;
+            if (webViewUrl.isNotEmpty) {
+              try {
+                final uri = Uri.parse(webViewUrl);
+                claimIdStr = uri.queryParameters['cid'] ??
+                    uri.queryParameters['claimId'] ??
+                    uri.queryParameters['claim_id'] ??
+                    uri.queryParameters['claimID'];
+                employeeCode = uri.queryParameters['employee_code'] ??
+                    uri.queryParameters['eCode'] ??
+                    uri.queryParameters['employeeCode'] ??
+                    uri.queryParameters['e_code'];
+                isAccchStr = uri.queryParameters['isAccch'] ??
+                    uri.queryParameters['is_accch'];
+
+                if (uri.fragment.isNotEmpty) {
+                  final fragmentUri = Uri.parse(uri.fragment.startsWith('/')
+                      ? uri.fragment
+                      : '/${uri.fragment}');
+                  claimIdStr ??= fragmentUri.queryParameters['cid'] ??
+                      fragmentUri.queryParameters['claimId'] ??
+                      fragmentUri.queryParameters['claim_id'] ??
+                      fragmentUri.queryParameters['claimID'];
+                  employeeCode ??= fragmentUri.queryParameters['employee_code'] ??
+                      fragmentUri.queryParameters['eCode'] ??
+                      fragmentUri.queryParameters['employeeCode'] ??
+                      fragmentUri.queryParameters['e_code'];
+                  isAccchStr ??= fragmentUri.queryParameters['isAccch'] ??
+                      fragmentUri.queryParameters['is_accch'];
+                }
+
+                if (claimIdStr == null && int.tryParse(webViewUrl) != null) {
+                  claimIdStr = webViewUrl;
+                }
+              } catch (e) {
+                debugPrint('Error parsing webViewUrl for EXPENSE-COURIER: $e');
+                if (int.tryParse(webViewUrl) != null) {
+                  claimIdStr = webViewUrl;
+                }
+              }
+            }
+
+            if (employeeCode == null || employeeCode.isEmpty) {
+              var hiveBox = await Utility.openBox();
+              employeeCode = hiveBox.get(LocalConstant.KEY_EMPLOYEE_CODE) as String?;
+            }
+
+            final claimId = claimIdStr != null ? int.tryParse(claimIdStr) : null;
+            final isAccch = isAccchStr == 'true';
+
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => CourierDetailPage(
+                  claimId: claimId,
+                  employeeCode: employeeCode,
+                  isAccch: isAccch,
+                ),
+              ),);
+          } else if (notificationModel.webViewUrl.trim().isNotEmpty &&
+              (notificationModel.webViewUrl.startsWith('http://') ||
+                  notificationModel.webViewUrl.startsWith('https://'))) {
+            await AppUrlLauncher.open(
+              context,
+              url: notificationModel.webViewUrl,
+              title: notificationModel.subject,
+            );
           } else {
             Navigator.push(
                 context,
@@ -293,7 +375,7 @@ class _ListPageState extends State<UserNotification> {
                     child: makeCard(lessons[index]));
             },
           )
-        : Lottie.asset(no_Notification_Animtion);
+        : Center(child: Lottie.asset(no_Notification_Animtion));
 
     final makeBottom = SizedBox(
       height: 55.0,
