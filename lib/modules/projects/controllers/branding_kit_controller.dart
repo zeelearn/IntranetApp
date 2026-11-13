@@ -4,6 +4,7 @@ import 'package:Intranet/modules/projects/models/branding_kit_models.dart';
 import 'package:Intranet/modules/projects/models/dashboard_colors.dart';
 import 'package:Intranet/modules/projects/models/dashboard_failure.dart';
 import 'package:Intranet/modules/projects/models/indent_item.dart';
+import 'package:Intranet/modules/projects/models/project_item.dart';
 import 'package:Intranet/modules/projects/repositories/branding_repository.dart';
 import 'package:Intranet/modules/projects/services/branding_remote_service.dart';
 import 'package:Intranet/pages/helper/LocalConstant.dart';
@@ -15,12 +16,16 @@ enum BrandingKitView { overview, form }
 /// GetX controller for Branding Kit bottom sheet (finance-safe flow).
 class BrandingKitController extends GetxController {
   BrandingKitController({
-    required this.indentItem,
+    required this.businessRefId,
+    required this.franchiseeName,
+    required this.canAddOrder,
     required BrandingRepository repository,
     this.academicYearId = LocalStrings.kidzeeBrandingAcademicYearId,
   }) : _repository = repository;
 
-  final IndentItem indentItem;
+  final int businessRefId;
+  final String franchiseeName;
+  final bool canAddOrder;
   final BrandingRepository _repository;
   final int academicYearId;
 
@@ -34,13 +39,9 @@ class BrandingKitController extends GetxController {
 
   int createdBy = 0;
 
-  int get franchiseeId => indentItem.franchiseeId;
   bool get hasExistingIndents => data.value?.hasExistingIndents ?? false;
   List<BrandingIndentLine> get indents => data.value?.indents ?? const [];
   List<BrandingProduct> get products => data.value?.productList ?? const [];
-
-  /// Add Order — when API `CanIndentBK == 1`.
-  bool get canAddOrder => indentItem.canAccessFinanceActions;
 
   double get formTotal => formRows
       .where((r) => r.selected)
@@ -71,7 +72,7 @@ class BrandingKitController extends GetxController {
   }
 
   Future<void> loadProducts() async {
-    if (franchiseeId <= 0) {
+    if (businessRefId <= 0) {
       errorMessage.value =
           'Franchisee ID is missing. Cannot open Branding Kit.';
       return;
@@ -81,7 +82,7 @@ class BrandingKitController extends GetxController {
     errorMessage.value = null;
     try {
       final result =
-          await _repository.loadProducts(franchiseeId: franchiseeId);
+          await _repository.loadProducts(franchiseeId: businessRefId);
       data.value = result;
       view.value = BrandingKitView.overview;
     } on DashboardFailure catch (e) {
@@ -149,7 +150,7 @@ class BrandingKitController extends GetxController {
         .toList(growable: false);
 
     final draft = InsertBrandingIndentRequest(
-      franchiseeId: franchiseeId,
+      franchiseeId: businessRefId,
       academicYearId: academicYearId,
       createdBy: createdBy,
       inputData: lines,
@@ -168,9 +169,9 @@ class BrandingKitController extends GetxController {
         title: Text(isUpdate ? 'Update Branding Order?' : 'Add Branding Order?'),
         content: Text(
           isUpdate
-              ? 'Update branding order for "${indentItem.franchiseeName}" with '
+              ? 'Update branding order for "$franchiseeName" with '
                   '$selectedCount product(s)?\n\nTotal: ${formTotal.toStringAsFixed(0)}'
-              : 'Create branding order for "${indentItem.franchiseeName}" with '
+              : 'Create branding order for "$franchiseeName" with '
                   '$selectedCount product(s)?\n\nTotal: ${formTotal.toStringAsFixed(0)}',
         ),
         actions: [
@@ -198,7 +199,7 @@ class BrandingKitController extends GetxController {
     isSaving.value = true;
     try {
       final result = await _repository.saveOrder(
-        franchiseeId: franchiseeId,
+        franchiseeId: businessRefId,
         createdBy: createdBy,
         lines: lines,
         academicYearId: academicYearId,
@@ -236,7 +237,35 @@ class BrandingKitController extends GetxController {
     required IndentItem item,
     BrandingRepository? repository,
   }) {
-    final tag = 'branding_kit_${item.franchiseeId}_${item.indentId}';
+    return _putForSheet(
+      tag: 'branding_kit_indent_${item.businessRefId}_${item.indentId}',
+      businessRefId: item.businessRefId,
+      franchiseeName: item.franchiseeName,
+      canAddOrder: item.canAccessFinanceActions,
+      repository: repository,
+    );
+  }
+
+  static BrandingKitController putForProject({
+    required ProjectItem project,
+    BrandingRepository? repository,
+  }) {
+    return _putForSheet(
+      tag: 'branding_kit_project_${project.crmId}_${project.businessRefId}',
+      businessRefId: project.businessRefId,
+      franchiseeName: project.franchiseeName,
+      canAddOrder: project.canAddBrandingOrder,
+      repository: repository,
+    );
+  }
+
+  static BrandingKitController _putForSheet({
+    required String tag,
+    required int businessRefId,
+    required String franchiseeName,
+    required bool canAddOrder,
+    BrandingRepository? repository,
+  }) {
     if (Get.isRegistered<BrandingKitController>(tag: tag)) {
       Get.delete<BrandingKitController>(tag: tag, force: true);
     }
@@ -251,13 +280,29 @@ class BrandingKitController extends GetxController {
     final BrandingRepository repo = repository ??
         Get.put(BrandingRepository(remoteService: remote), tag: tag);
     return Get.put(
-      BrandingKitController(indentItem: item, repository: repo),
+      BrandingKitController(
+        businessRefId: businessRefId,
+        franchiseeName: franchiseeName,
+        canAddOrder: canAddOrder,
+        repository: repo,
+      ),
       tag: tag,
     );
   }
 
   static void deleteForSheet(IndentItem item) {
-    final tag = 'branding_kit_${item.franchiseeId}_${item.indentId}';
+    _deleteForSheet(
+      'branding_kit_indent_${item.businessRefId}_${item.indentId}',
+    );
+  }
+
+  static void deleteForProject(ProjectItem project) {
+    _deleteForSheet(
+      'branding_kit_project_${project.crmId}_${project.businessRefId}',
+    );
+  }
+
+  static void _deleteForSheet(String tag) {
     if (Get.isRegistered<BrandingKitController>(tag: tag)) {
       Get.delete<BrandingKitController>(tag: tag, force: true);
     }

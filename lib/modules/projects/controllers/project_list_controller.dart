@@ -15,6 +15,7 @@ import 'package:Intranet/modules/projects/repositories/project_repository.dart';
 import 'package:Intranet/modules/projects/services/credentials_cooldown_store.dart';
 import 'package:Intranet/modules/projects/views/project_detail_screen.dart';
 import 'package:Intranet/modules/projects/views/task_hierarchy_screen.dart';
+import 'package:Intranet/modules/projects/widgets/branding_kit_sheet.dart';
 import 'package:Intranet/pages/widget/MyWebSiteView.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -281,6 +282,21 @@ class ProjectListController extends GetxController {
       project,
       initialTab: ProjectDetailTab.documents,
     );
+  }
+
+  Future<void> onBrandingKitTap(
+    BuildContext context,
+    ProjectItem project,
+  ) async {
+    if (project.businessRefId <= 0) {
+      _showMessage(context, 'Business reference ID is missing.');
+      return;
+    }
+    if (isOffline.value) {
+      _showMessage(context, 'No internet connection.');
+      return;
+    }
+    await showProjectBrandingKitSheet(context: context, project: project);
   }
 
   void onNotes(ProjectItem project) {

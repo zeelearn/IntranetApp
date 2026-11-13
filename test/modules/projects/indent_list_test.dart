@@ -107,13 +107,18 @@ void main() {
       expect(_sample(payment: 'Pending').canGeneratePaymentLink, isTrue);
     });
 
-    test('Franchisee_Id preferred over BusinessRef_Id', () {
+    test('BusinessRef_Id preferred over Franchisee_Id for branding', () {
       final item = IndentItem.fromJson({
         'Franchisee_Id': 2354,
         'BusinessRef_Id': 7917,
       });
-      expect(item.businessRefId, 2354);
-      expect(item.franchiseeId, 2354);
+      expect(item.businessRefId, 7917);
+      expect(item.franchiseeId, 7917);
+    });
+
+    test('parses PascalCase boolean CanIndentBK flag', () {
+      final item = IndentItem.fromJson({'CAN_INDENT_BK': true});
+      expect(item.canShowBrandingKit, isTrue);
     });
   });
 
@@ -251,19 +256,25 @@ void main() {
 
     test('search by indent id and agreement', () {
       expect(
-        repo.applyQuery(
-          source: source,
-          search: '2200',
-          filter: IndentListFilter.empty,
-        ).single.indentId,
+        repo
+            .applyQuery(
+              source: source,
+              search: '2200',
+              filter: IndentListFilter.empty,
+            )
+            .single
+            .indentId,
         2200,
       );
       expect(
-        repo.applyQuery(
-          source: source,
-          search: '30001',
-          filter: IndentListFilter.empty,
-        ).single.agreementNo,
+        repo
+            .applyQuery(
+              source: source,
+              search: '30001',
+              filter: IndentListFilter.empty,
+            )
+            .single
+            .agreementNo,
         '30001',
       );
     });

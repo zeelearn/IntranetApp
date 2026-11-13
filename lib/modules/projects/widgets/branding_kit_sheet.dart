@@ -6,6 +6,7 @@ import 'package:Intranet/modules/projects/controllers/branding_kit_controller.da
 import 'package:Intranet/modules/projects/models/branding_kit_models.dart';
 import 'package:Intranet/modules/projects/models/dashboard_colors.dart';
 import 'package:Intranet/modules/projects/models/indent_item.dart';
+import 'package:Intranet/modules/projects/models/project_item.dart';
 import 'package:Intranet/modules/projects/utils/project_date_utils.dart';
 
 Future<void> showBrandingKitSheet({
@@ -13,6 +14,30 @@ Future<void> showBrandingKitSheet({
   required IndentItem item,
 }) async {
   final controller = BrandingKitController.putForSheet(item: item);
+  await _showBrandingKitSheet(
+    context: context,
+    controller: controller,
+    onClose: () => BrandingKitController.deleteForSheet(item),
+  );
+}
+
+Future<void> showProjectBrandingKitSheet({
+  required BuildContext context,
+  required ProjectItem project,
+}) async {
+  final controller = BrandingKitController.putForProject(project: project);
+  await _showBrandingKitSheet(
+    context: context,
+    controller: controller,
+    onClose: () => BrandingKitController.deleteForProject(project),
+  );
+}
+
+Future<void> _showBrandingKitSheet({
+  required BuildContext context,
+  required BrandingKitController controller,
+  required VoidCallback onClose,
+}) async {
   try {
     await showModalBottomSheet<void>(
       context: context,
@@ -21,7 +46,7 @@ Future<void> showBrandingKitSheet({
       builder: (ctx) => _BrandingKitSheet(controller: controller),
     );
   } finally {
-    BrandingKitController.deleteForSheet(item);
+    onClose();
   }
 }
 
@@ -69,9 +94,9 @@ class _BrandingKitSheet extends StatelessWidget {
                           ),
                         ),
                         Text(
-                          controller.indentItem.franchiseeName.isEmpty
-                              ? 'Franchisee #${controller.franchiseeId}'
-                              : controller.indentItem.franchiseeName,
+                          controller.franchiseeName.isEmpty
+                              ? 'Franchisee #${controller.businessRefId}'
+                              : controller.franchiseeName,
                           style: GoogleFonts.poppins(
                             fontSize: 12,
                             color: DashboardColors.textMuted,

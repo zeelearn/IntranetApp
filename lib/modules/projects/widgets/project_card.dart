@@ -17,6 +17,7 @@ class ProjectCard extends StatelessWidget {
     required this.onDocuments,
     required this.onViewReport,
     required this.onSendCredentials,
+    this.onBrandingKit,
     this.onConfirmCKDispatch,
     this.onConfirmBKDispatch,
     this.isConfirmingCKDispatch = false,
@@ -38,6 +39,7 @@ class ProjectCard extends StatelessWidget {
   final VoidCallback onCardTap;
   final VoidCallback onViewReport;
   final VoidCallback onSendCredentials;
+  final VoidCallback? onBrandingKit;
   final VoidCallback? onConfirmCKDispatch;
   final VoidCallback? onConfirmBKDispatch;
   final bool isConfirmingCKDispatch;
@@ -121,6 +123,36 @@ class ProjectCard extends StatelessWidget {
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
+                          if (p.businessRefId > 0 && onBrandingKit != null)
+                            Padding(
+                              padding: const EdgeInsets.only(right: 4),
+                              child: OutlinedButton.icon(
+                                onPressed: onBrandingKit,
+                                icon: const Icon(
+                                  Icons.palette_outlined,
+                                  size: 16,
+                                ),
+                                label: const Text('Branding Kit'),
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: DashboardColors.purple,
+                                  side: BorderSide(
+                                    color: DashboardColors.purple
+                                        .withValues(alpha: 0.4),
+                                  ),
+                                  padding:
+                                      const EdgeInsets.symmetric(horizontal: 8),
+                                  minimumSize: const Size(0, 36),
+                                  visualDensity: VisualDensity.compact,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  textStyle: GoogleFonts.poppins(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ),
                           _HeaderIconButton(
                             tooltip: 'View Report',
                             icon: Icons.bar_chart_rounded,

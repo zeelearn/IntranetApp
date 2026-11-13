@@ -10,6 +10,8 @@ class ProjectItem extends Equatable {
     required this.franchiseeCode,
     required this.franchiseeName,
     required this.franchiseeId,
+    this.businessRefId = 0,
+    this.canIndentBk = 0,
     required this.deadline,
     required this.createdBy,
     required this.totalNoOfTask,
@@ -34,6 +36,8 @@ class ProjectItem extends Equatable {
   final String franchiseeCode;
   final String franchiseeName;
   final int franchiseeId;
+  final int businessRefId;
+  final int canIndentBk;
   final String deadline;
   final String createdBy;
   final int totalNoOfTask;
@@ -65,13 +69,15 @@ class ProjectItem extends Equatable {
 
   TaskSummary get taskSummary => TaskSummary.parse(taskcount);
 
-  /// Eligible to show CK dispatch UI (indent present + API flag).
+  /// Shows CK dispatch UI when an indent exists and dispatch is allowed or done.
   bool get shouldShowCKDispatch =>
-      _hasIndentId(illumeIndentId) && showIllumeDispatchBtn == 1;
+      _hasIndentId(illumeIndentId) &&
+      (showIllumeDispatchBtn == 1 || isCKDispatchConfirmed);
 
-  /// Eligible to show BK dispatch UI (indent present + API flag).
+  /// Shows BK dispatch UI when an indent exists and dispatch is allowed or done.
   bool get shouldShowBKDispatch =>
-      _hasIndentId(brandingIndentId) && showBrandingDispatchBtn == 1;
+      _hasIndentId(brandingIndentId) &&
+      (showBrandingDispatchBtn == 1 || isBKDispatchConfirmed);
 
   bool get isCKDispatchConfirmed => isIllumeDispatchConfirmed == true;
 
@@ -85,6 +91,8 @@ class ProjectItem extends Equatable {
   bool get canConfirmBKDispatch =>
       shouldShowBKDispatch && !isBKDispatchConfirmed;
 
+  bool get canAddBrandingOrder => canIndentBk == 1;
+
   factory ProjectItem.fromJson(Map<String, dynamic> json) {
     return ProjectItem(
       crmId: _asString(json['CRM_id'] ?? json['project_id']),
@@ -93,6 +101,8 @@ class ProjectItem extends Equatable {
       franchiseeCode: _asString(json['Franchisee_Code']),
       franchiseeName: _asString(json['Franchisee_Name']),
       franchiseeId: _asInt(json['Franchisee_Id']),
+      businessRefId: _asInt(json['BusinessRef_Id']),
+      canIndentBk: _asInt(_field(json, 'CanIndentBK')),
       deadline: _asString(json['deadline']),
       createdBy: _asString(json['CreatedBy']),
       totalNoOfTask: _asInt(json['TotalNoOfTask']),
@@ -105,14 +115,15 @@ class ProjectItem extends Equatable {
         json['Responsible_person'] ?? json['responsiblePerson'],
       ),
       id: _asString(json['id']),
-      illumeIndentId: _asNullableString(json['Illume_Indent_Id']),
-      brandingIndentId: _asNullableString(json['Branding_Indent_Id']),
+      illumeIndentId: _asNullableString(_field(json, 'Illume_Indent_Id')),
+      brandingIndentId: _asNullableString(_field(json, 'Branding_Indent_Id')),
       isIllumeDispatchConfirmed:
-          _asNullableBool(json['is_illume_dispatch_confirmed']),
+          _asNullableBool(_field(json, 'is_illume_dispatch_confirmed')),
       isBrandingDispatchConfirmed:
-          _asNullableBool(json['is_branding_dispatch_confirmed']),
-      showIllumeDispatchBtn: _asInt(json['show_illume_dispatch_btn']),
-      showBrandingDispatchBtn: _asInt(json['show_branding_dispatch_btn']),
+          _asNullableBool(_field(json, 'is_branding_dispatch_confirmed')),
+      showIllumeDispatchBtn: _asInt(_field(json, 'show_illume_dispatch_btn')),
+      showBrandingDispatchBtn:
+          _asInt(_field(json, 'show_branding_dispatch_btn')),
     );
   }
 
@@ -123,6 +134,8 @@ class ProjectItem extends Equatable {
         'Franchisee_Code': franchiseeCode,
         'Franchisee_Name': franchiseeName,
         'Franchisee_Id': franchiseeId,
+        'BusinessRef_Id': businessRefId,
+        'CanIndentBK': canIndentBk,
         'deadline': deadline,
         'CreatedBy': createdBy,
         'TotalNoOfTask': totalNoOfTask,
@@ -148,6 +161,8 @@ class ProjectItem extends Equatable {
     String? franchiseeCode,
     String? franchiseeName,
     int? franchiseeId,
+    int? businessRefId,
+    int? canIndentBk,
     String? deadline,
     String? createdBy,
     int? totalNoOfTask,
@@ -176,6 +191,8 @@ class ProjectItem extends Equatable {
       franchiseeCode: franchiseeCode ?? this.franchiseeCode,
       franchiseeName: franchiseeName ?? this.franchiseeName,
       franchiseeId: franchiseeId ?? this.franchiseeId,
+      businessRefId: businessRefId ?? this.businessRefId,
+      canIndentBk: canIndentBk ?? this.canIndentBk,
       deadline: deadline ?? this.deadline,
       createdBy: createdBy ?? this.createdBy,
       totalNoOfTask: totalNoOfTask ?? this.totalNoOfTask,
@@ -186,9 +203,8 @@ class ProjectItem extends Equatable {
       title: title ?? this.title,
       responsiblePerson: responsiblePerson ?? this.responsiblePerson,
       id: id ?? this.id,
-      illumeIndentId: clearIllumeIndentId
-          ? null
-          : (illumeIndentId ?? this.illumeIndentId),
+      illumeIndentId:
+          clearIllumeIndentId ? null : (illumeIndentId ?? this.illumeIndentId),
       brandingIndentId: clearBrandingIndentId
           ? null
           : (brandingIndentId ?? this.brandingIndentId),
@@ -208,6 +224,18 @@ class ProjectItem extends Equatable {
   static bool _hasIndentId(String? value) =>
       value != null && value.trim().isNotEmpty;
 
+  static dynamic _field(Map<String, dynamic> json, String key) {
+    if (json.containsKey(key)) return json[key];
+    final normalizedKey = _normalizeKey(key);
+    for (final entry in json.entries) {
+      if (_normalizeKey(entry.key) == normalizedKey) return entry.value;
+    }
+    return null;
+  }
+
+  static String _normalizeKey(String key) =>
+      key.replaceAll('_', '').toLowerCase();
+
   static String _asString(dynamic v) => v?.toString() ?? '';
 
   static String? _asNullableString(dynamic v) {
@@ -219,9 +247,13 @@ class ProjectItem extends Equatable {
 
   static int _asInt(dynamic v) {
     if (v == null) return 0;
+    if (v is bool) return v ? 1 : 0;
     if (v is int) return v;
     if (v is double) return v.toInt();
-    return int.tryParse(v.toString()) ?? 0;
+    final text = v.toString().trim().toLowerCase();
+    if (text == 'true' || text == 'yes') return 1;
+    if (text == 'false' || text == 'no') return 0;
+    return num.tryParse(text)?.toInt() ?? 0;
   }
 
   /// Only explicit true / 1 / "true" → true; false / 0 / "false" → false;
@@ -253,6 +285,8 @@ class ProjectItem extends Equatable {
         franchiseeCode,
         franchiseeName,
         franchiseeId,
+        businessRefId,
+        canIndentBk,
         deadline,
         createdBy,
         totalNoOfTask,
