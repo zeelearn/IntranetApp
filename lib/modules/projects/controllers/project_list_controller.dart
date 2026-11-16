@@ -17,6 +17,7 @@ import 'package:Intranet/modules/projects/services/credentials_cooldown_store.da
 import 'package:Intranet/modules/projects/widgets/branding_kit_sheet.dart';
 import 'package:Intranet/modules/projects/views/project_detail_screen.dart';
 import 'package:Intranet/modules/projects/views/task_hierarchy_screen.dart';
+import 'package:Intranet/modules/projects/widgets/branding_kit_sheet.dart';
 import 'package:Intranet/pages/widget/MyWebSiteView.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -297,6 +298,21 @@ class ProjectListController extends GetxController {
     );
   }
 
+  Future<void> onBrandingKitTap(
+    BuildContext context,
+    ProjectItem project,
+  ) async {
+    if (project.businessRefId <= 0) {
+      _showMessage(context, 'Business reference ID is missing.');
+      return;
+    }
+    if (isOffline.value) {
+      _showMessage(context, 'No internet connection.');
+      return;
+    }
+    await showProjectBrandingKitSheet(context: context, project: project);
+  }
+
   void onNotes(ProjectItem project) {
     onCommunication(project);
   }
@@ -467,46 +483,46 @@ class ProjectListController extends GetxController {
     }
   }
 
-  Future<void> onBrandingKitTap(
-    BuildContext context,
-    ProjectItem project,
-  ) async {
-    if (!project.canShowBrandingKit) {
-      _showMessage(context, 'Branding Kit is not available for this project.');
-      return;
-    }
-    if (project.franchiseeId <= 0) {
-      _showMessage(
-        context,
-        'Franchisee ID is missing. Cannot open Branding Kit.',
-      );
-      return;
-    }
-    if (isOffline.value) {
-      _showMessage(context, 'No internet connection.');
-      return;
-    }
+  // Future<void> onBrandingKitTap(
+  //   BuildContext context,
+  //   ProjectItem project,
+  // ) async {
+  //   if (!project.canShowBrandingKit) {
+  //     _showMessage(context, 'Branding Kit is not available for this project.');
+  //     return;
+  //   }
+  //   if (project.franchiseeId <= 0) {
+  //     _showMessage(
+  //       context,
+  //       'Franchisee ID is missing. Cannot open Branding Kit.',
+  //     );
+  //     return;
+  //   }
+  //   if (isOffline.value) {
+  //     _showMessage(context, 'No internet connection.');
+  //     return;
+  //   }
 
-    final item = IndentItem(
-      franchiseeCode: project.franchiseeCode,
-      franchiseeName: project.franchiseeName,
-      zoneCode: '',
-      stateName: '',
-      agreementNo: '',
-      pil: 0,
-      apprAmount: null,
-      dueAmount: 0,
-      dueDate: '',
-      indentId: int.tryParse(project.brandingIndentId ?? '') ?? 0,
-      indentStatus: '',
-      createdBy: project.createdBy,
-      paymentStatus: '',
-      projectStatus: '',
-      businessRefId: project.franchiseeId,
-      canIndentBk: project.canIndentBk,
-    );
-    await showBrandingKitSheet(context: context, item: item);
-  }
+  //   final item = IndentItem(
+  //     franchiseeCode: project.franchiseeCode,
+  //     franchiseeName: project.franchiseeName,
+  //     zoneCode: '',
+  //     stateName: '',
+  //     agreementNo: '',
+  //     pil: 0,
+  //     apprAmount: null,
+  //     dueAmount: 0,
+  //     dueDate: '',
+  //     indentId: int.tryParse(project.brandingIndentId ?? '') ?? 0,
+  //     indentStatus: '',
+  //     createdBy: project.createdBy,
+  //     paymentStatus: '',
+  //     projectStatus: '',
+  //     businessRefId: project.franchiseeId,
+  //     canIndentBk: project.canIndentBk,
+  //   );
+  //   await showBrandingKitSheet(context: context, item: item);
+  // }
 
   Future<void> confirmAndSendCredentials(
     BuildContext context,

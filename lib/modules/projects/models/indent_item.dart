@@ -40,7 +40,7 @@ class IndentItem extends Equatable {
   /// From Pentemind_Illume_Status `CanIndentBK`. Only `1` grants finance actions.
   final int canIndentBk;
 
-  /// Franchisee id for branding APIs (`Franchisee_Id` or `BusinessRef_Id`).
+  /// Compatibility alias for existing callers.
   int get franchiseeId => businessRefId;
 
   /// Payment link is allowed only when payment is not completed.
@@ -70,10 +70,8 @@ class IndentItem extends Equatable {
       createdBy: _asString(json['Created_By']),
       paymentStatus: _asString(json['PaymentStatus']),
       projectStatus: _asString(json['ProjectStatus']),
-      businessRefId: _asInt(
-        json['Franchisee_Id'] ?? json['BusinessRef_Id'],
-      ),
-      canIndentBk: _asInt(json['CanIndentBK'] ?? json['canIndentBK']),
+      businessRefId: _asInt(json['BusinessRef_Id'] ?? json['Franchisee_Id']),
+      canIndentBk: _asInt(_field(json, 'CanIndentBK')),
     );
   }
 
@@ -98,11 +96,26 @@ class IndentItem extends Equatable {
 
   static String _asString(dynamic v) => v?.toString().trim() ?? '';
 
+  static dynamic _field(Map<String, dynamic> json, String key) {
+    if (json.containsKey(key)) return json[key];
+    final normalizedKey = key.replaceAll('_', '').toLowerCase();
+    for (final entry in json.entries) {
+      if (entry.key.replaceAll('_', '').toLowerCase() == normalizedKey) {
+        return entry.value;
+      }
+    }
+    return null;
+  }
+
   static int _asInt(dynamic v) {
     if (v == null) return 0;
+    if (v is bool) return v ? 1 : 0;
     if (v is int) return v;
     if (v is double) return v.toInt();
-    return int.tryParse(v.toString()) ?? 0;
+    final text = v.toString().trim().toLowerCase();
+    if (text == 'true' || text == 'yes') return 1;
+    if (text == 'false' || text == 'no') return 0;
+    return num.tryParse(text)?.toInt() ?? 0;
   }
 
   static double _asDouble(dynamic v) {

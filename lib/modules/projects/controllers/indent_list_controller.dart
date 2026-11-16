@@ -313,7 +313,7 @@ class IndentListController extends GetxController {
       );
       return;
     }
-    if (item.franchiseeId <= 0) {
+    if (item.businessRefId <= 0) {
       _showMessage(
         context,
         'Franchisee ID is missing. Cannot open Branding Kit.',

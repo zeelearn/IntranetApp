@@ -11,6 +11,8 @@ void main() {
         'Franchisee_Code': 'S-R-S-7230',
         'Franchisee_Name': 'Kidzee Siruseri',
         'Franchisee_Id': 7230,
+        'BusinessRef_Id': 9876,
+        'CanIndentBK': '1',
         'deadline': '2026-12-31',
         'CreatedBy': 'Admin',
         'TotalNoOfTask': 12,
@@ -32,6 +34,9 @@ void main() {
 
       expect(item.crmId, '259262000101590371');
       expect(item.franchiseeId, 7230);
+      expect(item.businessRefId, 9876);
+      expect(item.canIndentBk, 1);
+      expect(item.canAddBrandingOrder, isTrue);
       expect(item.totalNoOfTask, 12);
       expect(item.feeType, 'ST');
       expect(item.taskSummary.completed, 2);
@@ -63,6 +68,8 @@ void main() {
         'CRM_id': 'crm-1',
         'Franchisee_Name': 'Name',
         'Franchisee_Id': 1,
+        'BusinessRef_Id': 2,
+        'CanIndentBK': 1,
         'taskcount': 'P-1',
         'Illume_Indent_Id': 'ill-1',
         'Branding_Indent_Id': 'br-1',
@@ -75,6 +82,9 @@ void main() {
       final json = item.toJson();
       expect(json['CRM_id'], 'crm-1');
       expect(json['Franchisee_Name'], 'Name');
+      expect(json['Franchisee_Id'], 1);
+      expect(json['BusinessRef_Id'], 2);
+      expect(json['CanIndentBK'], 1);
       expect(json['Illume_Indent_Id'], 'ill-1');
       expect(json['Branding_Indent_Id'], 'br-1');
       expect(json['CanIndentBK'], 1);
@@ -86,6 +96,9 @@ void main() {
       final copied = item.copyWith(franchiseeName: 'Updated');
       expect(copied.franchiseeName, 'Updated');
       expect(copied.crmId, item.crmId);
+      expect(copied.franchiseeId, 1);
+      expect(copied.businessRefId, 2);
+      expect(copied.canIndentBk, 1);
       expect(copied.illumeIndentId, 'ill-1');
       expect(copied.canIndentBk, 1);
     });
@@ -159,7 +172,7 @@ void main() {
     test('TEST 5: CK confirmed green state', () {
       final item = base(
         illumeIndentId: '123',
-        showIllume: 1,
+        showIllume: 0,
         isIllumeConfirmed: true,
       );
       expect(item.shouldShowCKDispatch, isTrue);
@@ -201,12 +214,26 @@ void main() {
     test('TEST 10: BK confirmed green state', () {
       final item = base(
         brandingIndentId: '456',
-        showBranding: 1,
+        showBranding: 0,
         isBrandingConfirmed: true,
       );
       expect(item.shouldShowBKDispatch, isTrue);
       expect(item.isBKDispatchConfirmed, isTrue);
       expect(item.canConfirmBKDispatch, isFalse);
+    });
+
+    test('parses camel-case API fields and boolean dispatch flags', () {
+      final item = ProjectItem.fromJson({
+        'IllumeIndentId': 'ill-1',
+        'BrandingIndentId': 'bk-1',
+        'ShowIllumeDispatchBtn': true,
+        'ShowBrandingDispatchBtn': 'true',
+        'IsIllumeDispatchConfirmed': false,
+        'IsBrandingDispatchConfirmed': false,
+      });
+
+      expect(item.shouldShowCKDispatch, isTrue);
+      expect(item.shouldShowBKDispatch, isTrue);
     });
 
     test('nullable bool parsing treats only true as confirmed', () {

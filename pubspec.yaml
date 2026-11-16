@@ -15,7 +15,7 @@ publish_to: "none" # Remove this line if you wish to publish to pub.dev
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 1.0.60+64
+version: 1.0.61+65
 
 environment:
   sdk: ">=3.2.3 <4.0.0"
@@ -140,10 +140,10 @@ dependencies:
     # path: ../../ZeeSathi
 
   expensestracker:
-    path: ../excepsesmanagement
-    # git:
-    #   url: https://github.com/ZeeLearnLtd/excepsesmanagement.git
-    #   ref: uat
+    #path: ../excepsesmanagement
+    git:
+      url: https://github.com/ZeeLearnLtd/excepsesmanagement.git
+      ref: uat
 
   notiflow:
     # path: ../notiflow
@@ -177,6 +177,7 @@ dependency_overrides:
   device_calendar: ^4.3.3
   timezone: ^0.10.0
   archive: ^3.6.1
+  image: 4.9.2
   webview_flutter_android: ^4.3.4
   google_api_headers: ^4.2.3
   flutter_date_range_picker: ^0.2.1

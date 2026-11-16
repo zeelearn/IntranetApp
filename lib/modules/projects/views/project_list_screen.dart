@@ -216,8 +216,13 @@ class ProjectListScreen extends StatelessWidget {
                                     controller.onDocuments(project),
                                 onViewReport: () =>
                                     controller.viewReport(project),
-                                onSendCredentials: () =>
-                                    controller.confirmAndSendCredentials(
+                                // onBrandingKit: () =>
+                                //     controller.onBrandingKitTap(
+                                //   context,
+                                //   project,
+                                // ),
+                                onSendCredentials: () => controller
+                                    .confirmAndSendCredentials(
                                   context,
                                   project,
                                 ),
@@ -327,6 +332,11 @@ class ProjectListScreen extends StatelessWidget {
                                             controller.onDocuments(project),
                                         onViewReport: () =>
                                             controller.viewReport(project),
+                                        // onBrandingKit: () =>
+                                        //     controller.onBrandingKitTap(
+                                        //   context,
+                                        //   project,
+                                        // ),
                                         onSendCredentials: () => controller
                                             .confirmAndSendCredentials(
                                           context,
