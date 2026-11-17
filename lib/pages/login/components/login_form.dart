@@ -207,13 +207,13 @@ class _LoginFormState extends State<LoginForm>
 
               //// Save an integer value to 'counter' key.
               hiveBox.put(
-                  LocalConstant.KEY_EMPLOYEE_ID, info.employeeId as String);
+                  LocalConstant.KEY_EMPLOYEE_ID, info.employeeId.toInt().toString());
               hiveBox.put(LocalConstant.KEY_EMPLOYEE_CODE, info.employeeCode);
               hiveBox.put(LocalConstant.KEY_FIRST_NAME, info.employeeFirstName);
               hiveBox.put(LocalConstant.KEY_LAST_NAME, info.employeeLastName);
               hiveBox.put(LocalConstant.KEY_DOJ, info.employeeDateOfJoining);
               hiveBox.put(LocalConstant.KEY_EMP_SUPERIOR_ID,
-                  info.employeeSuperiorId as String);
+                  info.employeeSuperiorId.toInt().toString());
               hiveBox.put(
                   LocalConstant.KEY_DEPARTMENT, info.employeeDepartmentName);
               hiveBox.put(
@@ -266,7 +266,7 @@ class _LoginFormState extends State<LoginForm>
                 context,
                 MaterialPageRoute(
                     builder: (context) =>
-                        DashboardScreenV2(userId: info.employeeId as String)),
+                        DashboardScreenV2(userId: info.employeeId.toInt().toString())),
               );
             }
           }

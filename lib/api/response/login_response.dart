@@ -2,6 +2,35 @@ import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
 
+int _asInt(dynamic value, [int fallback = 0]) {
+  if (value == null) return fallback;
+  if (value is int) return value;
+  if (value is double) return value.toInt();
+  if (value is num) return value.toInt();
+  return int.tryParse(value.toString().trim()) ?? fallback;
+}
+
+double _asDouble(dynamic value, [double fallback = 0.0]) {
+  if (value == null) return fallback;
+  if (value is double) return value;
+  if (value is num) return value.toDouble();
+  return double.tryParse(value.toString().trim()) ?? fallback;
+}
+
+bool _asBool(dynamic value, [bool fallback = false]) {
+  if (value == null) return fallback;
+  if (value is bool) return value;
+  final str = value.toString().trim().toLowerCase();
+  if (str == 'true' || str == '1') return true;
+  if (str == 'false' || str == '0') return false;
+  return fallback;
+}
+
+String _asString(dynamic value, [String fallback = '']) {
+  if (value == null) return fallback;
+  return value.toString().trim();
+}
+
 class LoginResponseModel {
   LoginResponseModel({
     required this.responseMessage,
@@ -47,7 +76,8 @@ class ResponseData {
       employeeRoles = List.from(json['employeeRoles'] ?? const [])
           .map((e) => EmployeeRoles.fromJson(e))
           .toList();
-    } catch (_) {
+    } catch (e, stack) {
+      debugPrint('Error parsing employeeDetails or employeeRoles: $e\n$stack');
       employeeDetails = [];
       employeeRoles = [];
     }
@@ -177,48 +207,48 @@ class EmployeeDetails {
   late final String token;
 
   EmployeeDetails.fromJson(Map<String, dynamic> json) {
-    employeeId = json['employee_Id'];
-    employeeCode = json['employee_Code'] ?? '';
-    employeeFirstName = json['employee_FirstName'] ?? '';
-    employeeLastName = json['employee_LastName'] ?? '';
-    employeeDateOfJoining = json['employee_DateOfJoining'] ?? "";
-    employeeSuperiorId = json['employee_SuperiorId'] ?? "";
-    employeeRoleId = json['employee_RoleId'] ?? "";
-    employeeRoleName = json['employeeRole_Name'] ?? "";
-    employeeDepartmentID = json['employee_DepartmentID'] ?? "";
-    employeeDepartmentName = json['employee_DepartmentName'] ?? "";
-    employeeDesignation = json['employee_Designation'] ?? "";
-    employeeEmailId = json['employee_EmailId'] ?? "";
-    employeeContactNumber = json['employee_ContactNumber'] ?? "";
-    isActive = json['isActive'] ?? "";
-    createdBy = json['created_By'] ?? "";
-    createdDate = json['created_Date'] ?? "";
-    modifiedBy = json['modified_By'] ?? "";
-    modifiedDate = json['modified_Date'] ?? "";
-    isBusinessHead = json['isBusinessHead'] ?? "";
-    isCEO = json['isCEO'] ?? "";
-    userName = json['user_Name'] ?? "";
-    userPassword = json['user_Password'] ?? "";
-    isLoggedIn = json['is_LoggedIn'] ?? "";
-    isExternal = json['is_External'] ?? "";
-    employeeDateOfBirth = json['employee_DateOfBirth'] ?? "";
-    employeeGrade = json['employee_Grade'] ?? "";
-    zone = json['zone'] ?? "";
-    employeeDepartmentID1 = json['employee_DepartmentID1'] ?? "";
-    companyId = json['companyId'] ?? 0.0;
-    employeeDateOfMarriage = json['employee_DateOfMarriage'] ?? "";
-    gender = json['gender'] ?? "";
-    employeeMiddleName = json['employeeMiddleName'] ?? "";
-    employeeDateOfBirthActual = json['employeeDateOfBirthActual'] ?? "";
-    employeeWorkRoleId = json['employee_WorkRoleId'] ?? "";
-    employeeLocation = json['employee_Location'] ?? "";
-    employeeQualification = json['employeeQualification'] ?? "";
-    employeeMaritalStatus = json['employee_MaritalStatus'] ?? '';
-    landingPage = json['landingPage'] ?? "";
-    companyName = json['companyName'] ?? "";
-    managerName = json['managerName'] ?? "";
-    passwordExpired = json['isPasswordExpired'] ?? "";
-    token = json['token'] ?? "";
+    employeeId = _asDouble(json['employee_Id']);
+    employeeCode = _asString(json['employee_Code']);
+    employeeFirstName = _asString(json['employee_FirstName']);
+    employeeLastName = _asString(json['employee_LastName']);
+    employeeDateOfJoining = _asString(json['employee_DateOfJoining']);
+    employeeSuperiorId = _asDouble(json['employee_SuperiorId']);
+    employeeRoleId = _asDouble(json['employee_RoleId']);
+    employeeRoleName = _asString(json['employeeRole_Name']);
+    employeeDepartmentID = _asInt(json['employee_DepartmentID']);
+    employeeDepartmentName = _asString(json['employee_DepartmentName']);
+    employeeDesignation = _asString(json['employee_Designation']);
+    employeeEmailId = _asString(json['employee_EmailId']);
+    employeeContactNumber = _asString(json['employee_ContactNumber']);
+    isActive = _asBool(json['isActive']);
+    createdBy = _asString(json['created_By']);
+    createdDate = _asString(json['created_Date']);
+    modifiedBy = _asString(json['modified_By']);
+    modifiedDate = _asString(json['modified_Date']);
+    isBusinessHead = _asBool(json['isBusinessHead']);
+    isCEO = _asBool(json['isCEO']);
+    userName = _asString(json['user_Name']);
+    userPassword = _asString(json['user_Password']);
+    isLoggedIn = _asBool(json['is_LoggedIn']);
+    isExternal = _asBool(json['is_External']);
+    employeeDateOfBirth = _asString(json['employee_DateOfBirth']);
+    employeeGrade = _asString(json['employee_Grade']);
+    zone = _asString(json['zone']);
+    employeeDepartmentID1 = _asInt(json['employee_DepartmentID1']);
+    companyId = _asDouble(json['companyId']);
+    employeeDateOfMarriage = _asString(json['employee_DateOfMarriage']);
+    gender = _asString(json['gender']);
+    employeeMiddleName = _asString(json['employeeMiddleName']);
+    employeeDateOfBirthActual = _asString(json['employeeDateOfBirthActual']);
+    employeeWorkRoleId = _asDouble(json['employee_WorkRoleId']);
+    employeeLocation = _asString(json['employee_Location']);
+    employeeQualification = _asString(json['employeeQualification']);
+    employeeMaritalStatus = _asString(json['employee_MaritalStatus']);
+    landingPage = _asString(json['landingPage']);
+    companyName = _asString(json['companyName']);
+    managerName = _asString(json['managerName']);
+    passwordExpired = _asInt(json['isPasswordExpired']);
+    token = _asString(json['token']);
   }
 
   Map<String, dynamic> toJson() {
@@ -278,8 +308,8 @@ class EmployeeRoles {
   late final int value;
 
   EmployeeRoles.fromJson(Map<String, dynamic> json) {
-    splRole = json['splRole'];
-    value = json['value'];
+    splRole = _asString(json['splRole']);
+    value = _asInt(json['value']);
   }
 
   Map<String, dynamic> toJson() {
@@ -311,14 +341,16 @@ class BusinessApplications {
   late final String path;
 
   BusinessApplications.fromJson(Map<String, dynamic> json) {
-    businessID = json['business_ID'] ?? '';
-    business_UserID = json['business_UserID'] ?? 0;
-    employeeId = json['employee_Id'] ?? 0;
-    businessName = json['business_Name'] ?? '';
-    logoPath = json['logo_Path'] ?? '';
-    headerPath = json['header_Path'] ?? '';
-    footerPath = json['footer_Path'] ?? '';
-    path = json['path'] ?? '';
+    businessID = _asInt(json['business_ID']);
+    business_UserID = _asInt(json['business_UserID']);
+    employeeId = _asString(json['employee_Id']);
+    businessName = _asString(json['business_Name']);
+    logoPath = json['logo_Path'] != null ? _asString(json['logo_Path']) : null;
+    headerPath =
+        json['header_Path'] != null ? _asString(json['header_Path']) : null;
+    footerPath =
+        json['footer_Path'] != null ? _asString(json['footer_Path']) : null;
+    path = _asString(json['path']);
   }
 
   Map<String, dynamic> toJson() {
