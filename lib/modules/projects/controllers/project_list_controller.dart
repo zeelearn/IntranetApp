@@ -302,6 +302,10 @@ class ProjectListController extends GetxController {
     BuildContext context,
     ProjectItem project,
   ) async {
+    if (project.hasBrandingIndent) {
+      _showMessage(context, project.brandingIndentMessage);
+      return;
+    }
     if (project.businessRefId <= 0) {
       _showMessage(context, 'Business reference ID is missing.');
       return;

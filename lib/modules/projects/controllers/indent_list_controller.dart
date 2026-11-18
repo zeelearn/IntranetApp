@@ -306,6 +306,10 @@ class IndentListController extends GetxController {
     BuildContext context,
     IndentItem item,
   ) async {
+    if (item.hasBrandingIndent) {
+      _showMessage(context, item.brandingIndentMessage);
+      return;
+    }
     if (!item.canShowBrandingKit) {
       _showMessage(
         context,

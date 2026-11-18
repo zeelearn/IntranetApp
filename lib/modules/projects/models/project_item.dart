@@ -101,6 +101,13 @@ class ProjectItem extends Equatable {
 
   bool get canAddBrandingOrder => canIndentBk == 1;
 
+  /// Returns true if a Branding Kit indent has already been created.
+  bool get hasBrandingIndent => _hasIndentId(brandingIndentId);
+
+  /// Message displayed when a Branding Kit indent already exists.
+  String get brandingIndentMessage =>
+      'Branding Kit indent already created with Indent Id ${brandingIndentId?.trim()}.';
+
   factory ProjectItem.fromJson(Map<String, dynamic> json) {
     return ProjectItem(
       crmId: _asString(json['CRM_id'] ?? json['project_id']),

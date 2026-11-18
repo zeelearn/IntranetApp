@@ -56,6 +56,8 @@ class ProjectCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final p = project;
+    final isBrandingDisabled = p.hasBrandingIndent;
+    final brandingMessage = p.brandingIndentMessage;
     final chip = statusLabel.length > 3
         ? statusLabel.substring(0, 1).toUpperCase()
         : statusLabel;
@@ -125,29 +127,69 @@ class ProjectCard extends StatelessWidget {
                           if (p.businessRefId > 0 && onBrandingKit != null)
                             Padding(
                               padding: const EdgeInsets.only(right: 4),
-                              child: OutlinedButton.icon(
-                                onPressed: onBrandingKit,
-                                icon: const Icon(
-                                  Icons.palette_outlined,
-                                  size: 16,
-                                ),
-                                label: const Text('Branding Kit'),
-                                style: OutlinedButton.styleFrom(
-                                  foregroundColor: DashboardColors.purple,
-                                  side: BorderSide(
-                                    color: DashboardColors.purple
-                                        .withValues(alpha: 0.4),
-                                  ),
-                                  padding:
-                                      const EdgeInsets.symmetric(horizontal: 8),
-                                  minimumSize: const Size(0, 36),
-                                  visualDensity: VisualDensity.compact,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  textStyle: GoogleFonts.poppins(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w600,
+                              child: GestureDetector(
+                                behavior: HitTestBehavior.opaque,
+                                onTap: isBrandingDisabled
+                                    ? () {
+                                        ScaffoldMessenger.of(context)
+                                            .hideCurrentSnackBar();
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          SnackBar(
+                                            content: Text(brandingMessage),
+                                          ),
+                                        );
+                                      }
+                                    : null,
+                                child: Tooltip(
+                                  message: isBrandingDisabled
+                                      ? brandingMessage
+                                      : '',
+                                  child: OutlinedButton.icon(
+                                    onPressed: isBrandingDisabled
+                                        ? null
+                                        : onBrandingKit,
+                                    icon: Icon(
+                                      Icons.palette_outlined,
+                                      size: 16,
+                                      color: isBrandingDisabled
+                                          ? DashboardColors.textMuted
+                                          : DashboardColors.purple,
+                                    ),
+                                    label: Text(
+                                      'Branding Kit',
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w600,
+                                        color: isBrandingDisabled
+                                            ? DashboardColors.textMuted
+                                            : DashboardColors.purple,
+                                      ),
+                                    ),
+                                    style: OutlinedButton.styleFrom(
+                                      foregroundColor: DashboardColors.purple,
+                                      disabledForegroundColor:
+                                          DashboardColors.textMuted,
+                                      side: BorderSide(
+                                        color: isBrandingDisabled
+                                            ? DashboardColors.textMuted
+                                                .withValues(alpha: 0.3)
+                                            : DashboardColors.purple
+                                                .withValues(alpha: 0.4),
+                                      ),
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 8),
+                                      minimumSize: const Size(0, 36),
+                                      visualDensity: VisualDensity.compact,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(10),
+                                      ),
+                                      textStyle: GoogleFonts.poppins(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
                                   ),
                                 ),
                               ),
@@ -316,6 +358,17 @@ class ProjectCard extends StatelessWidget {
                     ),
                   ],
                 ),
+                if (isBrandingDisabled) ...[
+                  const SizedBox(height: 6),
+                  Text(
+                    brandingMessage,
+                    style: GoogleFonts.poppins(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w500,
+                      color: DashboardColors.textMuted,
+                    ),
+                  ),
+                ],
                 if (sendCredentialsHint != null && !sendCredentialsEnabled) ...[
                   const SizedBox(height: 6),
                   Text(
@@ -517,30 +570,68 @@ class _HeaderIconButton extends StatelessWidget {
 }
 
 class _BrandingKitHeaderButton extends StatelessWidget {
-  const _BrandingKitHeaderButton({required this.onTap});
+  const _BrandingKitHeaderButton({
+    required this.onTap,
+    this.enabled = true,
+    this.disabledMessage,
+  });
 
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
+  final bool enabled;
+  final String? disabledMessage;
 
   @override
   Widget build(BuildContext context) {
-    return OutlinedButton.icon(
-      onPressed: onTap,
-      icon: const Icon(Icons.palette_outlined, size: 14),
-      label: const Text('Branding Kit'),
-      style: OutlinedButton.styleFrom(
-        foregroundColor: DashboardColors.purple,
-        side: BorderSide(color: DashboardColors.purple.withValues(alpha: 0.35)),
-        padding: const EdgeInsets.symmetric(horizontal: 7),
-        minimumSize: const Size(0, 30),
-        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        visualDensity: VisualDensity.compact,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        textStyle: GoogleFonts.poppins(
-          fontSize: 9,
-          fontWeight: FontWeight.w600,
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: !enabled && disabledMessage != null
+          ? () {
+              ScaffoldMessenger.of(context).hideCurrentSnackBar();
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(disabledMessage!)),
+              );
+            }
+          : null,
+      child: Tooltip(
+        message: !enabled ? (disabledMessage ?? '') : '',
+        child: OutlinedButton.icon(
+          onPressed: enabled ? onTap : null,
+            icon: Icon(
+              Icons.palette_outlined,
+              size: 14,
+              color: enabled ? DashboardColors.purple : DashboardColors.textMuted,
+            ),
+            label: Text(
+              'Branding Kit',
+              style: GoogleFonts.poppins(
+                fontSize: 9,
+                fontWeight: FontWeight.w600,
+                color: enabled ? DashboardColors.purple : DashboardColors.textMuted,
+              ),
+            ),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: DashboardColors.purple,
+              disabledForegroundColor: DashboardColors.textMuted,
+              side: BorderSide(
+                color: enabled
+                    ? DashboardColors.purple.withValues(alpha: 0.35)
+                    : DashboardColors.textMuted.withValues(alpha: 0.25),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 7),
+              minimumSize: const Size(0, 30),
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              visualDensity: VisualDensity.compact,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              textStyle: GoogleFonts.poppins(
+                fontSize: 9,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
         ),
-      ),
-    );
+      );
   }
 }
 

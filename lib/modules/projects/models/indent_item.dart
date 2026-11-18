@@ -19,6 +19,7 @@ class IndentItem extends Equatable {
     required this.projectStatus,
     required this.businessRefId,
     this.canIndentBk = 0,
+    this.brandingIndentId,
   });
 
   final String franchiseeCode;
@@ -40,6 +41,9 @@ class IndentItem extends Equatable {
   /// From Pentemind_Illume_Status `CanIndentBK`. Only `1` grants finance actions.
   final int canIndentBk;
 
+  /// Branding indent id if created.
+  final String? brandingIndentId;
+
   /// Compatibility alias for existing callers.
   int get franchiseeId => businessRefId;
 
@@ -53,6 +57,14 @@ class IndentItem extends Equatable {
 
   /// Show Branding Kit when `CanIndentBK == 1`.
   bool get canShowBrandingKit => canAccessFinanceActions;
+
+  /// Returns true if a Branding Kit indent has already been created.
+  bool get hasBrandingIndent =>
+      brandingIndentId != null && brandingIndentId!.trim().isNotEmpty;
+
+  /// Message displayed when a Branding Kit indent already exists.
+  String get brandingIndentMessage =>
+      'Branding Kit indent already created with Indent Id ${brandingIndentId?.trim()}.';
 
   factory IndentItem.fromJson(Map<String, dynamic> json) {
     return IndentItem(
@@ -72,6 +84,7 @@ class IndentItem extends Equatable {
       projectStatus: _asString(json['ProjectStatus']),
       businessRefId: _asInt(json['BusinessRef_Id'] ?? json['Franchisee_Id']),
       canIndentBk: _asInt(_field(json, 'CanIndentBK')),
+      brandingIndentId: _asNullableString(_field(json, 'Branding_Indent_Id')),
     );
   }
 
@@ -92,7 +105,15 @@ class IndentItem extends Equatable {
         'ProjectStatus': projectStatus,
         'BusinessRef_Id': businessRefId,
         'CanIndentBK': canIndentBk,
+        'Branding_Indent_Id': brandingIndentId,
       };
+
+  static String? _asNullableString(dynamic v) {
+    if (v == null) return null;
+    final text = v.toString().trim();
+    if (text.isEmpty || text.toLowerCase() == 'null') return null;
+    return text;
+  }
 
   static String _asString(dynamic v) => v?.toString().trim() ?? '';
 
@@ -150,6 +171,7 @@ class IndentItem extends Equatable {
         projectStatus,
         businessRefId,
         canIndentBk,
+        brandingIndentId,
       ];
 }
 
