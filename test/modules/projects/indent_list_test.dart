@@ -120,6 +120,22 @@ void main() {
       final item = IndentItem.fromJson({'CAN_INDENT_BK': true});
       expect(item.canShowBrandingKit, isTrue);
     });
+
+    test('parses Branding_Indent_Id and provides state / message', () {
+      final withNull = IndentItem.fromJson({'Branding_Indent_Id': null});
+      expect(withNull.brandingIndentId, isNull);
+      expect(withNull.hasBrandingIndent, isFalse);
+
+      final withIndent = IndentItem.fromJson({
+        'Branding_Indent_Id': '1051468',
+      });
+      expect(withIndent.brandingIndentId, '1051468');
+      expect(withIndent.hasBrandingIndent, isTrue);
+      expect(
+        withIndent.brandingIndentMessage,
+        'Branding Kit indent already created with Indent Id 1051468.',
+      );
+    });
   });
 
   group('IndentActionRoles', () {

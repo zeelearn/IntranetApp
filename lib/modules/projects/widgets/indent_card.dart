@@ -26,6 +26,7 @@ class IndentCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isBrandingDisabled = item.hasBrandingIndent;
     final paymentColor = _statusColor(item.paymentStatus);
     final projectColor = _statusColor(item.projectStatus);
     final indentColor = _statusColor(item.indentStatus);
@@ -190,15 +191,48 @@ class IndentCard extends StatelessWidget {
                     ],
                     if (showBrandingKit)
                       Expanded(
-                        child: _ActionButton(
-                          icon: Icons.palette_outlined,
-                          label: 'Branding Kit',
-                          color: DashboardColors.purple,
-                          onTap: onBrandingKit,
+                        child: GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: isBrandingDisabled
+                              ? () {
+                                  ScaffoldMessenger.of(context)
+                                      .hideCurrentSnackBar();
+                                  ScaffoldMessenger.of(context)
+                                      .showSnackBar(
+                                    SnackBar(
+                                      content: Text(item.brandingIndentMessage),
+                                    ),
+                                  );
+                                }
+                              : null,
+                          child: Tooltip(
+                            message: isBrandingDisabled
+                                ? item.brandingIndentMessage
+                                : '',
+                            child: _ActionButton(
+                              icon: Icons.palette_outlined,
+                              label: 'Branding Kit',
+                              color: isBrandingDisabled
+                                  ? DashboardColors.textMuted
+                                  : DashboardColors.purple,
+                              onTap: isBrandingDisabled ? null : onBrandingKit,
+                            ),
+                          ),
                         ),
                       ),
                   ],
                 ),
+              if (item.hasBrandingIndent) ...[
+                const SizedBox(height: 6),
+                Text(
+                  item.brandingIndentMessage,
+                  style: GoogleFonts.poppins(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w500,
+                    color: DashboardColors.textMuted,
+                  ),
+                ),
+              ],
             ],
           ),
         ),
@@ -347,11 +381,18 @@ class _ActionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final enabled = onTap != null && !loading;
+    final effectiveColor = enabled ? color : DashboardColors.textMuted;
     return OutlinedButton(
-      onPressed: onTap,
+      onPressed: enabled ? onTap : null,
       style: OutlinedButton.styleFrom(
         foregroundColor: color,
-        side: BorderSide(color: color.withValues(alpha: 0.35)),
+        disabledForegroundColor: DashboardColors.textMuted,
+        side: BorderSide(
+          color: enabled
+              ? color.withValues(alpha: 0.35)
+              : DashboardColors.textMuted.withValues(alpha: 0.25),
+        ),
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
         minimumSize: const Size(0, 40),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -369,7 +410,7 @@ class _ActionButton extends StatelessWidget {
               ),
             )
           else if (icon != null)
-            Icon(icon, size: 16, color: color),
+            Icon(icon, size: 16, color: effectiveColor),
           const SizedBox(width: 6),
           Flexible(
             child: Text(
@@ -379,7 +420,7 @@ class _ActionButton extends StatelessWidget {
               style: GoogleFonts.poppins(
                 fontSize: 11,
                 fontWeight: FontWeight.w600,
-                color: color,
+                color: effectiveColor,
               ),
             ),
           ),

@@ -281,5 +281,35 @@ void main() {
         isFalse,
       );
     });
+
+    test('Branding_Indent_Id null vs non-null state and message', () {
+      final withNull = ProjectItem.fromJson({
+        'Branding_Indent_Id': null,
+      });
+      expect(withNull.brandingIndentId, isNull);
+      expect(withNull.hasBrandingIndent, isFalse);
+
+      final withEmpty = ProjectItem.fromJson({
+        'Branding_Indent_Id': '   ',
+      });
+      expect(withEmpty.brandingIndentId, isNull);
+      expect(withEmpty.hasBrandingIndent, isFalse);
+
+      final withLiteralNull = ProjectItem.fromJson({
+        'Branding_Indent_Id': 'null',
+      });
+      expect(withLiteralNull.brandingIndentId, isNull);
+      expect(withLiteralNull.hasBrandingIndent, isFalse);
+
+      final withIndent = ProjectItem.fromJson({
+        'Branding_Indent_Id': '1051468',
+      });
+      expect(withIndent.brandingIndentId, '1051468');
+      expect(withIndent.hasBrandingIndent, isTrue);
+      expect(
+        withIndent.brandingIndentMessage,
+        'Branding Kit indent already created with Indent Id 1051468.',
+      );
+    });
   });
 }
